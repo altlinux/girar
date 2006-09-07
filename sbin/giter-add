@@ -89,6 +89,5 @@ install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 
 git-clone --bare --template=/etc/giter/templates/etc \
 	/people/ldv/admin/packages.git "$REAL_HOME/etc/packages.git" &&
-	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" &&
-	echo packages >"$REAL_HOME/etc/packages.git/description" ||
+	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
