@@ -1,0 +1,32 @@
+#!/bin/sh -e
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} <directory>"
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -eq 1 ] ||
+	usage 'Too many arguments.'
+
+[ -n "$USER" ] ||
+	fatal 'USER undefined'
+
+cd "/people/${USER#git_}/packages"
+
+dir0="$1" && shift
+dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
+printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+	fatal "$dir0: invalid directory name"
+cd "$dir.git"
+cd "/people/${USER#git_}/packages"
+rm -rf "$dir.git"

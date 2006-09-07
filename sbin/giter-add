@@ -1,0 +1,94 @@
+#!/bin/sh -e
+export IFS=' 	
+'
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+umask 022
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} <NAME> <IDENTITY FILE> <GECOS>"
+	exit 1
+}
+
+NAME=$1
+[ -n "$NAME" ] ||
+	usage 'not specified: NAME'
+shift
+printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
+	fatal "$NAME: invalid NAME specified"
+
+IDFILE=$1
+[ -n "$IDFILE" ] ||
+	usage 'not specified: IDENTITY FILE'
+shift
+
+[ -r "$IDFILE" ] ||
+	fatal "identity file '$IDFILE' not found"
+IDFILE=$(readlink -ev "$IDFILE")
+[ -z "${IDFILE##/home/$SUDO_USER/*}" ] ||
+	fatal "identity file '$IDFILE' out of range"
+
+IDENTITY=$(cat "$IDFILE") ||
+	fatal "$IDFILE: error reading identity file"
+
+n=`echo "$IDENTITY" |wc -l`
+[ "$(echo "$n" |awk '{print $1}')" = 1 ] ||
+	fatal "$IDFILE: invalid identity file"
+s="$(echo "$IDENTITY" |head -c7)"
+n="$(echo "$s" |head -c4)"
+[ ssh-dss = "$s" -o ssh-rsa = "$s" ] ||
+	fatal "$IDFILE: invalid identity file: unrecognized type"
+
+GECOS="$*"
+[ -n "$GECOS" ] ||
+	usage 'not specified: GECOS'
+[ -n "${GECOS//*:*/}" ] ||
+	fatal "$NAME: invalid GECOS specified"
+
+PREFIX=git
+
+IT_NAME="${PREFIX}_$NAME"
+IT_HOME='/home/giter'
+IT_SHELL="/usr/local/bin/giter-sh"
+REAL_HOME="/people/$NAME"
+[ -d "$IT_HOME" ] ||
+	fatal "error adding $NAME: directory $IT_HOME not available"
+
+AUTH="/etc/openssh/authorized_keys/$IT_NAME"
+[ ! -e "$AUTH" ] ||
+	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
+
+useradd -c "$GECOS" -d "$IT_HOME" -g 'giter' -M -s "$IT_SHELL" "$IT_NAME" ||
+	fatal "$IT_NAME: error adding user"
+
+printf '%s:\t%s@altlinux.org\n' "$IT_NAME" "$NAME" >>/etc/postfix/git.aliases &&
+	newaliases ||
+	fatal "$IT_NAME: error adding mail alias"
+
+echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUTH" ||
+	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
+
+setquota "$IT_NAME" 1000000 1500000 100000 150000 / ||
+	fatal "$IT_NAME: failed to set disk quota"
+
+install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME" ||
+	fatal "$IT_NAME: failed to create $REAL_HOME"
+
+install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME/packages" ||
+	fatal "$IT_NAME: failed to create $REAL_HOME/packages"
+
+install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
+	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
+
+git-clone --bare --template=/etc/giter/templates/etc \
+	/people/ldv/admin/packages.git "$REAL_HOME/etc/packages.git" &&
+	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" &&
+	echo packages >"$REAL_HOME/etc/packages.git/description" ||
+	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"

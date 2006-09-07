@@ -1,0 +1,35 @@
+#!/bin/sh -e
+export IFS=' 	
+'
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+umask 022
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} <NAME>"
+	exit 1
+}
+
+NAME=$1
+[ -n "$NAME" ] ||
+	usage 'not specified: NAME'
+shift
+printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
+	fatal "$NAME: invalid NAME specified"
+
+PREFIX=git
+
+IT_NAME="${PREFIX}_$NAME"
+AUTH="/etc/openssh/authorized_keys/$IT_NAME"
+[ -e "$AUTH" ] ||
+	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
+
+chmod a+r "$AUTH" ||
+	fatal "error setting permissions on authorized keys file '$AUTH' for user $IT_NAME"

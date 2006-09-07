@@ -1,0 +1,51 @@
+#!/bin/sh -e
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} <repository> <directory>"
+	exit 1
+}
+
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -eq 2 ] ||
+	usage 'Too many arguments.'
+
+[ -n "$USER" ] ||
+	fatal 'USER undefined'
+
+cd "/people/${USER#git_}/packages"
+
+repo0="$1" && shift
+dir0="$1" && shift
+
+repo=
+if [ -e "$repo0" ]; then
+	repo="$(readlink -ev "$repo")"
+	[ -z "${repo#/srv/git/pub/people/*}" ] ||
+		fatal "$repo0: invalid local repository"
+fi
+if [ -z "$repo" ]; then
+	case "$repo0" in
+		rsync://*|https://*|http://*) ;;
+		*) fatal "$repo0: invalid repository" ;;
+	esac
+fi
+
+dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
+printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+	fatal "$dir0: invalid directory name"
+[ ! -e "$dir".git ] ||
+	fatal "$dir0: destination already exists"
+
+git-clone --bare --template=/etc/giter/templates/packages "$repo0" "$dir.git"
+echo "$dir" >"$dir".git/description
+umask 027
+touch "$dir".git/mailto
