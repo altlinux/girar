@@ -19,6 +19,8 @@ install: install-conf install-bin install-sbin
 
 install-conf: conf
 	rsync -vrlpt --delete-after conf/ ${DESTDIR}/etc/giter/
+	install -d -m755 ${DESTDIR}/etc/giter/people
+	install -d -m750 ${DESTDIR}/etc/giter/people/etc
 	-chgrp -hR wheel ${DESTDIR}/etc/giter/people
 
 install-bin: bin/giter-sh bin/people-init-db bin/people-rm-db bin/people-clone
