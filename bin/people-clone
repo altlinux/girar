@@ -9,13 +9,13 @@ fatal()
 usage()
 {
 	echo "${0##*/}: $*" >&2
-	echo "usage: ${0##*/} <repository> <directory>"
+	echo "usage: ${0##*/} <repository> [<directory>]"
 	exit 1
 }
 
-[ "$#" -ge 2 ] ||
+[ "$#" -ge 1 ] ||
 	usage 'Not enough arguments.'
-[ "$#" -eq 2 ] ||
+[ "$#" -le 2 ] ||
 	usage 'Too many arguments.'
 
 [ -n "$USER" ] ||
@@ -24,8 +24,6 @@ usage()
 cd "/people/${USER#git_}/packages"
 
 repo0="$1" && shift
-dir0="$1" && shift
-
 repo=
 if [ -e "$repo0" ]; then
 	repo="$(readlink -ev "$repo")"
@@ -37,6 +35,12 @@ if [ -z "$repo" ]; then
 		rsync://*|https://*|http://*) ;;
 		*) fatal "$repo0: invalid repository" ;;
 	esac
+fi
+
+if [ "$#" -ge 1 ]; then
+	dir0="$1" && shift
+else
+	dir0="${repo0##*/}"
 fi
 
 dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"

@@ -73,7 +73,7 @@ main (int ac, char *av[])
 "%s<directory>\n"
 "%s<directory>\n"
 "%s<directory>\n"
-"%s<repository> <directory>\n"
+"%s<repository> [<directory>]\n"
 "list\n"
 "help\n",
 				git_receive_pack,
