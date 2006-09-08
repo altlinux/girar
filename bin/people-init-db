@@ -30,6 +30,6 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 mkdir "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=/etc/giter/templates/packages
-echo "$dir" >description
+echo "packages/$dir" >description
 umask 027
 touch mailto

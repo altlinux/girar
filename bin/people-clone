@@ -50,6 +50,6 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dir0: destination already exists"
 
 git-clone --bare --template=/etc/giter/templates/packages "$repo0" "$dir.git"
-echo "$dir" >"$dir".git/description
+echo "packages/$dir" >"$dir".git/description
 umask 027
 touch "$dir".git/mailto
