@@ -68,7 +68,8 @@ typedef struct
 static cmd_t commands[] = {
 	{"git-init-db", "/usr/local/bin/people-init-db", " <directory>"},
 	{"git-rm-db", "/usr/local/bin/people-rm-db", " <directory>"},
-	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"}
+	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"},
+	{"ls", "/usr/local/bin/people-ls", " [<directory>]"}
 };
 
 static void exec_cmd(cmd_t *cmd, char *str);
@@ -86,21 +87,14 @@ shell (char *av[])
 	if (!strcmp("help", av[2]))
 	{
 		printf("Available commands:\n"
+		       "help\n"
 		       "%s<directory>\n"
 		       "%s<directory>\n",
 		       git_receive_pack,
 		       git_upload_pack);
 		for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
 			printf("%s%s\n", commands[i].name, commands[i].usage);
-		printf("list\nhelp\n");
 		exit(EXIT_SUCCESS);
-	}
-
-	if (!strcmp("list", av[2]))
-	{
-		const char *args[] = { "ls", "-log", "packages", NULL };
-		execv("/bin/ls", (char *const *) args);
-		error(EXIT_FAILURE, errno, "execv: %s", args[0]);
 	}
 
 	if (!strncmp(git_receive_pack, av[2], sizeof(git_receive_pack) - 1) ||
@@ -115,7 +109,7 @@ shell (char *av[])
 	{
 		size_t len = strlen(commands[i].name);
 		if (!strncmp(commands[i].name, av[2], len) &&
-		    isblank(av[2][len]))
+		    (av[2][len] == '\0' || isblank(av[2][len])))
 			exec_cmd(&commands[i], &av[2][len]);
 	}
 

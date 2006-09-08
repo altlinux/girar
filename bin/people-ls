@@ -1,0 +1,32 @@
+#!/bin/sh -efu
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} [<directory>]"
+	exit 1
+}
+
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+
+[ -n "${USER:-}" ] ||
+	fatal 'USER undefined'
+cd "/people/${USER#git_}"
+
+if [ "$#" -ge 1 ]; then
+	dir="$1" && shift
+else
+	dir='packages'
+fi
+
+printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+	fatal "$dir: invalid directory name"
+
+exec ls -log "$dir"/
