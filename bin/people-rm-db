@@ -9,7 +9,7 @@ fatal()
 usage()
 {
 	echo "${0##*/}: $*" >&2
-	echo "usage: ${0##*/} <directory>"
+	echo "usage: ${0##*/} <directory>" >&2
 	exit 1
 }
 
