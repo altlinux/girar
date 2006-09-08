@@ -57,7 +57,11 @@ DIFFMAX=65536
 date_format="%F %T %z"
 git_dir="$(readlink -e "$GIT_DIR")"
 git_dir="${git_dir#/srv/git/pub}"
-project="$(head -n1 $GIT_DIR/description)"
+project_name="${git_dir##*/}"
+project_name="${project_name%.git}"
+project_type="${git_dir%/*}"
+project_type="${project_type##*/}"
+project="$project_type/$project_name"
 charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 
 cat >"$MSG" <<EOF
