@@ -29,4 +29,7 @@ fi
 printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dir: invalid directory name"
 
-exec ls -log "$dir"/
+[ -d "$dir" ] ||
+	fatal "$dir: directory not available"
+
+exec ls -log -- "$dir"/
