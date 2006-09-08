@@ -28,13 +28,13 @@ ref_type="$(git-cat-file -t "$3")" || exit 1
 # Only allow annotated tags in a shared repo
 # Remove this code to treat dumb tags the same as everything else
 case "$1,$ref_type" in
-refs/tags/*,commit)
+refs/tags/*,tag)
+	echo "### Pushing version '${1##refs/tags/}' to the masses" >&2
+	;;
+refs/tags/*,*)
 	echo >&2 "*** Un-annotated tags are not allowed in this repo"
 	echo >&2 "*** Use 'git-tag [ -a | -s ]' for tags you want to propagate."
 	exit 1
-	;;
-refs/tags/*,tag)
-	echo "### Pushing version '${1##refs/tags/}' to the masses" >&2
 	;;
 esac
 
@@ -63,7 +63,7 @@ charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 cat >"$MSG" <<EOF
 To: $mailto
 From: ${USER#git_}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))
-Subject: [git update] $project: ${1##refs/heads/}
+Subject: [git update] $project: ${1#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
 X-git-dir: $git_dir
 X-git-description: $project
