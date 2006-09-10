@@ -18,7 +18,13 @@ export LANG LANGUAGE LC_ALL
 
 # check ref name
 case "$1" in
-refs/heads/*|refs/tags/*)
+refs/heads/*)
+	ref_style=heads
+	ref_name="${1#refs/heads/}"
+	;;
+refs/tags/*)
+	ref_style=tags
+	ref_name="${1#refs/tags/}"
 	;;
 *)
 	echo >&2 "*** Unrecognized ref name: $1"
@@ -31,7 +37,7 @@ ref_type="$(git-cat-file -t "$3")" || exit 1
 # Only allow annotated tags in a shared repo
 case "$1,$ref_type" in
 refs/tags/*,tag)
-	echo "### Pushing version '${1#refs/tags/}' to the masses" >&2
+	echo "### Pushing version '$ref_name' to the masses" >&2
 	;;
 refs/tags/*,*)
 	echo >&2 "*** Un-annotated tags are not allowed in this repo"
@@ -51,8 +57,55 @@ project_type="${project_type##*/}"
 project="$project_type/$project_name"
 charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 
+# quote argument for sed regexp.
+quote_sed_regexp()
+{
+	local out="$*"
+	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
+		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
+			return 1
+	fi
+	printf %s "$out"
+}
+
+mailto=
+find_subscribers()
+{
+	if [ "$project_type" != packages ]; then
+		cat $GIT_DIR/mailto 2>/dev/null
+		return
+	fi
+
+	local s='[[:space:]]'
+	local u="$(quote_sed_regexp "${USER#git_}")"
+	local p="$(quote_sed_regexp "$project_name")"
+	local t="$(quote_sed_regexp "$ref_style")"
+	local n="$(quote_sed_regexp "$ref_name")"
+	local dir=/etc/giter-email/packages
+	local a
+
+	a="$(grep -l "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
+		"$dir"/*/subscription |
+		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
+	set -- ${a}
+	for a; do
+		a="$(quote_sed_regexp "$a")"
+		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+	done
+
+	a="$(cat "$dir/$u/distribution" |
+		sed -ne "s/^\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s\\+\\([^[:space:]]\\+\\)\$/\\4/p" |
+		tr , ' ')"
+	set -- ${a}
+	for a; do
+		a="$(quote_sed_regexp "$a")"
+		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+	done
+}
+
 mailto="$(
-	cat $GIT_DIR/mailto 2>/dev/null |
+	find_subscribers |
+	sort -u
 	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//'
@@ -86,15 +139,15 @@ EOF
 
 new_head()
 {
-	branch="${1##refs/heads/}"
-	echo "New branch \`$branch' available with the following commits:"
+	branch="${1#refs/heads/}"
+	echo "New branch \`$ref_name' available with the following commits:"
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
 new_tag()
 {
 	# a pushed and annotated tag (usually) means a new version
-	tag="${1##refs/tags/}"
+	tag="${1#refs/tags/}"
 	if [ "$ref_type" = tag ]; then
 		TAG="$workdir/tag"
 		git-cat-file tag "$3" >"$TAG"
