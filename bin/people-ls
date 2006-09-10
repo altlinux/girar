@@ -26,10 +26,20 @@ else
 	dir='packages'
 fi
 
-printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
 	fatal "$dir: invalid directory name"
 
 [ -d "$dir" ] ||
 	fatal "$dir: directory not available"
+
+[ -z "${dir%%*/}" ] || dir="$dir/"
+[ -n "${dir##/*}" -o -z "${dir##/people/*}" ] ||
+	fatal "$dir: invalid directory name"
+d="$(readlink -e "$dir")/" ||
+	fatal "$dir: directory not available"
+p="$(readlink -e /people)" ||
+	fatal "$dir: directory not available"
+[ -z "${d##$p/*}" ] ||
+	fatal "$dir: invalid directory name"
 
 exec ls -log -- "$dir"/
