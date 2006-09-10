@@ -16,20 +16,22 @@ LANGUAGE=C
 LC_ALL=C
 export LANG LANGUAGE LC_ALL
 
-mailto="$(
-	cat $GIT_DIR/mailto 2>/dev/null |
-	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
-	tr -s '\n' , |
-	sed -e 's/^,\+//' -e 's/,\+$//'
-)"
+# check ref name
+case "$1" in
+refs/heads/*|refs/tags/*)
+	;;
+*)
+	echo >&2 "*** Unrecognized ref name: $1"
+	exit 1
+	;;
+esac
 
 ref_type="$(git-cat-file -t "$3")" || exit 1
 
 # Only allow annotated tags in a shared repo
-# Remove this code to treat dumb tags the same as everything else
 case "$1,$ref_type" in
 refs/tags/*,tag)
-	echo "### Pushing version '${1##refs/tags/}' to the masses" >&2
+	echo "### Pushing version '${1#refs/tags/}' to the masses" >&2
 	;;
 refs/tags/*,*)
 	echo >&2 "*** Un-annotated tags are not allowed in this repo"
@@ -38,6 +40,23 @@ refs/tags/*,*)
 	;;
 esac
 
+diff_max=65536
+date_format="%F %T %z"
+git_dir="$(readlink -e "$GIT_DIR")" || exit 1
+git_dir="${git_dir#/srv/git/pub}"
+project_name="${git_dir##*/}"
+project_name="${project_name%.git}"
+project_type="${git_dir%/*}"
+project_type="${project_type##*/}"
+project="$project_type/$project_name"
+charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
+
+mailto="$(
+	cat $GIT_DIR/mailto 2>/dev/null |
+	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
+	tr -s '\n' , |
+	sed -e 's/^,\+//' -e 's/,\+$//'
+)"
 [ -n "$mailto" ] || exit 0
 
 exit_handler()
@@ -53,17 +72,6 @@ trap exit_handler HUP PIPE INT QUIT TERM EXIT
 MSG="$workdir/message"
 DIFF="$workdir/diff"
 
-DIFFMAX=65536
-date_format="%F %T %z"
-git_dir="$(readlink -e "$GIT_DIR")"
-git_dir="${git_dir#/srv/git/pub}"
-project_name="${git_dir##*/}"
-project_name="${project_name%.git}"
-project_type="${git_dir%/*}"
-project_type="${project_type##*/}"
-project="$project_type/$project_name"
-charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
-
 cat >"$MSG" <<EOF
 To: $mailto
 From: ${USER#git_}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))
@@ -76,53 +84,54 @@ Update of $git_dir
 
 EOF
 
-if expr "$2" : '0*$' >/dev/null; then
-	# new ref
-	case "$1" in
-	refs/tags/*)
-		# a pushed and annotated tag (usually) means a new version
-		tag="${1##refs/tags/}"
-		if [ "$ref_type" = tag ]; then
-			TAG="$workdir/tag"
-			git-cat-file tag "$3" >"$TAG"
-			tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$TAG")"
-			ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$TAG")"
-			date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
-			echo "Tag '$tag' created by $tagger at $date"
-			echo "with the following message:"
-			git-cat-file tag "$3" |sed -n '5,$p'
-			echo =======
-			echo
-		fi
-		prev="$(git-describe "$3^" 2>/dev/null| sed 's/-g.*//')"
-		# the first tag in a repo will yield no $prev
-		if [ -z "$prev" ]; then
-			echo "Changes since the dawn of time:"
-			git-rev-list --pretty "$3"
-		else
-			echo "Changes since \`$prev':"
-			git-diff "$3" "^$prev" >"$DIFF"
-			git-diff --stat "$3" "^$prev"
-			echo
-			git-rev-list --pretty "$3" "^$prev"
-			echo
-			SIZE="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
-			if [ $SIZE -ge $DIFFMAX ]; then
-				echo "Full changes since \`$prev' are too large ($SIZE bytes)"
-			else
-				echo "Full changes since \`$prev' follow:"
-				cat "$DIFF"
-			fi
-		fi
-		;;
+new_head()
+{
+	branch="${1##refs/heads/}"
+	echo "New branch \`$branch' available with the following commits:"
+	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
+}
 
-	refs/heads/*)
-		branch="${1##refs/heads/}"
-		echo "New branch \`$branch' available with the following commits:"
-		git-rev-list --pretty "$3" $(git-rev-parse --not --all)
-		;;
-	esac
-else
+new_tag()
+{
+	# a pushed and annotated tag (usually) means a new version
+	tag="${1##refs/tags/}"
+	if [ "$ref_type" = tag ]; then
+		TAG="$workdir/tag"
+		git-cat-file tag "$3" >"$TAG"
+		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$TAG")"
+		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$TAG")"
+		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
+		echo "Tag '$tag' created by $tagger at $date"
+		echo "with the following message:"
+		git-cat-file tag "$3" |sed -n '5,$p'
+		echo =======
+		echo
+	fi
+
+	prev="$(git-describe "$3^" 2>/dev/null| sed 's/-g.*//')"
+	# the first tag in a repo will yield no $prev
+	if [ -z "$prev" ]; then
+		echo "Changes since the dawn of time:"
+		git-rev-list --pretty "$3"
+	else
+		echo "Changes since \`$prev':"
+		git-diff "$3" "^$prev" >"$DIFF"
+		git-diff --stat "$3" "^$prev"
+		echo
+		git-rev-list --pretty "$3" "^$prev"
+		echo
+		SIZE="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
+		if [ $SIZE -ge $diff_max ]; then
+			echo "Full changes since \`$prev' are too large ($SIZE bytes)"
+		else
+			echo "Full changes since \`$prev' follow:"
+			cat "$DIFF"
+		fi
+	fi
+}
+
+update_ref()
+{
 	base="$(git-merge-base "$2" "$3")"
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
@@ -143,13 +152,27 @@ else
 		git-rev-list --pretty "$3" "^$base"
 		echo
 		SIZE="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
-		if [ $SIZE -ge $DIFFMAX ]; then
+		if [ $SIZE -ge $diff_max ]; then
 			echo "Full changes since \`$prev' are too large ($SIZE bytes)"
 		else
 			echo "Full changes since \`$prev' follow:"
 			cat "$DIFF"
 		fi
 	fi
+}
+
+if expr "$2" : '0*$' >/dev/null; then
+	# new ref
+	case "$1" in
+	refs/heads/*)
+		new_head "$@"
+		;;
+	refs/tags/*)
+		new_tag "$@"
+		;;
+	esac
+else
+	update_ref "$@"
 fi >>"$MSG"
 
 /usr/sbin/sendmail -i -t <"$MSG"
