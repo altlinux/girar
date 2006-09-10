@@ -64,7 +64,6 @@ mailto="$(
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//'
 )"
-[ -n "$mailto" ] || exit 0
 
 exit_handler()
 {
@@ -166,6 +165,16 @@ update_ref()
 			cat "$DIFF"
 		fi
 	fi
+	if [ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ]; then
+		for n in distribution subscription; do
+			if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
+			   fgrep -qs email-"$n"; then
+				git-cat-file blob "$3:email-$n" |
+					grep '^[^#]' >"$workdir/$n"
+				cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/$n"
+			fi
+		done
+	fi
 }
 
 if expr "$2" : '0*$' >/dev/null; then
@@ -182,5 +191,7 @@ else
 	update_ref "$@"
 fi >>"$MSG"
 
-/usr/sbin/sendmail -i -t <"$MSG"
+if [ -n "$mailto" ]; then
+	/usr/sbin/sendmail -i -t <"$MSG"
+fi
 exit 0
