@@ -91,3 +91,8 @@ git-clone --bare --template=/etc/giter/templates/etc \
 	/people/ldv/admin/packages.git "$REAL_HOME/etc/packages.git" &&
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
+
+EMAIL_DIR=/etc/giter-email/packages
+mkdir -p "$EMAIL_DIR"
+install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
+	fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
