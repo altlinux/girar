@@ -89,7 +89,7 @@ find_subscribers()
 	local dir=/etc/giter-email/packages
 	local a
 
-	a="$(grep -l "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
+	a="$(grep -ls "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
 		"$dir"/*/subscription |
 		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
 	set -- ${a}
@@ -98,7 +98,7 @@ find_subscribers()
 		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
 	done
 
-	a="$(cat "$dir/$u/distribution" |
+	a="$(cat "$dir/$u/distribution" 2>/dev/null |
 		sed -ne "s/^\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s\\+\\([^[:space:]]\\+\\)\$/\\4/p" |
 		tr , ' ')"
 	set -- ${a}
