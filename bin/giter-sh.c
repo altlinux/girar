@@ -81,6 +81,7 @@ typedef struct
 
 static cmd_t commands[] = {
 	{"git-init-db", "/usr/local/bin/people-init-db", " <directory>"},
+	{"git-mv-db", "/usr/local/bin/people-mv-db", " <source-directory> <dest-directory>"},
 	{"git-rm-db", "/usr/local/bin/people-rm-db", " <directory>"},
 	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"},
 	{"ls", "/usr/local/bin/people-ls", " [<directory>]"}
