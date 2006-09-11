@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <syslog.h>
 
 static void shell(char *av[]);
 
@@ -82,6 +83,10 @@ shell (char *av[])
 
 	if (strcmp("-c", av[1]))
 		error(EXIT_FAILURE, EINVAL, "%s", av[1]);
+
+	openlog("giter-sh", LOG_PID, LOG_USER);
+	syslog(LOG_INFO, "%s", av[2]);
+	closelog();
 
 	unsigned i;
 	if (!strcmp("help", av[2]))
