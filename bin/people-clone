@@ -26,8 +26,9 @@ cd "/people/${USER#git_}/packages"
 repo0="$1" && shift
 repo=
 if [ -e "$repo0" ]; then
-	repo="$(readlink -ev "$repo")"
-	[ -z "${repo#/srv/git/pub/people/*}" ] ||
+	repo="$(readlink -ev "$repo0")/"
+	people="$(readlink -ev /people)"
+	[ -z "${repo##$people/*}" ] ||
 		fatal "$repo0: invalid local repository"
 fi
 if [ -z "$repo" ]; then
