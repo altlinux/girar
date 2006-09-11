@@ -268,6 +268,7 @@ new_tag()
 		echo
 	fi
 
+	local prev size
 	prev="$(git-describe "$3^" 2>/dev/null| sed 's/-g.*//')"
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
@@ -280,9 +281,9 @@ new_tag()
 		echo
 		git-rev-list --pretty "$3" "^$prev"
 		echo
-		SIZE="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
-		if [ $SIZE -ge $diff_max ]; then
-			echo "Full changes since \`$prev' are too large ($SIZE bytes)"
+		size="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
+		if [ $size -ge $diff_max ]; then
+			echo "Full changes since \`$prev' are too large ($size bytes)"
 		else
 			echo "Full changes since \`$prev' follow:"
 			cat "$DIFF"
@@ -295,6 +296,7 @@ update_ref()
 	do_side_effects "$@"
 	[ -n "$mailto" ] || return 0
 
+	local base prev size
 	base="$(git-merge-base "$2" "$3")"
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
@@ -314,9 +316,9 @@ update_ref()
 		echo
 		git-rev-list --pretty "$3" "^$base"
 		echo
-		SIZE="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
-		if [ $SIZE -ge $diff_max ]; then
-			echo "Full changes since \`$prev' are too large ($SIZE bytes)"
+		size="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
+		if [ $size -ge $diff_max ]; then
+			echo "Full changes since \`$prev' are too large ($size bytes)"
 		else
 			echo "Full changes since \`$prev' follow:"
 			cat "$DIFF"
@@ -338,7 +340,6 @@ else
 	update_ref "$@"
 fi >>"$MSG"
 
-if [ -n "$mailto" ]; then
+[ -z "$mailto" ] ||
 	/usr/sbin/sendmail -i -t <"$MSG"
-fi
 exit 0
