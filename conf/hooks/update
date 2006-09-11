@@ -68,7 +68,8 @@ charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 
 check_side_effects()
 {
-	[ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ]
+	[ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ] ||
+		return
 }
 
 # quote argument for sed regexp.
@@ -77,7 +78,7 @@ quote_sed_regexp()
 	local out="$*"
 	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
 		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
-			return 1
+			return
 	fi
 	printf %s "$out"
 }
@@ -86,7 +87,8 @@ translate_email()
 {
 	local a="$1" && shift
 	local a="$(quote_sed_regexp "$a")"
-	sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+	sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" \
+		</etc/postfix/git.aliases
 }
 
 find_subscribers()
@@ -108,17 +110,13 @@ find_subscribers()
 		"$dir"/*/subscription |
 		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
 	set -- ${a}
-	for a; do
-		translate_email "$a"
-	done
+	for a; do translate_email "$a"; done
 
 	a="$(cat "$dir/$u/distribution" 2>/dev/null |
 		sed -ne "s/^\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s\\+\\([^[:space:]]\\+\\)\$/\\4/p" |
 		tr , ' ')"
 	set -- ${a}
-	for a; do
-		translate_email "$a"
-	done
+	for a; do translate_email "$a"; done
 }
 
 mailto="$(
@@ -179,8 +177,9 @@ validate_email_list()
 
 do_side_effects()
 {
-	check_side_effects "$@" || return
+	check_side_effects "$@" || return 0
 
+	local u p t n a line rest
 	for n in distribution subscription; do
 		if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
 		   fgrep -qs email-"$n"; then
@@ -189,7 +188,6 @@ do_side_effects()
 		fi
 	done
 
-	local u p t n a line rest
 	if [ -f "$workdir/distribution" ]; then
 		line=0
 		while read -r p t n a rest; do
@@ -201,7 +199,6 @@ do_side_effects()
 				"$p" "$t" "$n" "$rest"
 			validate_email_list "email-distribution:$line" "$a"
 		done <"$workdir/distribution"
-		cp "$workdir/distribution" "/etc/giter-email/packages/${USER#git_}/"
 	fi
 
 	if [ -f "$workdir/subscription" ]; then
@@ -220,8 +217,13 @@ do_side_effects()
 				} ||
 				fatal "$where: invalid user pattern: $u"
 		done <"$workdir/subscription"
-		cp "$workdir/subscription" "/etc/giter-email/packages/${USER#git_}/"
 	fi
+
+	for n in distribution subscription; do
+		if [ -f "$workdir/$n" ]; then
+			cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/"
+		fi
+	done
 }
 
 MSG="$workdir/message"
@@ -241,18 +243,23 @@ EOF
 
 new_head()
 {
+	[ -n "$mailto" ] || return 0
+
 	echo "New ${ref_style%s} \`$ref_name' available with the following commits:"
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
 new_tag()
 {
+	[ -n "$mailto" ] || return 0
+
 	# a pushed and annotated tag (usually) means a new version
 	if [ "$ref_type" = tag ]; then
-		TAG="$workdir/tag"
-		git-cat-file tag "$3" >"$TAG"
-		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$TAG")"
-		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$TAG")"
+		local tag="$workdir/tag"
+		git-cat-file tag "$3" >"$tag"
+		local tagger ts date
+		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
+		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
 		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
 		echo "Tag \`$ref_name' created by $tagger at $date"
 		echo "with the following message:"
@@ -285,6 +292,9 @@ new_tag()
 
 update_ref()
 {
+	do_side_effects "$@"
+	[ -n "$mailto" ] || return 0
+
 	base="$(git-merge-base "$2" "$3")"
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
@@ -312,7 +322,6 @@ update_ref()
 			cat "$DIFF"
 		fi
 	fi
-	do_side_effects "$@"
 }
 
 if expr "$2" : '0*$' >/dev/null; then
