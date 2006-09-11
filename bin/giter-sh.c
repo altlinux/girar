@@ -55,7 +55,13 @@ main (int ac, char *av[])
 		error(EXIT_FAILURE, errno, "setenv: PATH");
 
 	if (3 == ac)
+	{
+		openlog("giter-sh", LOG_PID, LOG_USER);
+		syslog(LOG_INFO, "%s: %s %s",
+		       pw->pw_name + sizeof(prefix) - 1, av[1], av[2]);
+		closelog();
 		shell(av);
+	}
 
 	error(EXIT_FAILURE, 0, "invalid arguments");
 	return EXIT_FAILURE;
@@ -83,10 +89,6 @@ shell (char *av[])
 
 	if (strcmp("-c", av[1]))
 		error(EXIT_FAILURE, EINVAL, "%s", av[1]);
-
-	openlog("giter-sh", LOG_PID, LOG_USER);
-	syslog(LOG_INFO, "%s", av[2]);
-	closelog();
 
 	unsigned i;
 	if (!strcmp("help", av[2]))
