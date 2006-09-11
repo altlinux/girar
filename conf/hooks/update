@@ -25,19 +25,19 @@ fatal()
 # check ref name
 case "$1" in
 refs/heads/*)
-	ref_style=heads
+	ref_style=head
 	ref_name="${1#refs/heads/}"
 	;;
 refs/tags/*)
-	ref_style=tags
+	ref_style=tag
 	ref_name="${1#refs/tags/}"
 	;;
 refs/releases/*)
-	ref_style=releases
+	ref_style=release
 	ref_name="${1#refs/releases/}"
 	;;
 refs/remotes/*)
-	ref_style=remotes
+	ref_style=remote
 	ref_name="${1#refs/remotes/}"
 	;;
 *)
@@ -78,7 +78,7 @@ check_etc_packages()
 
 check_packages_releases()
 {
-	[ "$project_type" = "packages" -a "$ref_style" = "releases" ] ||
+	[ "$project_type" = "packages" -a "$ref_style" = "release" ] ||
 		return
 }
 
@@ -166,7 +166,7 @@ validate_distribution_subscription()
 		printf %s "$p" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
-		\*|heads|tags|releases|remotes) ;;
+		\*|head|tag|release|remote) ;;
 		*) fatal "$where: invalid reftype pattern: $t" ;;
 	esac
 	[ "$n" = '*' ] ||
@@ -263,7 +263,7 @@ new_head()
 {
 	[ -n "$mailto" ] || return 0
 
-	echo "New ${ref_style%s} \`$ref_name' available with the following commits:"
+	echo "New $ref_style \`$ref_name' available with the following commits:"
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
