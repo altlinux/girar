@@ -38,21 +38,28 @@ main (int ac, char *av[])
 	if (chdir(home) < 0)
 		error(EXIT_FAILURE, errno, "chdir");
 
+	const char *tmpdir = getenv("TMPDIR");
+	if (tmpdir)
+		tmpdir = strdup(tmpdir);
+
 	/* environ */
 	if (clearenv() < 0)
 		error(EXIT_FAILURE, errno, "clearenv");
 
 	if (setenv("USER", pw->pw_name, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: USER");
+		error(EXIT_FAILURE, errno, "setenv: %s", "USER");
 
 	if (setenv("LOGNAME", pw->pw_name, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: LOGNAME");
+		error(EXIT_FAILURE, errno, "setenv: %s", "LOGNAME");
 
 	if (setenv("HOME", home, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: HOME");
+		error(EXIT_FAILURE, errno, "setenv: %s", "HOME");
 
 	if (setenv("PATH", "/bin:/usr/bin", 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: PATH");
+		error(EXIT_FAILURE, errno, "setenv: %s", "PATH");
+
+	if (tmpdir && *tmpdir && setenv("TMPDIR", tmpdir, 1) < 0)
+		error(EXIT_FAILURE, errno, "setenv: %s", "TMPDIR");
 
 	if (3 == ac)
 	{
