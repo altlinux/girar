@@ -57,6 +57,11 @@ project_type="${project_type##*/}"
 project="$project_type/$project_name"
 charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 
+check_side_effects()
+{
+	[ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ]
+}
+
 mailto="$(
 	cat "$GIT_DIR/mailto" 2>/dev/null |
 	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
@@ -64,6 +69,9 @@ mailto="$(
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//'
 )"
+[ -n "$mailto" ] ||
+	check_side_effects "$@" ||
+	exit 0
 
 exit_handler()
 {
@@ -74,6 +82,19 @@ exit_handler()
 }
 workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
 trap exit_handler HUP PIPE INT QUIT TERM EXIT
+
+do_side_effects()
+{
+	check_side_effects "$@" || return
+	for n in distribution subscription; do
+		if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
+		   fgrep -qs email-"$n"; then
+			git-cat-file blob "$3:email-$n" 2>/dev/null |
+				grep '^[^#]' >"$workdir/$n"
+			cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/$n"
+		fi
+	done
+}
 
 MSG="$workdir/message"
 DIFF="$workdir/diff"
@@ -165,16 +186,7 @@ update_ref()
 			cat "$DIFF"
 		fi
 	fi
-	if [ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ]; then
-		for n in distribution subscription; do
-			if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
-			   fgrep -qs email-"$n"; then
-				git-cat-file blob "$3:email-$n" |
-					grep '^[^#]' >"$workdir/$n"
-				cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/$n"
-			fi
-		done
-	fi
+	do_side_effects "$@"
 }
 
 if expr "$2" : '0*$' >/dev/null; then
