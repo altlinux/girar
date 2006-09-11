@@ -26,6 +26,10 @@ refs/tags/*)
 	ref_style=tags
 	ref_name="${1#refs/tags/}"
 	;;
+refs/remotes/*)
+	ref_style=remotes
+	ref_name="${1#refs/remotes/}"
+	;;
 *)
 	echo >&2 "*** Unrecognized ref name: $1"
 	exit 1
@@ -159,22 +163,20 @@ EOF
 
 new_head()
 {
-	branch="${1#refs/heads/}"
-	echo "New branch \`$ref_name' available with the following commits:"
+	echo "New ${ref_style%s} \`$ref_name' available with the following commits:"
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
 new_tag()
 {
 	# a pushed and annotated tag (usually) means a new version
-	tag="${1#refs/tags/}"
 	if [ "$ref_type" = tag ]; then
 		TAG="$workdir/tag"
 		git-cat-file tag "$3" >"$TAG"
 		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$TAG")"
 		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$TAG")"
 		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
-		echo "Tag '$tag' created by $tagger at $date"
+		echo "Tag \`$ref_name' created by $tagger at $date"
 		echo "with the following message:"
 		git-cat-file tag "$3" |sed -n '5,$p'
 		echo =======
@@ -238,7 +240,7 @@ update_ref()
 if expr "$2" : '0*$' >/dev/null; then
 	# new ref
 	case "$1" in
-	refs/heads/*)
+	refs/heads/*|refs/remotes/*)
 		new_head "$@"
 		;;
 	refs/tags/*)
