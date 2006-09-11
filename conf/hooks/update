@@ -16,6 +16,12 @@ LANGUAGE=C
 LC_ALL=C
 export LANG LANGUAGE LC_ALL
 
+fatal()
+{
+	printf %s\\n "git-update: $*" >&2
+	exit 1
+}
+
 # check ref name
 case "$1" in
 refs/heads/*)
@@ -31,8 +37,7 @@ refs/remotes/*)
 	ref_name="${1#refs/remotes/}"
 	;;
 *)
-	echo >&2 "*** Unrecognized ref name: $1"
-	exit 1
+	fatal "Unrecognized ref name: $1"
 	;;
 esac
 
@@ -77,7 +82,13 @@ quote_sed_regexp()
 	printf %s "$out"
 }
 
-mailto=
+translate_email()
+{
+	local a="$1" && shift
+	local a="$(quote_sed_regexp "$a")"
+	sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+}
+
 find_subscribers()
 {
 	if [ "$project_type" != packages ]; then
@@ -98,8 +109,7 @@ find_subscribers()
 		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
 	set -- ${a}
 	for a; do
-		a="$(quote_sed_regexp "$a")"
-		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+		translate_email "$a"
 	done
 
 	a="$(cat "$dir/$u/distribution" 2>/dev/null |
@@ -107,8 +117,7 @@ find_subscribers()
 		tr , ' ')"
 	set -- ${a}
 	for a; do
-		a="$(quote_sed_regexp "$a")"
-		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+		translate_email "$a"
 	done
 }
 
@@ -133,17 +142,86 @@ exit_handler()
 workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
 trap exit_handler HUP PIPE INT QUIT TERM EXIT
 
+validate_distribution_subscription()
+{
+	local where="$1" && shift
+	local p="$1" && shift
+	local t="$1" && shift
+	local n="$1" && shift
+	local rest="$1" && shift
+
+	if [ -n "$rest" ]; then
+		fatal "$where: unexpected field: $rest"
+	fi
+	[ "$p" = '*' ] ||
+		printf %s "$p" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+		fatal "$where: invalid package pattern: $p"
+	case "$t" in
+		\*|heads|tags|remotes) ;;
+		*) fatal "$where: invalid reftype pattern: $t" ;;
+	esac
+	[ "$n" = '*' ] ||
+		git-check-ref-format "refs/$n" ||
+		fatal "$where: invalid refname pattern: $n"
+}
+
+validate_email_list()
+{
+	local where="$1" && shift
+	local addr="$1" && shift
+	local a="$(printf %s "$addr" |tr , ' ')"
+	set -- ${a}
+	for a; do
+		[ -n "$(translate_email "$a")" ] ||
+			fatal "$where: invalid email list: user $a not found."
+	done
+}
+
 do_side_effects()
 {
 	check_side_effects "$@" || return
+
 	for n in distribution subscription; do
 		if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
 		   fgrep -qs email-"$n"; then
 			git-cat-file blob "$3:email-$n" 2>/dev/null |
-				grep '^[^#]' >"$workdir/$n"
-			cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/$n"
+				egrep '^[[:space:]]*[^#]' >"$workdir/$n"
 		fi
 	done
+
+	local u p t n a line rest
+	if [ -f "$workdir/distribution" ]; then
+		line=0
+		while read -r p t n a rest; do
+			line="$((1+$line))"
+			[ -n "$a" ] ||
+				fatal "email-distribution:$line: insufficient fields."
+			validate_distribution_subscription \
+				"email-distribution:$line" \
+				"$p" "$t" "$n" "$rest"
+			validate_email_list "email-distribution:$line" "$a"
+		done <"$workdir/distribution"
+		cp "$workdir/distribution" "/etc/giter-email/packages/${USER#git_}/"
+	fi
+
+	if [ -f "$workdir/subscription" ]; then
+		line=0
+		while read -r u p t n rest; do
+			line="$((1+$line))"
+			[ -n "$n" ] ||
+				fatal "email-subscription:$line: insufficient fields."
+			validate_distribution_subscription \
+				"email-subscription:$line" \
+				"$p" "$t" "$n" "$rest"
+			[ "$u" = '*' ] ||
+				{
+					printf %s "$u" |egrep -qs '^[a-z][a-z_0-9]+$' &&
+					[ -d "/people/$u" ]
+				} ||
+				fatal "$where: invalid user pattern: $u"
+		done <"$workdir/subscription"
+		cp "$workdir/subscription" "/etc/giter-email/packages/${USER#git_}/"
+	fi
 }
 
 MSG="$workdir/message"
