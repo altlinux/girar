@@ -58,7 +58,7 @@ project="$project_type/$project_name"
 charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 
 mailto="$(
-	cat $GIT_DIR/mailto 2>/dev/null |
+	cat "$GIT_DIR/mailto" 2>/dev/null |
 	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
 	sort -u |
 	tr -s '\n' , |

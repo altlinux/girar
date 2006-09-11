@@ -72,7 +72,7 @@ mailto=
 find_subscribers()
 {
 	if [ "$project_type" != packages ]; then
-		cat $GIT_DIR/mailto 2>/dev/null
+		cat "$GIT_DIR/mailto" 2>/dev/null
 		return
 	fi
 
