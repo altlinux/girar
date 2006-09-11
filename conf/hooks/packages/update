@@ -105,8 +105,8 @@ find_subscribers()
 
 mailto="$(
 	find_subscribers |
-	sort -u
 	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
+	sort -u |
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//'
 )"
