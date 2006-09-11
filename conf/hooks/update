@@ -62,8 +62,54 @@ check_side_effects()
 	[ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ]
 }
 
+# quote argument for sed regexp.
+quote_sed_regexp()
+{
+	local out="$*"
+	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
+		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
+			return 1
+	fi
+	printf %s "$out"
+}
+
+mailto=
+find_subscribers()
+{
+	if [ "$project_type" != packages ]; then
+		cat "$GIT_DIR/mailto" 2>/dev/null
+		return
+	fi
+
+	local s='[[:space:]]'
+	local u="$(quote_sed_regexp "${USER#git_}")"
+	local p="$(quote_sed_regexp "$project_name")"
+	local t="$(quote_sed_regexp "$ref_style")"
+	local n="$(quote_sed_regexp "$ref_name")"
+	local dir=/etc/giter-email/packages
+	local a
+
+	a="$(grep -l "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
+		"$dir"/*/subscription |
+		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
+	set -- ${a}
+	for a; do
+		a="$(quote_sed_regexp "$a")"
+		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+	done
+
+	a="$(cat "$dir/$u/distribution" |
+		sed -ne "s/^\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s\\+\\([^[:space:]]\\+\\)\$/\\4/p" |
+		tr , ' ')"
+	set -- ${a}
+	for a; do
+		a="$(quote_sed_regexp "$a")"
+		sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" </etc/postfix/git.aliases
+	done
+}
+
 mailto="$(
-	cat "$GIT_DIR/mailto" 2>/dev/null |
+	find_subscribers |
 	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
 	sort -u |
 	tr -s '\n' , |
