@@ -295,8 +295,8 @@ new_tag()
 		git-rev-list --pretty "$3"
 	else
 		echo "Changes since \`$prev':"
-		git-diff "$3" "^$prev" >"$DIFF"
-		git-diff --stat "$3" "^$prev"
+		git-diff -M "$3" "^$prev" >"$DIFF"
+		git-diff -M --stat "$3" "^$prev"
 		echo
 		git-rev-list --pretty "$3" "^$prev"
 		echo
@@ -331,8 +331,8 @@ update_ref()
 			echo "Changes since common ancestor \`$prev':"
 			;;
 		esac
-		git-diff "$3" "^$base" >"$DIFF"
-		git-diff --stat "$3" "^$base"
+		git-diff -M "$3" "^$base" >"$DIFF"
+		git-diff -M --stat "$3" "^$base"
 		echo
 		git-rev-list --pretty "$3" "^$base"
 		echo
