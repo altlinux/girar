@@ -47,14 +47,14 @@ esac
 
 ref_type="$(git-cat-file -t "$3")" || exit 1
 
-# Only allow annotated tags in a shared repo
+# Only allow annotated tags and releases in a shared repo
 case "$1,$ref_type" in
-refs/tags/*,tag)
-	echo "### Pushing version '$ref_name' to the masses" >&2
+refs/tags/*,tag|refs/releases/*,tag)
+	echo "### Pushing $ref_style \`$ref_name' to the masses" >&2
 	;;
-refs/tags/*,*)
-	echo >&2 "*** Un-annotated tags are not allowed in this repo"
-	echo >&2 "*** Use 'git-tag [ -a | -s ]' for tags you want to propagate."
+refs/tags/*,*|refs/releases/*,*)
+	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
+	echo >&2 "*** Use \`git-tag [ -a | -s ]' for tags you want to propagate."
 	exit 1
 	;;
 esac
