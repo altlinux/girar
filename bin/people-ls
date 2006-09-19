@@ -41,4 +41,4 @@ p="$(readlink -e /people)" ||
 [ -z "${d##$p/*}" ] ||
 	fatal "$dir: invalid directory name"
 
-exec ls -log -- "$dir"/
+exec ls -log -- "$dir"
