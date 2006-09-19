@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -efu
 
 fatal()
 {
@@ -18,7 +18,7 @@ usage()
 [ "$#" -le 2 ] ||
 	usage 'Too many arguments.'
 
-[ -n "$USER" ] ||
+[ -n "${USER:-}" ] ||
 	fatal 'USER undefined'
 
 cd "/people/${USER#git_}/packages"
@@ -51,6 +51,8 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dir0: destination already exists"
 
 git-clone --bare --template=/etc/giter/templates/packages "$repo0" "$dir.git"
-echo "packages/$dir" >"$dir".git/description
-umask 027
-touch "$dir".git/mailto
+cd "$dir.git"
+echo "packages/$dir" >description
+GIT_DIR=`/bin/pwd`
+export GIT_DIR
+exec /etc/giter/hooks/packages/post-update
