@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -efu
 
 fatal()
 {
@@ -18,7 +18,7 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "$USER" ] ||
+[ -n "${USER:-}" ] ||
 	fatal 'USER undefined'
 
 cd "/people/${USER#git_}/packages"
@@ -31,5 +31,3 @@ mkdir "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=/etc/giter/templates/packages
 echo "packages/$dir" >description
-umask 027
-touch mailto
