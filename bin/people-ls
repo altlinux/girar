@@ -22,12 +22,11 @@ cd "/people/${USER#git_}"
 
 if [ "$#" -ge 1 ]; then
 	dir="$1" && shift
+	printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
+		fatal "$dir: invalid directory name"
 else
-	dir='packages'
+	dir=.
 fi
-
-printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
-	fatal "$dir: invalid directory name"
 
 [ -d "$dir" ] ||
 	fatal "$dir: directory not available"
