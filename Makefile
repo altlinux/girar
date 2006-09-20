@@ -23,7 +23,7 @@ install-conf: conf
 	install -d -m750 ${DESTDIR}/etc/giter/people/etc
 	-chgrp -hR wheel ${DESTDIR}/etc/giter/people
 
-install-bin: bin/giter-sh bin/people-clone bin/people-init-db bin/people-ls bin/people-find bin/people-mv-db bin/people-rm-db
+install-bin: bin/giter-sh bin/people-clone bin/people-find bin/people-init-db bin/people-ls bin/people-mv-db bin/people-quota bin/people-rm-db
 	install -pm750 -oroot -ggiter $^ ${DESTDIR}${PREFIX}/bin/
 
 install-sbin: sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero sbin/giter-disable sbin/giter-enable

@@ -85,7 +85,8 @@ static cmd_t commands[] = {
 	{"git-rm-db", "/usr/local/bin/people-rm-db", " <directory>"},
 	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"},
 	{"find-package", "/usr/local/bin/people-find", " <pattern>"},
-	{"ls", "/usr/local/bin/people-ls", " [<directory>]"}
+	{"ls", "/usr/local/bin/people-ls", " [<directory>]"},
+	{"quota", "/usr/local/bin/people-quota", ""}
 };
 
 static void exec_cmd(cmd_t *cmd, char *str);
