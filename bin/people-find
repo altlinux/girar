@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+fatal()
+{
+	echo "${0##*/}: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "${0##*/}: $*" >&2
+	echo "usage: ${0##*/} <pattern>" >&2
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -eq 1 ] ||
+	usage 'Too many arguments.'
+
+[ -n "${USER:-}" ] ||
+	fatal 'USER undefined'
+
+[ -n "$1" ] || 
+	fatal 'invalid pattern'
+
+exec find /people/[a-z]*/packages/ -mindepth 1 -maxdepth 1 -type d \( -name "$1" -or -name "$1.git" \) -print
