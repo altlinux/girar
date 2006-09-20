@@ -1,15 +1,17 @@
 #!/bin/sh -efu
 
+PROG=git-ls
+
 fatal()
 {
-	echo "${0##*/}: $*" >&2
+	echo "$PROG: $*" >&2
 	exit 1
 }
 
 usage()
 {
-	echo "${0##*/}: $*" >&2
-	echo "usage: ${0##*/} [<directory>]" >&2
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG [<directory>]" >&2
 	exit 1
 }
 
