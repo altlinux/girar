@@ -1,13 +1,4 @@
 #!/bin/sh -efu
 
-usage()
-{
-	echo "${0##*/}: $*" >&2
-	echo "usage: ${0##*/}" >&2
-	exit 1
-}
-
-[ "$#" -eq 0 ] ||
-	usage 'Too many arguments.'
-
+# do not check args, just show quota.
 exec quota -ils
