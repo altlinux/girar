@@ -84,7 +84,7 @@ static cmd_t commands[] = {
 	{"git-mv-db", "/usr/local/bin/people-mv-db", " <source-directory> <dest-directory>"},
 	{"git-rm-db", "/usr/local/bin/people-rm-db", " <directory>"},
 	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"},
-	{"find", "/usr/local/bin/people-find", " <pattern>"},
+	{"find-package", "/usr/local/bin/people-find", " <pattern>"},
 	{"ls", "/usr/local/bin/people-ls", " [<directory>]"}
 };
 

@@ -24,4 +24,5 @@ usage()
 [ -n "$1" ] || 
 	fatal 'invalid pattern'
 
-exec find /people/[a-z]*/packages/ -mindepth 1 -maxdepth 1 -type d \( -name "$1" -or -name "$1.git" \) -print
+cd /people
+exec find [a-z]*/packages/ -mindepth 1 -maxdepth 1 -type d \( -name "$1" -or -name "$1.git" \) -print
