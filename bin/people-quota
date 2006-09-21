@@ -1,4 +1,8 @@
 #!/bin/sh -efu
 
+[ -n "${USER:-}" ] || 
+	{ echo "quota: USER undefined" >&2; exit 1; }
+
 # do not check args, just show quota.
-exec quota -ils
+# and fix username like in other utilities.
+quota -ils |sed -e "s#git_$USER#$USER#g"
