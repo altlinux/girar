@@ -3,6 +3,5 @@
 [ -n "${USER:-}" ] || 
 	{ echo "quota: USER undefined" >&2; exit 1; }
 
-# do not check args, just show quota.
-# and fix username like in other utilities.
-quota -ils |sed -e "s#git_$USER#$USER#g"
+# do not check args, just show quota and filter out username.
+quota -ils |fgrep -ve "user $USER"
