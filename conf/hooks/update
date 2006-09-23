@@ -22,6 +22,10 @@ fatal()
 	exit 1
 }
 
+if [ "$1" = "refs/heads/origin" ]; then
+	fatal "$1 is not designed for publication and therefore is not allowed in this repo"
+fi
+
 # check ref name
 case "$1" in
 refs/heads/*)
