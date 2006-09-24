@@ -33,3 +33,4 @@ mkdir "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=/etc/giter/templates/packages
 echo "packages/$dir" >description
+install -m600 /dev/null git-daemon-export-ok

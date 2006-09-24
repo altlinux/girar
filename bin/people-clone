@@ -55,6 +55,7 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 git-clone --bare --template=/etc/giter/templates/packages "$repo0" "$dir.git"
 cd "$dir.git"
 echo "packages/$dir" >description
+install -m600 /dev/null git-daemon-export-ok
 GIT_DIR=`/bin/pwd`
 export GIT_DIR
 exec /etc/giter/hooks/packages/post-update
