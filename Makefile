@@ -16,6 +16,7 @@ clean:
 	$(RM) bin/giter-sh
 
 install: install-conf install-bin install-sbin
+	install -d -m751 -g wheel /home/giter
 
 install-conf: conf
 	rsync -vrlpt --delete-after conf/ ${DESTDIR}/etc/giter/
