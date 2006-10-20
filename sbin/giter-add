@@ -29,10 +29,17 @@ IDFILE=$1
 	usage 'not specified: IDENTITY FILE'
 shift
 
-[ -r "$IDFILE" ] ||
-	fatal "identity file '$IDFILE' not found"
-IDFILE=$(readlink -ev "$IDFILE")
-[ -z "${IDFILE##/home/$SUDO_USER/*}" ] ||
+IDFILE="$(readlink -ev "$IDFILE")" ||
+	fatal "identity file '$IDFILE' not available"
+
+SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
+	fatal "sudo user '$SUDO_USER' not found"
+
+SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
+	[ -d "$SUDO_HOME" ] ||
+	fatal "sudo user '$SUDO_USER' home directory '$SUDO_HOME' not available"
+
+[ -z "${IDFILE##$SUDO_HOME/*}" ] ||
 	fatal "identity file '$IDFILE' out of range"
 
 IDENTITY=$(cat "$IDFILE") ||
