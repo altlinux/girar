@@ -250,10 +250,12 @@ handle_packages_releases()
 
 MSG="$workdir/message"
 DIFF="$workdir/diff"
+FROM_ADDR="${USER#git_}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))"
 
 cat >"$MSG" <<EOF
 To: $mailto
-From: ${USER#git_}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))
+From: $FROM_ADDR
+Reply-To: $FROM_ADDR
 Subject: [git update] $project: ${1#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
 X-git-dir: $git_dir
