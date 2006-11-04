@@ -65,8 +65,9 @@ esac
 
 diff_max=65536
 date_format="%F %T %z"
-git_dir="$(readlink -e "$GIT_DIR")" || exit 1
-git_dir="${git_dir#/srv/git/pub}"
+git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
+giter_home="$(readlink -ev "$GITER_HOME")" || exit 1
+git_dir="$GITER_HOME${git_dir#$giter_home}"
 project_name="${git_dir##*/}"
 project_name="${project_name%.git}"
 project_type="${git_dir%/*}"
@@ -101,7 +102,7 @@ translate_email()
 {
 	local a="$1" && shift
 	local a="$(quote_sed_regexp "$a")"
-	sed -ne "s/^git_$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" \
+	sed -ne "s/^${GITER_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" \
 		</etc/postfix/git.aliases
 }
 
@@ -113,7 +114,7 @@ find_subscribers()
 	fi
 
 	local s='[[:space:]]'
-	local u="$(quote_sed_regexp "${USER#git_}")"
+	local u="$(quote_sed_regexp "$GITER_USER")"
 	local p="$(quote_sed_regexp "$project_name")"
 	local t="$(quote_sed_regexp "$ref_style")"
 	local n="$(quote_sed_regexp "$ref_name")"
@@ -228,7 +229,7 @@ handle_etc_packages()
 			[ "$u" = '*' ] ||
 				{
 					printf %s "$u" |egrep -qs '^[a-z][a-z_0-9]+$' &&
-					[ -d "/people/$u" ]
+					[ -d "$GITER_HOME/$u" ]
 				} ||
 				fatal "$where: invalid user pattern: $u"
 		done <"$workdir/subscription"
@@ -236,7 +237,7 @@ handle_etc_packages()
 
 	for n in distribution subscription; do
 		if [ -f "$workdir/$n" ]; then
-			cp "$workdir/$n" "/etc/giter-email/packages/${USER#git_}/"
+			cp "$workdir/$n" "/etc/giter-email/packages/$GITER_USER/"
 		fi
 	done
 }
@@ -250,7 +251,7 @@ handle_packages_releases()
 
 MSG="$workdir/message"
 DIFF="$workdir/diff"
-FROM_ADDR="${USER#git_}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))"
+FROM_ADDR="${GITER_USER}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))"
 
 cat >"$MSG" <<EOF
 To: $mailto

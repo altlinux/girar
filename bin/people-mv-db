@@ -20,10 +20,7 @@ usage()
 [ "$#" -eq 2 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
-
-cd "/people/${USER#git_}/packages"
+cd "$HOME/packages"
 
 srcdir0="$1" && shift
 srcdir="$(printf %s "$srcdir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
@@ -41,6 +38,6 @@ printf %s "$dstdir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dstdir0: destination directory already exists"
 
 cd "$srcdir.git"
-cd "/people/${USER#git_}/packages"
+cd "$HOME/packages"
 mkdir -- "$dstdir.git"
 mv -T -- "$srcdir.git" "$dstdir.git"

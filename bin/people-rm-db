@@ -20,10 +20,7 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
-
-cd "/people/${USER#git_}/packages"
+cd "$HOME/packages"
 
 dir0="$1" && shift
 dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
@@ -32,5 +29,5 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 [ -d "$dir.git" ] ||
 	fatal "$dir0: directory not available"
 cd "$dir.git"
-cd "/people/${USER#git_}/packages"
-rm -rf "$dir.git"
+cd "$HOME/packages"
+rm -rf -- "$dir.git"

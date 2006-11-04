@@ -20,16 +20,16 @@ usage()
 [ "$#" -le 2 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
+[ -n "${GITER_HOME:-}" ] ||
+	fatal 'GITER_HOME undefined'
 
-cd "/people/${USER#git_}/packages"
+cd "$HOME/packages"
 
 repo0="$1" && shift
 repo=
 if [ -e "$repo0" ]; then
 	repo="$(readlink -ev "$repo0")/"
-	people="$(readlink -ev /people)"
+	people="$(readlink -ev "$GITER_HOME")"
 	[ -z "${repo##$people/*}" ] ||
 		fatal "$repo0: invalid local repository"
 fi

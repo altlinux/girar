@@ -20,17 +20,14 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
-
-cd "/people/${USER#git_}/packages"
+cd "$HOME/packages"
 
 dir0="$1" && shift
 dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
 printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dir0: invalid directory name"
-mkdir "$dir.git"
+mkdir -- "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=/etc/giter/templates/packages
 echo "packages/$dir" >description
-install -m600 /dev/null git-daemon-export-ok
+install -m600 -- /dev/null git-daemon-export-ok

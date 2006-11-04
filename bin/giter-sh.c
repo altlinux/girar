@@ -17,55 +17,51 @@ int
 main (int ac, char *av[])
 {
 	uid_t   uid = getuid();
+
 	if (!uid)
 		error(EXIT_FAILURE, 0, "must be non-root");
 
 	struct passwd *pw = getpwuid(uid);
+
 	if (!pw)
 		error(EXIT_FAILURE, errno, "getpwuid");
 
-	/* check for prefix, be quiet about failure */
-	const char prefix[] = "git_";
-	if (strncmp(pw->pw_name, prefix, sizeof(prefix) - 1))
-		error(EXIT_FAILURE, 0, "prefix not found");
+	const char *giter_user = pw->pw_name + sizeof(USER_PREFIX) - 1;
+
+	if (strncmp(pw->pw_name, USER_PREFIX, sizeof(USER_PREFIX) - 1) ||
+	    giter_user[0] == '\0')
+		error(EXIT_FAILURE, 0, "invalid account name");
 
 	char   *home;
-	if (asprintf(&home, "%s%s",
-		     "/people/", pw->pw_name + sizeof(prefix) - 1) < 0)
+
+	if (asprintf(&home, "%s/%s", GITER_HOME, giter_user) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 
-	/* chdir to new home, be quiet about failure */
 	if (chdir(home) < 0)
 		error(EXIT_FAILURE, errno, "chdir");
 
 	const char *tmpdir = getenv("TMPDIR");
+
 	if (tmpdir)
 		tmpdir = strdup(tmpdir);
 
-	/* environ */
 	if (clearenv() < 0)
 		error(EXIT_FAILURE, errno, "clearenv");
 
-	if (setenv("USER", pw->pw_name, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: %s", "USER");
-
-	if (setenv("LOGNAME", pw->pw_name, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: %s", "LOGNAME");
-
-	if (setenv("HOME", home, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: %s", "HOME");
-
-	if (setenv("PATH", "/bin:/usr/bin", 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: %s", "PATH");
-
-	if (tmpdir && *tmpdir && setenv("TMPDIR", tmpdir, 1) < 0)
-		error(EXIT_FAILURE, errno, "setenv: %s", "TMPDIR");
+	if ((setenv("USER", pw->pw_name, 1) < 0) ||
+	    (setenv("LOGNAME", pw->pw_name, 1) < 0) ||
+	    (setenv("HOME", home, 1) < 0) ||
+	    (setenv("PATH", "/bin:/usr/bin", 1) < 0) ||
+	    (setenv("GITER_USER_PREFIX", USER_PREFIX, 1) < 0) ||
+	    (setenv("GITER_USER", giter_user, 1) < 0) ||
+	    (setenv("GITER_HOME", GITER_HOME, 1) < 0) ||
+	    (tmpdir && *tmpdir && setenv("TMPDIR", tmpdir, 1) < 0))
+		error(EXIT_FAILURE, errno, "setenv");
 
 	if (3 == ac)
 	{
 		openlog("giter-sh", LOG_PID, LOG_USER);
-		syslog(LOG_INFO, "%s: %s %s",
-		       pw->pw_name + sizeof(prefix) - 1, av[1], av[2]);
+		syslog(LOG_INFO, "%s: %s %s", giter_user, av[1], av[2]);
 		closelog();
 		shell(av);
 	}

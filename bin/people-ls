@@ -18,9 +18,10 @@ usage()
 [ "$#" -le 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
-cd "/people/${USER#git_}"
+[ -n "${GITER_HOME:-}" ] ||
+	fatal 'GITER_HOME undefined'
+
+cd
 
 if [ "$#" -ge 1 ]; then
 	dir="$1" && shift
@@ -34,11 +35,11 @@ fi
 	fatal "$dir: directory not available"
 
 [ -z "${dir%%*/}" ] || dir="$dir/"
-[ -n "${dir##/*}" -o -z "${dir##/people/*}" ] ||
+[ -n "${dir##/*}" -o -z "${dir##$GITER_HOME/*}" ] ||
 	fatal "$dir: invalid directory name"
 d="$(readlink -e "$dir")/" ||
 	fatal "$dir: directory not available"
-p="$(readlink -e /people)" ||
+p="$(readlink -e "$GITER_HOME")" ||
 	fatal "$dir: directory not available"
 [ -z "${d##$p/*}" ] ||
 	fatal "$dir: invalid directory name"

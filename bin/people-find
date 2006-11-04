@@ -20,11 +20,15 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${USER:-}" ] ||
-	fatal 'USER undefined'
-
 [ -n "$1" ] || 
 	fatal 'invalid pattern'
 
-cd /people
-exec find [a-z]*/packages/ -mindepth 1 -maxdepth 1 -type d \( -name "$1" -or -name "$1.git" \) -print
+[ -n "${GITER_HOME:-}" ] ||
+	fatal 'GITER_HOME undefined'
+
+cd "$GITER_HOME"
+for d in [a-z]*; do
+	[ -d "$d" ] || continue
+	find "$GITER_HOME/$d/packages/" -mindepth 1 -maxdepth 1 -type d \
+		\( -name "$1" -or -name "$1.git" \) -print ||:
+done

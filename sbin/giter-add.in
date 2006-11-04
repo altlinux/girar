@@ -4,9 +4,14 @@ export IFS='
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
 
-fatal()
+error()
 {
 	echo "${0##*/}: $*" >&2
+}
+
+fatal()
+{
+	error "$*"
 	exit 1
 }
 
@@ -59,14 +64,16 @@ GECOS="$*"
 [ -n "${GECOS//*:*/}" ] ||
 	fatal "$NAME: invalid GECOS specified"
 
-PREFIX=git
-IT_NAME="${PREFIX}_$NAME"
-IT_HOME='/home/giter'
+IT_NAME="@USER_PREFIX@$NAME"
+IT_HOME="@GITER_FAKE_HOME@"
 IT_SHELL="@CMDDIR@/giter-sh"
-REAL_HOME="/people/$NAME"
+GITER_HOME="@GITER_HOME@"
+REAL_HOME="$GITER_HOME/$NAME"
 
 [ -d "$IT_HOME" ] ||
 	fatal "error adding $NAME: directory $IT_HOME not available"
+[ -d "$GITER_HOME" ] ||
+	fatal "error adding $NAME: directory $GITER_HOME not available"
 
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
@@ -75,15 +82,16 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 useradd -c "$GECOS" -d "$IT_HOME" -g 'giter' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
-printf '%s:\t%s@altlinux.org\n' "$IT_NAME" "$NAME" >>/etc/postfix/git.aliases &&
+printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>/etc/postfix/git.aliases &&
 	newaliases ||
 	fatal "$IT_NAME: error adding mail alias"
 
 echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
-setquota "$IT_NAME" 1000000 1500000 100000 150000 / ||
-	fatal "$IT_NAME: failed to set disk quota"
+GITER_HOME_MOUNT="$(df -P "$GITER_HOME" |awk '{dir=$6} END{print dir}')"
+setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GITER_HOME_MOUNT" ||
+	error "$IT_NAME: failed to set disk quota on $GITER_HOME_MOUNT"
 
 install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME"
@@ -95,7 +103,7 @@ install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
 git-clone --bare --template=/etc/giter/templates/etc \
-	/people/ldv/admin/packages.git "$REAL_HOME/etc/packages.git" &&
+	"$GITER_HOME/ldv/admin/packages.git" "$REAL_HOME/etc/packages.git" &&
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
 
