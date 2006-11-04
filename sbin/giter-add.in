@@ -60,11 +60,11 @@ GECOS="$*"
 	fatal "$NAME: invalid GECOS specified"
 
 PREFIX=git
-
 IT_NAME="${PREFIX}_$NAME"
 IT_HOME='/home/giter'
-IT_SHELL="/usr/local/bin/giter-sh"
+IT_SHELL="@CMDDIR@/giter-sh"
 REAL_HOME="/people/$NAME"
+
 [ -d "$IT_HOME" ] ||
 	fatal "error adding $NAME: directory $IT_HOME not available"
 

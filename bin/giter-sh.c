@@ -80,13 +80,13 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"git-init-db", "/usr/local/bin/people-init-db", " <directory>"},
-	{"git-mv-db", "/usr/local/bin/people-mv-db", " <source-directory> <dest-directory>"},
-	{"git-rm-db", "/usr/local/bin/people-rm-db", " <directory>"},
-	{"git-clone", "/usr/local/bin/people-clone", " <repository> [<directory>]"},
-	{"find-package", "/usr/local/bin/people-find", " <pattern>"},
-	{"ls", "/usr/local/bin/people-ls", " [<directory>]"},
-	{"quota", "/usr/local/bin/people-quota", ""}
+	{"git-init-db", CMD_PREFIX "people-init-db", " <directory>"},
+	{"git-mv-db", CMD_PREFIX "people-mv-db", " <source-directory> <dest-directory>"},
+	{"git-rm-db", CMD_PREFIX "people-rm-db", " <directory>"},
+	{"git-clone", CMD_PREFIX "people-clone", " <repository> [<directory>]"},
+	{"find-package", CMD_PREFIX "people-find", " <pattern>"},
+	{"ls", CMD_PREFIX "people-ls", " [<directory>]"},
+	{"quota", CMD_PREFIX "people-quota", ""}
 };
 
 static void exec_cmd(cmd_t *cmd, char *str);
