@@ -1,3 +1,23 @@
+/*
+  Copyright (C) 2006  Dmitry V. Levin <ldv@altlinux.org>
+
+  The giter shell.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+*/
+
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -76,13 +96,13 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"git-init-db", CMD_PREFIX "people-init-db", " <directory>"},
-	{"git-mv-db", CMD_PREFIX "people-mv-db", " <source-directory> <dest-directory>"},
-	{"git-rm-db", CMD_PREFIX "people-rm-db", " <directory>"},
-	{"git-clone", CMD_PREFIX "people-clone", " <repository> [<directory>]"},
-	{"find-package", CMD_PREFIX "people-find", " <pattern>"},
-	{"ls", CMD_PREFIX "people-ls", " [<directory>]"},
-	{"quota", CMD_PREFIX "people-quota", ""}
+	{"git-init-db", "people-init-db", " <directory>"},
+	{"git-mv-db", "people-mv-db", " <source-directory> <dest-directory>"},
+	{"git-rm-db", "people-rm-db", " <directory>"},
+	{"git-clone", "people-clone", " <repository> [<directory>]"},
+	{"find-package", "people-find", " <pattern>"},
+	{"ls", "people-ls", " [<directory>]"},
+	{"quota", "people-quota", ""}
 };
 
 static void exec_cmd(cmd_t *cmd, char *str);
@@ -131,15 +151,13 @@ shell (char *av[])
 
 static void exec_cmd(cmd_t *cmd, char *str)
 {
-	const char *slash = strrchr(cmd->exec, '/');
-	if (slash)
-		++slash;
-
 	const char *args[strlen(str) + 2];
 	unsigned i = 0;
-	args[i++] = slash;
+
+	args[i++] = cmd->exec;
 
 	char   *p = str;
+
 	while (*p && isblank(*p))
 		++p;
 	while (*p)
@@ -155,6 +173,11 @@ static void exec_cmd(cmd_t *cmd, char *str)
 	}
 
 	args[i] = 0;
-	execv(cmd->exec, (char *const *) args);
+
+	char   *path;
+
+	if (asprintf(&path, "%s/%s", GITER_BINDIR, cmd->exec) < 0)
+		error(EXIT_FAILURE, errno, "asprintf");
+	execv(path, (char *const *) args);
 	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
 }

@@ -25,7 +25,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
-	-DCMD_PREFIX=\"${giter_bindir}/\" \
+	-DGITER_BINDIR=\"${giter_bindir}/\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\" \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
