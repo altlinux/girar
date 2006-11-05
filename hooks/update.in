@@ -118,7 +118,7 @@ find_subscribers()
 	local p="$(quote_sed_regexp "$project_name")"
 	local t="$(quote_sed_regexp "$ref_style")"
 	local n="$(quote_sed_regexp "$ref_name")"
-	local dir=/etc/giter-email/packages
+	local dir="@GITER_EMAIL_DIR@/packages"
 	local a
 
 	a="$(grep -ls "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
@@ -237,7 +237,7 @@ handle_etc_packages()
 
 	for n in distribution subscription; do
 		if [ -f "$workdir/$n" ]; then
-			cp "$workdir/$n" "/etc/giter-email/packages/$GITER_USER/"
+			cp "$workdir/$n" "@GITER_EMAIL_DIR@/packages/$GITER_USER/"
 		fi
 	done
 }
@@ -251,7 +251,7 @@ handle_packages_releases()
 
 MSG="$workdir/message"
 DIFF="$workdir/diff"
-FROM_ADDR="${GITER_USER}@altlinux.org ($(getent passwd "$USER" |cut -d: -f5))"
+FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
 
 cat >"$MSG" <<EOF
 To: $mailto
@@ -266,7 +266,7 @@ Update of $git_dir
 
 EOF
 
-new_head()
+email_new_head()
 {
 	[ -n "$mailto" ] || return 0
 
@@ -274,9 +274,8 @@ new_head()
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
-new_tag()
+email_new_tag()
 {
-	handle_packages_releases "$@"
 	[ -n "$mailto" ] || return 0
 
 	# a pushed and annotated tag (usually) means a new version
@@ -317,10 +316,8 @@ new_tag()
 	fi
 }
 
-update_ref()
+email_update_ref()
 {
-	handle_etc_packages "$@"
-	handle_packages_releases "$@"
 	[ -n "$mailto" ] || return 0
 
 	local base prev size
@@ -357,14 +354,20 @@ if expr "$2" : '0*$' >/dev/null; then
 	# new ref
 	case "$1" in
 	refs/heads/*|refs/remotes/*)
-		new_head "$@"
+		# new head
+		email_new_head "$@"
 		;;
 	refs/releases/*|refs/tags/*)
-		new_tag "$@"
+		# new tag
+		handle_packages_releases "$@"
+		email_new_tag "$@"
 		;;
 	esac
 else
-	update_ref "$@"
+	# update ref
+	handle_etc_packages "$@"
+	handle_packages_releases "$@"
+	email_update_ref "$@"
 fi >>"$MSG"
 
 [ -z "$mailto" ] ||

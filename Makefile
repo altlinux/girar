@@ -2,16 +2,21 @@ DESTDIR =
 libexecdir = /usr/libexec
 sbindir = /usr/local/sbin
 datadir = /usr/share
-sysgiter_confdir = /etc
+sysconfdir = /etc
+localstatedir = /var/lib
 
 giter_bindir = ${libexecdir}/giter
 giter_sbindir = ${sbindir}
 giter_confdir = ${sysconfdir}/giter
 giter_datadir = ${datadir}/giter
+giter_statedir = ${localstatedir}/giter
+giter_hooks_dir = ${giter_datadir}/hooks
+giter_templates_dir = ${giter_datadir}/templates
+giter_email_dir = ${giter_statedir}/email
 
 USER_PREFIX = git_
 GITER_HOME = /people
-GITER_FAKE_HOME = /home/giter
+GITER_FAKE_HOME = ${giter_datadir}/home
 EMAIL_DOMAIN = altlinux.org
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
@@ -25,32 +30,51 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
-.PHONY: all clean install install-conf install-bin install-sbin
+.PHONY: all clean install install-data install-bin install-sbin
 
-all: bin/giter-sh sbin/giter-add
+all: bin/giter-sh bin/people-clone bin/people-init-db sbin/giter-add hooks/update
 
 clean:
-	${RM} bin/giter-sh sbin/giter-add
+	${RM} bin/giter-sh bin/people-clone bin/people-init-db sbin/giter-add hooks/update
 
-install: install-conf install-bin install-sbin
-	install -d -m755 ${GITER_FAKE_HOME}
+install: install-data install-bin install-sbin install-var
 
-install-conf: conf
-	rsync -vrlpt --delete-after conf/ ${DESTDIR}${giter_confdir}/
-	install -d -m755 ${DESTDIR}${giter_confdir}/people
-	install -d -m750 ${DESTDIR}${giter_confdir}/people/etc
-	-chgrp -hR wheel ${DESTDIR}${giter_confdir}/people
+install-data: hooks
+	install -d -m750 \
+		${DESTDIR}${giter_datadir} \
+		${DESTDIR}${giter_templates_dir} \
+		${DESTDIR}${GITER_FAKE_HOME}
+	-chgrp giter \
+		${DESTDIR}${giter_datadir} \
+		${DESTDIR}${giter_templates_dir} \
+		${DESTDIR}${GITER_FAKE_HOME}
+	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
+	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
 
 install-bin: bin/giter-sh bin/people-clone bin/people-find bin/people-init-db bin/people-ls bin/people-mv-db bin/people-quota bin/people-rm-db
-	install -pm750 -oroot -ggiter $^ ${DESTDIR}${giter_bindir}/
+	install -d -m750 ${DESTDIR}${giter_bindir}
+	-chgrp giter ${DESTDIR}${giter_bindir}
+	install -pm755 $^ ${DESTDIR}${giter_bindir}/
 
 install-sbin: sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero sbin/giter-disable sbin/giter-enable
-	install -pm700 -oroot -groot $^ ${DESTDIR}${giter_sbindir}/
+	install -d -m755 ${DESTDIR}${giter_sbindir}
+	install -pm700 $^ ${DESTDIR}${giter_sbindir}/
+
+install-var:
+	install -d -m750 \
+		${DESTDIR}${giter_statedir} \
+		${DESTDIR}${giter_email_dir}
+	-chgrp giter \
+		${DESTDIR}${giter_statedir} \
+		${DESTDIR}${giter_email_dir}
 
 bin/giter-sh: bin/giter-sh.c
 
 %: %.in
 	sed -e 's,@CMDDIR@,${giter_bindir},g' \
+	    -e 's,@GITER_HOOKS_DIR@,${giter_hooks_dir},g' \
+	    -e 's,@GITER_TEMPLATES_DIR@,${giter_templates_dir},g' \
+	    -e 's,@GITER_EMAIL_DIR@,${giter_email_dir},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
 	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \

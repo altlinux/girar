@@ -28,6 +28,6 @@ printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 	fatal "$dir0: invalid directory name"
 mkdir -- "$dir.git"
 cd "$dir.git"
-GIT_DIR=. git-init-db --template=/etc/giter/templates/packages
+GIT_DIR=. git-init-db --template=@GITER_TEMPLATES_DIR@
 echo "packages/$dir" >description
 install -m600 -- /dev/null git-daemon-export-ok

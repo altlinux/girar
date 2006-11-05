@@ -102,12 +102,12 @@ install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME/packages" ||
 install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
-git-clone --bare --template=/etc/giter/templates/etc \
+git-clone --bare --template=@GITER_TEMPLATES_DIR@ \
 	"$GITER_HOME/ldv/admin/packages.git" "$REAL_HOME/etc/packages.git" &&
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
 
-EMAIL_DIR=/etc/giter-email/packages
+EMAIL_DIR="@GITER_EMAIL_DIR@/packages"
 mkdir -p "$EMAIL_DIR"
 install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
 	fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
