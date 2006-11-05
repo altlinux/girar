@@ -30,12 +30,16 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
+TARGETS = bin/giter-sh bin/people-clone bin/people-init-db \
+	sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero \
+	sbin/giter-disable sbin/giter-enable hooks/update
+
 .PHONY: all clean install install-data install-bin install-sbin
 
-all: bin/giter-sh bin/people-clone bin/people-init-db sbin/giter-add hooks/update
+all: ${TARGETS}
 
 clean:
-	${RM} bin/giter-sh bin/people-clone bin/people-init-db sbin/giter-add hooks/update
+	${RM} ${TARGETS}
 
 install: install-data install-bin install-sbin install-var
 

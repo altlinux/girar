@@ -17,19 +17,17 @@ usage()
 	exit 1
 }
 
-NAME=$1
+NAME="$1"
 [ -n "$NAME" ] ||
 	usage 'not specified: NAME'
 shift
 printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
-PREFIX=git
-
-IT_NAME="${PREFIX}_$NAME"
+IT_NAME="@USER_PREFIX@$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ -e "$AUTH" ] ||
 	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
 
-:>"$AUTH" ||
-	fatal "error writing to authorized keys file '$AUTH' for user $IT_NAME"
+chmod a+r "$AUTH" ||
+	fatal "error setting permissions on authorized keys file '$AUTH' for user $IT_NAME"

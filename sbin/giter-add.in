@@ -22,14 +22,14 @@ usage()
 	exit 1
 }
 
-NAME=$1
+NAME="$1"
 [ -n "$NAME" ] ||
 	usage 'not specified: NAME'
 shift
 printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
-IDFILE=$1
+IDFILE="$1"
 [ -n "$IDFILE" ] ||
 	usage 'not specified: IDENTITY FILE'
 shift

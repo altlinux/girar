@@ -17,22 +17,29 @@ usage()
 	exit 1
 }
 
-NAME=$1
+NAME="$1"
 [ -n "$NAME" ] ||
 	usage 'not specified: NAME'
 shift
 printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
-IDFILE=$1
+IDFILE="$1"
 [ -n "$IDFILE" ] ||
 	usage 'not specified: IDENTITY FILE'
 shift
 
-[ -r "$IDFILE" ] ||
-	fatal "identity file '$IDFILE' not found"
-IDFILE=$(readlink -ev "$IDFILE")
-[ -z "${IDFILE##/home/$SUDO_USER/*}" ] ||
+IDFILE="$(readlink -ev "$IDFILE")" ||
+	fatal "identity file '$IDFILE' not available"
+
+SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
+	fatal "sudo user '$SUDO_USER' not found"
+
+SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
+	[ -d "$SUDO_HOME" ] ||
+	fatal "sudo user '$SUDO_USER' home directory '$SUDO_HOME' not available"
+
+[ -z "${IDFILE##$SUDO_HOME/*}" ] ||
 	fatal "identity file '$IDFILE' out of range"
 
 IDENTITY=$(cat "$IDFILE") ||
@@ -46,9 +53,7 @@ n="$(echo "$s" |head -c4)"
 [ ssh-dss = "$s" -o ssh-rsa = "$s" ] ||
 	fatal "$IDFILE: invalid identity file: unrecognized type"
 
-PREFIX=git
-
-IT_NAME="${PREFIX}_$NAME"
+IT_NAME="@USER_PREFIX@$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ -e "$AUTH" ] ||
 	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
