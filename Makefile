@@ -16,6 +16,7 @@ giter_email_dir = ${giter_statedir}/email
 
 USER_PREFIX = git_
 GITER_HOME = /people
+GITER_EMAIL_ALIASES = /etc/postfix/git.aliases
 GITER_FAKE_HOME = ${giter_datadir}/home
 EMAIL_DOMAIN = altlinux.org
 
@@ -83,5 +84,6 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
 	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
+	    -e 's,@GITER_EMAIL_ALIASES@,${GITER_EMAIL_ALIASES},g' \
 		<$< >$@
 	chmod --reference=$< $@

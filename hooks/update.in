@@ -87,26 +87,6 @@ check_packages_releases()
 		return
 }
 
-mailto="$(
-	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" |
-	tr -s '\n' , |
-	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
-)"
-check_etc_packages "$@" ||
-	check_packages_releases "$@" ||
-	[ -n "$mailto" ] ||
-	exit 0
-
-exit_handler()
-{
-	local rc=$?
-	trap - EXIT
-	rm -rf -- "$workdir"
-	exit $rc
-}
-workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
-
 validate_distribution_subscription()
 {
 	local where="$1" && shift
@@ -137,11 +117,14 @@ validate_email_list()
 	local a="$(printf %s "$addr" |tr , ' ')"
 	set -- ${a}
 	for a; do
-		[ -n "$(translate_email "$a")" ] ||
+		[ -n "${a##*@*}" ] || continue
+		cut -f1 -- "@GITER_EMAIL_ALIASES@" |
+			fgrep -xqs "${GITER_USER_PREFIX}$a:" ||
 			fatal "$where: invalid email list: user $a not found."
 	done
 }
 
+workdir=
 handle_etc_packages()
 {
 	check_etc_packages "$@" || return 0
@@ -200,35 +183,16 @@ handle_packages_releases()
 	echo >&2 "package releases are not handled yet..."
 }
 
-MSG="$workdir/message"
-DIFF="$workdir/diff"
-FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
-
-cat >"$MSG" <<EOF
-To: $mailto
-From: $FROM_ADDR
-Reply-To: $FROM_ADDR
-Subject: [git update] $project: ${1#refs/}
-Content-Type: text/plain${charset:+; charset=$charset}
-X-git-dir: $git_dir
-X-git-description: $project
-
-Update of $git_dir
-
-EOF
-
 email_new_head()
 {
-	[ -n "$mailto" ] || return 0
-
 	echo "New $ref_style \`$ref_name' available with the following commits:"
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
+DIFF=
+workdir=
 email_new_tag()
 {
-	[ -n "$mailto" ] || return 0
-
 	# a pushed and annotated tag (usually) means a new version
 	if [ "$ref_type" = tag ]; then
 		local tag="$workdir/tag"
@@ -267,10 +231,9 @@ email_new_tag()
 	fi
 }
 
+DIFF=
 email_update_ref()
 {
-	[ -n "$mailto" ] || return 0
-
 	local base prev size
 	base="$(git-merge-base "$2" "$3")"
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
@@ -301,25 +264,69 @@ email_update_ref()
 	fi
 }
 
+workdir=
+exit_handler()
+{
+	local rc=$?
+	trap - EXIT
+	rm -rf -- "$workdir"
+	exit $rc
+}
+
+mailto="$(
+	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" |
+	tr -s '\n' , |
+	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
+)"
+[ -n "$mailto" ] ||
+	check_packages_releases "$@" ||
+	check_etc_packages "$@" ||
+	exit 0
+
+workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
+trap exit_handler HUP PIPE INT QUIT TERM EXIT
+
+if [ -n "$mailto" ]; then
+	DIFF="$workdir/diff"
+	MSG="$workdir/message"
+	FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
+
+	cat >"$MSG" <<__EOF
+To: $mailto
+From: $FROM_ADDR
+Reply-To: $FROM_ADDR
+Subject: [git update] $project: ${1#refs/}
+Content-Type: text/plain${charset:+; charset=$charset}
+X-git-dir: $git_dir
+X-git-description: $project
+
+Update of $git_dir
+
+__EOF
+fi
+
 if expr "$2" : '0*$' >/dev/null; then
 	# new ref
 	case "$1" in
 	refs/heads/*|refs/remotes/*)
 		# new head
-		email_new_head "$@"
+		[ -z "$mailto" ] ||
+			email_new_head "$@" >>"$MSG"
 		;;
 	refs/releases/*|refs/tags/*)
 		# new tag
 		handle_packages_releases "$@"
-		email_new_tag "$@"
+		[ -z "$mailto" ] ||
+			email_new_tag "$@" >>"$MSG"
 		;;
 	esac
 else
 	# update ref
 	handle_etc_packages "$@"
 	handle_packages_releases "$@"
-	email_update_ref "$@"
-fi >>"$MSG"
+	[ -z "$mailto" ] ||
+		email_update_ref "$@" >>"$MSG"
+fi
 
 [ -z "$mailto" ] ||
 	/usr/sbin/sendmail -i -t <"$MSG"
