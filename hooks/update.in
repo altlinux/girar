@@ -87,63 +87,14 @@ check_packages_releases()
 		return
 }
 
-# quote argument for sed regexp.
-quote_sed_regexp()
-{
-	local out="$*"
-	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
-		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
-			return
-	fi
-	printf %s "$out"
-}
-
-translate_email()
-{
-	local a="$1" && shift
-	local a="$(quote_sed_regexp "$a")"
-	sed -ne "s/^${GITER_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" \
-		</etc/postfix/git.aliases
-}
-
-find_subscribers()
-{
-	if [ "$project_type" != packages ]; then
-		cat "$GIT_DIR/mailto" 2>/dev/null
-		return
-	fi
-
-	local s='[[:space:]]'
-	local u="$(quote_sed_regexp "$GITER_USER")"
-	local p="$(quote_sed_regexp "$project_name")"
-	local t="$(quote_sed_regexp "$ref_style")"
-	local n="$(quote_sed_regexp "$ref_name")"
-	local dir="@GITER_EMAIL_DIR@/packages"
-	local a
-
-	a="$(grep -ls "^\\(\\*\\|$u\\)$s\\+\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s*\$" \
-		"$dir"/*/subscription |
-		sed -ne "s|^$dir/\\([^/]\\+\\)/subscription\$|\\1|p")"
-	set -- ${a}
-	for a; do translate_email "$a"; done
-
-	a="$(cat "$dir/$u/distribution" 2>/dev/null |
-		sed -ne "s/^\\(\\*\\|$p\\)$s\\+\\(\\*\\|$t\\)$s\\+\\(\\*\\|$n\\)$s\\+\\([^[:space:]]\\+\\)\$/\\4/p" |
-		tr , ' ')"
-	set -- ${a}
-	for a; do translate_email "$a"; done
-}
-
 mailto="$(
-	find_subscribers |
-	sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
-	sort -u |
+	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" |
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
 )"
-[ -n "$mailto" ] ||
-	check_etc_packages "$@" ||
+check_etc_packages "$@" ||
 	check_packages_releases "$@" ||
+	[ -n "$mailto" ] ||
 	exit 0
 
 exit_handler()
