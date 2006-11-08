@@ -1,0 +1,51 @@
+#!/bin/sh -efu
+
+releases_file="@GITER_RELEASES@"
+acldir="@GITER_ACL@"
+
+quote_sed_regexp()
+{
+	local out="$*"
+	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
+		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
+			return 1
+	fi
+	printf %s "$out"
+}
+
+update()
+{
+	local packages type
+
+	while read packages type; do
+		# path_to/leader/etc/type
+		leader="${packages%/etc/$type}"; leader="${leader##*/}"
+
+		while read obj tail; do
+			[ "$obj" != "${obj#\#}" ] || continue
+
+			target="${obj%%/*}"
+			branches="${obj#$target}"
+
+			if [ -n "$branches" -a "$branches" != "/" ]; then
+				branches="${branches#/}"
+				fgrep -xqs "$branches" "$releases_file" || continue
+			else
+				branches="$(cat "$releases_file")"
+			fi
+
+			quote_target="$(quote_sed_regexp "$target")"
+
+			for branch in $branches; do
+				prev_out="$(grep "^$quote_target " "$acldir/list.$type.$branch")" ||
+					continue
+
+				[ -n "${prev_out%%$target $leader *}" ] ||
+					sed -i -e "s|^$quote_target .*|$target $leader $tail|" "$acldir/list.$type.$branch"
+			done
+		done < "$packages"
+	done
+}
+
+find "@GITER_HOME@" -type f -path '*/etc/packages' -o -path '*/etc/groups' -printf '%p %f\n' |
+	update

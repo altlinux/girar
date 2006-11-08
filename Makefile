@@ -16,7 +16,9 @@ giter_email_dir = ${giter_statedir}/email
 
 USER_PREFIX = git_
 GITER_HOME = /people
+GITER_ACL = /acl
 GITER_EMAIL_ALIASES = /etc/postfix/git.aliases
+GITER_RELEASES = ${giter_datadir}/releases
 GITER_FAKE_HOME = ${giter_datadir}/home
 EMAIL_DOMAIN = altlinux.org
 
@@ -31,9 +33,13 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
-TARGETS = bin/giter-sh bin/people-clone bin/people-init-db bin/find-subscribers \
-	sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero \
-	sbin/giter-disable sbin/giter-enable hooks/update
+bin_TARGETS = bin/giter-sh bin/people-clone bin/people-init-db \
+	bin/find-subscribers bin/acl-cronjob
+
+sbin_TARGETS = sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero \
+	sbin/giter-disable sbin/giter-enable
+
+TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 
 .PHONY: all clean install install-data install-bin install-sbin
 
@@ -56,12 +62,12 @@ install-data: hooks
 	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
 	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
 
-install-bin: bin/giter-sh bin/people-clone bin/people-find bin/people-init-db bin/people-ls bin/people-mv-db bin/people-quota bin/people-rm-db bin/find-subscribers
+install-bin: ${bin_TAGRETS}
 	install -d -m750 ${DESTDIR}${giter_bindir}
 	-chgrp giter ${DESTDIR}${giter_bindir}
 	install -pm755 $^ ${DESTDIR}${giter_bindir}/
 
-install-sbin: sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero sbin/giter-disable sbin/giter-enable
+install-sbin: ${sbin_TARGETS}
 	install -d -m755 ${DESTDIR}${giter_sbindir}
 	install -pm700 $^ ${DESTDIR}${giter_sbindir}/
 
@@ -85,5 +91,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
 	    -e 's,@GITER_EMAIL_ALIASES@,${GITER_EMAIL_ALIASES},g' \
+	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \
+	    -e 's,@GITER_ACL@,${GITER_ACL},g' \
 		<$< >$@
 	chmod --reference=$< $@
