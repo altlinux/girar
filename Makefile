@@ -38,8 +38,10 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
-bin_TARGETS = bin/giter-sh bin/people-clone bin/people-init-db \
-	bin/find-subscribers bin/acl-cronjob bin/giter-make-release
+bin_TARGETS = bin/acl-cronjob bin/find-subscribers bin/giter-make-release \
+	bin/giter-sh bin/giter-sh bin/people-clone bin/people-find \
+	bin/people-init-db bin/people-ls bin/people-mv-db bin/people-quota \
+	bin/people-rm-db
 
 sbin_TARGETS = sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero \
 	sbin/giter-disable sbin/giter-enable sbin/giter-forwarder
@@ -67,7 +69,7 @@ install-data: hooks
 	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
 	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
 
-install-bin: ${bin_TAGRETS}
+install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${giter_bindir}
 	-chgrp giter ${DESTDIR}${giter_bindir}
 	install -pm755 $^ ${DESTDIR}${giter_bindir}/
