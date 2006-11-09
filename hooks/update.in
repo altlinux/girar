@@ -176,9 +176,62 @@ handle_etc_packages()
 	done
 }
 
+# Global: project_name, ref_name
+# Return: exit status is 0 if $USER is allowed to commit release tag for $project_name and 1 otherwise.
+check_release_perms()
+{
+	local releases_file="@GITER_RELEASES@"
+	local acldir="@GITER_ACL@"
+
+	# allowed if no release file available
+	[ -r "$releases_file" ] || return 0
+
+	if ! fgrep -xqs "$ref_name" "$releases_file"; then
+		echo >&2 "ACL: $ref_name: invalid release tag, valid tags are: $(tr '\n' ' '<"$releases_file")"
+		return 1
+	fi
+
+	# allowed if no acl file available
+	[ -s "$acldir/list.packages.$ref_name" ] || return 0
+
+	local aclline builders groups= humans= leader o pkg_name user
+
+	user="${USER#git_}"
+	pkg_name="$(git-cat-file tag "$3" |
+		    sed -ne 's/^Package name:[[:space:]]\+\([^[:space:]]\+\)$/\1/p')"
+	[ -n "$pkg_name" ] ||
+		pkg_name="$project_name"
+
+	# allowed if package is not listed
+	aclline="$(grep "^$pkg_name " "$acldir/list.packages.$ref_name")" || return 0
+
+	# aclline format: pkg_name leader builders
+	set -- ${aclline}; shift
+	leader="$1"; shift
+	builders="$*"
+
+	# leader and "*" are allowed
+	[ "$user" != "$leader" -a "$builders" != "*" ] || return 0
+
+	# expand groups if any
+	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$ref_name" ]; then
+		for o in ${builders}; do
+			[ -z "${o%%@*}" ] &&
+				groups="$groups|$o" ||
+				humans="$humans $o"
+		done
+		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$ref_name")"
+	fi
+	printf %s "$builders" |grep -qs "\<$user\>"
+}
+
 handle_packages_releases()
 {
 	check_packages_releases "$@" || return 0
+	if ! check_release_perms; then
+		echo >&2 "you have no permission to release this package"
+		return 1
+	fi
 
 	echo >&2 "package releases are not handled yet..."
 }
