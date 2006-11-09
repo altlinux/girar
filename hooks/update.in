@@ -176,6 +176,19 @@ handle_etc_packages()
 	done
 }
 
+# Return: exit status is 0 if $USER is release tagger and 1 otherwise.
+check_release_tagger()
+{
+	local tagger
+	tagger="$(git-cat-file tag "$3" |sed -ne 's/^tagger .* <\([^@]\+\)@.*/\1/p')"
+
+	[ -n "$tagger" ] ||
+		fatal "tagger not found"
+
+	[ "${USER#git_}" = "$tagger" ] ||
+		return
+}
+
 get_pkgname() {
 	local name
 	name="$(git-cat-file tag "$3" |
@@ -195,10 +208,8 @@ check_release_perms()
 	# allowed if no release file available
 	[ -r "$releases_file" ] || return 0
 
-	if ! fgrep -xqs "$ref_name" "$releases_file"; then
-		echo >&2 "ACL: $ref_name: invalid release tag, valid tags are: $(tr '\n' ' '<"$releases_file")"
-		return 1
-	fi
+	fgrep -xqs "$ref_name" "$releases_file" ||
+		fatal "$ref_name: invalid release tag, valid tags are: $(tr '\n' ' '<"$releases_file")"
 
 	# allowed if no acl file available
 	[ -s "$acldir/list.packages.$ref_name" ] || return 0
@@ -234,10 +245,12 @@ check_release_perms()
 handle_packages_releases()
 {
 	check_packages_releases "$@" || return 0
-	if ! check_release_perms "$@"; then
-		echo >&2 "you have no permission to release this package"
-		return 1
-	fi
+
+	check_release_tagger "$@" ||
+		fatal "wrong release tagger"
+
+	check_release_perms "$@" ||
+		fatal "you have no permission to release this package"
 
 	echo >&2 "package releases are not handled yet..."
 	return 0
@@ -250,12 +263,10 @@ handle_packages_releases()
 	geardir="${geardir%/.git}"
 	commitish="$3"
 
-	if [ -z "$user" -o -z "$pkgname" -o -z "$geardir" -o -z "$commitish" ]; then
-		echo >&2 "unable to get release infomation for package"
-		return 1
-	else
-		"@CMDDIR@/giter-make-release" "$user" "$pkgname" "$geardir" "$commitish"
-	fi
+	[ -n "$user" -a -n "$pkgname" -a -n "$geardir" -a -n "$commitish" ] ||
+		fatal "unable to get release infomation for package"
+
+	"@CMDDIR@/giter-make-release" "$user" "$pkgname" "$geardir" "$commitish"
 }
 
 email_new_head()
