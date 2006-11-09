@@ -20,7 +20,12 @@ GITER_ACL = /acl
 GITER_EMAIL_ALIASES = /etc/postfix/git.aliases
 GITER_RELEASES = ${giter_datadir}/releases
 GITER_FAKE_HOME = ${giter_datadir}/home
+GITER_QUEUE = ${giter_datadir}/queue
+GITER_PRIVATE_QUEUE = ${giter_datadir}/queue-private
 EMAIL_DOMAIN = altlinux.org
+
+UPRAVDOM_ACCOUNT = upravdom@git
+UPRAVDOM_QUEUE = /queue
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
@@ -34,10 +39,10 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 CFLAGS = -pipe -Wall -O2
 
 bin_TARGETS = bin/giter-sh bin/people-clone bin/people-init-db \
-	bin/find-subscribers bin/acl-cronjob
+	bin/find-subscribers bin/acl-cronjob bin/giter-make-release
 
 sbin_TARGETS = sbin/giter-add sbin/giter-auth-add sbin/giter-auth-zero \
-	sbin/giter-disable sbin/giter-enable
+	sbin/giter-disable sbin/giter-enable sbin/giter-forwarder
 
 TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 
@@ -93,5 +98,9 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_EMAIL_ALIASES@,${GITER_EMAIL_ALIASES},g' \
 	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \
 	    -e 's,@GITER_ACL@,${GITER_ACL},g' \
+	    -e 's,@GITER_QUEUE@,${GITER_QUEUE},g' \
+	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
+	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \
+	    -e 's,@UPRAVDOM_QUEUE@,${UPRAVDOM_QUEUE},g' \
 		<$< >$@
 	chmod --reference=$< $@

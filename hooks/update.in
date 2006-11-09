@@ -176,6 +176,15 @@ handle_etc_packages()
 	done
 }
 
+get_pkgname() {
+	local name
+	name="$(git-cat-file tag "$3" |
+		    sed -ne 's/^Package name:[[:space:]]\+\([^[:space:]]\+\)$/\1/p')"
+	[ -n "$name" ] ||
+		name="$project_name"
+	printf %s\\n "$name"
+}
+
 # Global: project_name, ref_name
 # Return: exit status is 0 if $USER is allowed to commit release tag for $project_name and 1 otherwise.
 check_release_perms()
@@ -197,10 +206,7 @@ check_release_perms()
 	local aclline builders groups= humans= leader o pkg_name user
 
 	user="${USER#git_}"
-	pkg_name="$(git-cat-file tag "$3" |
-		    sed -ne 's/^Package name:[[:space:]]\+\([^[:space:]]\+\)$/\1/p')"
-	[ -n "$pkg_name" ] ||
-		pkg_name="$project_name"
+	pkg_name="$(get_pkgname "$@")"
 
 	# allowed if package is not listed
 	aclline="$(grep "^$pkg_name " "$acldir/list.packages.$ref_name")" || return 0
@@ -228,12 +234,28 @@ check_release_perms()
 handle_packages_releases()
 {
 	check_packages_releases "$@" || return 0
-	if ! check_release_perms; then
+	if ! check_release_perms "$@"; then
 		echo >&2 "you have no permission to release this package"
 		return 1
 	fi
 
 	echo >&2 "package releases are not handled yet..."
+	return 0
+
+	local user pkgname geardir commitish
+
+	user="${USER#git_}"
+	pkgname="$(get_pkgname "$@")"
+	geardir="$(readlink -ev "$GIT_DIR")"
+	geardir="${geardir%/.git}"
+	commitish="$3"
+
+	if [ -z "$user" -o -z "$pkgname" -o -z "$geardir" -o -z "$commitish" ]; then
+		echo >&2 "unable to get release infomation for package"
+		return 1
+	else
+		"@CMDDIR@/giter-make-release" "$user" "$pkgname" "$geardir" "$commitish"
+	fi
 }
 
 email_new_head()
