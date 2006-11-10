@@ -1,15 +1,4 @@
 #!/bin/sh
-#
-# An example hook script to mail out commit update information.
-# It also blocks tags that aren't annotated.
-# Called by git-receive-pack with arguments: refname sha1-old sha1-new
-#
-# To enable this hook:
-# (1) make this file executable by "chmod +x update".
-# (2) define the recipient e-mail address in $GIT_DIR/mailto file.
-# (3) define the project description in $GIT_DIR/description file.
-# (4) optionally define email charset in $GIT_DIR/charset file.
-#
 
 LANG=C
 LANGUAGE=C
@@ -124,7 +113,6 @@ validate_email_list()
 	done
 }
 
-workdir=
 handle_etc_packages()
 {
 	check_etc_packages "$@" || return 0
@@ -176,17 +164,17 @@ handle_etc_packages()
 	done
 }
 
-# Return: exit status is 0 if $USER is release tagger and 1 otherwise.
-check_release_tagger()
+# Validate that $GITER_USER is release tagger.
+validate_release_tagger()
 {
 	local tagger
-	tagger="$(git-cat-file tag "$3" |sed -ne 's/^tagger .* <\([^@]\+\)@.*/\1/p')"
+	tagger="$(git-cat-file tag "$3" |sed -ne '4s/^tagger [^<]\+<\([^@>]\+\)@.*/\1/p')"
 
 	[ -n "$tagger" ] ||
 		fatal "tagger not found"
 
-	[ "${USER#git_}" = "$tagger" ] ||
-		return
+	[ "$GITER_USER" = "$tagger" ] ||
+		fatal "release tagger mismatch: expected $GITER_USER, found $tagger"
 }
 
 get_pkgname() {
@@ -199,24 +187,23 @@ get_pkgname() {
 }
 
 # Global: project_name, ref_name
-# Return: exit status is 0 if $USER is allowed to commit release tag for $project_name and 1 otherwise.
+# Return: 0 if $GITER_USER is allowed to push release tag for $project_name, and 1 otherwise.
 check_release_perms()
 {
 	local releases_file="@GITER_RELEASES@"
 	local acldir="@GITER_ACL@"
 
-	# allowed if no release file available
-	[ -r "$releases_file" ] || return 0
+	# allowed if no non-empty release file available
+	[ -s "$releases_file" ] || return 0
 
 	fgrep -xqs "$ref_name" "$releases_file" ||
 		fatal "$ref_name: invalid release tag, valid tags are: $(tr '\n' ' '<"$releases_file")"
 
-	# allowed if no acl file available
+	# allowed if no acl file available for given ref_name
 	[ -s "$acldir/list.packages.$ref_name" ] || return 0
 
-	local aclline builders groups= humans= leader o pkg_name user
+	local aclline builders groups= humans= leader o pkg_name
 
-	user="${USER#git_}"
 	pkg_name="$(get_pkgname "$@")"
 
 	# allowed if package is not listed
@@ -228,7 +215,7 @@ check_release_perms()
 	builders="$*"
 
 	# leader and "*" are allowed
-	[ "$user" != "$leader" -a "$builders" != "*" ] || return 0
+	[ "$GITER_USER" != "$leader" -a "$builders" != "*" ] || return 0
 
 	# expand groups if any
 	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$ref_name" ]; then
@@ -239,34 +226,31 @@ check_release_perms()
 		done
 		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$ref_name")"
 	fi
-	printf %s "$builders" |grep -qs "\<$user\>"
+	printf %s "$builders" |grep -qs "\<$GITER_USER\>"
 }
 
 handle_packages_releases()
 {
 	check_packages_releases "$@" || return 0
 
-	check_release_tagger "$@" ||
-		fatal "wrong release tagger"
+	validate_release_tagger "$@"
 
 	check_release_perms "$@" ||
 		fatal "you have no permission to release this package"
 
-	echo >&2 "package releases are not handled yet..."
+	echo >&2 "sorry, package releases are not handled yet..."
 	return 0
 
-	local user pkgname geardir commitish
+	local pkgname geardir commitish
 
-	user="${USER#git_}"
 	pkgname="$(get_pkgname "$@")"
-	geardir="$(readlink -ev "$GIT_DIR")"
-	geardir="${geardir%/.git}"
+	geardir="${git_dir%/.git}"
 	commitish="$3"
 
-	[ -n "$user" -a -n "$pkgname" -a -n "$geardir" -a -n "$commitish" ] ||
+	[ -n "$GITER_USER" -a -n "$pkgname" -a -n "$geardir" -a -n "$commitish" ] ||
 		fatal "unable to get release infomation for package"
 
-	"@CMDDIR@/giter-make-release" "$user" "$pkgname" "$geardir" "$commitish"
+	"@CMDDIR@/giter-make-release" "$GITER_USER" "$pkgname" "$geardir" "$commitish"
 }
 
 email_new_head()
@@ -275,8 +259,6 @@ email_new_head()
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
 }
 
-DIFF=
-workdir=
 email_new_tag()
 {
 	# a pushed and annotated tag (usually) means a new version
@@ -317,7 +299,6 @@ email_new_tag()
 	fi
 }
 
-DIFF=
 email_update_ref()
 {
 	local base prev size
@@ -350,15 +331,6 @@ email_update_ref()
 	fi
 }
 
-workdir=
-exit_handler()
-{
-	local rc=$?
-	trap - EXIT
-	rm -rf -- "$workdir"
-	exit $rc
-}
-
 mailto="$(
 	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" |
 	tr -s '\n' , |
@@ -369,6 +341,13 @@ mailto="$(
 	check_etc_packages "$@" ||
 	exit 0
 
+exit_handler()
+{
+	local rc=$?
+	trap - EXIT
+	rm -rf -- "$workdir"
+	exit $rc
+}
 workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
 trap exit_handler HUP PIPE INT QUIT TERM EXIT
 
