@@ -1,3 +1,6 @@
+acl-cronjob
+find-subscribers
+giter-make-release
 giter-sh
 people-clone
 people-init-db

@@ -1,7 +1,7 @@
 #!/bin/sh -efu
 
 PROG="${0##*/}"
-giter_queue="@GITER_QUEUE@"
+giter_queue="@GITER_PUBLIC_QUEUE@"
 private_queue="@GITER_PRIVATE_QUEUE@"
 upravdom_queue="@UPRAVDOM_QUEUE@"
 upravdom_account="@UPRAVDOM_ACCOUNT@"
