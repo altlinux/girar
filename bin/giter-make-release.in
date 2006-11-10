@@ -3,9 +3,11 @@
 giter_queue="@GITER_PUBLIC_QUEUE@"
 giterlock="$giter_queue/.lock"
 
-exit_handler() {
+exit_handler()
+{
 	local rc=$?
 	trap - EXIT
+	# unlock public queue if and only if we own it
 	[ ! -d "$giterlock" -o ! -O "$giterlock" ] || rmdir -- "$giterlock"
 	exit $rc
 }
@@ -14,11 +16,13 @@ exit_handler() {
 
 trap exit_handler HUP PIPE INT QUIT TERM EXIT
 
+# lock public queue
 while ! mkdir -- "$giterlock" >/dev/null 2>&1; do
 	sleep 0.1
 done
 
-num="$(find "$giter_queue" -mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n' |sort -n |tail -1)"
+num="$(find "$giter_queue" -mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n' |
+       sort -n |tail -1)"
 
 [ -n "$num" ] &&
 	num=$(($num+1)) ||
