@@ -10,21 +10,40 @@ selflock="$private_queue/.lock"
 giterlock="$giter_queue/.lock"
 upravdomlock="$upravdom_queue/.lock"
 
-error() {
+error()
+{
 	printf %s\\n "$PROG: ERROR: [$(date +"%Y-%m-%d %T")]: $*" >&2
 }
 
-fatal() {
+fatal()
+{
 	error "$*"
 	exit 1
 }
 
-exit_handler() {
+find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
+
+findin()
+{
+	eval find "\$1" $find_args |
+		sort -n
+}
+
+findin_upravdom_queue()
+{
+	ssh -n "$upravdom_account" "find '$upravdom_queue' $find_args" |
+		sort -n
+}
+
+exit_handler()
+{
 	local rc=$?
 	trap - EXIT
 
+	# unlock public queue if and only if we own it
 	[ ! -d "$giterlock" -o ! -O "$giterlock" ] || rmdir -- "$giterlock"
 
+	# unlock upravdom queue if and only if we own it
 	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
 		error "$upravdom_account: $upravdomlock: unable to remove lockdir"
 
@@ -32,31 +51,21 @@ exit_handler() {
 
 	exit $rc
 }
-
-find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
-
-findin() {
-	eval find "\$1" $find_args | sort -n
-}
-
-findin_upravdom_queue() {
-	ssh -n "$upravdom_account" "find '$upravdom_queue' $find_args" | sort -n
-}
-
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
-
 mkdir -- "$selflock" >/dev/null 2>&1 || exit 0
-
-while ! mkdir -- "$giterlock" >/dev/null 2>&1; do
-	sleep 1
-done
+trap exit_handler HUP PIPE INT QUIT TERM EXIT
 
 private_num="$(findin "$private_queue" |tail -1)"
 
 [ -n "$private_num" ] &&
-    private_num=$(($private_num+1)) ||
-    private_num=0
+	private_num=$(($private_num+1)) ||
+	private_num=0
 
+# lock public queue
+while ! mkdir -- "$giterlock" >/dev/null 2>&1; do
+	sleep 1
+done
+
+# move tasks from public queue to private queue
 for name in $(findin "$giter_queue"); do
 	task="$giter_queue/$name"
 
@@ -73,8 +82,10 @@ for name in $(findin "$giter_queue"); do
 	private_num=$(($private_num+1))
 done
 
+# unlock public queue
 rmdir -- "$giterlock"
 
+# lock upravdom queue
 ssh -n "$upravdom_account" "while ! mkdir -- '$upravdomlock'>/dev/null 2>&1; do sleep 1; done" ||
 	fatal "unable to lock upravdom queue"
 
@@ -84,6 +95,7 @@ upravdom_num="$(findin_upravdom_queue |tail -1)"
 	upravdom_num=$(($upravdom_num+1)) ||
 	upravdom_num=0
 
+# move tasks from private queue to upravdom queue
 for name in $(findin "$private_queue"); do
 	rsync -tp "$private_queue/$name" "$upravdom_account:$upravdom_queue/$upravdom_num" ||
 		fatal "unable to forward task '$private_queue/$name' -> '$upravdom_account:$upravdom_queue/$upravdom_num': rc=$?"
