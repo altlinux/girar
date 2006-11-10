@@ -250,7 +250,7 @@ handle_packages_releases()
 	[ -n "$GITER_USER" -a -n "$pkgname" -a -n "$geardir" -a -n "$commitish" ] ||
 		fatal "unable to get release infomation for package"
 
-	"@CMDDIR@/giter-make-release" "$GITER_USER" "$pkgname" "$geardir" "$commitish"
+	"@CMDDIR@/giter-queue-release" "$GITER_USER" "$pkgname" "$geardir" "$commitish"
 }
 
 email_new_head()

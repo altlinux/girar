@@ -43,7 +43,7 @@ CFLAGS = -pipe -Wall -O2
 bin_build_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
-	bin/giter-make-release \
+	bin/giter-queue-release \
 	bin/giter-sh \
 	bin/people-clone \
 	bin/people-init-db
