@@ -72,11 +72,10 @@ all: ${TARGETS}
 clean:
 	${RM} ${bin_build_TARGETS} ${sbin_TARGETS} hooks/update
 
-install: install-bin install-conf install-data install-sbin install-var
+install: install-bin install-conf install-data install-sbin install-var install-perms
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${giter_bindir}
-	-chgrp giter ${DESTDIR}${giter_bindir}
 	install -pm755 $^ ${DESTDIR}${giter_bindir}/
 
 install-sbin: ${sbin_TARGETS}
@@ -87,17 +86,9 @@ install-conf:
 	install -d -m750 \
 		${DESTDIR}${giter_confdir} \
 		${DESTDIR}${GITER_ACL}
-	-chgrp giter \
-		${DESTDIR}${giter_confdir} \
-		${DESTDIR}${GITER_ACL}
 
 install-data: hooks
 	install -d -m750 \
-		${DESTDIR}${giter_datadir} \
-		${DESTDIR}${giter_hooks_dir} \
-		${DESTDIR}${giter_templates_dir} \
-		${DESTDIR}${GITER_FAKE_HOME}
-	-chgrp giter \
 		${DESTDIR}${giter_datadir} \
 		${DESTDIR}${giter_hooks_dir} \
 		${DESTDIR}${giter_templates_dir} \
@@ -112,12 +103,14 @@ install-var:
 		${DESTDIR}${giter_spooldir} \
 		${DESTDIR}${GITER_PUBLIC_QUEUE} \
 		${DESTDIR}${GITER_PRIVATE_QUEUE}
+
+install-perms:
 	-chgrp giter \
+		${DESTDIR}${giter_bindir} \
+		${DESTDIR}${giter_confdir} \
+		${DESTDIR}${giter_datadir} \
 		${DESTDIR}${giter_statedir} \
-		${DESTDIR}${giter_email_dir} \
-		${DESTDIR}${giter_spooldir} \
-		${DESTDIR}${GITER_PUBLIC_QUEUE} \
-		${DESTDIR}${GITER_PRIVATE_QUEUE}
+		${DESTDIR}${giter_spooldir}
 
 bin/giter-sh: bin/giter-sh.c
 

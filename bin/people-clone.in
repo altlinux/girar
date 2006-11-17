@@ -35,7 +35,7 @@ if [ -e "$repo0" ]; then
 fi
 if [ -z "$repo" ]; then
 	case "$repo0" in
-		rsync://*|https://*|http://*) ;;
+		rsync://*|https://*|http://*|ftp://*) ;;
 		*) fatal "$repo0: invalid repository" ;;
 	esac
 fi
