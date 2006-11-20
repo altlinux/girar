@@ -47,7 +47,8 @@ bin_build_TARGETS = \
 	bin/giter-queue-release \
 	bin/giter-sh \
 	bin/people-clone \
-	bin/people-init-db
+	bin/people-init-db \
+	bin/people-queue-build
 
 bin_TARGETS = $(bin_build_TARGETS) \
 	bin/people-find \
@@ -97,6 +98,7 @@ install-data: hooks
 		${DESTDIR}${giter_templates_dir} \
 		${DESTDIR}${GITER_FAKE_HOME}
 	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
+	${RM} -- ${DESTDIR}${giter_hooks_dir}/*.in
 	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
 
 install-var:

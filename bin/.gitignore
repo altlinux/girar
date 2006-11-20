@@ -4,3 +4,4 @@ giter-queue-release
 giter-sh
 people-clone
 people-init-db
+people-queue-build
