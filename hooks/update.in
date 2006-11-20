@@ -25,10 +25,6 @@ refs/tags/*)
 	ref_style=tag
 	ref_name="${1#refs/tags/}"
 	;;
-refs/releases/*)
-	ref_style=release
-	ref_name="${1#refs/releases/}"
-	;;
 refs/remotes/*)
 	ref_style=remote
 	ref_name="${1#refs/remotes/}"
@@ -40,12 +36,12 @@ esac
 
 ref_type="$(git-cat-file -t "$3")" || exit 1
 
-# Only allow annotated tags and releases in a shared repo
+# Only allow annotated tags in a shared repo
 case "$1,$ref_type" in
-refs/tags/*,tag|refs/releases/*,tag)
+refs/tags/*,tag)
 	echo "### Pushing $ref_style \`$ref_name' to the masses" >&2
 	;;
-refs/tags/*,*|refs/releases/*,*)
+refs/tags/*,*)
 	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
 	echo >&2 "*** Use \`git-tag [ -a | -s ]' for tags you want to propagate."
 	exit 1
@@ -70,9 +66,9 @@ check_etc_packages()
 		return
 }
 
-check_packages_releases()
+check_type_packages()
 {
-	[ "$project_type" = "packages" -a "$ref_style" = "release" ] ||
+	[ "$project_type" = "packages" ] ||
 		return
 }
 
@@ -91,7 +87,7 @@ validate_distribution_subscription()
 		printf %s "$p" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
-		\*|head|tag|release|remote) ;;
+		\*|head|tag|remote) ;;
 		*) fatal "$where: invalid reftype pattern: $t" ;;
 	esac
 	[ "$n" = '*' ] ||
@@ -162,35 +158,6 @@ handle_etc_packages()
 			cp "$workdir/$n" "@GITER_EMAIL_DIR@/packages/$GITER_USER/"
 		fi
 	done
-}
-
-# Validate that $GITER_USER is release tagger.
-validate_release_tagger()
-{
-	local tagger
-	tagger="$(git-cat-file tag "$3" |sed -ne '4s/^tagger [^<]\+<\([^@>]\+\)@.*/\1/p')"
-
-	[ -n "$tagger" ] ||
-		fatal "tagger not found"
-
-	[ "$GITER_USER" = "$tagger" ] ||
-		fatal "release tagger mismatch: expected $GITER_USER, found $tagger"
-}
-
-get_pkgname() {
-	local name
-	name="$(git-cat-file tag "$3" |
-		    sed -ne 's/^Package name:[[:space:]]\+\([^[:space:]]\+\)$/\1/p')"
-	[ -n "$name" ] ||
-		name="$project_name"
-	printf %s\\n "$name"
-}
-
-handle_packages_releases()
-{
-	check_packages_releases "$@" || return 0
-
-	validate_release_tagger "$@"
 }
 
 email_new_head()
@@ -277,7 +244,7 @@ mailto="$(
 	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
 )"
 [ -n "$mailto" ] ||
-	check_packages_releases "$@" ||
+	check_type_packages ||
 	check_etc_packages "$@" ||
 	exit 0
 
@@ -318,9 +285,9 @@ if expr "$2" : '0*$' >/dev/null; then
 		[ -z "$mailto" ] ||
 			email_new_head "$@" >>"$MSG"
 		;;
-	refs/releases/*|refs/tags/*)
+	refs/tags/*)
 		# new tag
-		handle_packages_releases "$@"
+		check_type_packages
 		[ -z "$mailto" ] ||
 			email_new_tag "$@" >>"$MSG"
 		;;
@@ -328,7 +295,7 @@ if expr "$2" : '0*$' >/dev/null; then
 else
 	# update ref
 	handle_etc_packages "$@"
-	handle_packages_releases "$@"
+	check_type_packages
 	[ -z "$mailto" ] ||
 		email_update_ref "$@" >>"$MSG"
 fi
