@@ -13,6 +13,7 @@ maildir="@GITER_EMAIL_DIR@/packages"
 
 # Arguments
 project_name=
+project_type=
 ref_style=
 ref_name=
 
@@ -69,7 +70,10 @@ fi
 
 project_name="$(quote_sed_regexp "$1")" && shift
 ref_style="$(quote_sed_regexp "$1")" && shift
-ref_name=="$(quote_sed_regexp "$1")" && shift
+ref_name="$(quote_sed_regexp "$1")" && shift
+
+project_type="${GIT_DIR%/*}"
+project_type="${project_type##*/}"
 
 find_subscribers |
 	translate_email |

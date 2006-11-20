@@ -61,7 +61,7 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ -e "$AUTH" ] ||
 	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
 
-userdel -r -- "$IT_NAME" ||
+userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: error removing user"
 
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
