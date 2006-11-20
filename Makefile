@@ -14,6 +14,8 @@ giter_spooldir = ${spooldir}/giter
 giter_statedir = ${localstatedir}/giter
 giter_hooks_dir = ${giter_datadir}/hooks
 giter_templates_dir = ${giter_datadir}/templates
+giter_etc_dir = ${giter_datadir}/user-etc
+giter_packages_dir = ${giter_etc_dir}/packages.git
 giter_email_dir = ${giter_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
@@ -57,6 +59,7 @@ bin_TARGETS = $(bin_build_TARGETS) \
 
 sbin_TARGETS = \
 	sbin/giter-add \
+	sbin/giter-del \
 	sbin/giter-auth-add \
 	sbin/giter-auth-zero \
 	sbin/giter-disable \
@@ -92,6 +95,7 @@ install-data: hooks
 		${DESTDIR}${giter_datadir} \
 		${DESTDIR}${giter_hooks_dir} \
 		${DESTDIR}${giter_templates_dir} \
+		${DESTDIR}${giter_packages_dir} \
 		${DESTDIR}${GITER_FAKE_HOME}
 	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
 	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
@@ -103,6 +107,9 @@ install-var:
 		${DESTDIR}${giter_spooldir} \
 		${DESTDIR}${GITER_PUBLIC_QUEUE} \
 		${DESTDIR}${GITER_PRIVATE_QUEUE}
+
+install-etcpkg:
+	install -d -m750 ${DESTDIR}${giter_statedir}
 
 install-perms:
 	-chgrp giter \
@@ -123,6 +130,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \
 	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
 	    -e 's,@GITER_HOOKS_DIR@,${giter_hooks_dir},g' \
+	    -e 's,@GITER_PACKAGES_DIR@,${giter_packages_dir},g' \
 	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
 	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
 	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \
