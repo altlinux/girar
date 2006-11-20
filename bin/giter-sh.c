@@ -102,6 +102,7 @@ static cmd_t commands[] = {
 	{"git-clone", "people-clone", " <repository> [<directory>]"},
 	{"find-package", "people-find", " <pattern>"},
 	{"ls", "people-ls", " [<directory>]"},
+	{"queue-build", "people-queue-build", " <directory> <tag> <name>/<branch>"},
 	{"quota", "people-quota", ""}
 };
 

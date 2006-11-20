@@ -186,71 +186,11 @@ get_pkgname() {
 	printf %s\\n "$name"
 }
 
-# Global: project_name, ref_name
-# Return: 0 if $GITER_USER is allowed to push release tag for $project_name, and 1 otherwise.
-check_release_perms()
-{
-	local releases_file="@GITER_RELEASES@"
-	local acldir="@GITER_ACL@"
-
-	# allowed if no non-empty release file available
-	[ -s "$releases_file" ] || return 0
-
-	fgrep -xqs "$ref_name" "$releases_file" ||
-		fatal "$ref_name: invalid release tag, valid tags are: $(tr '\n' ' '<"$releases_file")"
-
-	# allowed if no acl file available for given ref_name
-	[ -s "$acldir/list.packages.$ref_name" ] || return 0
-
-	local aclline builders groups= humans= leader o pkg_name
-
-	pkg_name="$(get_pkgname "$@")"
-
-	# allowed if package is not listed
-	aclline="$(grep "^$pkg_name " "$acldir/list.packages.$ref_name")" || return 0
-
-	# aclline format: pkg_name leader builders
-	set -- ${aclline}; shift
-	leader="$1"; shift
-	builders="$*"
-
-	# leader and "*" are allowed
-	[ "$GITER_USER" != "$leader" -a "$builders" != "*" ] || return 0
-
-	# expand groups if any
-	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$ref_name" ]; then
-		for o in ${builders}; do
-			[ -z "${o%%@*}" ] &&
-				groups="$groups|$o" ||
-				humans="$humans $o"
-		done
-		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$ref_name")"
-	fi
-	printf %s "$builders" |grep -qs "\<$GITER_USER\>"
-}
-
 handle_packages_releases()
 {
 	check_packages_releases "$@" || return 0
 
 	validate_release_tagger "$@"
-
-	check_release_perms "$@" ||
-		fatal "you have no permission to release this package"
-
-	echo >&2 "sorry, package releases are not handled yet..."
-	return 0
-
-	local pkgname geardir commitish
-
-	pkgname="$(get_pkgname "$@")"
-	geardir="${git_dir%/.git}"
-	commitish="$3"
-
-	[ -n "$GITER_USER" -a -n "$pkgname" -a -n "$geardir" -a -n "$commitish" ] ||
-		fatal "unable to get release infomation for package"
-
-	"@CMDDIR@/giter-queue-release" "$GITER_USER" "$pkgname" "$geardir" "$commitish"
 }
 
 email_new_head()

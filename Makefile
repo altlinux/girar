@@ -14,8 +14,7 @@ giter_spooldir = ${spooldir}/giter
 giter_statedir = ${localstatedir}/giter
 giter_hooks_dir = ${giter_datadir}/hooks
 giter_templates_dir = ${giter_datadir}/templates
-giter_etc_dir = ${giter_datadir}/user-etc
-giter_packages_dir = ${giter_etc_dir}/packages.git
+giter_packages_dir = ${giter_datadir}/packages.git
 giter_email_dir = ${giter_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
@@ -89,13 +88,13 @@ install-conf:
 	install -d -m750 \
 		${DESTDIR}${giter_confdir} \
 		${DESTDIR}${GITER_ACL}
+	ln -snf ${giter_packages_dir} ${DESTDIR}${giter_confdir}/packages.git
 
 install-data: hooks
 	install -d -m750 \
 		${DESTDIR}${giter_datadir} \
 		${DESTDIR}${giter_hooks_dir} \
 		${DESTDIR}${giter_templates_dir} \
-		${DESTDIR}${giter_packages_dir} \
 		${DESTDIR}${GITER_FAKE_HOME}
 	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
 	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks

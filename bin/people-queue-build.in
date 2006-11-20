@@ -1,0 +1,97 @@
+#!/bin/sh -efu
+
+PROG=gear-queue
+user_prefix="@USER_PREFIX@"
+branches_file="@GITER_RELEASES@"
+acldir="@GITER_ACL@"
+
+fatal()
+{
+	echo "$PROG: $*" >&2
+	exit 1
+}
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <directory> <tag> <name>/<branch>" >&2
+	exit 1
+}
+
+branch=
+project_name=
+# Return: 0 if $GITER_USER is allowed to make release for $project_name, and 1 otherwise.
+check_perms()
+{
+	# allowed if no non-empty release file available
+	[ -s "$branches_file" ] || return 0
+
+	fgrep -xqs "$branch" "$branches_file" ||
+		fatal "$branch: invalid release tag, valid tags are: $(tr '\n' ' '<"$branches_file")"
+
+	# allowed if no acl file available for given ref_name
+	[ -s "$acldir/list.packages.$branch" ] || return 0
+
+	local aclline builders groups= humans= leader o
+
+	# allowed if package is not listed
+	aclline="$(grep "^$project_name " "$acldir/list.packages.$branch")" || return 0
+
+	# aclline format: pkg_name leader builders
+	set -- ${aclline}; shift
+	leader="$1"; shift
+	builders="$*"
+
+	# leader and "*" are allowed
+	[ "$GITER_USER" != "$leader" -a "$builders" != "*" ] || return 0
+
+	# expand groups if any
+	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$branch" ]; then
+		for o in ${builders}; do
+			[ -z "${o%%@*}" ] &&
+				groups="$groups|$o" ||
+				humans="$humans $o"
+		done
+		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$branch")" #"
+	fi
+	printf %s "$builders" |grep -qs "\<$GITER_USER\>"
+}
+
+[ -n "${GITER_USER:-}" ] || 
+	fatal "GITER_USER undefined"
+
+cd "$HOME/packages"
+
+dir0="$1" && shift
+dir="${dir0#$PWD/}"
+[ "${dir#/}" = "$dir" ] ||
+	fatal "$dir0: invalid directory name"
+
+dir="$(printf %s "$dir" |sed -e 's,/\+$,,' -e 's,\.git$,,')"
+
+printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+	fatal "$dir0: invalid directory name"
+
+[ -d "$dir.git" ] ||
+	fatal "$dir0: directory not available"
+
+cd "$dir.git"
+
+tag="$1" && shift
+GIT_DIR=. git-tag -l |fgrep -xqs "$tag" ||
+	fatal "$tag: invalid tag"
+
+nb="$1" && shift
+project_name="${nb%%/*}"
+branch="${nb##*/}"
+
+printf %s "$project_name" |egrep -qs '^[A-Za-z0-9_-]+$' ||
+	fatal "$project_name: invalid name"
+
+printf %s "$branch" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
+	fatal "$branch: invalid branch"
+
+check_perms ||
+	fatal "you have no permission to release this package"
+
+exec giter-queue-release "$GITER_USER" "$project_name" "$PWD" "$tag" "$branch"
