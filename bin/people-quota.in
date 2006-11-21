@@ -1,7 +1,10 @@
 #!/bin/sh -efu
 
+. "@CMDDIR@/giter-sh-functions"
+PROG=giter-quota
+
 [ -n "${USER:-}" ] || 
-	{ echo "giter-quota: USER undefined" >&2; exit 1; }
+	fatal "USER undefined"
 
 # do not check args, just show quota and filter out username.
 quota -ils |fgrep -ve "user $USER"

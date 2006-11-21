@@ -41,20 +41,18 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGITER_HOME=\"${GITER_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
-bin_build_TARGETS = \
+bin_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
 	bin/giter-queue-release \
 	bin/giter-sh \
-	bin/people-clone \
-	bin/people-init-db \
-	bin/people-queue-build
-
-bin_TARGETS = $(bin_build_TARGETS) \
 	bin/giter-sh-functions \
+	bin/people-clone \
 	bin/people-find \
+	bin/people-init-db \
 	bin/people-ls \
 	bin/people-mv-db \
+	bin/people-queue-build \
 	bin/people-quota \
 	bin/people-rm-db
 
@@ -74,7 +72,7 @@ TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 all: ${TARGETS}
 
 clean:
-	${RM} ${bin_build_TARGETS} ${sbin_TARGETS} hooks/update
+	${RM} ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 
 install: install-bin install-conf install-data install-sbin install-var install-perms
 

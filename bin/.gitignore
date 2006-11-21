@@ -2,6 +2,12 @@ acl-cronjob
 find-subscribers
 giter-queue-release
 giter-sh
+giter-sh-functions
 people-clone
+people-find
 people-init-db
+people-ls
+people-mv-db
 people-queue-build
+people-quota
+people-rm-db
