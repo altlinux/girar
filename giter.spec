@@ -1,18 +1,20 @@
 Name: giter
-Version: 0.0.1
+Version: 0.1
 Release: alt1
 
-Summary: gear server
+Summary: git.alt server engine
 License: GPL
-Group: Development/Other
-Packager: Alexey Gladkov <legion@altlinux.ru>
+Group: System/Servers
+Packager: Dmitry V. Levin <ldv@altlinux.org>
 
 Source: %name-%version.tar
 
-Requires: git-core
+Requires(pre): shadow-utils
 
 %description
-gear server
+This package contains server engine initially developed for git.alt,
+including administration and user utilities, git hooks, email subscription
+support and config files.
 
 %define giter_group giter
 
@@ -26,7 +28,7 @@ gear server
 %make_install install DESTDIR=%buildroot
 
 %pre
-/usr/sbin/groupadd -r -f %giter_group &>/dev/null
+/usr/sbin/groupadd -r -f %giter_group
 
 %files
 %defattr(-,root,%giter_group,755)
@@ -38,5 +40,8 @@ gear server
 %_localstatedir/%name
 
 %changelog
+* Tue Nov 21 2006 Dmitry V. Levin <ldv@altlinux.org> 0.1-alt1
+- Specfile cleanup.
+
 * Fri Nov 17 2006 Alexey Gladkov <legion@altlinux.ru> 0.0.1-alt1
 - Initial revision.
