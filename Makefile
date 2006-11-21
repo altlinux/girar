@@ -129,7 +129,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \
 	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
 	    -e 's,@GITER_HOOKS_DIR@,${giter_hooks_dir},g' \
-	    -e 's,@GITER_PACKAGES_DIR@,${DESTDIR}${giter_confdir}/packages.git,g' \
+	    -e 's,@GITER_PACKAGES_DIR@,${giter_confdir}/packages.git,g' \
 	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
 	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
 	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \
