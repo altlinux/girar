@@ -5,7 +5,6 @@
 export IFS=' 	
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-umask 022
 
 usage()
 {
@@ -21,43 +20,26 @@ shift
 printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
-SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
-	fatal "sudo user '$SUDO_USER' not found"
-
-SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
-	[ -d "$SUDO_HOME" ] ||
-	fatal "sudo user '$SUDO_USER' home directory '$SUDO_HOME' not available"
-
 IT_NAME="@USER_PREFIX@$NAME"
-IT_HOME="@GITER_FAKE_HOME@"
-GITER_HOME="@GITER_HOME@"
-REAL_HOME="$GITER_HOME/$NAME"
-
-[ -d "$IT_HOME" ] ||
-	fatal "error adding $NAME: directory $IT_HOME not available"
-[ -d "$GITER_HOME" ] ||
-	fatal "error adding $NAME: directory $GITER_HOME not available"
-
+REAL_HOME="@GITER_HOME@/$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
-[ -e "$AUTH" ] ||
-	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
+EMAIL_DIR="@GITER_EMAIL_DIR@/packages/$NAME"
 
 userdel -- "$IT_NAME" ||
-	fatal "$IT_NAME: error removing user"
+	fatal "$IT_NAME: failed to remove user"
+
+rm -rf -- "$REAL_HOME" ||
+	error "$IT_NAME: failed to remove $REAL_HOME"
+
+rm -f -- "$AUTH" ||
+	error "$IT_NAME: failed to remove authorized keys file '$AUTH'"
+
+rm -rf -- "$EMAIL_DIR" ||
+	error "$IT_NAME: failed to remove $EMAIL_DIR"
 
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"
 
 subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GITER_EMAIL_ALIASES@" &&
 	newaliases ||
-	fatal "$IT_NAME: error rmoving mail alias"
-
-rm -f -- "$AUTH" ||
-	fatal "error removing authorized keys file '$AUTH' for user $IT_NAME"
-
-rm -rf -- "$REAL_HOME" ||
-	fatal "$IT_NAME: failed to remove $REAL_HOME"
-
-EMAIL_DIR="@GITER_EMAIL_DIR@/packages"
-rm -rf -- "$EMAIL_DIR/$NAME" ||
-	fatal "$IT_NAME: failed to remove $EMAIL_DIR/$NAME"
+	error "$IT_NAME: failed to remove email alias"
