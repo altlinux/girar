@@ -2,7 +2,7 @@ DESTDIR =
 datadir = /usr/share
 libexecdir = /usr/libexec
 localstatedir = /var/lib
-sbindir = /usr/local/sbin
+sbindir = /usr/sbin
 spooldir = /var/spool
 sysconfdir = /etc
 

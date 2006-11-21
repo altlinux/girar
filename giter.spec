@@ -25,9 +25,6 @@ gear server
 %install
 %make_install install DESTDIR=%buildroot
 
-%__mkdir -p %buildroot/%_sbindir
-mv %buildroot/%_usr/local/sbin/* %buildroot/%_sbindir
-
 %pre
 /usr/sbin/groupadd -r -f %giter_group &>/dev/null
 
