@@ -1,12 +1,8 @@
 #!/bin/sh -efu
 
-PROG=git-mv-db
+. "@CMDDIR@/giter-sh-functions"
 
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
+PROG=git-mv-db
 
 usage()
 {
@@ -23,14 +19,10 @@ usage()
 cd "$HOME/packages"
 
 srcdir0="$1" && shift
-srcdir="$(printf %s "$srcdir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
-printf %s "$srcdir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
-	fatal "$srcdir0: invalid source directory name"
+srcdir="$(validate_packages_dir "$srcdir0")"
 
 dstdir0="$1" && shift
-dstdir="$(printf %s "$dstdir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
-printf %s "$dstdir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
-	fatal "$dstdir0: invalid destination directory name"
+dstdir="$(validate_packages_dir "$dstdir0")"
 
 [ -d "$srcdir.git" ] ||
 	fatal "$srcdir0: source directory not available"

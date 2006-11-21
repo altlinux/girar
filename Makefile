@@ -51,6 +51,7 @@ bin_build_TARGETS = \
 	bin/people-queue-build
 
 bin_TARGETS = $(bin_build_TARGETS) \
+	bin/giter-sh-functions \
 	bin/people-find \
 	bin/people-ls \
 	bin/people-mv-db \
@@ -108,9 +109,6 @@ install-var:
 		${DESTDIR}${giter_spooldir} \
 		${DESTDIR}${GITER_PUBLIC_QUEUE} \
 		${DESTDIR}${GITER_PRIVATE_QUEUE}
-
-install-etcpkg:
-	install -d -m750 ${DESTDIR}${giter_statedir}
 
 install-perms:
 	-chgrp giter \

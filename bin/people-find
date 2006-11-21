@@ -1,12 +1,8 @@
 #!/bin/sh -eu
 
-PROG=find-package
+. "@CMDDIR@/giter-sh-functions"
 
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
+PROG=find-package
 
 usage()
 {

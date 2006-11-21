@@ -1,15 +1,11 @@
 #!/bin/sh -efu
 
-PROG=gear-queue
+. "@CMDDIR@/giter-sh-functions"
+
+PROG=queue-build
 user_prefix="@USER_PREFIX@"
 branches_file="@GITER_RELEASES@"
 acldir="@GITER_ACL@"
-
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
 
 usage()
 {
@@ -67,11 +63,7 @@ dir="${dir0#$PWD/}"
 [ "${dir#/}" = "$dir" ] ||
 	fatal "$dir0: invalid directory name"
 
-dir="$(printf %s "$dir" |sed -e 's,/\+$,,' -e 's,\.git$,,')"
-
-printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
-	fatal "$dir0: invalid directory name"
-
+dir="$(validate_packages_dir "$dir")"
 [ -d "$dir.git" ] ||
 	fatal "$dir0: directory not available"
 
@@ -85,7 +77,7 @@ nb="$1" && shift
 project_name="${nb%%/*}"
 branch="${nb##*/}"
 
-printf %s "$project_name" |egrep -qs '^[A-Za-z0-9_-]+$' ||
+printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid name"
 
 printf %s "$branch" |egrep -qs '^[A-Za-z0-9_-.]+$' ||

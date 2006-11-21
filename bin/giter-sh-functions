@@ -1,0 +1,29 @@
+#!/bin/sh
+
+project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
+
+PROG=
+fatal()
+{
+	echo "$PROG: $*" >&2
+	exit 1
+}
+
+quote_sed_regexp()
+{
+	local out="$*"
+	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
+		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
+			return 1
+	fi
+	printf %s "$out"
+}
+
+validate_packages_dir()
+{
+	local dir0="$1" && shift
+	local dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
+	printf %s "$dir" |egrep -qs "$project_name_regexp" ||
+		fatal "$dir0: invalid directory name"
+	printf %s\\n "$dir"
+}

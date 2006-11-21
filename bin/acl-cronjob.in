@@ -1,17 +1,9 @@
 #!/bin/sh -efu
 
+. "@CMDDIR@/giter-sh-functions"
+
 releases_file="@GITER_RELEASES@"
 acldir="@GITER_ACL@"
-
-quote_sed_regexp()
-{
-	local out="$*"
-	if [ -z "${out##*[\[\].^\$\\/]*}" ]; then
-		out="$(printf %s "$out" |sed -e 's/[].^$[\/]/\\&/g')" ||
-			return 1
-	fi
-	printf %s "$out"
-}
 
 update()
 {

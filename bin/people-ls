@@ -1,12 +1,8 @@
 #!/bin/sh -efu
 
-PROG=git-ls
+. "@CMDDIR@/giter-sh-functions"
 
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
+PROG=git-ls
 
 usage()
 {

@@ -1,12 +1,8 @@
 #!/bin/sh -efu
 
-PROG=people-init-db
+. "@CMDDIR@/giter-sh-functions"
 
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
+PROG=people-init-db
 
 usage()
 {
@@ -22,10 +18,7 @@ usage()
 
 cd "$HOME/packages"
 
-dir0="$1" && shift
-dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
-printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
-	fatal "$dir0: invalid directory name"
+dir="$(validate_packages_dir "$1")" && shift
 mkdir -- "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=@GITER_TEMPLATES_DIR@

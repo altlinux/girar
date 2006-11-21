@@ -1,15 +1,12 @@
 #!/bin/sh
 
+. "@CMDDIR@/giter-sh-functions"
+
+PROG=git-update
 LANG=C
 LANGUAGE=C
 LC_ALL=C
 export LANG LANGUAGE LC_ALL
-
-fatal()
-{
-	printf %s\\n "git-update: $*" >&2
-	exit 1
-}
 
 if [ "$1" = "refs/heads/origin" ]; then
 	fatal "$1 is not designed for publication and therefore is not allowed in this repo"
@@ -84,7 +81,7 @@ validate_distribution_subscription()
 		fatal "$where: unexpected field: $rest"
 	fi
 	[ "$p" = '*' ] ||
-		printf %s "$p" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
+		printf %s "$p" |egrep -qs "$project_name_regexp" ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
 		\*|head|tag|remote) ;;

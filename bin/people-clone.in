@@ -1,12 +1,8 @@
 #!/bin/sh -efu
 
-PROG=people-clone
+. "@CMDDIR@/giter-sh-functions"
 
-fatal()
-{
-	echo "$PROG: $*" >&2
-	exit 1
-}
+PROG=people-clone
 
 usage()
 {
@@ -46,9 +42,7 @@ else
 	dir0="${repo0##*/}"
 fi
 
-dir="$(printf %s "$dir0" |sed -e 's,^packages/,,' -e 's,/\+$,,' -e 's,\.git$,,')"
-printf %s "$dir" |egrep -qs '^[A-Za-z0-9][-A-Za-z0-9_.]+$' ||
-	fatal "$dir0: invalid directory name"
+dir="$(validate_packages_dir "$dir0")" && shift
 [ ! -e "$dir".git ] ||
 	fatal "$dir0: destination already exists"
 
