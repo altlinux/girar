@@ -48,7 +48,7 @@ userdel -- "$IT_NAME" ||
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"
 
-subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" /etc/postfix/git.aliases &&
+subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GITER_EMAIL_ALIASES@" &&
 	newaliases ||
 	fatal "$IT_NAME: error rmoving mail alias"
 

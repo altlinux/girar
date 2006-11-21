@@ -74,9 +74,9 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 useradd -c "$GECOS" -d "$IT_HOME" -g 'giter' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
-printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>/etc/postfix/git.aliases &&
+printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@GITER_EMAIL_ALIASES@" &&
 	newaliases ||
-	fatal "$IT_NAME: error adding mail alias"
+	fatal "$IT_NAME: error adding email alias"
 
 echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
