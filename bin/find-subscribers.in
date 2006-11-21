@@ -2,8 +2,6 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG="${0##*/}"
-
 # env: GITER_USER_PREFIX GITER_USER GIT_DIR
 GITER_USER_PREFIX=${GITER_USER_PREFIX:?}
 GITER_USER=${GITER_USER:?}

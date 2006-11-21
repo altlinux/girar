@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=find-package
+PROG=giter-find-package
 
 usage()
 {

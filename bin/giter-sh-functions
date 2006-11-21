@@ -1,11 +1,16 @@
 #!/bin/sh
 
+PROG="${PROG:-${0##*/}}"
 project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
 
-PROG=
-fatal()
+error()
 {
 	echo "$PROG: $*" >&2
+}
+
+fatal()
+{
+	error "$*"
 	exit 1
 }
 

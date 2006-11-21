@@ -1,19 +1,16 @@
 #!/bin/sh -e
+
+. "@CMDDIR@/giter-sh-functions"
+
 export IFS=' 	
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
 
-fatal()
-{
-	echo "${0##*/}: $*" >&2
-	exit 1
-}
-
 usage()
 {
-	echo "${0##*/}: $*" >&2
-	echo "usage: ${0##*/} <NAME>"
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <NAME>"
 	exit 1
 }
 

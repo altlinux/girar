@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=queue-build
+PROG=giter-queue-build
 user_prefix="@USER_PREFIX@"
 branches_file="@GITER_RELEASES@"
 acldir="@GITER_ACL@"

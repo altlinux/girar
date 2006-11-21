@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=git-mv-db
+PROG=giter-mv-db
 
 usage()
 {

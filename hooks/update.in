@@ -63,12 +63,6 @@ check_etc_packages()
 		return
 }
 
-check_type_packages()
-{
-	[ "$project_type" = "packages" ] ||
-		return
-}
-
 validate_distribution_subscription()
 {
 	local where="$1" && shift
@@ -241,7 +235,6 @@ mailto="$(
 	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
 )"
 [ -n "$mailto" ] ||
-	check_type_packages ||
 	check_etc_packages "$@" ||
 	exit 0
 
@@ -284,7 +277,6 @@ if expr "$2" : '0*$' >/dev/null; then
 		;;
 	refs/tags/*)
 		# new tag
-		check_type_packages
 		[ -z "$mailto" ] ||
 			email_new_tag "$@" >>"$MSG"
 		;;
@@ -292,7 +284,6 @@ if expr "$2" : '0*$' >/dev/null; then
 else
 	# update ref
 	handle_etc_packages "$@"
-	check_type_packages
 	[ -z "$mailto" ] ||
 		email_update_ref "$@" >>"$MSG"
 fi

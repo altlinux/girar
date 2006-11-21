@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=git-ls
+PROG=giter-ls
 
 usage()
 {

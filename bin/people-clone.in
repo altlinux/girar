@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=people-clone
+PROG=giter-clone
 
 usage()
 {
@@ -42,7 +42,7 @@ else
 	dir0="${repo0##*/}"
 fi
 
-dir="$(validate_packages_dir "$dir0")" && shift
+dir="$(validate_packages_dir "$dir0")"
 [ ! -e "$dir".git ] ||
 	fatal "$dir0: destination already exists"
 
