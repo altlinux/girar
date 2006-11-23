@@ -33,12 +33,8 @@ if ! readlink -ev "@GITER_PACKAGES_DIR@" &>/dev/null; then
 which will be cloned to \$GITER_HOME/etc/packages.git.
 EOF
 
-if ! readlink -ev "@GITER_PRIVATE_DIR@" &>/dev/null; then
-	error "@GITER_PRIVATE_DIR@: broken symlink"
-	cat>&2 <<EOF
-@GITER_PRIVATE_DIR@ should contain template of git repository
-which will be cloned to \$GITER_HOME/etc/private.git.
-EOF
+# Validate @GITER_PRIVATE_DIR@
+GIT_DIR="@GITER_PRIVATE_DIR@" git-rev-parse --git-dir >/dev/null
 
 IDFILE="$(readlink -ev "$IDFILE")" ||
 	fatal "identity file '$IDFILE' not available"

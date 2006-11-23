@@ -90,7 +90,6 @@ install-conf:
 		${DESTDIR}${giter_confdir} \
 		${DESTDIR}${GITER_ACL}
 	ln -sn ${giter_packages_dir} ${DESTDIR}${giter_confdir}/packages.git ||:
-	ln -sn ${giter_private_dir} ${DESTDIR}${giter_confdir}/private.git ||:
 
 install-data: hooks
 	install -d -m750 \
