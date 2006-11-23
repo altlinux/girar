@@ -31,5 +31,5 @@ dstdir="$(validate_packages_dir "$dstdir0")"
 
 cd "$srcdir.git"
 cd "$HOME"
-mkdir -p -- "$dstdir.git"
+mkdir -- "$dstdir.git"
 mv -T -- "$srcdir.git" "$dstdir.git"
