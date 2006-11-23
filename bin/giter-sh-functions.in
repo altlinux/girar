@@ -24,13 +24,19 @@ quote_sed_regexp()
 	printf %s "$out"
 }
 
+prefix_packages()
+{
+	local fmt='%s' dirname="${1%/*}"
+	[ "$dirname" != "$1" ] ||
+		fmt='packages/%s'
+	printf "$fmt" "$1"
+}
+
 validate_packages_dir()
 {
 	local dir0 dirname dir
-	dir0="$1" && shift
+	dir0="$(prefix_packages "$1")" && shift
 	dirname="${dir0%/*}"
-	[ "$dirname" != "$dir0" ] ||
-		dirname='packages'
 	[ "$dirname" = 'packages' -o "$dirname" = 'private' ] ||
 		fatal "$dir0: invalid directory name"
 	dir="$(printf %s "${dir0##*/}" |sed -e 's,/\+$,,' -e 's,\.git$,,')"

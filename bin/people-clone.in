@@ -23,8 +23,9 @@ cd "$HOME"
 
 repo0="$1" && shift
 repo=
-if [ -e "$repo0" ]; then
-	repo="$(readlink -ev "$repo0")/"
+p_repo="$(prefix_packages "$repo0")"
+if [ -e "$p_repo" ]; then
+	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$GITER_HOME")"
 	[ -z "${repo##$people/*}" ] ||
 		fatal "$repo0: invalid local repository"
