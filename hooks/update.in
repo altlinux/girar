@@ -259,7 +259,7 @@ email_update_ref()
 }
 
 mailto="$(
-	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" packages private |
+	"@CMDDIR@/find-subscribers" "$project_name" "$ref_style" "$ref_name" |
 	tr -s '\n' , |
 	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
 )"

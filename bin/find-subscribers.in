@@ -11,11 +11,18 @@ GIT_DIR=${GIT_DIR:?}
 git_aliases="@GITER_EMAIL_ALIASES@"
 maildir="@GITER_EMAIL_DIR@"
 
-# Arguments
-project_name=
-project_type=
-ref_style=
-ref_name=
+if [ "$#" -lt 4 ]; then
+    	printf %s\\n "$PROG: Wrong number of arguments: $#" >&2
+    	exit 1
+fi
+
+project_name="$(quote_sed_regexp "$1")" && shift
+ref_style="$(quote_sed_regexp "$1")" && shift
+ref_name="$(quote_sed_regexp "$1")" && shift
+
+project_type="${GIT_DIR%/*}"
+project_type="${project_type##*/}"
+project_type_quoted="$(quote_sed_regexp "$project_type")"
 
 translate_email()
 {
@@ -33,40 +40,22 @@ find_subscribers()
 	local p="$project_name"
 	local t="$ref_style"
 	local n="$ref_name"
-	local supported=
 
 	u="\\(\\*\\|$u\\)"
 	p="\\(\\*\\|$p\\)"
 	t="\\(\\*\\|$t\\)"
 	n="\\(\\*\\|$n\\)"
 
-	for subdir; do
-		[ "$subdir" = "$project_type" ] || continue
-		supported=1
-		grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$subdir"/*/subscription |
-			sed -ne "s|^$maildir/$subdir/\\([^/]\\+\\)/subscription\$|\\1|p"
+	grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$project_type"/*/subscription |
+		sed -ne "s|^$maildir/$project_type_quoted/\\([^/]\\+\\)/subscription\$|\\1|p"
 
-		[ ! -f "$maildir/$subdir/$u/distribution" ] ||
-			sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$subdir/$u/distribution" |
-			tr -s ',[:space:]' '\n'
-	done
+	[ ! -f "$maildir/$project_type/$u/distribution" ] ||
+		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$project_type/$u/distribution" |
+		tr -s ',[:space:]' '\n'
 
-	if [ -z "$supported" -a -r "$GIT_DIR/mailto" ]; then
+	[ ! -r "$GIT_DIR/mailto" ] ||
 		cat "$GIT_DIR/mailto"
-	fi
 }
-
-if [ "$#" -lt 4 ]; then
-    	printf %s\\n "$PROG: Wrong number of arguments: $#" >&2
-    	exit 1
-fi
-
-project_name="$(quote_sed_regexp "$1")" && shift
-ref_style="$(quote_sed_regexp "$1")" && shift
-ref_name="$(quote_sed_regexp "$1")" && shift
-
-project_type="${GIT_DIR%/*}"
-project_type="${project_type##*/}"
 
 find_subscribers "$@" |
 	translate_email |
