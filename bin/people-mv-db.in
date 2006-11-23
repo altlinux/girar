@@ -16,7 +16,7 @@ usage()
 [ "$#" -eq 2 ] ||
 	usage 'Too many arguments.'
 
-cd "$HOME/packages"
+cd "$HOME"
 
 srcdir0="$1" && shift
 srcdir="$(validate_packages_dir "$srcdir0")"
@@ -30,6 +30,6 @@ dstdir="$(validate_packages_dir "$dstdir0")"
 	fatal "$dstdir0: destination directory already exists"
 
 cd "$srcdir.git"
-cd "$HOME/packages"
-mkdir -- "$dstdir.git"
+cd "$HOME"
+mkdir -p -- "$dstdir.git"
 mv -T -- "$srcdir.git" "$dstdir.git"

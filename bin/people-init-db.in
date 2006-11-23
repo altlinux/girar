@@ -16,12 +16,12 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-cd "$HOME/packages"
+cd "$HOME"
 
 dir="$(validate_packages_dir "$1")" && shift
-mkdir -- "$dir.git"
+mkdir -p -- "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git-init-db --template=@GITER_TEMPLATES_DIR@
-echo "packages/$dir" >description
+echo "$dir" >description
 install -m600 -- /dev/null git-daemon-export-ok
 pwd

@@ -33,6 +33,13 @@ if ! readlink -ev "@GITER_PACKAGES_DIR@" &>/dev/null; then
 which will be cloned to \$GITER_HOME/etc/packages.git.
 EOF
 
+if ! readlink -ev "@GITER_PRIVATE_DIR@" &>/dev/null; then
+	error "@GITER_PRIVATE_DIR@: broken symlink"
+	cat>&2 <<EOF
+@GITER_PRIVATE_DIR@ should contain template of git repository
+which will be cloned to \$GITER_HOME/etc/private.git.
+EOF
+
 IDFILE="$(readlink -ev "$IDFILE")" ||
 	fatal "identity file '$IDFILE' not available"
 
@@ -98,6 +105,9 @@ install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME" ||
 install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME/packages" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/packages"
 
+install -d -o "$IT_NAME" -g giter -m751 "$REAL_HOME/private" ||
+	fatal "$IT_NAME: failed to create $REAL_HOME/private"
+
 install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
@@ -106,7 +116,14 @@ git-clone --bare --template=@GITER_TEMPLATES_DIR@ \
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
 
-EMAIL_DIR="@GITER_EMAIL_DIR@/packages"
-mkdir -p "$EMAIL_DIR"
-install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
-	fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
+git-clone --bare --template=@GITER_TEMPLATES_DIR@ \
+	"@GITER_PRIVATE_DIR@" "$REAL_HOME/etc/private.git" &&
+	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/private.git" &&
+	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/private.git"
+
+for n in packages privastes; do
+	EMAIL_DIR="@GITER_EMAIL_DIR@/$n"
+	mkdir -p "$EMAIL_DIR"
+	install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
+		fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
+done

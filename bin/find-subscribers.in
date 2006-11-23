@@ -9,7 +9,7 @@ GIT_DIR=${GIT_DIR:?}
 
 # Globals
 git_aliases="@GITER_EMAIL_ALIASES@"
-maildir="@GITER_EMAIL_DIR@/packages"
+maildir="@GITER_EMAIL_DIR@"
 
 # Arguments
 project_name=
@@ -44,15 +44,17 @@ find_subscribers()
 	t="\\(\\*\\|$t\\)"
 	n="\\(\\*\\|$n\\)"
 
-	grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir"/*/subscription |
-		sed -ne "s|^$maildir/\\([^/]\\+\\)/subscription\$|\\1|p"
+	for subdir; do
+		grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$subdir"/*/subscription |
+			sed -ne "s|^$maildir/$subdir/\\([^/]\\+\\)/subscription\$|\\1|p"
 
-	[ ! -f "$maildir/$u/distribution" ] ||
-		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$u/distribution" |
-		tr -s ',[:space:]' '\n'
+		[ ! -f "$maildir/$subdir/$u/distribution" ] ||
+			sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$subdir/$u/distribution" |
+			tr -s ',[:space:]' '\n'
+	done
 }
 
-if [ "$#" -ne 3 ]; then
+if [ "$#" -lt 4 ]; then
     	printf %s\\n "$PROG: Wrong number of arguments: $#" >&2
     	exit 1
 fi
@@ -64,7 +66,7 @@ ref_name="$(quote_sed_regexp "$1")" && shift
 project_type="${GIT_DIR%/*}"
 project_type="${project_type##*/}"
 
-find_subscribers |
+find_subscribers "$@" |
 	translate_email |
 	sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
 	sort -u

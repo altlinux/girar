@@ -19,7 +19,7 @@ usage()
 [ -n "${GITER_HOME:-}" ] ||
 	fatal 'GITER_HOME undefined'
 
-cd "$HOME/packages"
+cd "$HOME"
 
 repo0="$1" && shift
 repo=
@@ -48,7 +48,7 @@ dir="$(validate_packages_dir "$dir0")"
 
 git-clone --bare --template="@GITER_TEMPLATES_DIR@" "$repo0" "$dir.git"
 cd "$dir.git"
-echo "packages/$dir" >description
+echo "$dir" >description
 install -m600 /dev/null git-daemon-export-ok
 GIT_DIR=`/bin/pwd`
 export GIT_DIR

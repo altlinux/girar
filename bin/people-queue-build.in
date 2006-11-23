@@ -56,7 +56,7 @@ check_perms()
 [ -n "${GITER_USER:-}" ] || 
 	fatal "GITER_USER undefined"
 
-cd "$HOME/packages"
+cd "$HOME"
 
 dir0="$1" && shift
 dir="${dir0#$PWD/}"
@@ -66,6 +66,9 @@ dir="${dir0#$PWD/}"
 dir="$(validate_packages_dir "$dir")"
 [ -d "$dir.git" ] ||
 	fatal "$dir0: directory not available"
+
+[ -z "${dir%%packages/*}" ] ||
+	fatal "$dir0: directory should be in packages/"
 
 cd "$dir.git"
 

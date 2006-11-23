@@ -15,6 +15,7 @@ giter_statedir = ${localstatedir}/giter
 giter_hooks_dir = ${giter_datadir}/hooks
 giter_templates_dir = ${giter_datadir}/templates
 giter_packages_dir = ${giter_datadir}/packages.git
+giter_private_dir = ${giter_datadir}/private.git
 giter_email_dir = ${giter_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
@@ -89,6 +90,7 @@ install-conf:
 		${DESTDIR}${giter_confdir} \
 		${DESTDIR}${GITER_ACL}
 	ln -sn ${giter_packages_dir} ${DESTDIR}${giter_confdir}/packages.git ||:
+	ln -sn ${giter_private_dir} ${DESTDIR}${giter_confdir}/private.git ||:
 
 install-data: hooks
 	install -d -m750 \
@@ -128,6 +130,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
 	    -e 's,@GITER_HOOKS_DIR@,${giter_hooks_dir},g' \
 	    -e 's,@GITER_PACKAGES_DIR@,${giter_confdir}/packages.git,g' \
+	    -e 's,@GITER_PRIVATE_DIR@,${giter_confdir}/private.git,g' \
 	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
 	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
 	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \

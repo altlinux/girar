@@ -16,12 +16,12 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-cd "$HOME/packages"
+cd "$HOME"
 
 dir0="$1" && shift
 dir="$(validate_packages_dir "$dir0")"
 [ -d "$dir.git" ] ||
 	fatal "$dir0: directory not available"
 cd "$dir.git"
-cd "$HOME/packages"
+cd "$HOME"
 rm -rf -- "$dir.git"
