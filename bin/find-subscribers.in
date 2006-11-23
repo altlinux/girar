@@ -29,15 +29,11 @@ translate_email()
 
 find_subscribers()
 {
-	if [ "$project_type" != packages ]; then
-		cat "$GIT_DIR/mailto" 2>/dev/null
-		return
-	fi
-
 	local u="$(quote_sed_regexp "$GITER_USER")"
 	local p="$project_name"
 	local t="$ref_style"
 	local n="$ref_name"
+	local supported=
 
 	u="\\(\\*\\|$u\\)"
 	p="\\(\\*\\|$p\\)"
@@ -45,6 +41,8 @@ find_subscribers()
 	n="\\(\\*\\|$n\\)"
 
 	for subdir; do
+		[ "$subdir" = "$project_type" ] || continue
+		supported=1
 		grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$subdir"/*/subscription |
 			sed -ne "s|^$maildir/$subdir/\\([^/]\\+\\)/subscription\$|\\1|p"
 
@@ -52,6 +50,10 @@ find_subscribers()
 			sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$subdir/$u/distribution" |
 			tr -s ',[:space:]' '\n'
 	done
+
+	if [ -z "$supported" -a -r "$GIT_DIR/mailto" ]; then
+		cat "$GIT_DIR/mailto"
+	fi
 }
 
 if [ "$#" -lt 4 ]; then
