@@ -26,6 +26,13 @@ IDFILE="$1"
 	usage 'not specified: IDENTITY FILE'
 shift
 
+if ! readlink -ev "@GITER_PACKAGES_DIR@" &>/dev/null; then
+	error "@GITER_PACKAGES_DIR@: broken symlink"
+	cat>&2 <<EOF
+@GITER_PACKAGES_DIR@ should contain template of git repository
+which will be cloned to \$GITER_HOME/etc/packages.git.
+EOF
+
 IDFILE="$(readlink -ev "$IDFILE")" ||
 	fatal "identity file '$IDFILE' not available"
 
