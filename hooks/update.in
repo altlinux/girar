@@ -2,11 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-PROG=git-update
-LANG=C
-LANGUAGE=C
-LC_ALL=C
-export LANG LANGUAGE LC_ALL
+PROG=giter-update
 
 if [ "$1" = "refs/heads/origin" ]; then
 	fatal "$1 is not designed for publication and therefore is not allowed in this repo"
@@ -36,7 +32,7 @@ ref_type="$(git-cat-file -t "$3")" || exit 1
 # Only allow annotated tags in a shared repo
 case "$1,$ref_type" in
 refs/tags/*,tag)
-	echo "### Pushing $ref_style \`$ref_name' to the masses" >&2
+	echo >&2 "### Pushing $ref_style \`$ref_name' to the masses"
 	;;
 refs/tags/*,*)
 	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
@@ -77,18 +73,18 @@ validate_distribution_subscription()
 	local n="$1" && shift
 	local rest="$1" && shift
 
-	if [ -n "$rest" ]; then
+	[ -z "$rest" ] ||
 		fatal "$where: unexpected field: $rest"
-	fi
+
 	[ "$p" = '*' ] ||
-		printf %s "$p" |egrep -qs "$project_name_regexp" ||
+	printf %s "$p" |egrep -qs "$project_name_regexp" ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
 		\*|head|tag|remote) ;;
 		*) fatal "$where: invalid reftype pattern: $t" ;;
 	esac
 	[ "$n" = '*' ] ||
-		git-check-ref-format "refs/$n" ||
+	git-check-ref-format "refs/$n" ||
 		fatal "$where: invalid refname pattern: $n"
 }
 
@@ -106,7 +102,7 @@ validate_email_list()
 	done
 }
 
-check_distribution()
+validate_distribution()
 {
 	[ -s "$workdir/distribution" ] || return 0
 	local p t n a rest line=0
@@ -121,7 +117,7 @@ check_distribution()
 	done <"$workdir/distribution"
 }
 
-check_subscription()
+validate_subscription()
 {
 	[ -s "$workdir/subscription" ] || return 0
 	local u p t n rest line=0
@@ -141,13 +137,14 @@ check_subscription()
 	done <"$workdir/subscription"
 }
 
-check_update()
+check_email_update()
 {
-	>"$workdir/$1"
-	if git-diff-tree --name-only "$3" "$4" -- email-"$1" |
-	   fgrep -qs email-"$1"; then
-		git-cat-file blob "$4:email-$1" 2>/dev/null |
-			egrep '^[[:space:]]*[^#]' >"$workdir/$1"
+	local n="$1" && shift
+	>"$workdir/$n"
+	if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
+	   fgrep -qs email-"$n"; then
+		git-cat-file blob "$3:email-$n" 2>/dev/null |
+			egrep '^[[:space:]]*[^#]' >"$workdir/$n"
 	fi
 }
 
@@ -155,13 +152,11 @@ handle_etc_packages()
 {
 	check_etc_packages "$@" || return 0
 
-	local n
-	for n in distribution subscription; do
-		check_update "$n" "$@"
-	done
+	check_email_update distribution "$@"
+	validate_distribution
 
-	check_distribution
-	check_subscription
+	check_email_update subscription "$@"
+	validate_subscription
 
 	for n in distribution subscription; do
 		[ ! -s "$workdir/$n" ] ||
@@ -173,17 +168,30 @@ handle_etc_private()
 {
 	check_etc_private "$@" || return 0
 
-	check_update "distribution" "$@"
-	check_distribution
+	check_email_update distribution "$@"
+	validate_distribution
 
 	[ ! -s "$workdir/distribution" ] ||
 		cp "$workdir/distribution" "@GITER_EMAIL_DIR@/private/$GITER_USER/"
 }
 
+size_of_file()
+{
+	stat -c %s -- "$@"
+}
+
 email_new_head()
 {
-	echo "New $ref_style \`$ref_name' available with the following commits:"
-	git-rev-list --pretty "$3" $(git-rev-parse --not --all)
+	git-rev-list --pretty "$3" $(git-rev-parse --not --all) >"$DIFF"
+	size="$(size_of_file "$DIFF")"
+	if [ $size -eq 0 ]; then
+		echo "New $ref_style \`$ref_name' is available."
+	elif [ $size -ge $diff_max ]; then
+		echo "New $ref_style \`$ref_name' is available with too many changes ($size bytes)."
+	else
+		echo "New $ref_style \`$ref_name' is available with the following commits:"
+		cat "$DIFF"
+	fi
 }
 
 email_new_tag()
@@ -197,8 +205,16 @@ email_new_tag()
 		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
 		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
 		echo "Tag \`$ref_name' created by $tagger at $date"
-		echo "with the following message:"
-		git-cat-file tag "$3" |sed -n '5,$p'
+
+		git-cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "with very long message ($size bytes)."
+		else
+			echo "with the following message:"
+			cat "$DIFF"
+		fi
+
 		echo =======
 		echo
 	fi
@@ -207,18 +223,39 @@ email_new_tag()
 	prev="$(git-describe "$3^" 2>/dev/null| sed 's/-g.*//')"
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
-		echo "Changes since the dawn of time:"
-		git-rev-list --pretty "$3"
-	else
-		echo "Changes since \`$prev':"
-		git-diff -M "$3" "^$prev" >"$DIFF"
-		git-diff -M --stat "$3" "^$prev"
-		echo
-		git-rev-list --pretty "$3" "^$prev"
-		echo
-		size="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
+		git-rev-list --pretty "$3" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
 		if [ $size -ge $diff_max ]; then
-			echo "Full changes since \`$prev' are too large ($size bytes)"
+			echo "Changelog since the dawn of time is too large ($size bytes)."
+		else
+			echo "Changelog since the dawn of time follows:"
+			cat "$DIFF"
+		fi
+	else
+		git-diff -M --stat "$3" "^$prev" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Changes statistics since \`$prev' is too large ($size bytes)."
+		else
+			echo "Changes statistics since \`$prev' follows:"
+			cat "$DIFF"
+			echo
+		fi
+
+		git-rev-list --pretty "$3" "^$prev" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Changelog since \`$prev' is too large ($size bytes)."
+		else
+			echo "Changelog since \`$prev' follows:"
+			cat "$DIFF"
+			echo
+		fi
+
+		git-diff -M "$3" "^$prev" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Full changes since \`$prev' are too large ($size bytes)."
 		else
 			echo "Full changes since \`$prev' follow:"
 			cat "$DIFF"
@@ -232,27 +269,51 @@ email_update_ref()
 	base="$(git-merge-base "$2" "$3")"
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
-		echo "Changes since the dawn of time:"
-		git-rev-list --pretty "$3"
+		git-rev-list --pretty "$3" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Changelog since the dawn of time is too large ($size bytes)."
+		else
+			echo "Changelog since the dawn of time follows:"
+			cat "$DIFF"
+		fi
 	else
+		local since=
 		case "$base" in
 		"$2")
-			echo "Changes since \`$prev':"
+			since="since \`$prev'"
 			;;
 		*)
-			echo "Changes since common ancestor \`$prev':"
+			since="since common ancestor \`$prev'"
 			;;
 		esac
-		git-diff -M "$3" "^$base" >"$DIFF"
-		git-diff -M --stat "$3" "^$base"
-		echo
-		git-rev-list --pretty "$3" "^$base"
-		echo
-		size="`wc -c $DIFF | sed 's/^[^0-9]*\([0-9]*\).*$/\1/'`"
+
+		git-diff -M --stat "$3" "^$base" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
 		if [ $size -ge $diff_max ]; then
-			echo "Full changes since \`$prev' are too large ($size bytes)"
+			echo "Changes statistics $since is too large ($size bytes)."
 		else
-			echo "Full changes since \`$prev' follow:"
+			echo "Changes statistics $since follows:"
+			cat "$DIFF"
+			echo
+		fi
+
+		git-rev-list --pretty "$3" "^$base" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Changelog $since is too large ($size bytes)."
+		else
+			echo "Changelog $since follows:"
+			cat "$DIFF"
+			echo
+		fi
+
+		git-diff -M "$3" "^$base" >"$DIFF"
+		size="$(size_of_file "$DIFF")"
+		if [ $size -ge $diff_max ]; then
+			echo "Full changes $since are too large ($size bytes)."
+		else
+			echo "Full changes $since follow:"
 			cat "$DIFF"
 		fi
 	fi
