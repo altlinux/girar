@@ -27,10 +27,10 @@ IDFILE="$1"
 shift
 
 # Validate @GITER_PACKAGES_DIR@
-GIT_DIR="@GITER_PACKAGES_DIR@" git-rev-parse --git-dir >/dev/null
+GIT_DIR="@GITER_PACKAGES_DIR@" git rev-parse --git-dir >/dev/null
 
 # Validate @GITER_PRIVATE_DIR@
-GIT_DIR="@GITER_PRIVATE_DIR@" git-rev-parse --git-dir >/dev/null
+GIT_DIR="@GITER_PRIVATE_DIR@" git rev-parse --git-dir >/dev/null
 
 IDFILE="$(readlink -ev "$IDFILE")" ||
 	fatal "identity file '$IDFILE' not available"
@@ -103,12 +103,12 @@ install -d -o "$IT_NAME" -g giter -m751 "$REAL_HOME/private" ||
 install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
-git-clone --bare --template=@GITER_TEMPLATES_DIR@ \
+git clone --bare --template=@GITER_TEMPLATES_DIR@ \
 	"@GITER_PACKAGES_DIR@" "$REAL_HOME/etc/packages.git" &&
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
 
-git-clone --bare --template=@GITER_TEMPLATES_DIR@ \
+git clone --bare --template=@GITER_TEMPLATES_DIR@ \
 	"@GITER_PRIVATE_DIR@" "$REAL_HOME/etc/private.git" &&
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/private.git" &&
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/private.git"

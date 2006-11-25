@@ -5,4 +5,4 @@
 #
 # To enable this hook, make this file executable by "chmod +x post-update".
 
-git-prune && git-repack -a -d && git-update-server-info
+git prune && git repack -a -d && git update-server-info
