@@ -36,7 +36,9 @@ support and config files.
 %_usr/libexec/%name
 %_sysconfdir/%name
 %_datadir/%name
-%_spooldir/%name
+%dir %_spooldir/%name
+%dir %_spooldir/%name/private
+%dir %attr(1775,root,%giter_group) %_spooldir/%name/public
 %_localstatedir/%name
 
 %changelog
