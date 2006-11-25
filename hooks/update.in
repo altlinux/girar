@@ -185,7 +185,7 @@ email_new_head()
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all) >"$DIFF"
 	size="$(size_of_file "$DIFF")"
 	if [ $size -eq 0 ]; then
-		echo "New $ref_style \`$ref_name' is available."
+		echo "New $ref_style \`$ref_name' is available without new commits."
 	elif [ $size -ge $diff_max ]; then
 		echo "New $ref_style \`$ref_name' is available with too many changes ($size bytes)."
 	else
