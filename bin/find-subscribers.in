@@ -20,7 +20,8 @@ project_name="$(quote_sed_regexp "$1")" && shift
 ref_style="$(quote_sed_regexp "$1")" && shift
 ref_name="$(quote_sed_regexp "$1")" && shift
 
-project_type="${GIT_DIR%/*}"
+git_dir="$(readlink -ev "$GIT_DIR")"
+project_type="${git_dir%/*}"
 project_type="${project_type##*/}"
 project_type_quoted="$(quote_sed_regexp "$project_type")"
 
