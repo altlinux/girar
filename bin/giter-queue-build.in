@@ -77,12 +77,13 @@ GIT_DIR=. git-tag -l |fgrep -xqs "$tag" ||
 	fatal "$tag: invalid tag"
 
 nb="$1" && shift
-project_name="${nb%%/*}"
-branch="${nb##*/}"
 
+project_name="${nb%%/*}"
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid name"
 
+branch="${nb##*/}"
+[ -n "$branch" -a "$branch" != "$nb" ] &&
 printf %s "$branch" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
 	fatal "$branch: invalid branch"
 
