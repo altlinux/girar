@@ -47,7 +47,7 @@ dir="$(validate_packages_dir "$dir0")"
 [ ! -e "$dir".git ] ||
 	fatal "$dir0: destination already exists"
 
-git-clone --bare --template="@GITER_TEMPLATES_DIR@" "$repo0" "$dir.git"
+git-clone --bare --template="@GITER_TEMPLATES_DIR@" "$p_repo" "$dir.git"
 cd "$dir.git"
 echo "$dir" >description
 install -m600 /dev/null git-daemon-export-ok
