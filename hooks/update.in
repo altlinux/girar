@@ -27,7 +27,7 @@ refs/remotes/*)
 	;;
 esac
 
-ref_type="$(git-cat-file -t "$3")" || exit 1
+ref_type="$(git cat-file -t "$3")" || exit 1
 
 # Only allow annotated tags in a shared repo
 case "$1,$ref_type" in
@@ -36,7 +36,7 @@ refs/tags/*,tag)
 	;;
 refs/tags/*,*)
 	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
-	echo >&2 "*** Use \`git-tag [ -a | -s ]' for tags you want to propagate."
+	echo >&2 "*** Use \`git tag [ -a | -s ]' for tags you want to propagate."
 	exit 1
 	;;
 esac
@@ -85,7 +85,7 @@ validate_distribution_subscription()
 		*) fatal "$where: invalid reftype pattern: $t" ;;
 	esac
 	[ "$n" = '*' ] ||
-	git-check-ref-format "refs/$n" ||
+	git check-ref-format "refs/$n" ||
 		fatal "$where: invalid refname pattern: $n"
 }
 
@@ -142,9 +142,9 @@ check_email_update()
 {
 	local n="$1" && shift
 	>"$workdir/$n"
-	if git-diff-tree --name-only "$2" "$3" -- email-"$n" |
+	if git diff-tree --name-only "$2" "$3" -- email-"$n" |
 	   fgrep -qs email-"$n"; then
-		git-cat-file blob "$3:email-$n" 2>/dev/null |
+		git cat-file blob "$3:email-$n" 2>/dev/null |
 			egrep '^[[:space:]]*[^#]' >"$workdir/$n"
 	fi
 }
@@ -204,14 +204,14 @@ show_changes_statistics()
 	local next="$1" && shift
 	local prev="$1" && shift
 
-	git-diff -M --stat "$next" "^$prev" >"$DIFF"
+	git diff -M --stat "$next" "^$prev" >"$DIFF"
 	show_large_info "Changes statistics since $1"
 	echo
 }
 
 email_new_head()
 {
-	git-rev-list --pretty "$3" $(git-rev-parse --not --all) >"$DIFF"
+	git rev-list --pretty "$3" $(git rev-parse --not --all) >"$DIFF"
 	if diff_is_too_large; then
 		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
 	elif [ "$DIFF_SIZE" -eq 0 ]; then
@@ -227,14 +227,14 @@ email_new_tag()
 	# a pushed and annotated tag (usually) means a new version
 	if [ "$ref_type" = tag ]; then
 		local tag="$workdir/tag"
-		git-cat-file tag "$3" >"$tag"
+		git cat-file tag "$3" >"$tag"
 		local tagger ts date
 		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
 		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
 		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
 		echo "Tag \`$ref_name' created by $tagger at $date"
 
-		git-cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
+		git cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
 		if diff_is_too_large; then
 			echo "with very long message ($DIFF_SIZE bytes)."
 		else
@@ -247,18 +247,18 @@ email_new_tag()
 	fi
 
 	local prev size
-	prev="$(git-describe "$3^" 2>/dev/null| sed 's/-g.*//')"
+	prev="$(git describe "$3^" 2>/dev/null| sed 's/-g.*//')"
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
-		git-rev-list --pretty "$3" >"$DIFF"
+		git rev-list --pretty "$3" >"$DIFF"
 		show_large_info "Changelog since the dawn of time"
 	else
 		show_changes_statistics "$3" "$prev" "\`$prev'"
 
-		git-rev-list --pretty "$3" "^$prev" >"$DIFF"
+		git rev-list --pretty "$3" "^$prev" >"$DIFF"
 		show_large_info "Changelog since \`$prev'"
 
-		git-diff -M "$3" "^$prev" >"$DIFF"
+		git diff -M "$3" "^$prev" >"$DIFF"
 		show_large_info "Full diff since \`$prev'"
 	fi
 }
@@ -266,28 +266,25 @@ email_new_tag()
 email_update_ref()
 {
 	local base prev size
-	base="$(git-merge-base "$2" "$3")"
-	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
+	base="$(git merge-base "$2" "$3")"
+	prev="$(git describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
-		git-rev-list --pretty "$3" >"$DIFF"
+		git rev-list --pretty "$3" >"$DIFF"
 		show_large_info "Changelog since the dawn of time"
 	else
-		local since_text=
-		case "$base" in
-		"$2")
+		local since_text
+		if [ "$base" = "$2" ]; then
 			since_text="\`$prev'"
-			;;
-		*)
+		else
 			since_text="common ancestor \`$prev'"
-			;;
-		esac
+		fi
 
 		show_changes_statistics "$3" "$base" "$since_text"
 
-		git-rev-list --pretty "$3" "^$base" >"$DIFF"
+		git rev-list --pretty "$3" "^$base" >"$DIFF"
 		show_large_info "Changelog since $since_text"
 
-		git-diff -M "$3" "^$base" >"$DIFF"
+		git diff -M "$3" "^$base" >"$DIFF"
 		show_large_info "Full diff since $since_text"
 	fi
 }
