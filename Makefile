@@ -104,6 +104,8 @@ install-var:
 	install -d -m750 \
 		${DESTDIR}${giter_statedir} \
 		${DESTDIR}${giter_email_dir} \
+		${DESTDIR}${giter_email_dir}/packages \
+		${DESTDIR}${giter_email_dir}/private \
 		${DESTDIR}${giter_spooldir} \
 		${DESTDIR}${GITER_PUBLIC_QUEUE} \
 		${DESTDIR}${GITER_PRIVATE_QUEUE}
