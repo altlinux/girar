@@ -11,10 +11,8 @@ GIT_DIR=${GIT_DIR:?}
 git_aliases="@GITER_EMAIL_ALIASES@"
 maildir="@GITER_EMAIL_DIR@"
 
-if [ "$#" -lt 3 ]; then
-    	printf %s\\n "$PROG: Wrong number of arguments: $#" >&2
-    	exit 1
-fi
+[ "$#" -ge 3 ] ||
+	fatal "Wrong number of arguments: $#"
 
 project_name="$(quote_sed_regexp "$1")" && shift
 ref_style="$(quote_sed_regexp "$1")" && shift
@@ -27,9 +25,9 @@ project_type_quoted="$(quote_sed_regexp "$project_type")"
 
 translate_email()
 {
-	local a=
+	local a
 	while read a; do 
-	    	a="$(quote_sed_regexp "$a")"
+		a="$(quote_sed_regexp "$a")"
 		sed -ne "s/^${GITER_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" "$git_aliases"
 	done
 }
