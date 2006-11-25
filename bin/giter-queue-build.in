@@ -89,4 +89,4 @@ printf %s "$branch" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
 check_perms ||
 	fatal "you have no permission to release this package"
 
-exec giter-queue-release "$GITER_USER" "$project_name" "$PWD" "$tag" "$branch"
+exec "@CMDDIR@/giter-queue-release" "$GITER_USER" "$project_name" "$PWD" "$tag" "$branch"
