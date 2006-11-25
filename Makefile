@@ -45,17 +45,17 @@ CFLAGS = -pipe -Wall -O2
 bin_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
+	bin/giter-clone \
+	bin/giter-find \
+	bin/giter-init-db \
+	bin/giter-ls \
+	bin/giter-mv-db \
+	bin/giter-queue-build \
 	bin/giter-queue-release \
+	bin/giter-quota \
+	bin/giter-rm-db \
 	bin/giter-sh \
-	bin/giter-sh-functions \
-	bin/people-clone \
-	bin/people-find \
-	bin/people-init-db \
-	bin/people-ls \
-	bin/people-mv-db \
-	bin/people-queue-build \
-	bin/people-quota \
-	bin/people-rm-db
+	bin/giter-sh-functions
 
 sbin_TARGETS = \
 	sbin/giter-add \
