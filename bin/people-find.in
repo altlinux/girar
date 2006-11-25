@@ -16,8 +16,8 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "$1" ] || 
-	fatal 'invalid pattern'
+[ -n "$1" -a -n "${1##*/*}" ] || 
+        fatal 'invalid pattern'
 
 [ -n "${GITER_HOME:-}" ] ||
 	fatal 'GITER_HOME undefined'
