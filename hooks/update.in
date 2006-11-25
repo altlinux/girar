@@ -187,44 +187,26 @@ diff_is_too_large()
 	[ "$DIFF_SIZE" -ge "$DIFF_MAX" ]
 }
 
+show_large_info()
+{
+	local text="$1" && shift
+
+	if diff_is_too_large; then
+		echo "$text is too large ($DIFF_SIZE bytes)."
+	else
+		echo "$text follows:"
+		cat "$DIFF"
+	fi
+}
+
 show_changes_statistics()
 {
 	local next="$1" && shift
 	local prev="$1" && shift
-	local since_text="$1" && shift
 
 	git-diff -M --stat "$next" "^$prev" >"$DIFF"
-	if diff_is_too_large; then
-		echo "Changes statistics since $since_text is too large ($DIFF_SIZE bytes)."
-	else
-		echo "Changes statistics since $since_text follows:"
-		cat "$DIFF"
-	fi
+	show_large_info "Changes statistics since $1"
 	echo
-}
-
-show_changelog_info()
-{
-	local since_text="$1" && shift
-
-	if diff_is_too_large; then
-		echo "Changelog since $since_text is too large ($DIFF_SIZE bytes)."
-	else
-		echo "Changelog since $since_text follows:"
-		cat "$DIFF"
-	fi
-}
-
-show_full_changes_info()
-{
-	local since_text="$1" && shift
-
-	if diff_is_too_large; then
-		echo "Full changes since $since_text are too large ($DIFF_SIZE bytes)."
-	else
-		echo "Full changes since $since_text follow:"
-		cat "$DIFF"
-	fi
 }
 
 email_new_head()
@@ -269,15 +251,15 @@ email_new_tag()
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
 		git-rev-list --pretty "$3" >"$DIFF"
-		show_changelog_info 'the dawn of time'
+		show_large_info "Changelog since the dawn of time"
 	else
 		show_changes_statistics "$3" "$prev" "\`$prev'"
 
 		git-rev-list --pretty "$3" "^$prev" >"$DIFF"
-		show_changelog_info "\`$prev'"
+		show_large_info "Changelog since \`$prev'"
 
 		git-diff -M "$3" "^$prev" >"$DIFF"
-		show_full_changes_info "\`$prev'"
+		show_large_info "Full diff since \`$prev'"
 	fi
 }
 
@@ -288,7 +270,7 @@ email_update_ref()
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
 		git-rev-list --pretty "$3" >"$DIFF"
-		show_changelog_info 'the dawn of time'
+		show_large_info "Changelog since the dawn of time"
 	else
 		local since_text=
 		case "$base" in
@@ -303,10 +285,10 @@ email_update_ref()
 		show_changes_statistics "$3" "$base" "$since_text"
 
 		git-rev-list --pretty "$3" "^$base" >"$DIFF"
-		show_changelog_info "$since_text"
+		show_large_info "Changelog since $since_text"
 
 		git-diff -M "$3" "^$base" >"$DIFF"
-		show_full_changes_info "$since_text"
+		show_large_info "Full diff since $since_text"
 	fi
 }
 
