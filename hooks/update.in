@@ -42,6 +42,7 @@ refs/tags/*,*)
 esac
 
 DIFF_MAX=65536
+DIFF_SIZE=
 date_format="%F %T %z"
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
 giter_home="$(readlink -ev "$GITER_HOME")" || exit 1
@@ -191,7 +192,6 @@ show_changes_statistics()
 	local next="$1" && shift
 	local prev="$1" && shift
 	local since_text="$1" && shift
-	local size
 
 	git-diff -M --stat "$next" "^$prev" >"$DIFF"
 	if diff_is_too_large; then
@@ -206,7 +206,6 @@ show_changes_statistics()
 show_changelog_info()
 {
 	local since_text="$1" && shift
-	local size
 
 	if diff_is_too_large; then
 		echo "Changelog since $since_text is too large ($DIFF_SIZE bytes)."
@@ -219,7 +218,6 @@ show_changelog_info()
 show_full_changes_info()
 {
 	local since_text="$1" && shift
-	local size
 
 	if diff_is_too_large; then
 		echo "Full changes since $since_text are too large ($DIFF_SIZE bytes)."
