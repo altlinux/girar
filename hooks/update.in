@@ -41,7 +41,7 @@ refs/tags/*,*)
 	;;
 esac
 
-diff_max=65536
+DIFF_MAX=65536
 date_format="%F %T %z"
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
 giter_home="$(readlink -ev "$GITER_HOME")" || exit 1
@@ -180,14 +180,62 @@ size_of_file()
 	stat -c %s -- "$@"
 }
 
+diff_is_too_large()
+{
+	DIFF_SIZE="$(size_of_file "$DIFF")"
+	[ "$DIFF_SIZE" -ge "$DIFF_MAX" ]
+}
+
+show_changes_statistics()
+{
+	local next="$1" && shift
+	local prev="$1" && shift
+	local since_text="$1" && shift
+	local size
+
+	git-diff -M --stat "$next" "^$prev" >"$DIFF"
+	if diff_is_too_large; then
+		echo "Changes statistics since $since_text is too large ($DIFF_SIZE bytes)."
+	else
+		echo "Changes statistics since $since_text follows:"
+		cat "$DIFF"
+	fi
+	echo
+}
+
+show_changelog_info()
+{
+	local since_text="$1" && shift
+	local size
+
+	if diff_is_too_large; then
+		echo "Changelog since $since_text is too large ($DIFF_SIZE bytes)."
+	else
+		echo "Changelog since $since_text follows:"
+		cat "$DIFF"
+	fi
+}
+
+show_full_changes_info()
+{
+	local since_text="$1" && shift
+	local size
+
+	if diff_is_too_large; then
+		echo "Full changes since $since_text are too large ($DIFF_SIZE bytes)."
+	else
+		echo "Full changes since $since_text follow:"
+		cat "$DIFF"
+	fi
+}
+
 email_new_head()
 {
 	git-rev-list --pretty "$3" $(git-rev-parse --not --all) >"$DIFF"
-	size="$(size_of_file "$DIFF")"
-	if [ $size -eq 0 ]; then
+	if diff_is_too_large; then
+		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
+	elif [ "$DIFF_SIZE" -eq 0 ]; then
 		echo "New $ref_style \`$ref_name' is available without new commits."
-	elif [ $size -ge $diff_max ]; then
-		echo "New $ref_style \`$ref_name' is available with too many changes ($size bytes)."
 	else
 		echo "New $ref_style \`$ref_name' is available with the following commits:"
 		cat "$DIFF"
@@ -207,9 +255,8 @@ email_new_tag()
 		echo "Tag \`$ref_name' created by $tagger at $date"
 
 		git-cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "with very long message ($size bytes)."
+		if diff_is_too_large; then
+			echo "with very long message ($DIFF_SIZE bytes)."
 		else
 			echo "with the following message:"
 			cat "$DIFF"
@@ -224,41 +271,15 @@ email_new_tag()
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
 		git-rev-list --pretty "$3" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changelog since the dawn of time is too large ($size bytes)."
-		else
-			echo "Changelog since the dawn of time follows:"
-			cat "$DIFF"
-		fi
+		show_changelog_info 'the dawn of time'
 	else
-		git-diff -M --stat "$3" "^$prev" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changes statistics since \`$prev' is too large ($size bytes)."
-		else
-			echo "Changes statistics since \`$prev' follows:"
-			cat "$DIFF"
-			echo
-		fi
+		show_changes_statistics "$3" "$prev" "\`$prev'"
 
 		git-rev-list --pretty "$3" "^$prev" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changelog since \`$prev' is too large ($size bytes)."
-		else
-			echo "Changelog since \`$prev' follows:"
-			cat "$DIFF"
-		fi
+		show_changelog_info "\`$prev'"
 
 		git-diff -M "$3" "^$prev" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Full changes since \`$prev' are too large ($size bytes)."
-		else
-			echo "Full changes since \`$prev' follow:"
-			cat "$DIFF"
-		fi
+		show_full_changes_info "\`$prev'"
 	fi
 }
 
@@ -269,51 +290,25 @@ email_update_ref()
 	prev="$(git-describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
 		git-rev-list --pretty "$3" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changelog since the dawn of time is too large ($size bytes)."
-		else
-			echo "Changelog since the dawn of time follows:"
-			cat "$DIFF"
-		fi
+		show_changelog_info 'the dawn of time'
 	else
-		local since=
+		local since_text=
 		case "$base" in
 		"$2")
-			since="since \`$prev'"
+			since_text="\`$prev'"
 			;;
 		*)
-			since="since common ancestor \`$prev'"
+			since_text="common ancestor \`$prev'"
 			;;
 		esac
 
-		git-diff -M --stat "$3" "^$base" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changes statistics $since is too large ($size bytes)."
-		else
-			echo "Changes statistics $since follows:"
-			cat "$DIFF"
-			echo
-		fi
+		show_changes_statistics "$3" "$base" "$since_text"
 
 		git-rev-list --pretty "$3" "^$base" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Changelog $since is too large ($size bytes)."
-		else
-			echo "Changelog $since follows:"
-			cat "$DIFF"
-		fi
+		show_changelog_info "$since_text"
 
 		git-diff -M "$3" "^$base" >"$DIFF"
-		size="$(size_of_file "$DIFF")"
-		if [ $size -ge $diff_max ]; then
-			echo "Full changes $since are too large ($size bytes)."
-		else
-			echo "Full changes $since follow:"
-			cat "$DIFF"
-		fi
+		show_full_changes_info "$since_text"
 	fi
 }
 
