@@ -11,7 +11,7 @@ GIT_DIR=${GIT_DIR:?}
 git_aliases="@GITER_EMAIL_ALIASES@"
 maildir="@GITER_EMAIL_DIR@"
 
-if [ "$#" -lt 4 ]; then
+if [ "$#" -lt 3 ]; then
     	printf %s\\n "$PROG: Wrong number of arguments: $#" >&2
     	exit 1
 fi
