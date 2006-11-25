@@ -25,7 +25,7 @@ GITER_FAKE_HOME = ${giter_datadir}/home
 GITER_HOME = /people
 GITER_PRIVATE_QUEUE = ${giter_spooldir}/private
 GITER_PUBLIC_QUEUE = ${giter_spooldir}/public
-GITER_RELEASES = ${giter_confdir}/releases
+GITER_REPOSITORIES = ${giter_confdir}/repositories
 USER_PREFIX = git_
 
 UPRAVDOM_ACCOUNT = build-factory
@@ -133,7 +133,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_PRIVATE_DIR@,${giter_confdir}/private.git,g' \
 	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
 	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
-	    -e 's,@GITER_RELEASES@,${GITER_RELEASES},g' \
+	    -e 's,@GITER_REPOSITORIES@,${GITER_REPOSITORIES},g' \
 	    -e 's,@GITER_TEMPLATES_DIR@,${giter_templates_dir},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \
 	    -e 's,@UPRAVDOM_QUEUE@,${UPRAVDOM_QUEUE},g' \

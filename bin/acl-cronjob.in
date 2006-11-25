@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/giter-sh-functions"
 
-releases_file="@GITER_RELEASES@"
+repositories_file="@GITER_REPOSITORIES@"
 acldir="@GITER_ACL@"
 
 update()
@@ -21,9 +21,9 @@ update()
 
 			if [ -n "$branches" -a "$branches" != "/" ]; then
 				branches="${branches#/}"
-				fgrep -xqs "$branches" "$releases_file" || continue
+				fgrep -xqs "$branches" "$repositories_file" || continue
 			else
-				branches="$(cat "$releases_file")"
+				branches="$(cat "$repositories_file")"
 			fi
 
 			quote_target="$(quote_sed_regexp "$target")"

@@ -4,34 +4,39 @@
 
 PROG=giter-queue-build
 user_prefix="@USER_PREFIX@"
-branches_file="@GITER_RELEASES@"
+repositories_file="@GITER_REPOSITORIES@"
 acldir="@GITER_ACL@"
 
 usage()
 {
 	echo "$PROG: $*" >&2
-	echo "usage: $PROG <directory> <tag> <name>/<branch>" >&2
+	echo "usage: $PROG <directory> <tag> <project name> <repository>" >&2
 	exit 1
 }
 
-branch=
+[ "$#" -ge 4 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -eq 4 ] ||
+	usage 'Too many arguments.'
+
+repository=
 project_name=
-# Return: 0 if $GITER_USER is allowed to make release for $project_name, and 1 otherwise.
+# Return: 0 if $GITER_USER is allowed to request build of $project_name for $repository, and 1 otherwise.
 check_perms()
 {
-	# allowed if no non-empty release file available
-	[ -s "$branches_file" ] || return 0
+	# allowed if no non-empty repositories file available
+	[ -s "$repositories_file" ] || return 0
 
-	fgrep -xqs "$branch" "$branches_file" ||
-		fatal "$branch: invalid release tag, valid tags are: $(tr '\n' ' '<"$branches_file")"
+	fgrep -xqs "$repository" "$repositories_file" ||
+		fatal "$repository: invalid repository, valid repositories are: $(tr '\n' ' '<"$repositories_file")"
 
 	# allowed if no acl file available for given ref_name
-	[ -s "$acldir/list.packages.$branch" ] || return 0
+	[ -s "$acldir/list.packages.$repository" ] || return 0
 
 	local aclline builders groups= humans= leader o
 
 	# allowed if package is not listed
-	aclline="$(grep "^$project_name " "$acldir/list.packages.$branch")" || return 0
+	aclline="$(grep "^$project_name " "$acldir/list.packages.$repository")" || return 0
 
 	# aclline format: pkg_name leader builders
 	set -- ${aclline}; shift
@@ -42,13 +47,13 @@ check_perms()
 	[ "$GITER_USER" != "$leader" -a "$builders" != "*" ] || return 0
 
 	# expand groups if any
-	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$branch" ]; then
+	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$repository" ]; then
 		for o in ${builders}; do
 			[ -z "${o%%@*}" ] &&
 				groups="$groups|$o" ||
 				humans="$humans $o"
 		done
-		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$branch")" #"
+		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$repository")" #"
 	fi
 	printf %s "$builders" |grep -qs "\<$GITER_USER\>"
 }
@@ -68,7 +73,7 @@ dir="$(validate_packages_dir "$dir")"
 	fatal "$dir0: directory not available"
 
 [ -z "${dir%%packages/*}" ] ||
-	fatal "$dir0: directory should be in packages/"
+	fatal "$dir0: directory should belong to packages/"
 
 cd "$dir.git"
 
@@ -76,18 +81,17 @@ tag="$1" && shift
 GIT_DIR=. git-tag -l |fgrep -xqs "$tag" ||
 	fatal "$tag: invalid tag"
 
-nb="$1" && shift
-
-project_name="${nb%%/*}"
+project_name="$1" && shift
+[ -n "$project_name" ] &&
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
-	fatal "$project_name: invalid name"
+	fatal "$project_name: invalid project name"
 
-branch="${nb##*/}"
-[ -n "$branch" -a "$branch" != "$nb" ] &&
-printf %s "$branch" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
-	fatal "$branch: invalid branch"
+repository="$1" && shift
+[ -n "$repository" ] &&
+printf %s "$repository" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
+	fatal "$repository: invalid repository"
 
 check_perms ||
-	fatal "you have no permission to release this package"
+	fatal "permission denied"
 
-exec "@CMDDIR@/giter-queue-release" "$GITER_USER" "$project_name" "$PWD" "$tag" "$branch"
+exec "@CMDDIR@/giter-queue-release" "$GITER_USER" "$project_name" "$PWD" "$tag" "$repository"
