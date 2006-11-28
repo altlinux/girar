@@ -48,8 +48,8 @@ find_subscribers()
 	grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$project_type"/*/subscription |
 		sed -ne "s|^$maildir/$project_type_quoted/\\([^/]\\+\\)/subscription\$|\\1|p"
 
-	[ ! -f "$maildir/$project_type/$u/distribution" ] ||
-		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$project_type/$u/distribution" |
+	[ ! -f "$maildir/$project_type/$GITER_USER/distribution" ] ||
+		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$project_type/$GITER_USER/distribution" |
 		tr -s ',[:space:]' '\n'
 
 	[ ! -r "$GIT_DIR/mailto" ] ||
