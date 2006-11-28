@@ -41,7 +41,7 @@ refs/tags/*,*)
 	;;
 esac
 
-DIFF_MAX=65536
+DIFF_MAX=32768
 DIFF_SIZE=
 date_format="%F %T %z"
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
