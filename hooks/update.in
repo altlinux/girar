@@ -317,11 +317,13 @@ if [ -n "$mailto" ]; then
 	FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
 
 	cat >"$MSG" <<__EOF
-To: $mailto
+To: git-update-subscribers
+Bcc: $mailto
 From: $FROM_ADDR
 Reply-To: $FROM_ADDR
 Subject: [git update] $project: ${1#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
+X-git-update-subscribers: $mailto
 X-git-dir: $git_dir
 X-git-description: $project
 
