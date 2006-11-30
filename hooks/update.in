@@ -32,7 +32,7 @@ ref_type="$(git cat-file -t "$3")" || exit 1
 # Only allow annotated tags in a shared repo
 case "$1,$ref_type" in
 refs/tags/*,tag)
-	echo >&2 "### Pushing $ref_style \`$ref_name' to the masses"
+	#echo >&2 "### Pushing $ref_style \`$ref_name' to the masses"
 	;;
 refs/tags/*,*)
 	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
@@ -141,7 +141,7 @@ validate_subscription()
 check_email_update()
 {
 	local n="$1" && shift
-	>"$workdir/$n"
+	rm -f -- "$workdir/$n"
 	if git diff-tree --name-only "$2" "$3" -- email-"$n" |
 	   fgrep -qs email-"$n"; then
 		git cat-file blob "$3:email-$n" 2>/dev/null |
@@ -160,8 +160,10 @@ handle_etc_packages()
 	validate_subscription
 
 	for n in distribution subscription; do
-		[ ! -s "$workdir/$n" ] ||
-			cp "$workdir/$n" "@GITER_EMAIL_DIR@/packages/$GITER_USER/"
+		if [ -r "$workdir/$n" ]; then
+			cp "$workdir/$n" "@GITER_EMAIL_DIR@/packages/$GITER_USER/" &&
+				msg_info "email $n configuration updated."
+		fi
 	done
 }
 
@@ -350,6 +352,8 @@ else
 		email_update_ref "$@" >>"$MSG"
 fi
 
-[ -z "$mailto" ] ||
-	/usr/sbin/sendmail -i -t <"$MSG"
+if [ -n "$mailto" ]; then
+	/usr/sbin/sendmail -i -t <"$MSG" &&
+		msg_info "email notification about \`$1' update sent."
+fi
 exit 0

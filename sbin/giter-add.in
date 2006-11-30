@@ -89,7 +89,7 @@ echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUT
 
 GITER_HOME_MOUNT="$(df -P "$GITER_HOME" |awk '{dir=$6} END{print dir}')"
 setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GITER_HOME_MOUNT" ||
-	error "$IT_NAME: failed to set disk quota on $GITER_HOME_MOUNT"
+	msg_info "$IT_NAME: failed to set disk quota on $GITER_HOME_MOUNT"
 
 install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME"

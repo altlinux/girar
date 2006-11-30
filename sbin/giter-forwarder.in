@@ -35,7 +35,7 @@ exit_handler()
 
 	# unlock upravdom queue if and only if we own it
 	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
-		error "$upravdom_account: $upravdomlock: unable to remove lockdir"
+		msg_info "$upravdom_account: $upravdomlock: unable to remove lockdir"
 
 	[ ! -d "$selflock" ] || rmdir -- "$selflock"
 
@@ -65,7 +65,7 @@ for name in $(findin "$giter_queue"); do
 	fi
 
 	if ! mv -- "$task" "$private_queue/$private_num"; then
-		error "unable to move '$task' -> '$private_queue/$private_num'"
+		msg_info "unable to move '$task' -> '$private_queue/$private_num'"
 		continue
 	fi
 

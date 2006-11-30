@@ -29,17 +29,17 @@ userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
 
 rm -rf -- "$REAL_HOME" ||
-	error "$IT_NAME: failed to remove $REAL_HOME"
+	msg_info "$IT_NAME: failed to remove $REAL_HOME"
 
 rm -f -- "$AUTH" ||
-	error "$IT_NAME: failed to remove authorized keys file '$AUTH'"
+	msg_info "$IT_NAME: failed to remove authorized keys file '$AUTH'"
 
 rm -rf -- "$EMAIL_DIR" ||
-	error "$IT_NAME: failed to remove $EMAIL_DIR"
+	msg_info "$IT_NAME: failed to remove $EMAIL_DIR"
 
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"
 
 subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GITER_EMAIL_ALIASES@" &&
 	newaliases ||
-	error "$IT_NAME: failed to remove email alias"
+	msg_info "$IT_NAME: failed to remove email alias"

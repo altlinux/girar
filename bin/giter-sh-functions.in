@@ -3,14 +3,14 @@
 PROG="${PROG:-${0##*/}}"
 project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
 
-error()
+msg_info()
 {
-	echo "$PROG: $*" >&2
+	printf %s\\n "$PROG: $*" >&2
 }
 
 fatal()
 {
-	error "$*"
+	msg_info "$*"
 	exit 1
 }
 
