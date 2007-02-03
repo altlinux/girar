@@ -315,12 +315,20 @@ if [ -n "$mailto" ]; then
 	DIFF="$workdir/diff"
 	MSG="$workdir/message"
 	FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
+	case "$project_type" in
+		packages)
+			REPLY_ADDR="devel@lists.@EMAIL_DOMAIN@"
+			;;
+		*)
+			REPLY_ADDR="$FROM_ADDR"
+			;;
+	esac
 
 	cat >"$MSG" <<__EOF
 To: git-update-subscribers
 Bcc: $mailto
 From: $FROM_ADDR
-Reply-To: $FROM_ADDR
+Reply-To: $REPLY_ADDR
 Subject: [git update] $project: ${1#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
 X-git-update-subscribers: $mailto
