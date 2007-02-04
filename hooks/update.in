@@ -317,7 +317,7 @@ if [ -n "$mailto" ]; then
 	FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
 	case "$project_type" in
 		packages)
-			REPLY_ADDR="devel@lists.@EMAIL_DOMAIN@"
+			REPLY_ADDR="@PACKAGES_EMAIL@"
 			;;
 		*)
 			REPLY_ADDR="$FROM_ADDR"
