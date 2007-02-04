@@ -19,7 +19,6 @@ giter_private_dir = ${giter_datadir}/private.git
 giter_email_dir = ${giter_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
-PACKAGES_EMAIL = devel@lists.${EMAIL_DOMAIN}
 GITER_ACL = ${giter_confdir}/acl
 GITER_EMAIL_ALIASES = ${giter_confdir}/aliases
 GITER_FAKE_HOME = ${giter_datadir}/home
@@ -27,6 +26,8 @@ GITER_HOME = /people
 GITER_PRIVATE_QUEUE = ${giter_spooldir}/private
 GITER_PUBLIC_QUEUE = ${giter_spooldir}/public
 GITER_REPOSITORIES = ${giter_confdir}/repositories
+GITWEB_URL = http://git.altlinux.org
+PACKAGES_EMAIL = devel@lists.${EMAIL_DOMAIN}
 USER_PREFIX = git_
 
 UPRAVDOM_ACCOUNT = build-factory
@@ -136,6 +137,7 @@ bin/giter-sh: bin/giter-sh.c
 	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
 	    -e 's,@GITER_REPOSITORIES@,${GITER_REPOSITORIES},g' \
 	    -e 's,@GITER_TEMPLATES_DIR@,${giter_templates_dir},g' \
+	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \
 	    -e 's,@UPRAVDOM_QUEUE@,${UPRAVDOM_QUEUE},g' \
