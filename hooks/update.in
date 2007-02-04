@@ -314,13 +314,13 @@ trap exit_handler HUP PIPE INT QUIT TERM EXIT
 if [ -n "$mailto" ]; then
 	DIFF="$workdir/diff"
 	MSG="$workdir/message"
-	FROM_ADDR="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
+	from_addr="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
 	case "$project_type" in
 		packages)
-			REPLY_ADDR="@PACKAGES_EMAIL@"
+			reply_addr="@PACKAGES_EMAIL@"
 			;;
 		*)
-			REPLY_ADDR="$FROM_ADDR"
+			reply_addr="$from_addr"
 			;;
 	esac
 	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$3"
@@ -328,8 +328,8 @@ if [ -n "$mailto" ]; then
 	cat >"$MSG" <<__EOF
 To: git-update-subscribers
 Bcc: $mailto
-From: $FROM_ADDR
-Reply-To: $REPLY_ADDR
+From: $from_addr
+Reply-To: $reply_addr
 Subject: [git update] $project: ${1#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
 X-git-update-subscribers: $mailto
