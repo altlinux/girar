@@ -113,7 +113,7 @@ git clone --bare --template=@GITER_TEMPLATES_DIR@ \
 	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/private.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/private.git"
 
-for n in packages privastes; do
+for n in packages private; do
 	EMAIL_DIR="@GITER_EMAIL_DIR@/$n"
 	mkdir -p "$EMAIL_DIR"
 	install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
