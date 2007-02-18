@@ -213,7 +213,8 @@ show_changes_statistics()
 
 email_new_head()
 {
-	git rev-list --pretty "$3" $(git rev-parse --not --all) >"$DIFF"
+	git rev-parse --not --all |
+		git rev-list --stdin --pretty "$3" >"$DIFF"
 	if diff_is_too_large; then
 		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
 	elif [ "$DIFF_SIZE" -eq 0 ]; then
