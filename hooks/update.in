@@ -233,7 +233,7 @@ email_new_tag()
 		local tagger ts date
 		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
 		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
-		date="$(date --date="1970-01-01 00:00:00 $ts seconds" +"$date_format")"
+		date="$(date --date="1970-01-01 00:00:00 +0000 $ts seconds" +"$date_format")"
 		echo "Tag \`$ref_name' created by $tagger at $date"
 
 		git cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
