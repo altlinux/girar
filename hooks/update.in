@@ -4,12 +4,23 @@
 
 PROG=giter-update
 
-if [ "$1" = "refs/heads/origin" ]; then
-	fatal "$1 is not designed for publication and therefore is not allowed in this repo"
+arg_refname="$1"
+arg_oldrev="$2"
+arg_newrev="$3"
+
+# Safety checks
+[ -n "$GIT_DIR" ] || fatal 'Environment variable GIT_DIR not set'
+if [ -z "$arg_refname" -o -z "$arg_oldrev" -o -z "$arg_newrev" ]; then
+	echo >&2 "Usage: $PROG <ref> <oldrev> <newrev>"
+	exit 1
+fi
+
+if [ "$arg_refname" = "refs/heads/origin" ]; then
+	fatal "$arg_refname is not designed for publication and therefore is not allowed in this repo"
 fi
 
 # check ref name
-case "$1" in
+case "$arg_refname" in
 refs/heads/*)
 	ref_style=head
 	ref_name="${1#refs/heads/}"
@@ -23,14 +34,14 @@ refs/remotes/*)
 	ref_name="${1#refs/remotes/}"
 	;;
 *)
-	fatal "Unrecognized ref name: $1"
+	fatal "Unrecognized ref name: $arg_refname"
 	;;
 esac
 
-ref_type="$(git cat-file -t "$3")" || exit 1
+ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
 
 # Only allow annotated tags in a shared repo
-case "$1,$ref_type" in
+case "$arg_refname,$ref_type" in
 refs/tags/*,tag)
 	#echo >&2 "### Pushing $ref_style \`$ref_name' to the masses"
 	;;
@@ -324,7 +335,7 @@ if [ -n "$mailto" ]; then
 			reply_addr="$from_addr"
 			;;
 	esac
-	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$3"
+	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$arg_newrev"
 
 	cat >"$MSG" <<__EOF
 To: git-update-subscribers
@@ -343,9 +354,9 @@ Update of $git_dir
 __EOF
 fi
 
-if expr "$2" : '0*$' >/dev/null; then
+if expr "$arg_oldrev" : '0*$' >/dev/null; then
 	# new ref
-	case "$1" in
+	case "$arg_refname" in
 	refs/heads/*|refs/remotes/*)
 		# new head
 		[ -z "$mailto" ] ||
@@ -367,6 +378,6 @@ fi
 
 if [ -n "$mailto" ]; then
 	/usr/sbin/sendmail -i -t <"$MSG" &&
-		msg_info "email notification about \`$1' update sent."
+		msg_info "email notification about \`$arg_refname' update sent."
 fi
 exit 0
