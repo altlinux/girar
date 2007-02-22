@@ -38,7 +38,11 @@ refs/remotes/*)
 	;;
 esac
 
-ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
+if expr "$arg_newrev" : '0*$' >/dev/null; then
+	ref_type="$(git cat-file -t "$arg_oldrev")" || exit 1
+else
+	ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
+fi
 
 # Only allow annotated tags in a shared repo
 case "$arg_refname,$ref_type" in
@@ -372,6 +376,10 @@ if expr "$arg_oldrev" : '0*$' >/dev/null; then
 			email_new_tag "$@" >>"$MSG"
 		;;
 	esac
+elif expr "$arg_newrev" : '0*$' >/dev/null; then
+	# del ref
+	[ -z "$mailto" ] ||
+		echo "Reference to $ref_style \`$ref_name' removed." >>"$MSG"
 else
 	# update ref
 	handle_etc_packages "$@"
