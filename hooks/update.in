@@ -261,7 +261,7 @@ email_new_tag()
 	fi
 
 	local prev size
-	prev="$(git describe "$3^" 2>/dev/null| sed 's/-g.*//')"
+	prev="$(git describe --abbrev=0 "$3^" 2>/dev/null| sed 's/-g[0-9a-f]\{7\}$//')"
 	# the first tag in a repo will yield no $prev
 	if [ -z "$prev" ]; then
 		git rev-list --pretty "$3" >"$DIFF"
