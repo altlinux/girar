@@ -6,26 +6,26 @@ sbindir = /usr/sbin
 spooldir = /var/spool
 sysconfdir = /etc
 
-giter_bindir = ${libexecdir}/giter
-giter_sbindir = ${sbindir}
-giter_confdir = ${sysconfdir}/giter
-giter_datadir = ${datadir}/giter
-giter_spooldir = ${spooldir}/giter
-giter_statedir = ${localstatedir}/giter
-giter_hooks_dir = ${giter_datadir}/hooks
-giter_templates_dir = ${giter_datadir}/templates
-giter_packages_dir = ${giter_datadir}/packages.git
-giter_private_dir = ${giter_datadir}/private.git
-giter_email_dir = ${giter_statedir}/email
+girar_bindir = ${libexecdir}/girar
+girar_sbindir = ${sbindir}
+girar_confdir = ${sysconfdir}/girar
+girar_datadir = ${datadir}/girar
+girar_spooldir = ${spooldir}/girar
+girar_statedir = ${localstatedir}/girar
+girar_hooks_dir = ${girar_datadir}/hooks
+girar_templates_dir = ${girar_datadir}/templates
+girar_packages_dir = ${girar_datadir}/packages.git
+girar_private_dir = ${girar_datadir}/private.git
+girar_email_dir = ${girar_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
-GITER_ACL = ${giter_confdir}/acl
-GITER_EMAIL_ALIASES = ${giter_confdir}/aliases
-GITER_FAKE_HOME = ${giter_datadir}/home
-GITER_HOME = /people
-GITER_PRIVATE_QUEUE = ${giter_spooldir}/private
-GITER_PUBLIC_QUEUE = ${giter_spooldir}/public
-GITER_REPOSITORIES = ${giter_confdir}/repositories
+GIRAR_ACL = ${girar_confdir}/acl
+GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
+GIRAR_FAKE_HOME = ${girar_datadir}/home
+GIRAR_HOME = /people
+GIRAR_PRIVATE_QUEUE = ${girar_spooldir}/private
+GIRAR_PUBLIC_QUEUE = ${girar_spooldir}/public
+GIRAR_REPOSITORIES = ${girar_confdir}/repositories
 GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = devel@lists.${EMAIL_DOMAIN}
 USER_PREFIX = git_
@@ -39,34 +39,34 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
-	-DGITER_BINDIR=\"${giter_bindir}/\" \
+	-DGIRAR_BINDIR=\"${girar_bindir}/\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\" \
-	-DGITER_HOME=\"${GITER_HOME}\"
+	-DGIRAR_HOME=\"${GIRAR_HOME}\"
 CFLAGS = -pipe -Wall -O2
 
 bin_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
-	bin/giter-clone \
-	bin/giter-find \
-	bin/giter-init-db \
-	bin/giter-ls \
-	bin/giter-mv-db \
-	bin/giter-queue-build \
-	bin/giter-queue-release \
-	bin/giter-quota \
-	bin/giter-rm-db \
-	bin/giter-sh \
-	bin/giter-sh-functions
+	bin/girar-clone \
+	bin/girar-find \
+	bin/girar-init-db \
+	bin/girar-ls \
+	bin/girar-mv-db \
+	bin/girar-queue-build \
+	bin/girar-queue-release \
+	bin/girar-quota \
+	bin/girar-rm-db \
+	bin/girar-sh \
+	bin/girar-sh-functions
 
 sbin_TARGETS = \
-	sbin/giter-add \
-	sbin/giter-del \
-	sbin/giter-auth-add \
-	sbin/giter-auth-zero \
-	sbin/giter-disable \
-	sbin/giter-enable \
-	sbin/giter-forwarder
+	sbin/girar-add \
+	sbin/girar-del \
+	sbin/girar-auth-add \
+	sbin/girar-auth-zero \
+	sbin/girar-disable \
+	sbin/girar-enable \
+	sbin/girar-forwarder
 
 TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 
@@ -80,63 +80,63 @@ clean:
 install: install-bin install-conf install-data install-sbin install-var install-perms
 
 install-bin: ${bin_TARGETS}
-	install -d -m750 ${DESTDIR}${giter_bindir}
-	install -pm755 $^ ${DESTDIR}${giter_bindir}/
+	install -d -m750 ${DESTDIR}${girar_bindir}
+	install -pm755 $^ ${DESTDIR}${girar_bindir}/
 
 install-sbin: ${sbin_TARGETS}
-	install -d -m755 ${DESTDIR}${giter_sbindir}
-	install -pm700 $^ ${DESTDIR}${giter_sbindir}/
+	install -d -m755 ${DESTDIR}${girar_sbindir}
+	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
 
 install-conf:
 	install -d -m750 \
-		${DESTDIR}${giter_confdir} \
-		${DESTDIR}${GITER_ACL}
+		${DESTDIR}${girar_confdir} \
+		${DESTDIR}${GIRAR_ACL}
 
 install-data: hooks
 	install -d -m750 \
-		${DESTDIR}${giter_datadir} \
-		${DESTDIR}${giter_hooks_dir} \
-		${DESTDIR}${giter_templates_dir} \
-		${DESTDIR}${GITER_FAKE_HOME}
-	install -p hooks/* ${DESTDIR}${giter_hooks_dir}/
-	${RM} -- ${DESTDIR}${giter_hooks_dir}/*.in
-	ln -snf ${giter_hooks_dir} ${DESTDIR}${giter_templates_dir}/hooks
+		${DESTDIR}${girar_datadir} \
+		${DESTDIR}${girar_hooks_dir} \
+		${DESTDIR}${girar_templates_dir} \
+		${DESTDIR}${GIRAR_FAKE_HOME}
+	install -p hooks/* ${DESTDIR}${girar_hooks_dir}/
+	${RM} -- ${DESTDIR}${girar_hooks_dir}/*.in
+	ln -snf ${girar_hooks_dir} ${DESTDIR}${girar_templates_dir}/hooks
 
 install-var:
 	install -d -m750 \
-		${DESTDIR}${giter_statedir} \
-		${DESTDIR}${giter_email_dir} \
-		${DESTDIR}${giter_email_dir}/packages \
-		${DESTDIR}${giter_email_dir}/private \
-		${DESTDIR}${giter_spooldir} \
-		${DESTDIR}${GITER_PUBLIC_QUEUE} \
-		${DESTDIR}${GITER_PRIVATE_QUEUE}
+		${DESTDIR}${girar_statedir} \
+		${DESTDIR}${girar_email_dir} \
+		${DESTDIR}${girar_email_dir}/packages \
+		${DESTDIR}${girar_email_dir}/private \
+		${DESTDIR}${girar_spooldir} \
+		${DESTDIR}${GIRAR_PUBLIC_QUEUE} \
+		${DESTDIR}${GIRAR_PRIVATE_QUEUE}
 
 install-perms:
-	-chgrp giter \
-		${DESTDIR}${giter_bindir} \
-		${DESTDIR}${giter_confdir} \
-		${DESTDIR}${giter_datadir} \
-		${DESTDIR}${giter_statedir} \
-		${DESTDIR}${giter_spooldir}
+	-chgrp girar \
+		${DESTDIR}${girar_bindir} \
+		${DESTDIR}${girar_confdir} \
+		${DESTDIR}${girar_datadir} \
+		${DESTDIR}${girar_statedir} \
+		${DESTDIR}${girar_spooldir}
 
-bin/giter-sh: bin/giter-sh.c
+bin/girar-sh: bin/girar-sh.c
 
 %: %.in
-	sed -e 's,@CMDDIR@,${giter_bindir},g' \
+	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
-	    -e 's,@GITER_ACL@,${GITER_ACL},g' \
-	    -e 's,@GITER_EMAIL_ALIASES@,${GITER_EMAIL_ALIASES},g' \
-	    -e 's,@GITER_EMAIL_DIR@,${giter_email_dir},g' \
-	    -e 's,@GITER_FAKE_HOME@,${GITER_FAKE_HOME},g' \
-	    -e 's,@GITER_HOME@,${GITER_HOME},g' \
-	    -e 's,@GITER_HOOKS_DIR@,${giter_hooks_dir},g' \
-	    -e 's,@GITER_PACKAGES_DIR@,${giter_confdir}/packages.git,g' \
-	    -e 's,@GITER_PRIVATE_DIR@,${giter_confdir}/private.git,g' \
-	    -e 's,@GITER_PRIVATE_QUEUE@,${GITER_PRIVATE_QUEUE},g' \
-	    -e 's,@GITER_PUBLIC_QUEUE@,${GITER_PUBLIC_QUEUE},g' \
-	    -e 's,@GITER_REPOSITORIES@,${GITER_REPOSITORIES},g' \
-	    -e 's,@GITER_TEMPLATES_DIR@,${giter_templates_dir},g' \
+	    -e 's,@GIRAR_ACL@,${GIRAR_ACL},g' \
+	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
+	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
+	    -e 's,@GIRAR_FAKE_HOME@,${GIRAR_FAKE_HOME},g' \
+	    -e 's,@GIRAR_HOME@,${GIRAR_HOME},g' \
+	    -e 's,@GIRAR_HOOKS_DIR@,${girar_hooks_dir},g' \
+	    -e 's,@GIRAR_PACKAGES_DIR@,${girar_confdir}/packages.git,g' \
+	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
+	    -e 's,@GIRAR_PRIVATE_QUEUE@,${GIRAR_PRIVATE_QUEUE},g' \
+	    -e 's,@GIRAR_PUBLIC_QUEUE@,${GIRAR_PUBLIC_QUEUE},g' \
+	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
+	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \

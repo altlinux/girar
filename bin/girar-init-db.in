@@ -1,8 +1,8 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-init-db
+PROG=girar-init-db
 
 usage()
 {
@@ -21,7 +21,7 @@ cd "$HOME"
 dir="$(validate_packages_dir "$1")"; shift
 mkdir -p -- "$dir.git"
 cd "$dir.git"
-GIT_DIR=. git init-db --template=@GITER_TEMPLATES_DIR@
+GIT_DIR=. git init-db --template=@GIRAR_TEMPLATES_DIR@
 echo "$dir" >description
 install -m600 -- /dev/null git-daemon-export-ok
 pwd

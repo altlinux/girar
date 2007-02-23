@@ -1,9 +1,9 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-repositories_file="@GITER_REPOSITORIES@"
-acldir="@GITER_ACL@"
+repositories_file="@GIRAR_REPOSITORIES@"
+acldir="@GIRAR_ACL@"
 
 update()
 {
@@ -39,5 +39,5 @@ update()
 	done
 }
 
-find "@GITER_HOME@" -type f -path '*/etc/packages' -o -path '*/etc/groups' -printf '%p %f\n' |
+find "@GIRAR_HOME@" -type f -path '*/etc/packages' -o -path '*/etc/groups' -printf '%p %f\n' |
 	update

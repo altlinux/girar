@@ -1,8 +1,8 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-ls
+PROG=girar-ls
 
 usage()
 {
@@ -14,8 +14,8 @@ usage()
 [ "$#" -le 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${GITER_HOME:-}" ] ||
-	fatal 'GITER_HOME undefined'
+[ -n "${GIRAR_HOME:-}" ] ||
+	fatal 'GIRAR_HOME undefined'
 
 cd
 
@@ -31,11 +31,11 @@ fi
 	fatal "$dir: directory not available"
 
 [ -z "${dir%%*/}" ] || dir="$dir/"
-[ -n "${dir##/*}" -o -z "${dir##$GITER_HOME/*}" ] ||
+[ -n "${dir##/*}" -o -z "${dir##$GIRAR_HOME/*}" ] ||
 	fatal "$dir: invalid directory name"
 d="$(readlink -e "$dir")/" ||
 	fatal "$dir: directory not available"
-p="$(readlink -e "$GITER_HOME")" ||
+p="$(readlink -e "$GIRAR_HOME")" ||
 	fatal "$dir: directory not available"
 [ -z "${d##$p/*}" ] ||
 	fatal "$dir: invalid directory name"

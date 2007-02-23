@@ -1,7 +1,7 @@
 /*
   Copyright (C) 2006  Dmitry V. Levin <ldv@altlinux.org>
 
-  The giter shell.
+  The girar shell.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -46,15 +46,15 @@ main (int ac, char *av[])
 	if (!pw)
 		error(EXIT_FAILURE, errno, "getpwuid");
 
-	const char *giter_user = pw->pw_name + sizeof(USER_PREFIX) - 1;
+	const char *girar_user = pw->pw_name + sizeof(USER_PREFIX) - 1;
 
 	if (strncmp(pw->pw_name, USER_PREFIX, sizeof(USER_PREFIX) - 1) ||
-	    giter_user[0] == '\0')
+	    girar_user[0] == '\0')
 		error(EXIT_FAILURE, 0, "invalid account name");
 
 	char   *home;
 
-	if (asprintf(&home, "%s/%s", GITER_HOME, giter_user) < 0)
+	if (asprintf(&home, "%s/%s", GIRAR_HOME, girar_user) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 
 	if (chdir(home) < 0)
@@ -72,16 +72,16 @@ main (int ac, char *av[])
 	    (setenv("LOGNAME", pw->pw_name, 1) < 0) ||
 	    (setenv("HOME", home, 1) < 0) ||
 	    (setenv("PATH", "/bin:/usr/bin", 1) < 0) ||
-	    (setenv("GITER_USER_PREFIX", USER_PREFIX, 1) < 0) ||
-	    (setenv("GITER_USER", giter_user, 1) < 0) ||
-	    (setenv("GITER_HOME", GITER_HOME, 1) < 0) ||
+	    (setenv("GIRAR_USER_PREFIX", USER_PREFIX, 1) < 0) ||
+	    (setenv("GIRAR_USER", girar_user, 1) < 0) ||
+	    (setenv("GIRAR_HOME", GIRAR_HOME, 1) < 0) ||
 	    (tmpdir && *tmpdir && setenv("TMPDIR", tmpdir, 1) < 0))
 		error(EXIT_FAILURE, errno, "setenv");
 
 	if (3 == ac)
 	{
-		openlog("giter-sh", LOG_PID, LOG_USER);
-		syslog(LOG_INFO, "%s: %s %s", giter_user, av[1], av[2]);
+		openlog("girar-sh", LOG_PID, LOG_USER);
+		syslog(LOG_INFO, "%s: %s %s", girar_user, av[1], av[2]);
 		closelog();
 		shell(av);
 	}
@@ -96,14 +96,14 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"git-init-db", "giter-init-db", " <directory>"},
-	{"git-mv-db", "giter-mv-db", " <source-directory> <dest-directory>"},
-	{"git-rm-db", "giter-rm-db", " <directory>"},
-	{"git-clone", "giter-clone", " <repository> [<directory>]"},
-	{"find-package", "giter-find", " <pattern>"},
-	{"ls", "giter-ls", " [<directory>]"},
-	{"queue-build", "giter-queue-build", " <directory> <tag> <project name> <repository>"},
-	{"quota", "giter-quota", ""}
+	{"git-init-db", "girar-init-db", " <directory>"},
+	{"git-mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
+	{"git-rm-db", "girar-rm-db", " <directory>"},
+	{"git-clone", "girar-clone", " <repository> [<directory>]"},
+	{"find-package", "girar-find", " <pattern>"},
+	{"ls", "girar-ls", " [<directory>]"},
+	{"queue-build", "girar-queue-build", " <directory> <tag> <project name> <repository>"},
+	{"quota", "girar-quota", ""}
 };
 
 static void exec_cmd(cmd_t *cmd, char *str);
@@ -177,7 +177,7 @@ static void exec_cmd(cmd_t *cmd, char *str)
 
 	char   *path;
 
-	if (asprintf(&path, "%s/%s", GITER_BINDIR, cmd->exec) < 0)
+	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, cmd->exec) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 	execv(path, (char *const *) args);
 	error(EXIT_FAILURE, errno, "execv: %s", args[0]);

@@ -1,4 +1,4 @@
-Name: giter
+Name: girar
 Version: 0.1
 Release: alt1
 
@@ -16,7 +16,7 @@ This package contains server engine initially developed for git.alt,
 including administration and user utilities, git hooks, email subscription
 support and config files.
 
-%define giter_group giter
+%define girar_group girar
 
 %prep
 %setup -q
@@ -28,17 +28,17 @@ support and config files.
 %make_install install DESTDIR=%buildroot
 
 %pre
-/usr/sbin/groupadd -r -f %giter_group
+/usr/sbin/groupadd -r -f %girar_group
 
 %files
-%defattr(-,root,%giter_group,755)
+%defattr(-,root,%girar_group,755)
 %_sbindir/*
 %_usr/libexec/%name
 %_sysconfdir/%name
 %_datadir/%name
 %dir %_spooldir/%name
 %dir %_spooldir/%name/private
-%dir %attr(1775,root,%giter_group) %_spooldir/%name/public
+%dir %attr(1775,root,%girar_group) %_spooldir/%name/public
 %_localstatedir/%name
 
 %changelog

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
 export IFS=' 	
 '
@@ -26,11 +26,11 @@ IDFILE="$1"
 	usage 'not specified: IDENTITY FILE'
 shift
 
-# Validate @GITER_PACKAGES_DIR@
-GIT_DIR="@GITER_PACKAGES_DIR@" git rev-parse --git-dir >/dev/null
+# Validate @GIRAR_PACKAGES_DIR@
+GIT_DIR="@GIRAR_PACKAGES_DIR@" git rev-parse --git-dir >/dev/null
 
-# Validate @GITER_PRIVATE_DIR@
-GIT_DIR="@GITER_PRIVATE_DIR@" git rev-parse --git-dir >/dev/null
+# Validate @GIRAR_PRIVATE_DIR@
+GIT_DIR="@GIRAR_PRIVATE_DIR@" git rev-parse --git-dir >/dev/null
 
 IDFILE="$(readlink -ev "$IDFILE")" ||
 	fatal "identity file '$IDFILE' not available"
@@ -63,59 +63,59 @@ GECOS="$*"
 	fatal "$NAME: invalid GECOS specified"
 
 IT_NAME="@USER_PREFIX@$NAME"
-IT_HOME="@GITER_FAKE_HOME@"
-IT_SHELL="@CMDDIR@/giter-sh"
-GITER_HOME="@GITER_HOME@"
-REAL_HOME="$GITER_HOME/$NAME"
+IT_HOME="@GIRAR_FAKE_HOME@"
+IT_SHELL="@CMDDIR@/girar-sh"
+GIRAR_HOME="@GIRAR_HOME@"
+REAL_HOME="$GIRAR_HOME/$NAME"
 
 [ -d "$IT_HOME" ] ||
 	fatal "error adding $NAME: directory $IT_HOME not available"
-[ -d "$GITER_HOME" ] ||
-	fatal "error adding $NAME: directory $GITER_HOME not available"
+[ -d "$GIRAR_HOME" ] ||
+	fatal "error adding $NAME: directory $GIRAR_HOME not available"
 
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
 	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
 
-useradd -c "$GECOS" -d "$IT_HOME" -g 'giter' -M -s "$IT_SHELL" "$IT_NAME" ||
+useradd -c "$GECOS" -d "$IT_HOME" -g 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
-printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@GITER_EMAIL_ALIASES@" &&
+printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@GIRAR_EMAIL_ALIASES@" &&
 	newaliases ||
 	fatal "$IT_NAME: error adding email alias"
 
 echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
-GITER_HOME_MOUNT="$(df -P "$GITER_HOME" |awk '{dir=$6} END{print dir}')"
-setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GITER_HOME_MOUNT" ||
-	msg_info "$IT_NAME: failed to set disk quota on $GITER_HOME_MOUNT"
+GIRAR_HOME_MOUNT="$(df -P "$GIRAR_HOME" |awk '{dir=$6} END{print dir}')"
+setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GIRAR_HOME_MOUNT" ||
+	msg_info "$IT_NAME: failed to set disk quota on $GIRAR_HOME_MOUNT"
 
-install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME" ||
+install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME"
 
-install -d -o "$IT_NAME" -g giter -m755 "$REAL_HOME/packages" ||
+install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME/packages" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/packages"
 
-install -d -o "$IT_NAME" -g giter -m751 "$REAL_HOME/private" ||
+install -d -o "$IT_NAME" -g girar -m751 "$REAL_HOME/private" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/private"
 
 install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
-git clone --bare --template=@GITER_TEMPLATES_DIR@ \
-	"@GITER_PACKAGES_DIR@" "$REAL_HOME/etc/packages.git" &&
-	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/packages.git" ||
+git clone --bare --template=@GIRAR_TEMPLATES_DIR@ \
+	"@GIRAR_PACKAGES_DIR@" "$REAL_HOME/etc/packages.git" &&
+	chown -hR "$IT_NAME:girar" "$REAL_HOME/etc/packages.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/packages.git"
 
-git clone --bare --template=@GITER_TEMPLATES_DIR@ \
-	"@GITER_PRIVATE_DIR@" "$REAL_HOME/etc/private.git" &&
-	chown -hR "$IT_NAME:giter" "$REAL_HOME/etc/private.git" ||
+git clone --bare --template=@GIRAR_TEMPLATES_DIR@ \
+	"@GIRAR_PRIVATE_DIR@" "$REAL_HOME/etc/private.git" &&
+	chown -hR "$IT_NAME:girar" "$REAL_HOME/etc/private.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/private.git"
 
 for n in packages private; do
-	EMAIL_DIR="@GITER_EMAIL_DIR@/$n"
+	EMAIL_DIR="@GIRAR_EMAIL_DIR@/$n"
 	mkdir -p "$EMAIL_DIR"
-	install -d -o "$IT_NAME" -g giter -m755 "$EMAIL_DIR/$NAME" ||
+	install -d -o "$IT_NAME" -g girar -m755 "$EMAIL_DIR/$NAME" ||
 		fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
 done

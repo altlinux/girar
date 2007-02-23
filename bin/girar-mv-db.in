@@ -1,8 +1,8 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-mv-db
+PROG=girar-mv-db
 
 usage()
 {

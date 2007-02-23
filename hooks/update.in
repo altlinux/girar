@@ -1,8 +1,8 @@
 #!/bin/sh
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-update
+PROG=girar-update
 
 arg_refname="$1"
 arg_oldrev="$2"
@@ -60,8 +60,8 @@ DIFF_MAX=32768
 DIFF_SIZE=
 date_format="%F %T %z"
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
-giter_home="$(readlink -ev "$GITER_HOME")" || exit 1
-git_dir="$GITER_HOME${git_dir#$giter_home}"
+girar_home="$(readlink -ev "$GIRAR_HOME")" || exit 1
+git_dir="$GIRAR_HOME${git_dir#$girar_home}"
 project_name="${git_dir##*/}"
 project_name="${project_name%.git}"
 project_type="${git_dir%/*}"
@@ -112,8 +112,8 @@ validate_email_list()
 	set -- ${a}
 	for a; do
 		[ -n "${a##*@*}" ] || continue
-		cut -f1 -- "@GITER_EMAIL_ALIASES@" |
-			fgrep -xqs "${GITER_USER_PREFIX}$a:" ||
+		cut -f1 -- "@GIRAR_EMAIL_ALIASES@" |
+			fgrep -xqs "${GIRAR_USER_PREFIX}$a:" ||
 			fatal "$where: invalid email list: user $a not found."
 	done
 }
@@ -147,7 +147,7 @@ validate_subscription()
 		[ "$u" = '*' ] ||
 			{
 				printf %s "$u" |egrep -qs '^[a-z][a-z_0-9]+$' &&
-				[ -d "$GITER_HOME/$u" ]
+				[ -d "$GIRAR_HOME/$u" ]
 			} ||
 			fatal "$where: invalid user pattern: $u"
 	done <"$workdir/subscription"
@@ -176,7 +176,7 @@ handle_etc_packages()
 
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
-			cp "$workdir/$n" "@GITER_EMAIL_DIR@/packages/$GITER_USER/" &&
+			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/packages/$GIRAR_USER/" &&
 				msg_info "email $n configuration updated."
 		fi
 	done
@@ -190,7 +190,7 @@ handle_etc_private()
 	validate_distribution
 
 	[ ! -s "$workdir/distribution" ] ||
-		cp "$workdir/distribution" "@GITER_EMAIL_DIR@/private/$GITER_USER/"
+		cp "$workdir/distribution" "@GIRAR_EMAIL_DIR@/private/$GIRAR_USER/"
 }
 
 size_of_file()
@@ -330,7 +330,7 @@ trap exit_handler HUP PIPE INT QUIT TERM EXIT
 if [ -n "$mailto" ]; then
 	DIFF="$workdir/diff"
 	MSG="$workdir/message"
-	from_addr="${GITER_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
+	from_addr="${GIRAR_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
 	case "$project_type" in
 		packages)
 			reply_addr="@PACKAGES_EMAIL@"

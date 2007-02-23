@@ -1,11 +1,11 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-queue-build
+PROG=girar-queue-build
 user_prefix="@USER_PREFIX@"
-repositories_file="@GITER_REPOSITORIES@"
-acldir="@GITER_ACL@"
+repositories_file="@GIRAR_REPOSITORIES@"
+acldir="@GIRAR_ACL@"
 
 usage()
 {
@@ -21,7 +21,7 @@ usage()
 
 repository=
 project_name=
-# Return: 0 if $GITER_USER is allowed to request build of $project_name for $repository, and 1 otherwise.
+# Return: 0 if $GIRAR_USER is allowed to request build of $project_name for $repository, and 1 otherwise.
 check_perms()
 {
 	# allowed if no non-empty repositories file available
@@ -44,7 +44,7 @@ check_perms()
 	builders="$*"
 
 	# leader and "*" are allowed
-	[ "$GITER_USER" != "$leader" -a "$builders" != "*" ] || return 0
+	[ "$GIRAR_USER" != "$leader" -a "$builders" != "*" ] || return 0
 
 	# expand groups if any
 	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$repository" ]; then
@@ -55,11 +55,11 @@ check_perms()
 		done
 		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$repository")" #"
 	fi
-	printf %s "$builders" |grep -qs "\<$GITER_USER\>"
+	printf %s "$builders" |grep -qs "\<$GIRAR_USER\>"
 }
 
-[ -n "${GITER_USER:-}" ] || 
-	fatal "GITER_USER undefined"
+[ -n "${GIRAR_USER:-}" ] || 
+	fatal "GIRAR_USER undefined"
 
 cd "$HOME"
 
@@ -94,4 +94,4 @@ printf %s "$repository" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
 check_perms ||
 	fatal "permission denied"
 
-exec "@CMDDIR@/giter-queue-release" "$GITER_USER" "$project_name" "$PWD" "$tag" "$repository"
+exec "@CMDDIR@/girar-queue-release" "$GIRAR_USER" "$project_name" "$PWD" "$tag" "$repository"

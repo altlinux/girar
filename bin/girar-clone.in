@@ -1,8 +1,8 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-clone
+PROG=girar-clone
 
 usage()
 {
@@ -16,8 +16,8 @@ usage()
 [ "$#" -le 2 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${GITER_HOME:-}" ] ||
-	fatal 'GITER_HOME undefined'
+[ -n "${GIRAR_HOME:-}" ] ||
+	fatal 'GIRAR_HOME undefined'
 
 cd "$HOME"
 
@@ -26,7 +26,7 @@ repo=
 p_repo="$(prefix_packages "$repo0")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
-	people="$(readlink -ev "$GITER_HOME")"
+	people="$(readlink -ev "$GIRAR_HOME")"
 	[ -z "${repo##$people/*}" ] ||
 		fatal "$repo0: invalid local repository"
 fi
@@ -47,10 +47,10 @@ dir="$(validate_packages_dir "$dir0")"
 [ ! -e "$dir".git ] ||
 	fatal "$dir0: destination already exists"
 
-git clone --bare --template="@GITER_TEMPLATES_DIR@" "$p_repo" "$dir.git"
+git clone --bare --template="@GIRAR_TEMPLATES_DIR@" "$p_repo" "$dir.git"
 cd "$dir.git"
 echo "$dir" >description
 install -m600 /dev/null git-daemon-export-ok
 GIT_DIR=`/bin/pwd`
 export GIT_DIR
-exec "@GITER_HOOKS_DIR@/post-update"
+exec "@GIRAR_HOOKS_DIR@/post-update"

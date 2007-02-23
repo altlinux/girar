@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
 export IFS=' 	
 '
@@ -21,9 +21,9 @@ printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
 IT_NAME="@USER_PREFIX@$NAME"
-REAL_HOME="@GITER_HOME@/$NAME"
+REAL_HOME="@GIRAR_HOME@/$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
-EMAIL_DIR="@GITER_EMAIL_DIR@/packages/$NAME"
+EMAIL_DIR="@GIRAR_EMAIL_DIR@/packages/$NAME"
 
 userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
@@ -40,6 +40,6 @@ rm -rf -- "$EMAIL_DIR" ||
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"
 
-subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GITER_EMAIL_ALIASES@" &&
+subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GIRAR_EMAIL_ALIASES@" &&
 	newaliases ||
 	msg_info "$IT_NAME: failed to remove email alias"

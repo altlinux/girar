@@ -1,15 +1,15 @@
 #!/bin/sh -eu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-# env: GITER_USER_PREFIX GITER_USER GIT_DIR
-GITER_USER_PREFIX=${GITER_USER_PREFIX:?}
-GITER_USER=${GITER_USER:?}
+# env: GIRAR_USER_PREFIX GIRAR_USER GIT_DIR
+GIRAR_USER_PREFIX=${GIRAR_USER_PREFIX:?}
+GIRAR_USER=${GIRAR_USER:?}
 GIT_DIR=${GIT_DIR:?}
 
 # Globals
-git_aliases="@GITER_EMAIL_ALIASES@"
-maildir="@GITER_EMAIL_DIR@"
+git_aliases="@GIRAR_EMAIL_ALIASES@"
+maildir="@GIRAR_EMAIL_DIR@"
 
 [ "$#" -ge 3 ] ||
 	fatal "Wrong number of arguments: $#"
@@ -28,14 +28,14 @@ translate_email()
 	local a
 	while read a; do 
 		a="$(quote_sed_regexp "$a")"
-		sed -ne "s/^${GITER_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" "$git_aliases"
+		sed -ne "s/^${GIRAR_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" "$git_aliases"
 	done
 }
 
 
 find_subscribers()
 {
-	local u="$(quote_sed_regexp "$GITER_USER")"
+	local u="$(quote_sed_regexp "$GIRAR_USER")"
 	local p="$project_name"
 	local t="$ref_style"
 	local n="$ref_name"
@@ -48,8 +48,8 @@ find_subscribers()
 	grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$project_type"/*/subscription |
 		sed -ne "s|^$maildir/$project_type_quoted/\\([^/]\\+\\)/subscription\$|\\1|p"
 
-	[ ! -f "$maildir/$project_type/$GITER_USER/distribution" ] ||
-		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$project_type/$GITER_USER/distribution" |
+	[ ! -f "$maildir/$project_type/$GIRAR_USER/distribution" ] ||
+		sed -ne "s/^$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]\\+//p" "$maildir/$project_type/$GIRAR_USER/distribution" |
 		tr -s ',[:space:]' '\n'
 
 	[ ! -r "$GIT_DIR/mailto" ] ||

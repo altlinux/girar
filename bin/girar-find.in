@@ -1,8 +1,8 @@
 #!/bin/sh -eu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-PROG=giter-find-package
+PROG=girar-find-package
 
 usage()
 {
@@ -19,12 +19,12 @@ usage()
 [ -n "$1" -a -n "${1##*/*}" ] || 
         fatal 'invalid pattern'
 
-[ -n "${GITER_HOME:-}" ] ||
-	fatal 'GITER_HOME undefined'
+[ -n "${GIRAR_HOME:-}" ] ||
+	fatal 'GIRAR_HOME undefined'
 
-cd "$GITER_HOME"
+cd "$GIRAR_HOME"
 for d in [a-z]*; do
 	[ -d "$d" ] || continue
-	find "$GITER_HOME/$d/packages/" -mindepth 1 -maxdepth 1 -type d \
+	find "$GIRAR_HOME/$d/packages/" -mindepth 1 -maxdepth 1 -type d \
 		\( -name "$1" -or -name "$1.git" \) -print ||:
 done

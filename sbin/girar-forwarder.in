@@ -1,14 +1,14 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
-giter_queue="@GITER_PUBLIC_QUEUE@"
-private_queue="@GITER_PRIVATE_QUEUE@"
+girar_queue="@GIRAR_PUBLIC_QUEUE@"
+private_queue="@GIRAR_PRIVATE_QUEUE@"
 upravdom_queue="@UPRAVDOM_QUEUE@"
 upravdom_account="@UPRAVDOM_ACCOUNT@"
 
 selflock="$private_queue/.lock"
-giterlock="$giter_queue/.lock"
+girarlock="$girar_queue/.lock"
 upravdomlock="$upravdom_queue/.lock"
 
 find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
@@ -31,7 +31,7 @@ exit_handler()
 	trap - EXIT
 
 	# unlock public queue if and only if we own it
-	[ ! -d "$giterlock" -o ! -O "$giterlock" ] || rmdir -- "$giterlock"
+	[ ! -d "$girarlock" -o ! -O "$girarlock" ] || rmdir -- "$girarlock"
 
 	# unlock upravdom queue if and only if we own it
 	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
@@ -51,13 +51,13 @@ private_num="$(findin "$private_queue" |tail -1)"
 	private_num=0
 
 # lock public queue
-while ! mkdir -- "$giterlock" >/dev/null 2>&1; do
+while ! mkdir -- "$girarlock" >/dev/null 2>&1; do
 	sleep 1
 done
 
 # move tasks from public queue to private queue
-for name in $(findin "$giter_queue"); do
-	task="$giter_queue/$name"
+for name in $(findin "$girar_queue"); do
+	task="$girar_queue/$name"
 
 	if [ ! -s "$task" ]; then
 		rm -f -- "$task"
@@ -73,7 +73,7 @@ for name in $(findin "$giter_queue"); do
 done
 
 # unlock public queue
-rmdir -- "$giterlock"
+rmdir -- "$girarlock"
 
 # lock upravdom queue
 ssh -n "$upravdom_account" "while ! mkdir -- '$upravdomlock'>/dev/null 2>&1; do sleep 1; done" ||

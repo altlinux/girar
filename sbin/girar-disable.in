@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-. "@CMDDIR@/giter-sh-functions"
+. "@CMDDIR@/girar-sh-functions"
 
 export IFS=' 	
 '
