@@ -18,7 +18,7 @@ usage()
 
 cd "$HOME"
 
-dir="$(validate_packages_dir "$1")" && shift
+dir="$(validate_packages_dir "$1")"; shift
 mkdir -p -- "$dir.git"
 cd "$dir.git"
 GIT_DIR=. git init-db --template=@GITER_TEMPLATES_DIR@

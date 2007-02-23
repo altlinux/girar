@@ -14,9 +14,9 @@ maildir="@GITER_EMAIL_DIR@"
 [ "$#" -ge 3 ] ||
 	fatal "Wrong number of arguments: $#"
 
-project_name="$(quote_sed_regexp "$1")" && shift
-ref_style="$(quote_sed_regexp "$1")" && shift
-ref_name="$(quote_sed_regexp "$1")" && shift
+project_name="$(quote_sed_regexp "$1")"; shift
+ref_style="$(quote_sed_regexp "$1")"; shift
+ref_name="$(quote_sed_regexp "$1")"; shift
 
 git_dir="$(readlink -ev "$GIT_DIR")"
 project_type="${git_dir%/*}"

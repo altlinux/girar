@@ -35,7 +35,7 @@ prefix_packages()
 validate_packages_dir()
 {
 	local dir0 dirname dir
-	dir0="$(prefix_packages "$1")" && shift
+	dir0="$(prefix_packages "$1")"; shift
 	dirname="${dir0%/*}"
 	[ "$dirname" = 'packages' -o "$dirname" = 'private' ] ||
 		fatal "$dir0: invalid directory name"

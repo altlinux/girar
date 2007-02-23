@@ -20,7 +20,7 @@ usage()
 cd
 
 if [ "$#" -ge 1 ]; then
-	dir="$1" && shift
+	dir="$1"; shift
 	printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
 		fatal "$dir: invalid directory name"
 else

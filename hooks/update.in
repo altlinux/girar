@@ -83,11 +83,11 @@ check_etc_private()
 
 validate_distribution_subscription()
 {
-	local where="$1" && shift
-	local p="$1" && shift
-	local t="$1" && shift
-	local n="$1" && shift
-	local rest="$1" && shift
+	local where="$1"; shift
+	local p="$1"; shift
+	local t="$1"; shift
+	local n="$1"; shift
+	local rest="$1"; shift
 
 	[ -z "$rest" ] ||
 		fatal "$where: unexpected field: $rest"
@@ -106,8 +106,8 @@ validate_distribution_subscription()
 
 validate_email_list()
 {
-	local where="$1" && shift
-	local addr="$1" && shift
+	local where="$1"; shift
+	local addr="$1"; shift
 	local a="$(printf %s "$addr" |tr , ' ')"
 	set -- ${a}
 	for a; do
@@ -155,7 +155,7 @@ validate_subscription()
 
 check_email_update()
 {
-	local n="$1" && shift
+	local n="$1"; shift
 	rm -f -- "$workdir/$n"
 	if git diff-tree --name-only "$2" "$3" -- email-"$n" |
 	   fgrep -qs email-"$n"; then
@@ -206,7 +206,7 @@ diff_is_too_large()
 
 show_large_info()
 {
-	local text="$1" && shift
+	local text="$1"; shift
 
 	if diff_is_too_large; then
 		echo "$text is too large ($DIFF_SIZE bytes)."
@@ -218,8 +218,8 @@ show_large_info()
 
 show_changes_statistics()
 {
-	local next="$1" && shift
-	local prev="$1" && shift
+	local next="$1"; shift
+	local prev="$1"; shift
 
 	git diff -M --stat "$next" "^$prev" >"$DIFF"
 	show_large_info "Changes statistics since $1"

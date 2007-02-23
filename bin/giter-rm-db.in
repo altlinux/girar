@@ -18,7 +18,7 @@ usage()
 
 cd "$HOME"
 
-dir0="$1" && shift
+dir0="$1"; shift
 dir="$(validate_packages_dir "$dir0")"
 [ -d "$dir.git" ] ||
 	fatal "$dir0: directory not available"

@@ -21,7 +21,7 @@ usage()
 
 cd "$HOME"
 
-repo0="$1" && shift
+repo0="$1"; shift
 repo=
 p_repo="$(prefix_packages "$repo0")"
 if [ -e "$p_repo" ]; then
@@ -38,7 +38,7 @@ if [ -z "$repo" ]; then
 fi
 
 if [ "$#" -ge 1 ]; then
-	dir0="$1" && shift
+	dir0="$1"; shift
 else
 	dir0="${repo0##*/}"
 fi

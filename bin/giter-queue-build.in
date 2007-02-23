@@ -63,7 +63,7 @@ check_perms()
 
 cd "$HOME"
 
-dir0="$1" && shift
+dir0="$1"; shift
 dir="${dir0#$PWD/}"
 [ "${dir#/}" = "$dir" ] ||
 	fatal "$dir0: invalid directory name"
@@ -77,16 +77,16 @@ dir="$(validate_packages_dir "$dir")"
 
 cd "$dir.git"
 
-tag="$1" && shift
+tag="$1"; shift
 GIT_DIR=. git tag -l |fgrep -xqs "$tag" ||
 	fatal "$tag: invalid tag"
 
-project_name="$1" && shift
+project_name="$1"; shift
 [ -n "$project_name" ] &&
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid project name"
 
-repository="$1" && shift
+repository="$1"; shift
 [ -n "$repository" ] &&
 printf %s "$repository" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
 	fatal "$repository: invalid repository"

@@ -18,10 +18,10 @@ usage()
 
 cd "$HOME"
 
-srcdir0="$1" && shift
+srcdir0="$1"; shift
 srcdir="$(validate_packages_dir "$srcdir0")"
 
-dstdir0="$1" && shift
+dstdir0="$1"; shift
 dstdir="$(validate_packages_dir "$dstdir0")"
 
 [ -d "$srcdir.git" ] ||
