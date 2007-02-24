@@ -39,6 +39,9 @@ refs/remotes/*)
 esac
 
 if expr "$arg_newrev" : '0*$' >/dev/null; then
+	if expr "$arg_oldrev" : '0*$' >/dev/null; then
+		fatal "Non-existent ref name: $arg_refname"
+	fi
 	ref_type="$(git cat-file -t "$arg_oldrev")" || exit 1
 else
 	ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
