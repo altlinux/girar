@@ -29,3 +29,4 @@ num="$(find "$girar_queue" -mindepth 1 -maxdepth 1 -regextype posix-basic -regex
 	num=0
 
 printf '%s\n' "$*" > "$girar_queue/$num"
+echo >&2 "Queued #$num: $*"
