@@ -53,7 +53,7 @@ bin_TARGETS = \
 	bin/girar-ls \
 	bin/girar-mv-db \
 	bin/girar-build \
-	bin/girar-queue-release \
+	bin/girar-queue-tag \
 	bin/girar-quota \
 	bin/girar-rm-db \
 	bin/girar-sh \

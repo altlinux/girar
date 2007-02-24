@@ -95,4 +95,4 @@ printf %s "$repository" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
 check_perms ||
 	fatal "permission denied"
 
-exec "@CMDDIR@/girar-queue-release" "$GIRAR_USER" "$project_name" "$PWD" "$tag" "$repository"
+exec "@CMDDIR@/girar-queue-tag" "$GIRAR_USER" "$project_name" "$PWD" "$tag" "$repository"
