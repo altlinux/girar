@@ -1,0 +1,100 @@
+#!/bin/sh -efu
+
+. "@CMDDIR@/girar-sh-functions"
+
+PROG=girar-check-perms
+repositories_file="@GIRAR_REPOSITORIES@"
+acl_dir="@GIRAR_ACL@"
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <project name> <binary package repository>" >&2
+	exit 1
+}
+
+allow()
+{
+	msg_info "allowed: $*"
+	exit 0
+}
+
+deny()
+{
+	msg_info "denied: $*"
+	exit 1
+}
+
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 2 ] ||
+	usage 'Too many arguments.'
+
+project_name="$1"; shift
+repository="$1"; shift
+
+[ -n "${GIRAR_USER:-}" ] || 
+	fatal "GIRAR_USER undefined"
+
+cd "$HOME"
+
+# Returns:
+# 0 - $GIRAR_USER is allowed to request build of $project_name for binary $repository;
+# 1 - otherwise.
+
+# Allowed if no non-empty repository list available.
+[ -s "$repositories_file" ] ||
+	allow "repository list not available"
+
+fgrep -xqs "$repository" "$repositories_file" ||
+	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+
+# Allowed if no acl file available for given binary $repository.
+[ -s "$acl_dir/list.packages.$repository" ] ||
+	allow "acl file for repository \`$repository' not available"
+
+# Allowed if package is not listed in acl file.
+acl_line="$(grep "^$project_name " "$acl_dir/list.packages.$repository")" ||
+	allow "project \`$project_name' is not listed in acl file for repository \`$repository'"
+
+# acl_line format: pkg_name leader [builders]
+set -- ${acl_line}
+[ $# -ge 2 ] ||
+	deny "acl file for repository \`$repository' contains invalid acl entry: $acl_line"
+leader="$2"; shift 2
+builders="$*"
+
+# Allowed iff $GIRAR_USER is leader.
+[ "$GIRAR_USER" != "$leader" ] ||
+	allow "project leader"
+
+# Wildcard builders are allowed.
+[ "$builders" != "*" ] ||
+	allow "project leader welcomes random builders"
+
+# Separate people and groups.
+groups=
+people=
+for o in ${builders}; do
+	[ -z "${o%%@*}" ] &&
+		groups="$groups|$o" ||
+		people="$people $o"
+done
+groups="${groups#|}"
+
+# Allowed if $GIRAR_USER is listed in $people.
+if printf %s "$people" |grep -qs "\<$GIRAR_USER\>"; then
+	allow "approved builder"
+fi
+
+# Expand groups if any.
+if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
+	gpeople="$(sed -r -ne "s/^($groups) +//p" "$acl_dir/list.groups.$repository")"
+
+	# Allowed if $GIRAR_USER is listed in $gpeople.
+	if printf %s "$gpeople" |grep -qs "\<$GIRAR_USER\>"; then
+		allow "member of approved group"
+	fi
+fi
+
+deny "not listed in builders [$builders]"

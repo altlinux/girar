@@ -3,9 +3,6 @@
 . "@CMDDIR@/girar-sh-functions"
 
 PROG=girar-build
-user_prefix="@USER_PREFIX@"
-repositories_file="@GIRAR_REPOSITORIES@"
-acldir="@GIRAR_ACL@"
 
 usage()
 {
@@ -18,45 +15,6 @@ usage()
 	usage 'Not enough arguments.'
 [ "$#" -le 4 ] ||
 	usage 'Too many arguments.'
-
-repository=
-project_name=
-# Return: 0 if $GIRAR_USER is allowed to request build of $project_name for $repository, and 1 otherwise.
-check_perms()
-{
-	# allowed if no non-empty repositories file available
-	[ -s "$repositories_file" ] || return 0
-
-	fgrep -xqs "$repository" "$repositories_file" ||
-		fatal "$repository: invalid repository, valid repositories are: $(tr '\n' ' '<"$repositories_file")"
-
-	# allowed if no acl file available for given ref_name
-	[ -s "$acldir/list.packages.$repository" ] || return 0
-
-	local aclline builders groups= humans= leader o
-
-	# allowed if package is not listed
-	aclline="$(grep "^$project_name " "$acldir/list.packages.$repository")" || return 0
-
-	# aclline format: pkg_name leader builders
-	set -- ${aclline}; shift
-	leader="$1"; shift
-	builders="$*"
-
-	# leader and "*" are allowed
-	[ "$GIRAR_USER" != "$leader" -a "$builders" != "*" ] || return 0
-
-	# expand groups if any
-	if [ -z "${builders#*@*}" -a -s "$acldir/list.groups.$repository" ]; then
-		for o in ${builders}; do
-			[ -z "${o%%@*}" ] &&
-				groups="$groups|$o" ||
-				humans="$humans $o"
-		done
-		builders="$humans $(sed -r -ne "s/^(${groups#|}) +//p" "$acldir/list.groups.$repository")" #"
-	fi
-	printf %s "$builders" |grep -qs "\<$GIRAR_USER\>"
-}
 
 [ -n "${GIRAR_USER:-}" ] || 
 	fatal "GIRAR_USER undefined"
@@ -98,7 +56,7 @@ fi
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid project name"
 
-check_perms ||
+"@CMDDIR@/girar-check-perms" "$project_name" "$repository" ||
 	fatal "permission denied"
 
 exec "@CMDDIR@/girar-queue-tag" "$GIRAR_USER" "$project_name" "$PWD" "$tag" "$repository"

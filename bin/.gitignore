@@ -1,11 +1,12 @@
 acl-cronjob
 find-subscribers
+girar-build
+girar-check-perms
 girar-clone
 girar-find
 girar-init-db
 girar-ls
 girar-mv-db
-girar-build
 girar-queue-tag
 girar-quota
 girar-rm-db

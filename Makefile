@@ -47,12 +47,13 @@ CFLAGS = -pipe -Wall -O2
 bin_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
+	bin/girar-build \
+	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
 	bin/girar-init-db \
 	bin/girar-ls \
 	bin/girar-mv-db \
-	bin/girar-build \
 	bin/girar-queue-tag \
 	bin/girar-quota \
 	bin/girar-rm-db \
