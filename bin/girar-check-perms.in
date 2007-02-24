@@ -101,4 +101,4 @@ if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
 	fi
 fi
 
-deny "not listed in builders [$builders]"
+deny "does not belong to approved builders list: $leader $builders"
