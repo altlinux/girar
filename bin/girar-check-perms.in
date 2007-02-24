@@ -42,19 +42,20 @@ cd "$HOME"
 # 0 - $GIRAR_USER is allowed to request build of $project_name for binary $repository;
 # 1 - otherwise.
 
-# Allowed if no non-empty repository list available.
+# Denied if no non-empty repository list available.
 [ -s "$repositories_file" ] ||
 	deny "repository list not available"
 
+# Denied if requested binary repository is not listed.
 fgrep -ixqs "$repository" "$repositories_file" ||
 	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
 
-# Normalize binary $repository name.
+# Normalize binary repository name.
 repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
 
-# Allowed if no acl file available for given binary $repository.
+# Denied if no acl file available for the given binary repository.
 [ -s "$acl_dir/list.packages.$repository" ] ||
-	allow "acl file for repository \`$repository' not available"
+	deny "acl file for repository \`$repository' not available"
 
 # Allowed if package is not listed in acl file.
 acl_line="$(grep "^$project_name " "$acl_dir/list.packages.$repository")" ||
