@@ -1,8 +1,6 @@
-#!/bin/sh
-#
-# An example hook script to prepare a packed repository for use over
-# dumb transports.
-#
-# To enable this hook, make this file executable by "chmod +x post-update".
+#!/bin/sh -e
 
-git prune && git repack -a -d && git update-server-info
+[ -n "$*" ] || exit 0
+git prune
+git repack -a -d
+git update-server-info
