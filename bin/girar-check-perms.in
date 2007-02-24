@@ -46,8 +46,11 @@ cd "$HOME"
 [ -s "$repositories_file" ] ||
 	deny "repository list not available"
 
-fgrep -xqs "$repository" "$repositories_file" ||
+fgrep -ixqs "$repository" "$repositories_file" ||
 	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+
+# Normalize binary $repository name.
+repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
 
 # Allowed if no acl file available for given binary $repository.
 [ -s "$acl_dir/list.packages.$repository" ] ||
