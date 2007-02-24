@@ -96,11 +96,11 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"git-clone", "girar-clone", " <repository> [<directory>]"},
+	{"git-clone", "girar-clone", " <git-repository> [<directory>]"},
 	{"git-init-db", "girar-init-db", " <directory>"},
 	{"git-mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
-	{"git-rm-db", "girar-rm-db", " <directory>"},
-	{"build", "girar-build", " <directory> <tag> <project name> <repository>"},
+	{"git-rm-db", "girar-rm-db", " <git-repository>"},
+	{"build", "girar-build", " <git-repository> <tag> <binary-package-repository> [<project-name>]"},
 	{"find-package", "girar-find", " <pattern>"},
 	{"ls", "girar-ls", " [<directory>]"},
 	{"quota", "girar-quota", ""}

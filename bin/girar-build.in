@@ -10,13 +10,13 @@ acldir="@GIRAR_ACL@"
 usage()
 {
 	echo "$PROG: $*" >&2
-	echo "usage: $PROG <directory> <tag> <project name> <repository>" >&2
+	echo "usage: $PROG <git repository> <tag> <binary package repository> [<project name>]" >&2
 	exit 1
 }
 
-[ "$#" -ge 4 ] ||
+[ "$#" -ge 3 ] ||
 	usage 'Not enough arguments.'
-[ "$#" -eq 4 ] ||
+[ "$#" -le 4 ] ||
 	usage 'Too many arguments.'
 
 repository=
@@ -66,7 +66,7 @@ cd "$HOME"
 dir0="$1"; shift
 dir="${dir0#$PWD/}"
 [ "${dir#/}" = "$dir" ] ||
-	fatal "$dir0: invalid directory name"
+	fatal "$dir0: invalid git repository name"
 
 dir="$(validate_packages_dir "$dir")"
 dir="$(add_git_suffix "$dir")"
@@ -79,19 +79,24 @@ dir="$(add_git_suffix "$dir")"
 cd "$dir"
 
 tag="$1"; shift
-GIT_DIR=. git tag -l |fgrep -xqse "$tag" &&
-	GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git-verify-tag "$tag" ||
+GIT_DIR=. git-rev-parse --symbolic --tags |fgrep -xqse "$tag" ||
+	fatal "$tag: invalid tag name"
+GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git-verify-tag "$tag" ||
 	fatal "$tag: invalid tag"
-
-project_name="$1"; shift
-[ -n "$project_name" ] &&
-printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
-	fatal "$project_name: invalid project name"
 
 repository="$1"; shift
 [ -n "$repository" ] &&
-printf %s "$repository" |egrep -qs '^[A-Za-z0-9_-.]+$' ||
-	fatal "$repository: invalid repository"
+printf %s "$repository" |egrep -qs '^[A-Za-z0-9][A-Za-z0-9_-.]+$' ||
+	fatal "$repository: invalid binary package repository name"
+
+project_name="${PWD##*/}"
+project_name="${project_name%.git}"
+if [ $# -gt 0 ]; then
+	project_name="$1"; shift
+fi
+[ -n "$project_name" ] &&
+printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
+	fatal "$project_name: invalid project name"
 
 check_perms ||
 	fatal "permission denied"
