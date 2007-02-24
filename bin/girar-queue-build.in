@@ -78,7 +78,8 @@ dir="$(validate_packages_dir "$dir")"
 cd "$dir.git"
 
 tag="$1"; shift
-GIT_DIR=. git tag -l |fgrep -xqs "$tag" ||
+GIT_DIR=. git tag -l |fgrep -xqse "$tag" &&
+	GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git-verify-tag "$tag" ||
 	fatal "$tag: invalid tag"
 
 project_name="$1"; shift
