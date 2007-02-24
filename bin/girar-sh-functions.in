@@ -32,6 +32,14 @@ prefix_packages()
 	printf "$fmt" "$1"
 }
 
+add_git_suffix()
+{
+	local arg="$1"
+	[ -z "${arg##*.git}" ] ||
+		arg="$arg.git"
+	printf %s "$arg"
+}
+
 validate_packages_dir()
 {
 	local dir0 dirname dir
