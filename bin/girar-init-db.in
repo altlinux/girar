@@ -19,9 +19,10 @@ usage()
 cd "$HOME"
 
 dir="$(validate_packages_dir "$1")"; shift
-mkdir -p -- "$dir.git"
-cd "$dir.git"
+dir="$(add_git_suffix "$dir")"
+mkdir -p -- "$dir"
+cd "$dir"
 GIT_DIR=. git init-db --template=@GIRAR_TEMPLATES_DIR@
-echo "$dir" >description
+echo "${dir%.git}" >description
 install -m600 -- /dev/null git-daemon-export-ok
 pwd

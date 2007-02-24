@@ -24,6 +24,7 @@ cd "$HOME"
 repo0="$1"; shift
 repo=
 p_repo="$(prefix_packages "$repo0")"
+p_repo="$(add_git_suffix "$p_repo")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$GIRAR_HOME")"
@@ -44,12 +45,13 @@ else
 fi
 
 dir="$(validate_packages_dir "$dir0")"
-[ ! -e "$dir".git ] ||
+dir="$(add_git_suffix "$dir")"
+[ ! -e "$dir" ] ||
 	fatal "$dir0: destination already exists"
 
-git clone --bare --template="@GIRAR_TEMPLATES_DIR@" "$p_repo" "$dir.git"
-cd "$dir.git"
-echo "$dir" >description
+git clone --bare --template="@GIRAR_TEMPLATES_DIR@" "$p_repo" "$dir"
+cd "$dir"
+echo "${dir%.git}" >description
 install -m600 /dev/null git-daemon-export-ok
 GIT_DIR=`/bin/pwd`
 export GIT_DIR

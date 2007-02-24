@@ -20,16 +20,18 @@ cd "$HOME"
 
 srcdir0="$1"; shift
 srcdir="$(validate_packages_dir "$srcdir0")"
+srcdir="$(add_git_suffix "$srcdir")"
 
 dstdir0="$1"; shift
 dstdir="$(validate_packages_dir "$dstdir0")"
+dstdir="$(add_git_suffix "$dstdir")"
 
-[ -d "$srcdir.git" ] ||
+[ -d "$srcdir" ] ||
 	fatal "$srcdir0: source directory not available"
-[ ! -e "$dstdir.git" ] ||
+[ ! -e "$dstdir" ] ||
 	fatal "$dstdir0: destination directory already exists"
 
-cd "$srcdir.git"
+cd "$srcdir"
 cd "$HOME"
-mkdir -- "$dstdir.git"
-mv -T -- "$srcdir.git" "$dstdir.git"
+mkdir -- "$dstdir"
+mv -T -- "$srcdir" "$dstdir"

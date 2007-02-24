@@ -20,8 +20,9 @@ cd "$HOME"
 
 dir0="$1"; shift
 dir="$(validate_packages_dir "$dir0")"
-[ -d "$dir.git" ] ||
+dir="$(add_git_suffix "$dir")"
+[ -d "$dir" ] ||
 	fatal "$dir0: directory not available"
-cd "$dir.git"
+cd "$dir"
 cd "$HOME"
-rm -rf -- "$dir.git"
+rm -rf -- "$dir"

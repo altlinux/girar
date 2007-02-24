@@ -69,13 +69,14 @@ dir="${dir0#$PWD/}"
 	fatal "$dir0: invalid directory name"
 
 dir="$(validate_packages_dir "$dir")"
-[ -d "$dir.git" ] ||
+dir="$(add_git_suffix "$dir")"
+[ -d "$dir" ] ||
 	fatal "$dir0: directory not available"
 
 [ -z "${dir%%packages/*}" ] ||
 	fatal "$dir0: directory should belong to packages/"
 
-cd "$dir.git"
+cd "$dir"
 
 tag="$1"; shift
 GIT_DIR=. git tag -l |fgrep -xqse "$tag" &&
