@@ -2,7 +2,7 @@
 
 . "@CMDDIR@/girar-sh-functions"
 
-PROG=girar-queue-build
+PROG=girar-build
 user_prefix="@USER_PREFIX@"
 repositories_file="@GIRAR_REPOSITORIES@"
 acldir="@GIRAR_ACL@"

@@ -5,7 +5,7 @@ girar-find
 girar-init-db
 girar-ls
 girar-mv-db
-girar-queue-build
+girar-build
 girar-queue-release
 girar-quota
 girar-rm-db
