@@ -58,7 +58,7 @@ repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
 	deny "acl file for repository \`$repository' not available"
 
 # Allowed if package is not listed in acl file.
-acl_line="$(grep "^$project_name " "$acl_dir/list.packages.$repository")" ||
+acl_line="$(grep "^$project_name[[:space:]]" "$acl_dir/list.packages.$repository")" ||
 	allow "project \`$project_name' is not listed in acl file for repository \`$repository'"
 
 # acl_line format: pkg_name leader [builders]
