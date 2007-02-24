@@ -44,7 +44,7 @@ cd "$HOME"
 
 # Allowed if no non-empty repository list available.
 [ -s "$repositories_file" ] ||
-	allow "repository list not available"
+	deny "repository list not available"
 
 fgrep -xqs "$repository" "$repositories_file" ||
 	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
