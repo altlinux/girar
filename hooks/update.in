@@ -15,10 +15,6 @@ if [ -z "$arg_refname" -o -z "$arg_oldrev" -o -z "$arg_newrev" ]; then
 	exit 1
 fi
 
-if [ "$arg_refname" = "refs/heads/origin" ]; then
-	fatal "$arg_refname is not designed for publication and therefore is not allowed in this repo"
-fi
-
 # check ref name
 case "$arg_refname" in
 refs/heads/*)
@@ -45,6 +41,9 @@ if expr "$arg_newrev" : '0*$' >/dev/null; then
 	ref_type="$(git cat-file -t "$arg_oldrev")" || exit 1
 else
 	ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
+	if [ "$arg_refname" = 'refs/heads/origin' ]; then
+		fatal "$arg_refname is not designed for publication and therefore is not allowed in this repo"
+	fi
 fi
 
 # Only allow annotated tags in a shared repo
