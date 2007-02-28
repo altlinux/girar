@@ -25,4 +25,4 @@ cd "$dir"
 GIT_DIR=. git init-db --template=@GIRAR_TEMPLATES_DIR@
 echo "${dir%.git}" >description
 install -m600 -- /dev/null git-daemon-export-ok
-pwd
+printf '%s:\t%s\n' "$PROG" "$PWD"
