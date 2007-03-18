@@ -27,7 +27,7 @@ GIRAR_PRIVATE_QUEUE = ${girar_spooldir}/private
 GIRAR_PUBLIC_QUEUE = ${girar_spooldir}/public
 GIRAR_REPOSITORIES = ${girar_confdir}/repositories
 GITWEB_URL = http://git.altlinux.org
-PACKAGES_EMAIL = devel@lists.${EMAIL_DOMAIN}
+PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
 UPRAVDOM_ACCOUNT = build-factory
