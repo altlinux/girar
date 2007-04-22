@@ -20,7 +20,7 @@ cd "$HOME"
 
 dir="$(validate_packages_dir "$1")"; shift
 dir="$(add_git_suffix "$dir")"
-mkdir -p -- "$dir"
+mkdir -- "$dir"
 cd "$dir"
 GIT_DIR=. git init-db --template=@GIRAR_TEMPLATES_DIR@
 echo "${dir%.git}" >description
