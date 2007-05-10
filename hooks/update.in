@@ -70,6 +70,8 @@ project_type="${git_dir%/*}"
 project_type="${project_type##*/}"
 project="$project_type/$project_name"
 charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
+[ -n "$charset" ] ||
+	charset='utf-8'
 
 check_etc_packages()
 {
