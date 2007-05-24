@@ -67,7 +67,8 @@ sbin_TARGETS = \
 	sbin/girar-auth-zero \
 	sbin/girar-disable \
 	sbin/girar-enable \
-	sbin/girar-forwarder
+	sbin/girar-forwarder \
+	sbin/girar-make-template-repos
 
 TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 

@@ -1,0 +1,60 @@
+#!/bin/sh -efu
+
+PROG="${0##*/}"
+
+workdir=
+exit_handler() {
+	local rc=$?
+	trap - EXIT
+	[ ! -d "$workdir" ] || rm -rf -- "$workdir"
+	exit $rc
+}
+
+trap exit_handler HUP PIPE INT QUIT TERM EXIT
+workdir="$(mktemp -dt "$PROG.XXXXXXXXX")"
+cd "$workdir"
+
+for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@; do
+
+	[ ! -d "$d" ] ||
+		continue
+
+	git init-db >/dev/null
+
+	files="email-distribution"
+
+	cat >email-distribution <<-EOF
+	# Email distribution file consists of lines in following format:
+	# PACKAGE REFTYPE REFNAME MAILTO
+	# where:
+	# - PACKAGE: repository name (PACKAGE part of packages/PACKAGE.git);
+	# - REFTYPE: type of updated reference (head, release, remote or tag);
+	# - REFNAME: name of updated reference (basename of refs/*/*);
+	# - MAILTO: comma-separated list of recipient USERs.
+	# Each of first 3 fields could be either name itself or * symbol which matches any name.
+	EOF
+
+	if [ "${d##*/}" != "private.git" ]; then
+		files="$files email-subscription"
+
+		cat >email-subscription <<-EOF
+		# Email subscription file consists of lines in following format
+		# USER PACKAGE REFTYPE REFNAME
+		# where:
+		# - USER: repository owner (USER part of git_USER);
+		# - PACKAGE: repository name (PACKAGE part of /people/USER/packages/PACKAGE.git);
+		# - REFTYPE: type of updated reference (head, release, remote or tag);
+		# - REFNAME: name of updated reference (basename of refs/*/*).
+		# Each of these 4 fields could be either name itself or * symbol which matches any name.
+		EOF
+	fi
+
+	git add $files  >/dev/null
+	git commit -a -m "Add templates for $files" >/dev/null
+
+	git clone --bare "$workdir" "$d" >/dev/null &&
+		printf %s\\n "$PROG: $d: Creation complete" ||
+		printf %s\\n "$PROG: $d: Creation failed!"
+
+	rm -rf -- .git $files
+done
