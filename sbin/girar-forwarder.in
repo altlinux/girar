@@ -89,6 +89,6 @@ upravdom_num="$(findin_upravdom_queue |tail -1)"
 for name in $(findin "$private_queue"); do
 	rsync -tp "$private_queue/$name" "$upravdom_account:$upravdom_queue/$upravdom_num" ||
 		fatal "unable to forward task '$private_queue/$name' -> '$upravdom_account:$upravdom_queue/$upravdom_num': rc=$?"
-	rm -f -- "$task"
+	rm -f -- "$private_queue/$name"
 	upravdom_num=$(($upravdom_num+1))
 done
