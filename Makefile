@@ -30,7 +30,7 @@ GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
-UPRAVDOM_ACCOUNT = build-factory
+UPRAVDOM_ACCOUNT = factory
 UPRAVDOM_QUEUE = ${spooldir}/build-factory
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
@@ -51,6 +51,7 @@ bin_TARGETS = \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
+	bin/girar-forwarder \
 	bin/girar-init-db \
 	bin/girar-ls \
 	bin/girar-mv-db \
@@ -67,7 +68,6 @@ sbin_TARGETS = \
 	sbin/girar-auth-zero \
 	sbin/girar-disable \
 	sbin/girar-enable \
-	sbin/girar-forwarder \
 	sbin/girar-make-template-repos
 
 TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
