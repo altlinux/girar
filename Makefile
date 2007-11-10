@@ -20,6 +20,7 @@ girar_email_dir = ${girar_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
 GIRAR_ACL = ${girar_confdir}/acl
+GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_HOME = /people
@@ -39,9 +40,10 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
+	-DGIRAR_ARCHIVE=\"${GIRAR_ARCHIVE}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}/\" \
-	-DUSER_PREFIX=\"${USER_PREFIX}\" \
-	-DGIRAR_HOME=\"${GIRAR_HOME}\"
+	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
+	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
 
 bin_TARGETS = \
@@ -128,6 +130,7 @@ bin/girar-sh: bin/girar-sh.c
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
 	    -e 's,@GIRAR_ACL@,${GIRAR_ACL},g' \
+	    -e 's,@GIRAR_ARCHIVE@,${GIRAR_ARCHIVE},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
 	    -e 's,@GIRAR_FAKE_HOME@,${GIRAR_FAKE_HOME},g' \

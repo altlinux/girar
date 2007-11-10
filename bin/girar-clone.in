@@ -19,6 +19,9 @@ usage()
 [ -n "${GIRAR_HOME:-}" ] ||
 	fatal 'GIRAR_HOME undefined'
 
+[ -n "${GIRAR_ARCHIVE:-}" ] ||
+	fatal 'GIRAR_ARCHIVE undefined'
+
 cd "$HOME"
 
 repo0="$1"; shift
@@ -28,7 +31,8 @@ p_repo="$(add_git_suffix "$p_repo")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$GIRAR_HOME")"
-	[ -z "${repo##$people/*}" ] ||
+	archive="$(readlink -ev "$GIRAR_ARCHIVE")"
+	[ -z "${repo##$people/*}" -o -z "${repo##$archive/*}" ] ||
 		fatal "$repo0: invalid local repository"
 fi
 if [ -z "$repo" ]; then
