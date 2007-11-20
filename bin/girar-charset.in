@@ -23,7 +23,11 @@ dir="$(add_git_suffix "$dir")"
 cd "$dir"
 
 if [ "$#" -eq 0 ]; then
-	cat charset
+	if [ -f charset ]; then
+		cat charset
+	else
+		echo utf-8
+	fi
 	exit
 fi
 
