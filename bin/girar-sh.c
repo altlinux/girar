@@ -98,10 +98,10 @@ typedef struct
 
 static cmd_t commands[] = {
 	{"charset", "girar-charset", " <git-repository> [<charset>]"},
-	{"git-clone", "girar-clone", " <git-repository> [<directory>]"},
-	{"git-init-db", "girar-init-db", " <directory>"},
-	{"git-mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
-	{"git-rm-db", "girar-rm-db", " <git-repository>"},
+	{"clone", "girar-clone", " <git-repository> [<directory>]"},
+	{"init-db", "girar-init-db", " <directory>"},
+	{"mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
+	{"rm-db", "girar-rm-db", " <git-repository>"},
 	{"build", "girar-build", " <git-repository> <tag> <binary-package-repository> [<project-name>]"},
 	{"find-package", "girar-find", " <pattern>"},
 	{"ls", "girar-ls", " [<directory>]"},
@@ -120,7 +120,9 @@ shell (char *av[])
 		error(EXIT_FAILURE, EINVAL, "%s", av[1]);
 
 	unsigned i;
-	if (!strcmp("help", av[2]))
+	const char *cmd = av[2];
+
+	if (!strcmp("help", cmd))
 	{
 		printf("Available commands:\n"
 		       "help\n"
@@ -133,23 +135,26 @@ shell (char *av[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!strncmp(git_receive_pack, av[2], sizeof(git_receive_pack) - 1) ||
-	    !strncmp(git_upload_pack, av[2], sizeof(git_upload_pack) - 1))
+	if (!strncmp(git_receive_pack, cmd, sizeof(git_receive_pack) - 1) ||
+	    !strncmp(git_upload_pack, cmd, sizeof(git_upload_pack) - 1))
 	{
 		av[0] = (char *) "git-shell";
 		execv("/usr/bin/git-shell", av);
 		error(EXIT_FAILURE, errno, "execv: %s", av[0]);
 	}
 
+	if (!strncmp(cmd, "git-", 4))
+		cmd += 4;
+
 	for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
 	{
 		size_t len = strlen(commands[i].name);
-		if (!strncmp(commands[i].name, av[2], len) &&
-		    (av[2][len] == '\0' || isblank(av[2][len])))
-			exec_cmd(&commands[i], &av[2][len]);
+		if (!strncmp(commands[i].name, cmd, len) &&
+		    (cmd[len] == '\0' || isblank(cmd[len])))
+			exec_cmd(&commands[i], &cmd[len]);
 	}
 
-	error(EXIT_FAILURE, EINVAL, "%s", av[2]);
+	error(EXIT_FAILURE, EINVAL, "%s", cmd);
 }
 
 static void exec_cmd(cmd_t *cmd, char *str)
