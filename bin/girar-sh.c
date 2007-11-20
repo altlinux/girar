@@ -31,7 +31,112 @@
 #include <pwd.h>
 #include <syslog.h>
 
-static void shell(char *av[]);
+typedef struct
+{
+	const char *name, *exec, *usage;
+} cmd_t;
+
+static cmd_t commands[] = {
+	{"charset", "girar-charset", " <git-repository> [<charset>]"},
+	{"clone", "girar-clone", " <git-repository> [<directory>]"},
+	{"find-package", "girar-find", " <pattern>"},
+	{"init-db", "girar-init-db", " <directory>"},
+	{"ls", "girar-ls", " [<directory>]"},
+	{"mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
+	{"quota", "girar-quota", ""},
+	{"rm-db", "girar-rm-db", " <git-repository>"},
+	{"build", "girar-build", " <git-repository> <tag> <binary-package-repository> [<project-name>]"}
+};
+
+static const char git_receive_pack[] = "git-receive-pack ";
+static const char git_upload_pack[] = "git-upload-pack ";
+
+static void
+__attribute__((noreturn))
+show_help(int rc)
+{
+	FILE *fp = (EXIT_SUCCESS == rc) ? stdout : stderr;
+	fprintf(fp, "Available commands:\n"
+	       "help\n"
+	       "%s<directory>\n"
+	       "%s<directory>\n", git_receive_pack, git_upload_pack);
+	unsigned i;
+	for (i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i)
+		fprintf(fp, "%s%s\n", commands[i].name, commands[i].usage);
+	exit(rc);
+}
+
+static void
+__attribute__((noreturn))
+exec_cmd(cmd_t *cmd, char *str)
+{
+	const char *args[strlen(str) + 2];
+	unsigned i = 0;
+
+	args[i++] = cmd->exec;
+
+	char   *p = str;
+
+	while (*p && isblank(*p))
+		++p;
+	while (*p)
+	{
+		args[i++] = p++;
+		while (*p && !isblank(*p))
+			++p;
+		if (!*p)
+			break;
+		*(p++) = '\0';
+		while (isblank(*p))
+			++p;
+	}
+
+	args[i] = 0;
+
+	char   *path;
+
+	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, cmd->exec) < 0)
+		error(EXIT_FAILURE, errno, "asprintf");
+	execv(path, (char *const *) args);
+	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
+	exit(EXIT_FAILURE);
+}
+
+static void
+__attribute__((noreturn))
+shell (char *av[])
+{
+	if (strcmp("-c", av[1]))
+		error(EXIT_FAILURE, EINVAL, "%s", av[1]);
+
+	char *cmd = av[2];
+
+	if (!strcmp("help", cmd))
+		show_help(EXIT_SUCCESS);
+
+	if (!strncmp(git_receive_pack, cmd, sizeof(git_receive_pack) - 1) ||
+	    !strncmp(git_upload_pack, cmd, sizeof(git_upload_pack) - 1))
+	{
+		av[0] = (char *) "git-shell";
+		execv("/usr/bin/git-shell", av);
+		error(EXIT_FAILURE, errno, "execv: %s", av[0]);
+	}
+
+	if (!strncmp(cmd, "git-", 4))
+		cmd += 4;
+
+	unsigned i;
+	for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
+	{
+		size_t len = strlen(commands[i].name);
+		if (!strncmp(commands[i].name, cmd, len) &&
+		    (cmd[len] == '\0' || isblank(cmd[len])))
+			exec_cmd(&commands[i], &cmd[len]);
+	}
+
+	error(0, EINVAL, "%s", cmd);
+	show_help(EXIT_FAILURE);
+}
 
 int
 main (int ac, char *av[])
@@ -87,105 +192,6 @@ main (int ac, char *av[])
 		shell(av);
 	}
 
-	error(EXIT_FAILURE, 0, "invalid arguments");
-	return EXIT_FAILURE;
-}
-
-typedef struct
-{
-	const char *name, *exec, *usage;
-} cmd_t;
-
-static cmd_t commands[] = {
-	{"charset", "girar-charset", " <git-repository> [<charset>]"},
-	{"clone", "girar-clone", " <git-repository> [<directory>]"},
-	{"init-db", "girar-init-db", " <directory>"},
-	{"mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
-	{"rm-db", "girar-rm-db", " <git-repository>"},
-	{"build", "girar-build", " <git-repository> <tag> <binary-package-repository> [<project-name>]"},
-	{"find-package", "girar-find", " <pattern>"},
-	{"ls", "girar-ls", " [<directory>]"},
-	{"quota", "girar-quota", ""}
-};
-
-static void exec_cmd(cmd_t *cmd, char *str);
-
-static void
-shell (char *av[])
-{
-	const char git_receive_pack[] = "git-receive-pack ";
-	const char git_upload_pack[] = "git-upload-pack ";
-
-	if (strcmp("-c", av[1]))
-		error(EXIT_FAILURE, EINVAL, "%s", av[1]);
-
-	unsigned i;
-	const char *cmd = av[2];
-
-	if (!strcmp("help", cmd))
-	{
-		printf("Available commands:\n"
-		       "help\n"
-		       "%s<directory>\n"
-		       "%s<directory>\n",
-		       git_receive_pack,
-		       git_upload_pack);
-		for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
-			printf("%s%s\n", commands[i].name, commands[i].usage);
-		exit(EXIT_SUCCESS);
-	}
-
-	if (!strncmp(git_receive_pack, cmd, sizeof(git_receive_pack) - 1) ||
-	    !strncmp(git_upload_pack, cmd, sizeof(git_upload_pack) - 1))
-	{
-		av[0] = (char *) "git-shell";
-		execv("/usr/bin/git-shell", av);
-		error(EXIT_FAILURE, errno, "execv: %s", av[0]);
-	}
-
-	if (!strncmp(cmd, "git-", 4))
-		cmd += 4;
-
-	for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
-	{
-		size_t len = strlen(commands[i].name);
-		if (!strncmp(commands[i].name, cmd, len) &&
-		    (cmd[len] == '\0' || isblank(cmd[len])))
-			exec_cmd(&commands[i], &cmd[len]);
-	}
-
-	error(EXIT_FAILURE, EINVAL, "%s", cmd);
-}
-
-static void exec_cmd(cmd_t *cmd, char *str)
-{
-	const char *args[strlen(str) + 2];
-	unsigned i = 0;
-
-	args[i++] = cmd->exec;
-
-	char   *p = str;
-
-	while (*p && isblank(*p))
-		++p;
-	while (*p)
-	{
-		args[i++] = p++;
-		while (*p && !isblank(*p))
-			++p;
-		if (!*p)
-			break;
-		*(p++) = '\0';
-		while (isblank(*p))
-			++p;
-	}
-
-	args[i] = 0;
-
-	char   *path;
-
-	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, cmd->exec) < 0)
-		error(EXIT_FAILURE, errno, "asprintf");
-	execv(path, (char *const *) args);
-	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
+	error(0, 0, "invalid number of arguments");
+	show_help(EXIT_FAILURE);
 }
