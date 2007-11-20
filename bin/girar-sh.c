@@ -97,6 +97,7 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
+	{"charset", "girar-charset", " <git-repository> [<charset>]"},
 	{"git-clone", "girar-clone", " <git-repository> [<directory>]"},
 	{"git-init-db", "girar-init-db", " <directory>"},
 	{"git-mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},

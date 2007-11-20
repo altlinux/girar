@@ -50,6 +50,7 @@ bin_TARGETS = \
 	bin/acl-cronjob \
 	bin/find-subscribers \
 	bin/girar-build \
+	bin/girar-charset \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \

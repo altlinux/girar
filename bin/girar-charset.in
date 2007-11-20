@@ -1,0 +1,38 @@
+#!/bin/sh -efu
+
+. "@CMDDIR@/girar-sh-functions"
+
+PROG=girar-charset
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <directory> [<charset>]" >&2
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 2 ] ||
+	usage 'Too many arguments.'
+
+cd "$HOME"
+
+dir="$(validate_packages_dir "$1")"; shift
+dir="$(add_git_suffix "$dir")"
+cd "$dir"
+
+if [ "$#" -eq 0 ]; then
+	cat charset
+	exit
+fi
+
+charset="$1"; shift
+[ -n "$charset" -a -z "$(printf %s "$charset" |tr -d '[[:alnum:][=-=]_.]')" ] ||
+	fatal "$charset: Invalid charset"
+
+cset="$(printf %s "$charset" |tr '[:upper:]' '[:lower:]')"
+locale -m |tr '[:upper:]' '[:lower:]' |fgrep -qsxe "$cset" ||
+	fatal "$charset: Unrecognized charset"
+
+printf '%s\n' "$cset" >charset
