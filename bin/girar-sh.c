@@ -134,7 +134,7 @@ shell (char *av[])
 			exec_cmd(&commands[i], &cmd[len]);
 	}
 
-	error(0, EINVAL, "%s", cmd);
+	error(0, 0, "%s: Invalid command", cmd);
 	show_help(EXIT_FAILURE);
 }
 
@@ -192,6 +192,6 @@ main (int ac, char *av[])
 		shell(av);
 	}
 
-	error(0, 0, "invalid number of arguments");
+	error(0, 0, "Invalid number of arguments");
 	show_help(EXIT_FAILURE);
 }
