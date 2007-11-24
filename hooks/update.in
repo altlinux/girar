@@ -301,6 +301,11 @@ email_update_ref()
 			since_text="common ancestor \`$prev'"
 		fi
 
+		if [ "$base" = "$3" ]; then
+			echo "Reset to $since_text."
+			return 0
+		fi
+
 		show_changes_statistics "$3" "$base" "$since_text"
 
 		git rev-list --pretty "$3" "^$base" >"$DIFF"
