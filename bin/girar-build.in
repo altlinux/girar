@@ -36,21 +36,23 @@ dir="$(add_git_suffix "$dir")"
 
 cd "$dir"
 
-tag="$1"; shift
-GIT_DIR=. git-rev-parse --symbolic --tags |fgrep -xqse "$tag" ||
-	fatal "$tag: invalid tag name"
-GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git-verify-tag "$tag" ||
-	fatal "$tag: invalid tag"
+tag_name="$1"; shift
+GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
+	fatal "$tag_name: invalid tag name"
+tag_id="$(git rev-parse --verify "$tag_name")"
+GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
+	fatal "$tag_name: invalid tag"
 
 repository="$1"; shift
 [ -n "$repository" ] &&
 printf %s "$repository" |egrep -qs '^[A-Za-z0-9][A-Za-z0-9_-.]+$' ||
 	fatal "$repository: invalid binary package repository name"
 
-project_name="${PWD##*/}"
-project_name="${project_name%.git}"
 if [ $# -gt 0 ]; then
 	project_name="$1"; shift
+else
+	project_name="${PWD##*/}"
+	project_name="${project_name%.git}"
 fi
 [ -n "$project_name" ] &&
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
@@ -59,4 +61,5 @@ printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 "@CMDDIR@/girar-check-perms" "$project_name" "$repository" ||
 	fatal "permission denied"
 
-exec "@CMDDIR@/girar-queue-tag" "$GIRAR_USER" "$project_name" "$PWD" "$tag" "$repository"
+echo "$GIRAR_USER $project_name $PWD $tag_name $tag_id $repository" |
+	"@CMDDIR@/girar-queue-tag"
