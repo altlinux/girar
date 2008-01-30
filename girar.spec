@@ -11,12 +11,13 @@ Source: %name-%version.tar
 
 Requires(pre): shadow-utils
 
+%define girar_group girar
+%define girar_user girar
+
 %description
 This package contains server engine initially developed for git.alt,
 including administration and user utilities, git hooks, email subscription
 support and config files.
-
-%define girar_group girar
 
 %prep
 %setup -q
@@ -29,6 +30,7 @@ support and config files.
 
 %pre
 /usr/sbin/groupadd -r -f %girar_group
+/usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
 
 %files
 %defattr(-,root,%girar_group,755)
@@ -37,8 +39,8 @@ support and config files.
 %_sysconfdir/%name
 %_datadir/%name
 %dir %_spooldir/%name
-%dir %_spooldir/%name/private
-%dir %attr(1775,root,%girar_group) %_spooldir/%name/public
+%dir %attr(755,%girar_user,%girar_group) %_spooldir/%name/private
+%dir %attr(1775,%girar_user,%girar_group) %_spooldir/%name/public
 %_localstatedir/%name
 
 %changelog
