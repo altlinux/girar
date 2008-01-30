@@ -6,8 +6,8 @@ PROG=girar-clone
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <repository> [<directory>]" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <path to git repository> [<path to directory>]"
 	exit 1
 }
 
@@ -33,7 +33,7 @@ if [ -e "$p_repo" ]; then
 	people="$(readlink -ev "$GIRAR_HOME")"
 	archive="$(readlink -ev "$GIRAR_ARCHIVE")"
 	[ -z "${repo##$people/*}" -o -z "${repo##$archive/*}" ] ||
-		fatal "$repo0: invalid local repository"
+		fatal "$repo0: directory does not belong to allowed directory tree"
 fi
 if [ -z "$repo" ]; then
 	case "$repo0" in

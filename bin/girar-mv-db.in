@@ -6,8 +6,8 @@ PROG=girar-mv-db
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <source-directory> <dest-directory>" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <source-directory> <dest-directory>"
 	exit 1
 }
 

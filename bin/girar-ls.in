@@ -6,8 +6,8 @@ PROG=girar-ls
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG [<directory>]" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG [<path to directory>]"
 	exit 1
 }
 
@@ -22,7 +22,7 @@ cd
 if [ "$#" -ge 1 ]; then
 	dir="$1"; shift
 	printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
-		fatal "$dir: invalid directory name"
+		fatal "$dir: directory name contains unacceptable symbols"
 else
 	dir=.
 fi
@@ -32,12 +32,12 @@ fi
 
 [ -z "${dir%%*/}" ] || dir="$dir/"
 [ -n "${dir##/*}" -o -z "${dir##$GIRAR_HOME/*}" ] ||
-	fatal "$dir: invalid directory name"
+	fatal "$dir: directory does not belong to allowed directory tree"
 d="$(readlink -e "$dir")/" ||
 	fatal "$dir: directory not available"
 p="$(readlink -e "$GIRAR_HOME")" ||
 	fatal "$dir: directory not available"
 [ -z "${d##$p/*}" ] ||
-	fatal "$dir: invalid directory name"
+	fatal "$dir: directory does not belong to allowed directory tree"
 
 exec ls -log -- "$dir"

@@ -6,8 +6,8 @@ PROG=girar-charset
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <directory> [<charset>]" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <path to git repository> [<charset>]"
 	exit 1
 }
 

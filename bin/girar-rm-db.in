@@ -6,8 +6,8 @@ PROG=girar-rm-db
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <directory>" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <directory>"
 	exit 1
 }
 

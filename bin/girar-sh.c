@@ -37,15 +37,15 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"charset", "girar-charset", " <git-repository> [<charset>]"},
-	{"clone", "girar-clone", " <git-repository> [<directory>]"},
+	{"charset", "girar-charset", " <path to git repository> [<charset>]"},
+	{"clone", "girar-clone", " <path to git repository> [<path to directory>]"},
 	{"find-package", "girar-find", " <pattern>"},
-	{"init-db", "girar-init-db", " <directory>"},
-	{"ls", "girar-ls", " [<directory>]"},
-	{"mv-db", "girar-mv-db", " <source-directory> <dest-directory>"},
+	{"init-db", "girar-init-db", " <path to directory>"},
+	{"ls", "girar-ls", " [<path to directory>]"},
+	{"mv-db", "girar-mv-db", " <path to source directory> <path to destination directory>"},
 	{"quota", "girar-quota", ""},
-	{"rm-db", "girar-rm-db", " <git-repository>"},
-	{"build", "girar-build", " <git-repository> <tag> <binary-package-repository> [<project-name>]"}
+	{"rm-db", "girar-rm-db", " <path to git repository>"},
+	{"build", "girar-build", " <path to git repository> <tag name> <binary package repository name> [<project name>]"}
 };
 
 static const char git_receive_pack[] = "git-receive-pack ";

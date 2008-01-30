@@ -8,8 +8,8 @@ acl_dir="@GIRAR_ACL@"
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <project name> <binary package repository>" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <project name> <binary package repository name>"
 	exit 1
 }
 

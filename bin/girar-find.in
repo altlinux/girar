@@ -6,8 +6,8 @@ PROG=girar-find-package
 
 usage()
 {
-	echo "$PROG: $*" >&2
-	echo "usage: $PROG <pattern>" >&2
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <pattern>"
 	exit 1
 }
 
