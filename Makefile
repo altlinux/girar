@@ -82,7 +82,7 @@ all: ${TARGETS}
 clean:
 	${RM} ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 
-install: install-bin install-conf install-data install-sbin install-var install-perms
+install: install-bin install-conf install-data install-sbin install-var
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${girar_bindir}
@@ -118,7 +118,7 @@ install-var:
 		${DESTDIR}${GIRAR_PRIVATE_QUEUE}
 
 install-perms:
-	-chgrp girar \
+	chgrp girar \
 		${DESTDIR}${girar_bindir} \
 		${DESTDIR}${girar_confdir} \
 		${DESTDIR}${girar_datadir} \
