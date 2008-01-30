@@ -7,7 +7,7 @@ girar-find
 girar-init-db
 girar-ls
 girar-mv-db
-girar-queue-tag
+girar-queue-task
 girar-quota
 girar-rm-db
 girar-sh

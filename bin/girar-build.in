@@ -62,4 +62,4 @@ printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "permission denied"
 
 echo "$GIRAR_USER $project_name $PWD $tag_name $tag_id $repository" |
-	"@CMDDIR@/girar-queue-tag"
+	"@CMDDIR@/girar-queue-task"

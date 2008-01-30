@@ -58,7 +58,7 @@ bin_TARGETS = \
 	bin/girar-init-db \
 	bin/girar-ls \
 	bin/girar-mv-db \
-	bin/girar-queue-tag \
+	bin/girar-queue-task \
 	bin/girar-quota \
 	bin/girar-rm-db \
 	bin/girar-sh \
