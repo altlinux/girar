@@ -1,14 +1,8 @@
 acl-cronjob
 find-subscribers
-girar-build
 girar-check-perms
 girar-clone
-girar-find
 girar-init-db
-girar-ls
-girar-mv-db
 girar-queue-task
-girar-quota
-girar-rm-db
 girar-sh
 girar-sh-functions
