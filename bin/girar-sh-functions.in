@@ -1,5 +1,6 @@
 #!/bin/sh
 
+PATH="@CMDDIR@:$PATH"
 PROG="${PROG:-${0##*/}}"
 project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
 
