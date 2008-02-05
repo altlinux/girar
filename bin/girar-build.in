@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/girar-sh-functions"
+. girar-sh-functions
 
 PROG=girar-build
 
@@ -58,8 +58,8 @@ fi
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid project name"
 
-"@CMDDIR@/girar-check-perms" "$project_name" "$repository" ||
+girar-check-perms "$project_name" "$repository" ||
 	fatal "permission denied"
 
 echo "$GIRAR_USER $project_name $PWD $tag_name $tag_id $repository" |
-	"@CMDDIR@/girar-queue-task"
+	girar-queue-task

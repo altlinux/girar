@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/girar-sh-functions"
+. girar-sh-functions
 
 PROG=girar-init-db
 

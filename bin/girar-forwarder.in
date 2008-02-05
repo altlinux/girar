@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. "@CMDDIR@/girar-sh-functions"
+. girar-sh-functions
 
 girar_queue="@GIRAR_PUBLIC_QUEUE@"
 private_queue="@GIRAR_PRIVATE_QUEUE@"
