@@ -24,6 +24,7 @@ GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_HOME = /people
+GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
 GIRAR_PRIVATE_QUEUE = ${girar_spooldir}/private
 GIRAR_PUBLIC_QUEUE = ${girar_spooldir}/public
 GIRAR_REPOSITORIES = ${girar_confdir}/repositories
@@ -114,6 +115,7 @@ install-var:
 		${DESTDIR}${girar_email_dir}/packages \
 		${DESTDIR}${girar_email_dir}/private \
 		${DESTDIR}${girar_spooldir} \
+		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
 		${DESTDIR}${GIRAR_PUBLIC_QUEUE} \
 		${DESTDIR}${GIRAR_PRIVATE_QUEUE}
 
@@ -139,6 +141,7 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_HOOKS_DIR@,${girar_hooks_dir},g' \
 	    -e 's,@GIRAR_PACKAGES_DIR@,${girar_confdir}/packages.git,g' \
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
+	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_PRIVATE_QUEUE@,${GIRAR_PRIVATE_QUEUE},g' \
 	    -e 's,@GIRAR_PUBLIC_QUEUE@,${GIRAR_PUBLIC_QUEUE},g' \
 	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
