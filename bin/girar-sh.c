@@ -176,7 +176,7 @@ main (int ac, char *av[])
 	if ((setenv("USER", pw->pw_name, 1) < 0) ||
 	    (setenv("LOGNAME", pw->pw_name, 1) < 0) ||
 	    (setenv("HOME", home, 1) < 0) ||
-	    (setenv("PATH", "/bin:/usr/bin", 1) < 0) ||
+	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1) < 0) ||
 	    (setenv("GIRAR_ARCHIVE", GIRAR_ARCHIVE, 1) < 0) ||
 	    (setenv("GIRAR_HOME", GIRAR_HOME, 1) < 0) ||
 	    (setenv("GIRAR_USER", girar_user, 1) < 0) ||
