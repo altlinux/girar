@@ -39,6 +39,7 @@ support and config files.
 %_sysconfdir/%name
 %_datadir/%name
 %dir %_spooldir/%name
+%dir %_spooldir/%name/people
 %dir %attr(755,%girar_user,%girar_group) %_spooldir/%name/private
 %dir %attr(1775,%girar_user,%girar_group) %_spooldir/%name/public
 %_localstatedir/%name
