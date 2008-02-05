@@ -119,3 +119,6 @@ for n in packages private; do
 	install -d -o "$IT_NAME" -g girar -m755 "$EMAIL_DIR/$NAME" ||
 		fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
 done
+
+install -d -o "$IT_NAME" -g girar -m755 "@GIRAR_PEOPLE_QUEUE@/$NAME" ||
+	fatal "$IT_NAME: failed to create @GIRAR_PEOPLE_QUEUE@/$NAME"
