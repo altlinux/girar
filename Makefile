@@ -41,7 +41,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGIRAR_ARCHIVE=\"${GIRAR_ARCHIVE}\" \
-	-DGIRAR_BINDIR=\"${girar_bindir}/\" \
+	-DGIRAR_BINDIR=\"${girar_bindir}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
