@@ -3,23 +3,9 @@
 [ "$#" -eq 0 ] || exit 1
 
 girar_queue="@GIRAR_PUBLIC_QUEUE@"
-girarlock="$girar_queue/.lock"
 
-exit_handler()
-{
-	local rc=$?
-	trap - EXIT
-	# unlock public queue if and only if we own it
-	[ ! -d "$girarlock" -o ! -O "$girarlock" ] || rmdir -- "$girarlock"
-	exit $rc
-}
-
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
-
-# lock public queue
-while ! mkdir -- "$girarlock" >/dev/null 2>&1; do
-	sleep 0.1
-done
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$girar_queue"
 
 num="$(find "$girar_queue" -mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n' |
        sort -n |tail -1)"

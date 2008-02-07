@@ -7,8 +7,6 @@ private_queue="@GIRAR_PRIVATE_QUEUE@"
 upravdom_queue="@UPRAVDOM_QUEUE@"
 upravdom_account="@UPRAVDOM_ACCOUNT@"
 
-selflock="$private_queue/.lock"
-girarlock="$girar_queue/.lock"
 upravdomlock="$upravdom_queue/.lock"
 
 find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
@@ -30,30 +28,22 @@ exit_handler()
 	local rc=$?
 	trap - EXIT
 
-	# unlock public queue if and only if we own it
-	[ ! -d "$girarlock" -o ! -O "$girarlock" ] || rmdir -- "$girarlock"
-
 	# unlock upravdom queue if and only if we own it
 	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
 		msg_info "$upravdom_account: $upravdomlock: unable to remove lockdir"
 
-	[ ! -d "$selflock" ] || rmdir -- "$selflock"
-
 	exit $rc
 }
-mkdir -- "$selflock" >/dev/null 2>&1 || exit 0
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$private_queue"
+builtin lockf -v "$girar_queue"
 
 private_num="$(findin "$private_queue" |tail -1)"
 
 [ -n "$private_num" ] &&
 	private_num=$(($private_num+1)) ||
 	private_num=0
-
-# lock public queue
-while ! mkdir -- "$girarlock" >/dev/null 2>&1; do
-	sleep 1
-done
 
 # move tasks from public queue to private queue
 for name in $(findin "$girar_queue"); do
@@ -72,8 +62,7 @@ for name in $(findin "$girar_queue"); do
 	private_num=$(($private_num+1))
 done
 
-# unlock public queue
-rmdir -- "$girarlock"
+trap exit_handler HUP PIPE INT QUIT TERM EXIT
 
 # lock upravdom queue
 ssh -n "$upravdom_account" "while ! mkdir -- '$upravdomlock'>/dev/null 2>&1; do sleep 1; done" ||

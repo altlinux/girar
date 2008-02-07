@@ -10,6 +10,8 @@ Packager: Dmitry V. Levin <ldv@altlinux.org>
 Source: %name-%version.tar
 
 Requires(pre): shadow-utils
+# due to "enable -f /usr/lib/bash/lockf lockf"
+Requires: bash-builtin-lockf >= 0:0.2
 
 %define girar_group girar
 %define girar_user girar
