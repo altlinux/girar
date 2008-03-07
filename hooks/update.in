@@ -98,6 +98,7 @@ validate_distribution_subscription()
 
 	[ "$p" = '*' ] ||
 	printf %s "$p" |egrep -qs "$project_name_regexp" ||
+	printf %s "${p%\*}" |egrep -qs "$project_name_regexp" ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
 		\*|head|tag|remote) ;;
