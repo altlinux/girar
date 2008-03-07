@@ -14,9 +14,9 @@ maildir="@GIRAR_EMAIL_DIR@"
 [ "$#" -ge 3 ] ||
 	fatal "Wrong number of arguments: $#"
 
-project_name="$(quote_sed_regexp "$1")"; shift
-ref_style="$(quote_sed_regexp "$1")"; shift
-ref_name="$(quote_sed_regexp "$1")"; shift
+project_name="$1"; shift
+ref_style="$1"; shift
+ref_name="$1"; shift
 
 git_dir="$(readlink -ev "$GIT_DIR")"
 project_type="${git_dir%/*}"
@@ -32,18 +32,40 @@ translate_email()
 	done
 }
 
+expand_match()
+{
+	local mask= name sym
+	local match="\\(\\*" prefix=
+
+	# create a "???" mask
+	name="$1"
+	while [ -n "$name" ]; do
+		mask="${mask}?"
+		name="${name#?}"
+	done
+
+	name="$1"
+	while [ -n "$name" ]; do
+		mask="${mask#?}"
+		sym="${name%$mask}"
+		sym="$(quote_sed_regexp "$sym")"
+		name="${name#?}"
+		prefix="${prefix}${sym}"
+		match="$match\\|$prefix\\*"
+	done
+
+	match="$match\\|$prefix\\)"
+	printf %s "$match"
+}
 
 find_subscribers()
 {
-	local u="$(quote_sed_regexp "$GIRAR_USER")"
-	local p="$project_name"
-	local t="$ref_style"
-	local n="$ref_name"
+	local u p t n
 
-	u="\\(\\*\\|$u\\)"
-	p="\\(\\*\\|$p\\)"
-	t="\\(\\*\\|$t\\)"
-	n="\\(\\*\\|$n\\)"
+	u="$(expand_match "$GIRAR_USER")"
+	p="$(expand_match "$project_name")"
+	t="$(expand_match "$ref_style")"
+	n="$(expand_match "$ref_name")"
 
 	grep -ls "^$u[[:space:]]\\+$p[[:space:]]\\+$t[[:space:]]\\+$n[[:space:]]*\$" "$maildir/$project_type"/*/subscription |
 		sed -ne "s|^$maildir/$project_type_quoted/\\([^/]\\+\\)/subscription\$|\\1|p"
