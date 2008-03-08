@@ -34,8 +34,7 @@ translate_email()
 
 expand_match()
 {
-	local mask= name sym
-	local match="\\(\\*" prefix=
+	local mask= match= name sym prefix=
 
 	# create a "???" mask
 	name="$1"
@@ -51,10 +50,10 @@ expand_match()
 		sym="$(quote_sed_regexp "$sym")"
 		name="${name#?}"
 		prefix="${prefix}${sym}"
-		match="$match\\|$prefix\\*"
+		match="${match}${sym}\?"
 	done
 
-	match="$match\\|$prefix\\)"
+	match="\\($match\\*\\|$prefix\\)"
 	printf %s "$match"
 }
 
