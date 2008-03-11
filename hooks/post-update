@@ -3,7 +3,6 @@
 [ -n "$*" ] || exit 0
 git prune
 git repack -a -d
-git update-server-info
 if [ -d "$GIT_DIR/refs/heads" ]; then
 	git for-each-ref "--format=%(committer)" --sort=-committerdate --count=1 refs/heads \
 		>"$GIT_DIR/recent_committer"
