@@ -1,6 +1,10 @@
-#!/bin/sh -e
+#!/bin/sh -efu
 
 [ -n "$*" ] || exit 0
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GIT_DIR"
+
 git prune
 git repack -a -d
 if [ -d "$GIT_DIR/refs/heads" ]; then
