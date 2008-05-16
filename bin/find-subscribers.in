@@ -77,7 +77,7 @@ find_subscribers()
 		cat "$GIT_DIR/mailto"
 }
 
-find_subscribers "$@" |
+find_subscribers |
 	translate_email |
 	sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' |
 	sort -u
