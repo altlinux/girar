@@ -26,7 +26,11 @@ project_type_quoted="$(quote_sed_regexp "$project_type")"
 translate_email()
 {
 	local a
-	while read a; do 
+	while read a; do
+		if [ -z "${a##*@*}" ]; then
+			printf '%s\n' "$a"
+			continue
+		fi
 		a="$(quote_sed_regexp "$a")"
 		sed -ne "s/^${GIRAR_USER_PREFIX}$a:[[:space:]]\\+\\([^[:space:]]\\+\\).*/\\1/p" "$git_aliases"
 	done
