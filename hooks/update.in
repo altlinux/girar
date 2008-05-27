@@ -1,6 +1,7 @@
 #!/bin/sh
 
 . girar-sh-functions
+. shell-mail-address
 
 PROG=girar-update
 
@@ -113,7 +114,11 @@ validate_email_list()
 	local a="$(printf %s "$addr" |tr , ' ')"
 	set -- ${a}
 	for a; do
-		[ -n "${a##*@*}" ] || continue
+		if [ -z "${a##*@*}" ]; then
+			valid_email "$a" ||
+				fatal "$where: invalid email adress: $a"
+			continue
+		fi
 		cut -f1 -- "@GIRAR_EMAIL_ALIASES@" |
 			fgrep -xqs "${GIRAR_USER_PREFIX}$a:" ||
 			fatal "$where: invalid email list: user $a not found."

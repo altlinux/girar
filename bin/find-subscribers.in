@@ -2,6 +2,7 @@
 
 . girar-sh-functions
 . shell-quote
+. shell-mail-address
 
 # env: GIRAR_USER_PREFIX GIRAR_USER GIT_DIR
 GIRAR_USER_PREFIX=${GIRAR_USER_PREFIX:?}
@@ -29,6 +30,8 @@ translate_email()
 	local a
 	while read a; do
 		if [ -z "${a##*@*}" ]; then
+			valid_email "$a" ||
+				fatal "invalid email adress: $a"
 			printf '%s\n' "$a"
 			continue
 		fi
