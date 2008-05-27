@@ -15,13 +15,13 @@ usage()
 
 allow()
 {
-	msg_info "allowed: $*"
+	message "allowed: $*"
 	exit 0
 }
 
 deny()
 {
-	msg_info "denied: $*"
+	message "denied: $*"
 	exit 1
 }
 

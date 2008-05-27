@@ -1,6 +1,7 @@
 #!/bin/sh -eu
 
 . girar-sh-functions
+. shell-quote
 
 # env: GIRAR_USER_PREFIX GIRAR_USER GIT_DIR
 GIRAR_USER_PREFIX=${GIRAR_USER_PREFIX:?}

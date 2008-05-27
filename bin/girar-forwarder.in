@@ -30,7 +30,7 @@ exit_handler()
 
 	# unlock upravdom queue if and only if we own it
 	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
-		msg_info "$upravdom_account: $upravdomlock: unable to remove lockdir"
+		message "$upravdom_account: $upravdomlock: unable to remove lockdir"
 
 	exit $rc
 }
@@ -55,7 +55,7 @@ for name in $(findin "$girar_queue"); do
 	fi
 
 	if ! mv -- "$task" "$private_queue/$private_num"; then
-		msg_info "unable to move '$task' -> '$private_queue/$private_num'"
+		message "unable to move '$task' -> '$private_queue/$private_num'"
 		continue
 	fi
 
