@@ -100,6 +100,9 @@ install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME/packages" ||
 install -d -o "$IT_NAME" -g girar -m751 "$REAL_HOME/private" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/private"
 
+install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME/public" ||
+	fatal "$IT_NAME: failed to create $REAL_HOME/public"
+
 install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
 
@@ -113,7 +116,12 @@ git clone --bare --template=@GIRAR_TEMPLATES_DIR@ \
 	chown -hR "$IT_NAME:girar" "$REAL_HOME/etc/private.git" ||
 	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/private.git"
 
-for n in packages private; do
+git clone --bare --template=@GIRAR_TEMPLATES_DIR@ \
+	"@GIRAR_PUBLIC_DIR@" "$REAL_HOME/etc/public.git" &&
+	chown -hR "$IT_NAME:girar" "$REAL_HOME/etc/public.git" ||
+	fatal "$IT_NAME: failed to setup $REAL_HOME/etc/public.git"
+
+for n in packages private public; do
 	EMAIL_DIR="@GIRAR_EMAIL_DIR@/$n"
 	mkdir -p "$EMAIL_DIR"
 	install -d -o "$IT_NAME" -g girar -m755 "$EMAIL_DIR/$NAME" ||

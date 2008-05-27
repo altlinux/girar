@@ -16,6 +16,7 @@ girar_hooks_dir = ${girar_datadir}/hooks
 girar_templates_dir = ${girar_datadir}/templates
 girar_packages_dir = ${girar_datadir}/packages.git
 girar_private_dir = ${girar_datadir}/private.git
+girar_public_dir = ${girar_datadir}/public.git
 girar_email_dir = ${girar_statedir}/email
 
 EMAIL_DOMAIN = altlinux.org
@@ -114,6 +115,7 @@ install-var:
 		${DESTDIR}${girar_email_dir} \
 		${DESTDIR}${girar_email_dir}/packages \
 		${DESTDIR}${girar_email_dir}/private \
+		${DESTDIR}${girar_email_dir}/public \
 		${DESTDIR}${girar_spooldir} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
 		${DESTDIR}${GIRAR_PUBLIC_QUEUE} \
@@ -141,6 +143,7 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_HOOKS_DIR@,${girar_hooks_dir},g' \
 	    -e 's,@GIRAR_PACKAGES_DIR@,${girar_confdir}/packages.git,g' \
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
+	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
 	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_PRIVATE_QUEUE@,${GIRAR_PRIVATE_QUEUE},g' \
 	    -e 's,@GIRAR_PUBLIC_QUEUE@,${GIRAR_PUBLIC_QUEUE},g' \

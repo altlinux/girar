@@ -88,6 +88,12 @@ check_etc_private()
 		return
 }
 
+check_etc_public()
+{
+	[ "$project" = "etc/public" -a "$1" = "refs/heads/master" ] ||
+		return
+}
+
 validate_distribution_subscription()
 {
 	local where="$1"; shift
@@ -199,6 +205,24 @@ handle_etc_private()
 
 	[ ! -s "$workdir/distribution" ] ||
 		cp "$workdir/distribution" "@GIRAR_EMAIL_DIR@/private/$GIRAR_USER/"
+}
+
+handle_etc_public()
+{
+	check_etc_public "$@" || return 0
+
+	check_email_update distribution "$@"
+	validate_distribution
+
+	check_email_update subscription "$@"
+	validate_subscription
+
+	for n in distribution subscription; do
+		if [ -r "$workdir/$n" ]; then
+			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/public/$GIRAR_USER/" &&
+				msg_info "email $n configuration updated."
+		fi
+	done
 }
 
 size_of_file()
@@ -328,6 +352,7 @@ mailto="$(
 [ -n "$mailto" ] ||
 	check_etc_packages "$@" ||
 	check_etc_private "$@" ||
+	check_etc_public "$@" ||
 	exit 0
 
 exit_handler()
@@ -397,6 +422,7 @@ else
 	# update ref
 	handle_etc_packages "$@"
 	handle_etc_private "$@"
+	handle_etc_public "$@"
 	[ -z "$mailto" ] ||
 		email_update_ref "$@" >>"$MSG"
 fi

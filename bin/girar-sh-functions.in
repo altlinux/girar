@@ -46,7 +46,7 @@ validate_packages_dir()
 	local dir0 dirname dir
 	dir0="$(prefix_packages "$1")"; shift
 	dirname="${dir0%/*}"
-	[ "$dirname" = 'packages' -o "$dirname" = 'private' ] ||
+	[ "$dirname" = 'packages' -o "$dirname" = 'private' -o "$dirname" = 'public' ] ||
 		fatal "$dir0: invalid directory name"
 	dir="$(printf %s "${dir0##*/}" |sed -e 's,/\+$,,' -e 's,\.git$,,')"
 	printf %s "$dir" |egrep -qs "$project_name_regexp" ||

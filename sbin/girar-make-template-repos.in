@@ -14,7 +14,7 @@ trap exit_handler HUP PIPE INT QUIT TERM EXIT
 workdir="$(mktemp -dt "$PROG.XXXXXXXXX")"
 cd "$workdir"
 
-for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@; do
+for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 
 	[ ! -d "$d" ] ||
 		continue
