@@ -76,21 +76,9 @@ charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
 [ -n "$charset" ] ||
 	charset='utf-8'
 
-check_etc_packages()
+check_etc_directory()
 {
-	[ "$project" = "etc/packages" -a "$1" = "refs/heads/master" ] ||
-		return
-}
-
-check_etc_private()
-{
-	[ "$project" = "etc/private" -a "$1" = "refs/heads/master" ] ||
-		return
-}
-
-check_etc_public()
-{
-	[ "$project" = "etc/public" -a "$1" = "refs/heads/master" ] ||
+	[ "$project" = "etc/$1" -a "$2" = "refs/heads/master" ] ||
 		return
 }
 
@@ -180,7 +168,7 @@ check_email_update()
 
 handle_etc_packages()
 {
-	check_etc_packages "$@" || return 0
+	check_etc_directory packages "$@" || return 0
 
 	check_email_update distribution "$@"
 	validate_distribution
@@ -198,7 +186,7 @@ handle_etc_packages()
 
 handle_etc_private()
 {
-	check_etc_private "$@" || return 0
+	check_etc_directory private "$@" || return 0
 
 	check_email_update distribution "$@"
 	validate_distribution
@@ -209,7 +197,7 @@ handle_etc_private()
 
 handle_etc_public()
 {
-	check_etc_public "$@" || return 0
+	check_etc_directory public "$@" || return 0
 
 	check_email_update distribution "$@"
 	validate_distribution
@@ -350,9 +338,9 @@ mailto="$(
 	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
 )"
 [ -n "$mailto" ] ||
-	check_etc_packages "$@" ||
-	check_etc_private "$@" ||
-	check_etc_public "$@" ||
+	check_etc_directory packages "$@" ||
+	check_etc_directory private "$@" ||
+	check_etc_directory public "$@" ||
 	exit 0
 
 exit_handler()
