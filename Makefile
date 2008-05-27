@@ -23,6 +23,7 @@ EMAIL_DOMAIN = altlinux.org
 GIRAR_ACL = ${girar_confdir}/acl
 GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
+GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_HOME = /people
 GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
@@ -149,6 +150,7 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_PUBLIC_QUEUE@,${GIRAR_PUBLIC_QUEUE},g' \
 	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
+	    -e 's,@GIRAR_PACKAGES_LIST@,${GIRAR_PACKAGES_LIST},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \

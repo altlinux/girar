@@ -1,8 +1,10 @@
 #!/bin/sh -eu
 
 . girar-sh-functions
+. shell-quote
 
 PROG=girar-find-package
+packages_list='@GIRAR_PACKAGES_LIST@'
 
 usage()
 {
@@ -16,15 +18,9 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-[ -n "$1" -a -n "${1##*/*}" ] || 
+[ -n "$1" -a -n "${1##*/*}" ] &&
+	repo_name="$(quote_sed_regexp "$1")" ||
         fatal 'invalid pattern'
 
-[ -n "${GIRAR_HOME:-}" ] ||
-	fatal 'GIRAR_HOME undefined'
-
-cd "$GIRAR_HOME"
-for d in [a-z]*; do
-	[ -d "$d" ] || continue
-	find "$GIRAR_HOME/$d/packages/" -mindepth 1 -maxdepth 1 -type d \
-		\( -name "$1" -or -name "$1.git" \) -print ||:
-done
+grep "/packages/$repo_name\(\.git\)\?\$" "$packages_list" |
+	sort -rn -k2,2
