@@ -31,7 +31,7 @@ translate_email()
 	while read a; do
 		if [ -z "${a##*@*}" ]; then
 			valid_email "$a" ||
-				fatal "invalid email adress: $a"
+				fatal "invalid email address: $a"
 			printf '%s\n' "$a"
 			continue
 		fi

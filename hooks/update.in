@@ -116,7 +116,7 @@ validate_email_list()
 	for a; do
 		if [ -z "${a##*@*}" ]; then
 			valid_email "$a" ||
-				fatal "$where: invalid email adress: $a"
+				fatal "$where: invalid email address: $a"
 			continue
 		fi
 		cut -f1 -- "@GIRAR_EMAIL_ALIASES@" |
