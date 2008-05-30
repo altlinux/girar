@@ -20,7 +20,7 @@ usage()
 
 [ -n "$1" -a -n "${1##*/*}" ] &&
 	repo_name="$(quote_sed_regexp "$1")" ||
-        fatal 'invalid pattern'
+	fatal 'invalid pattern'
 
-grep "/packages/$repo_name\(\.git\)\?\$" "$packages_list" |
+grep "/packages/$repo_name\(\.git\)\?[[:space:]]" "$packages_list" |
 	sort -rn -k2,2

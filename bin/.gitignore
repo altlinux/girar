@@ -2,6 +2,7 @@ acl-cronjob
 find-subscribers
 girar-check-perms
 girar-clone
+girar-find
 girar-init-db
 girar-queue-task
 girar-sh
