@@ -89,7 +89,7 @@ echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUT
 
 GIRAR_HOME_MOUNT="$(df -P "$GIRAR_HOME" |awk '{dir=$6} END{print dir}')"
 setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GIRAR_HOME_MOUNT" ||
-	msg_info "$IT_NAME: failed to set disk quota on $GIRAR_HOME_MOUNT"
+	message "$IT_NAME: failed to set disk quota on $GIRAR_HOME_MOUNT"
 
 install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME" ||
 	fatal "$IT_NAME: failed to create $REAL_HOME"

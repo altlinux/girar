@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 . "@CMDDIR@/girar-sh-functions"
+. shell-quote
 
 export IFS=' 	
 '
@@ -29,17 +30,17 @@ userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
 
 rm -rf -- "$REAL_HOME" ||
-	msg_info "$IT_NAME: failed to remove $REAL_HOME"
+	message "$IT_NAME: failed to remove $REAL_HOME"
 
 rm -f -- "$AUTH" ||
-	msg_info "$IT_NAME: failed to remove authorized keys file '$AUTH'"
+	message "$IT_NAME: failed to remove authorized keys file '$AUTH'"
 
 rm -rf -- "$EMAIL_DIR" ||
-	msg_info "$IT_NAME: failed to remove $EMAIL_DIR"
+	message "$IT_NAME: failed to remove $EMAIL_DIR"
 
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"
 
 subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GIRAR_EMAIL_ALIASES@" &&
 	newaliases ||
-	msg_info "$IT_NAME: failed to remove email alias"
+	message "$IT_NAME: failed to remove email alias"

@@ -184,7 +184,7 @@ handle_etc_packages()
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
 			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/packages/$GIRAR_USER/" &&
-				msg_info "email $n configuration updated."
+				message "email $n configuration updated."
 		fi
 	done
 }
@@ -213,7 +213,7 @@ handle_etc_public()
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
 			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/public/$GIRAR_USER/" &&
-				msg_info "email $n configuration updated."
+				message "email $n configuration updated."
 		fi
 	done
 }
@@ -422,6 +422,6 @@ fi
 
 if [ -n "$mailto" ]; then
 	/usr/sbin/sendmail -i -t <"$MSG" &&
-		msg_info "email notification about \`$arg_refname' update sent."
+		message "email notification about \`$arg_refname' update sent."
 fi
 exit 0
