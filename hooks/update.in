@@ -241,12 +241,18 @@ show_large_info()
 	fi
 }
 
+git_diff()
+{
+	(ulimit -t 60 && ulimit -St 30 && git diff -M "$@") &
+	wait
+}
+
 show_changes_statistics()
 {
 	local next="$1"; shift
 	local prev="$1"; shift
 
-	git diff -M --stat "$next" "^$prev" >"$DIFF"
+	git_diff --stat "$next" "^$prev" >"$DIFF"
 	show_large_info "Changes statistics since $1"
 	echo
 }
@@ -301,7 +307,7 @@ email_new_tag()
 		git rev-list --pretty "$3" "^$prev" >"$DIFF"
 		show_large_info "Changelog since \`$prev'"
 
-		git diff -M "$3" "^$prev" >"$DIFF"
+		git_diff "$3" "^$prev" >"$DIFF"
 		show_large_info "Full diff since \`$prev'"
 	fi
 }
@@ -332,7 +338,7 @@ email_update_ref()
 		git rev-list --pretty "$3" "^$base" >"$DIFF"
 		show_large_info "Changelog since $since_text"
 
-		git diff -M "$3" "^$base" >"$DIFF"
+		git_diff "$3" "^$base" >"$DIFF"
 		show_large_info "Full diff since $since_text"
 	fi
 }
