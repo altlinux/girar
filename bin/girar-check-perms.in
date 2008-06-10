@@ -68,7 +68,7 @@ set -- ${acl_line}
 leader="$2"; shift 2
 builders="$*"
 
-# Allowed iff $GIRAR_USER is leader.
+# Allowed if $GIRAR_USER is leader.
 [ "$GIRAR_USER" != "$leader" ] ||
 	allow "project leader"
 
@@ -87,16 +87,17 @@ done
 groups="${groups#|}"
 
 # Allowed if $GIRAR_USER is listed in $people.
-if printf %s "$people" |grep -qs "\<$GIRAR_USER\>"; then
+if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
 	allow "approved builder"
 fi
 
 # Expand groups if any.
 if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
-	gpeople="$(sed -r -ne "s/^($groups) +//p" "$acl_dir/list.groups.$repository")"
+	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$acl_dir/list.groups.$repository")"
+	gpeople="$(printf %s "$gpeople" |tr -s '[:space:]' ' ')"
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.
-	if printf %s "$gpeople" |grep -qs "\<$GIRAR_USER\>"; then
+	if printf %s " $gpeople " |fgrep -qs " $GIRAR_USER "; then
 		allow "member of approved group"
 	fi
 fi
