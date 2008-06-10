@@ -160,26 +160,33 @@ validate_subscription()
 	done <"$workdir/subscription"
 }
 
+check_unsupported_update()
+{
+	local re="^($1)\$"; shift
+	local out
+	out="$(git diff-tree --name-only "$2" "$3" -- |egrep -v "$re")" ||
+		return 0
+	fatal "unsupported files: $(printf %s "$out" |tr -s '[:space:]' ' ')"
+}
+
 check_email_update()
 {
 	local n="$1"; shift
 	rm -f -- "$workdir/$n"
-	if git diff-tree --name-only "$2" "$3" -- email-"$n" |
-	   fgrep -qs email-"$n"; then
-		git cat-file blob "$3:email-$n" 2>/dev/null |
-			egrep '^[[:space:]]*[^#]' >"$workdir/$n"
-	fi
+	git diff-tree --name-only "$2" "$3" -- email-"$n" |
+		fgrep -qs email-"$n" ||
+			return 0
+	git cat-file blob "$3:email-$n" 2>/dev/null |
+		egrep '^[[:space:]]*[^#[:space:]]' >"$workdir/$n" ||:
+	eval "validate_$n"
 }
 
 handle_etc_packages()
 {
 	check_etc_directory packages "$@" || return 0
-
+	check_unsupported_update 'email-distribution|email-subscription' "$@"
 	check_email_update distribution "$@"
-	validate_distribution
-
 	check_email_update subscription "$@"
-	validate_subscription
 
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
@@ -192,9 +199,8 @@ handle_etc_packages()
 handle_etc_private()
 {
 	check_etc_directory private "$@" || return 0
-
+	check_unsupported_update 'email-distribution' "$@"
 	check_email_update distribution "$@"
-	validate_distribution
 
 	[ ! -s "$workdir/distribution" ] ||
 		cp "$workdir/distribution" "@GIRAR_EMAIL_DIR@/private/$GIRAR_USER/"
@@ -203,12 +209,9 @@ handle_etc_private()
 handle_etc_public()
 {
 	check_etc_directory public "$@" || return 0
-
+	check_unsupported_update 'email-distribution|email-subscription' "$@"
 	check_email_update distribution "$@"
-	validate_distribution
-
 	check_email_update subscription "$@"
-	validate_subscription
 
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
