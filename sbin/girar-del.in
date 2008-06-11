@@ -25,18 +25,18 @@ IT_NAME="@USER_PREFIX@$NAME"
 REAL_HOME="@GIRAR_HOME@/$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 EMAIL_DIR="@GIRAR_EMAIL_DIR@/packages/$NAME"
+ACL_DIR="@GIRAR_ACL_STATE_DIR@/$NAME"
 
 userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
 
-rm -rf -- "$REAL_HOME" ||
-	message "$IT_NAME: failed to remove $REAL_HOME"
-
 rm -f -- "$AUTH" ||
 	message "$IT_NAME: failed to remove authorized keys file '$AUTH'"
 
-rm -rf -- "$EMAIL_DIR" ||
-	message "$IT_NAME: failed to remove $EMAIL_DIR"
+for d in "$REAL_HOME" "$EMAIL_DIR" "$ACL_DIR"; do
+	rm -rf -- "$ACL_DIR" ||
+		message "$IT_NAME: failed to remove $ACL_DIR"
+done
 
 Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
 Q_NAME="$(quote_sed_regexp "$NAME")"

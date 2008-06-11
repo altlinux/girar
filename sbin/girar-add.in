@@ -128,5 +128,7 @@ for n in packages private public; do
 		fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
 done
 
-install -d -o "$IT_NAME" -g girar -m755 "@GIRAR_PEOPLE_QUEUE@/$NAME" ||
-	fatal "$IT_NAME: failed to create @GIRAR_PEOPLE_QUEUE@/$NAME"
+for d in "@GIRAR_ACL_STATE_DIR@/$NAME" "@GIRAR_PEOPLE_QUEUE@/$NAME"; do
+	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
+		fatal "$IT_NAME: failed to create $d"
+done
