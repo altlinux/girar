@@ -4,7 +4,7 @@
 . shell-quote
 
 repositories_file="@GIRAR_REPOSITORIES@"
-acldir="@GIRAR_ACL@"
+acldir="@GIRAR_ACL_CONF_DIR@"
 
 update()
 {

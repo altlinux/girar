@@ -18,9 +18,9 @@ girar_packages_dir = ${girar_datadir}/packages.git
 girar_private_dir = ${girar_datadir}/private.git
 girar_public_dir = ${girar_datadir}/public.git
 girar_email_dir = ${girar_statedir}/email
+girar_acl_conf_dir = ${girar_confdir}/acl
 
 EMAIL_DOMAIN = altlinux.org
-GIRAR_ACL = ${girar_confdir}/acl
 GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
@@ -98,7 +98,7 @@ install-sbin: ${sbin_TARGETS}
 install-conf:
 	install -d -m750 \
 		${DESTDIR}${girar_confdir} \
-		${DESTDIR}${GIRAR_ACL}
+		${DESTDIR}${girar_acl_conf_dir}
 
 install-data: hooks
 	install -d -m750 \
@@ -135,7 +135,7 @@ bin/girar-sh: bin/girar-sh.c
 %: %.in
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
-	    -e 's,@GIRAR_ACL@,${GIRAR_ACL},g' \
+	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ARCHIVE@,${GIRAR_ARCHIVE},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \

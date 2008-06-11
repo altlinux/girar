@@ -4,7 +4,7 @@
 
 PROG=girar-check-perms
 repositories_file="@GIRAR_REPOSITORIES@"
-acl_dir="@GIRAR_ACL@"
+acl_dir="@GIRAR_ACL_CONF_DIR@"
 
 usage()
 {
