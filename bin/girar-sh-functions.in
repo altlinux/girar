@@ -2,6 +2,7 @@
 
 PATH="@CMDDIR@:$PATH"
 project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
+group_name_regexp='^[a-z][a-z]+$'
 
 . shell-error
 
