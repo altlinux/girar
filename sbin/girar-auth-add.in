@@ -18,7 +18,7 @@ NAME="$1"
 [ -n "$NAME" ] ||
 	usage 'not specified: NAME'
 shift
-printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9]+$' ||
+printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
 	fatal "$NAME: invalid NAME specified"
 
 IDFILE="$1"
