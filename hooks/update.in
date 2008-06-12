@@ -151,12 +151,12 @@ validate_email_subscription()
 		validate_distribution_subscription \
 			"email-subscription:$line" \
 			"$p" "$t" "$n" "$rest"
-		[ "$u" = '*' ] ||
-			{
-				printf %s "$u" |egrep -qs "$user_name_regexp" &&
-				[ -d "$GIRAR_HOME/$u" ]
-			} ||
-			fatal "$where: invalid user pattern: $u"
+		[ "$u" != '*' ] ||
+			continue
+		printf %s "$u" |egrep -qs "$user_name_regexp" ||
+			fatal "$where: invalid user name: $u"
+		[ -d "$GIRAR_HOME/$u" ] ||
+			fatal "$where: unknown user name: $u"
 	done <"$workdir/subscription"
 }
 
