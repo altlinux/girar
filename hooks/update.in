@@ -125,7 +125,7 @@ validate_email_list()
 	done
 }
 
-validate_distribution()
+validate_email_distribution()
 {
 	[ -s "$workdir/distribution" ] || return 0
 	local p t n a rest line=0
@@ -140,7 +140,7 @@ validate_distribution()
 	done <"$workdir/distribution"
 }
 
-validate_subscription()
+validate_email_subscription()
 {
 	[ -s "$workdir/subscription" ] || return 0
 	local u p t n rest line=0
@@ -169,24 +169,25 @@ check_unsupported_update()
 	fatal "unsupported files: $(printf %s "$out" |tr -s '[:space:]' ' ')"
 }
 
-check_email_update()
+check_update()
 {
+	local t="$1"; shift
 	local n="$1"; shift
 	rm -f -- "$workdir/$n"
-	git diff-tree --name-only "$2" "$3" -- email-"$n" |
-		fgrep -qs email-"$n" ||
+	git diff-tree --name-only "$2" "$3" -- "$t-$n" |
+		fgrep -qse "$t-$n" ||
 			return 0
-	git cat-file blob "$3:email-$n" 2>/dev/null |
+	git cat-file blob "$3:$t-$n" 2>/dev/null |
 		egrep '^[[:space:]]*[^#[:space:]]' >"$workdir/$n" ||:
-	eval "validate_$n"
+	eval "validate_$t_$n"
 }
 
 handle_etc_packages()
 {
 	check_etc_directory packages "$@" || return 0
 	check_unsupported_update 'email-distribution|email-subscription' "$@"
-	check_email_update distribution "$@"
-	check_email_update subscription "$@"
+	check_update email distribution "$@"
+	check_update email subscription "$@"
 
 	for n in distribution subscription; do
 		if [ -r "$workdir/$n" ]; then
