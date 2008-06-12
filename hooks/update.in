@@ -225,7 +225,7 @@ check_update()
 			return 0
 	git cat-file blob "$3:$t-$n" 2>/dev/null |
 		egrep '^[[:space:]]*[^#[:space:]]' >"$workdir/$n" ||:
-	eval "validate_$t_$n"
+	eval "validate_${t}_$n"
 }
 
 handle_etc_packages()
