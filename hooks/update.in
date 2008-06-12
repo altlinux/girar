@@ -173,9 +173,10 @@ validate_acl_groups()
 		for u; do
 			[ "$u" != '*' ] ||
 				continue
-			printf %s "$u" |egrep -qs "$user_name_regexp" &&
-			[ -d "$GIRAR_HOME/$u" ] ||
+			printf %s "$u" |egrep -qs "$user_name_regexp" ||
 				fatal "acl-groups:$line: invalid user name: $u"
+			[ -d "$GIRAR_HOME/$u" ] ||
+				fatal "acl-groups:$line: unknown user name: $u"
 		done
 	done <"$workdir/groups"
 }
@@ -184,6 +185,9 @@ validate_acl_packages()
 {
 	[ -s "$workdir/packages" ] || return 0
 	local name rest line=0
+	local groups="$workdir/groups"
+	[ -s "$groups" ] ||
+		groups="@GIRAR_ACL_STATE_DIR@/$GIRAR_USER/groups"
 	while read -r name rest; do
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$project_name_regexp" ||
@@ -197,11 +201,14 @@ validate_acl_packages()
 				[ -n "${u#@}" ] &&
 				printf %s "${u#@}" |egrep -qs "$group_name_regexp" ||
 					fatal "acl-packages:$line: invalid group name: $u"
+				cat "$groups" 2>/dev/null |awk '{print $1}' |grep -qsxe "${u#@}" ||
+					fatal "acl-packages:$line: unknown group name: $u"
 				continue
 			fi
-			printf %s "$u" |egrep -qs "$user_name_regexp" &&
-			[ -d "$GIRAR_HOME/$u" ] ||
+			printf %s "$u" |egrep -qs "$user_name_regexp" ||
 				fatal "acl-packages:$line: invalid user name: $u"
+			[ -d "$GIRAR_HOME/$u" ] ||
+				fatal "acl-packages:$line: unknown user name: $u"
 		done
 	done <"$workdir/packages"
 }
