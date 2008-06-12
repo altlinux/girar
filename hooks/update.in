@@ -237,11 +237,16 @@ handle_etc_packages()
 	check_update email distribution "$@"
 	check_update email subscription "$@"
 
+	for n in groups packages; do
+		[ -r "$workdir/$n" ] || continue
+		cp "$workdir/$n" "@GIRAR_ACL_STATE_DIR@/$GIRAR_USER/" &&
+			message "$n acl configuration updated."
+	done
+
 	for n in distribution subscription; do
-		if [ -r "$workdir/$n" ]; then
-			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/packages/$GIRAR_USER/" &&
-				message "email $n configuration updated."
-		fi
+		[ -r "$workdir/$n" ] || continue
+		cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/packages/$GIRAR_USER/" &&
+			message "email $n configuration updated."
 	done
 }
 
