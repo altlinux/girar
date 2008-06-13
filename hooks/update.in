@@ -184,9 +184,7 @@ validate_acl_packages()
 {
 	[ -s "$workdir/packages" ] || return 0
 	local name rest line=0
-	local groups="$workdir/groups"
-	[ -s "$groups" ] ||
-		groups="@GIRAR_ACL_STATE_DIR@/$GIRAR_USER/groups"
+	local groups="@GIRAR_ACL_CONF_DIR@/list.groups"
 	while read -r name rest; do
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$project_name_regexp" ||
