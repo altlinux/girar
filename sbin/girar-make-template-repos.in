@@ -3,15 +3,26 @@
 PROG="${0##*/}"
 
 workdir=
-exit_handler() {
-	local rc=$?
+cleanup()
+{
 	trap - EXIT
-	[ ! -d "$workdir" ] || rm -rf -- "$workdir"
-	exit $rc
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
 }
 
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
-workdir="$(mktemp -dt "$PROG.XXXXXXXXX")"
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+trap exit_handler EXIT
+trap signal_handler HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 cd "$workdir"
 
 for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
