@@ -168,11 +168,10 @@ validate_acl_groups()
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$group_name_regexp" ||
 			fatal "acl-groups:$line: invalid group name: $name"
+		[ "$u" != '*' ] || continue
 		set -- ${rest}
 		local u
 		for u; do
-			[ "$u" != '*' ] ||
-				continue
 			printf %s "$u" |egrep -qs "$user_name_regexp" ||
 				fatal "acl-groups:$line: invalid user name: $u"
 			[ -d "$GIRAR_HOME/$u" ] ||
@@ -192,11 +191,10 @@ validate_acl_packages()
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$project_name_regexp" ||
 			fatal "acl-packages:$line: invalid package name: $name"
+		[ "$u" != '*' ] || continue
 		set -- ${rest}
 		local u
 		for u; do
-			[ "$u" != '*' ] ||
-				continue
 			if [ -z "${u##@*}" ]; then
 				[ -n "${u#@}" ] &&
 				printf %s "${u#@}" |egrep -qs "$group_name_regexp" ||
