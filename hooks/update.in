@@ -414,15 +414,27 @@ mailto="$(
 	check_etc_directory public "$@" ||
 	exit 0
 
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
 exit_handler()
 {
-	local rc=$?
-	trap - EXIT
-	rm -rf -- "$workdir"
-	exit $rc
+	cleanup $?
 }
-workdir="$(mktemp -dt git-update.XXXXXXXX)" || exit 1
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
+
+signal_handler()
+{
+	cleanup 143
+}
+
+trap exit_handler EXIT
+trap signal_handler HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 
 if [ -n "$mailto" ]; then
 	DIFF="$workdir/diff"
