@@ -42,7 +42,11 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 	# - REFTYPE: type of updated reference (head, release, remote or tag);
 	# - REFNAME: name of updated reference (basename of refs/*/*);
 	# - MAILTO: comma-separated list of recipient USERs.
-	# Each of first 3 fields could be either name itself or * symbol which matches any name.
+	# Each of first 3 fields could be either name itself or * symbol
+	# which matches any name.
+	# In addition, PACKAGE could be a name prefix followed by * symbol
+	# to match any name with the given prefix.
+
 	EOF
 
 	if [ "${d##*/}" != "private.git" ]; then
@@ -56,7 +60,11 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 		# - PACKAGE: repository name (PACKAGE part of /people/USER/packages/PACKAGE.git);
 		# - REFTYPE: type of updated reference (head, release, remote or tag);
 		# - REFNAME: name of updated reference (basename of refs/*/*).
-		# Each of these 4 fields could be either name itself or * symbol which matches any name.
+		# Each of these 4 fields could be either name itself or * symbol
+		# which matches any name.
+		# In addition, PACKAGE could be a name prefix followed by * symbol
+		# to match any name with the given prefix.
+
 		EOF
 	fi
 
