@@ -51,7 +51,6 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 CFLAGS = -pipe -Wall -O2
 
 bin_TARGETS = \
-	bin/acl-cronjob \
 	bin/find-subscribers \
 	bin/girar-build \
 	bin/girar-charset \
@@ -61,6 +60,7 @@ bin_TARGETS = \
 	bin/girar-forwarder \
 	bin/girar-init-db \
 	bin/girar-ls \
+	bin/girar-merge-acl \
 	bin/girar-mv-db \
 	bin/girar-queue-task \
 	bin/girar-quota \

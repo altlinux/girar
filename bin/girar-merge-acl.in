@@ -1,0 +1,109 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+
+repositories_file="@GIRAR_REPOSITORIES@"
+acl_conf_dir="@GIRAR_ACL_CONF_DIR@"
+acl_state_dir="@GIRAR_ACL_STATE_DIR@"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$acl_conf_dir"
+
+cd "$acl_state_dir"
+touch .new
+
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+make_workdir()
+{
+	[ -z "$workdir" ] || return 0
+	trap exit_handler EXIT
+	trap signal_handler HUP PIPE INT QUIT TERM
+	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+}
+
+merge_file()
+{
+	local type="$1"; shift
+	local user="$1"; shift
+	local file="$1"; shift
+
+	[ -r "$file" ] || return 0
+	make_workdir
+
+	# acl line format: name leader [whitespace-separated-builders]
+	grep -v "^[^[:space:]]\\+[[:space:]]\+$user\\>" -- "$file" |
+		sort -k1,1 >"$workdir/rest"
+	grep "^[^[:space:]]\\+[[:space:]]\+$user\\>" -- "$file" |
+		tr -s '[:blank:]' ' ' |
+		sed 's/^\([^ ]\+\) \([^ ]\+\) */\1\t\2\t/' |
+		tr ' ' , |
+		sort -k1,1 >"$workdir/user"
+	# intermediate line format: name leader [comma-separated-builders]
+
+	# input line format: name [whitespace-separated-builders]
+	tr -s '[:blank:]' ' ' <"$user/$type" |
+		sed 's/^\([^ ]\+\) /\1\t/' |
+		tr ' ' , |
+		sort -k1,1 >"$workdir/in"
+	# intermediate line format: name [comma-separated-builders]
+
+	join -j 1 -o 1.1,1.2,2.2 -- "$workdir/user" "$workdir/in" |
+		tr , ' ' |
+		sed 's/[[:space:]]\+$//' >"$workdir/out"
+
+	join -v 1 -- "$workdir/user" "$workdir/in" |
+		tr , ' ' |
+		sed 's/[[:space:]]\+$//' >"$workdir/more"
+
+	sort -u -- "$workdir/rest" "$workdir/more" "$workdir/out" >"$workdir/res"
+	if cmp -s -- "$file" "$workdir/res"; then
+		return 0
+	fi
+	mv "$workdir/res" "$file.new"
+	mv "$file.new" "$file"
+}
+
+merge_user()
+{
+	local type="$1"; shift
+	local user="$1"; shift
+	local repository
+
+	merge_file "$type" "$user" "$acl_conf_dir/list.$type"
+	while read repository; do
+		merge_file "$type" "$user" "$acl_conf_dir/list.$type.$repository"
+	done < "$repositories_file"
+}
+
+merge_type()
+{
+	local t="$1"; shift
+	local u
+
+	for u in $(find . -mindepth 2 -maxdepth 2 -name "$t" -type f -newer .old -printf '%h\n' |cut -d/ -f2); do
+		merge_user "$t" "$u"
+	done
+}
+
+merge_type groups
+merge_type packages
+
+mv .new .old
