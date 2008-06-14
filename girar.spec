@@ -35,15 +35,16 @@ support and config files.
 /usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
 
 %files
-%defattr(-,root,%girar_group,755)
+%defattr(-,root,%girar_group,750)
 %_sbindir/*
 %_usr/libexec/%name
-%_sysconfdir/%name
+%dir %_sysconfdir/%name
+%dir %attr(750,%girar_user,%girar_group) %_sysconfdir/%name/acl
 %_datadir/%name
 %dir %_spooldir/%name
 %dir %_spooldir/%name/people
-%dir %attr(755,%girar_user,%girar_group) %_spooldir/%name/private
-%dir %attr(1775,%girar_user,%girar_group) %_spooldir/%name/public
+%dir %attr(750,%girar_user,%girar_group) %_spooldir/%name/private
+%dir %attr(1770,%girar_user,%girar_group) %_spooldir/%name/public
 %_localstatedir/%name
 
 %changelog
