@@ -48,10 +48,13 @@ merge_file()
 	[ -r "$file" ] || return 0
 	make_workdir
 
+	local quser
+	quser="$(quote_sed_regexp "$user")"
+
 	# acl line format: name leader [whitespace-separated-builders]
-	grep -v "^[^[:space:]]\\+[[:space:]]\+$user\\>" -- "$file" |
+	grep -v "^[^[:space:]]\\+[[:space:]]\+$quser\\>" -- "$file" |
 		sort -k1,1 >"$workdir/rest"
-	grep "^[^[:space:]]\\+[[:space:]]\+$user\\>" -- "$file" |
+	grep "^[^[:space:]]\\+[[:space:]]\+$quser\\>" -- "$file" |
 		tr -s '[:blank:]' ' ' |
 		sed 's/^\([^ ]\+\) \([^ ]\+\) */\1\t\2\t/' |
 		tr ' ' , |
@@ -78,6 +81,7 @@ merge_file()
 		return 0
 	fi
 	mv "$workdir/res" "$file.new"
+	diff "$file" "$file.new" ||:
 	mv "$file.new" "$file"
 }
 
