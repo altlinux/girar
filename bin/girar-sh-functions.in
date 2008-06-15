@@ -1,5 +1,8 @@
 #!/bin/sh
 
+if [ -z "${__included_girar_sh_functions-}" ]; then
+__included_girar_sh_functions=1
+
 PATH="@CMDDIR@:$PATH"
 project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
 user_name_regexp='^[a-z][a-z_0-9]+$'
@@ -93,3 +96,5 @@ set_name()
 	printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
 		fatal "$NAME: invalid NAME specified"
 }
+
+fi #__included_girar_sh_functions
