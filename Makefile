@@ -61,6 +61,7 @@ bin_auto_TARGETS = \
 	bin/girar-queue-task \
 	bin/girar-sh \
 	bin/girar-sh-functions \
+	bin/girar-update-email-functions \
 	bin/girar-update-etc-functions
 
 bin_TARGETS = \

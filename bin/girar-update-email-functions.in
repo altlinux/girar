@@ -1,0 +1,210 @@
+#!/bin/sh
+
+. girar-sh-functions
+
+DIFF_MAX=32768
+DIFF_SIZE=
+date_format="%F %T %z"
+charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
+[ -n "$charset" ] ||
+	charset='utf-8'
+mailto="$(
+	find-subscribers "$project_name" "$ref_style" "$ref_name" |
+	tr -s '\n' , |
+	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
+)"
+
+size_of_file()
+{
+	stat -c %s -- "$@"
+}
+
+diff_is_too_large()
+{
+	DIFF_SIZE="$(size_of_file "$DIFF")"
+	[ "$DIFF_SIZE" -ge "$DIFF_MAX" ]
+}
+
+show_large_info()
+{
+	local text="$1"; shift
+
+	if diff_is_too_large; then
+		echo "$text is too large ($DIFF_SIZE bytes)."
+	else
+		echo "$text follows:"
+		cat "$DIFF"
+	fi
+}
+
+git_diff()
+{
+	(ulimit -t 60 && ulimit -St 30 && git diff -M "$@") &
+	wait
+}
+
+show_changes_statistics()
+{
+	local next="$1"; shift
+	local prev="$1"; shift
+
+	git_diff --stat "$next" "^$prev" >"$DIFF"
+	show_large_info "Changes statistics since $1"
+	echo
+}
+
+generate_email_header()
+{
+	DIFF="$workdir/diff"
+	from_addr="${GIRAR_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
+	case "$project_type" in
+		packages)
+			reply_addr="@PACKAGES_EMAIL@"
+			;;
+		*)
+			reply_addr="$from_addr"
+			;;
+	esac
+	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$arg_newrev"
+
+	cat <<__EOF
+To: git-update-subscribers
+Bcc: $mailto
+From: $from_addr
+Reply-To: $reply_addr
+Subject: [git update] $project: ${arg_refname#refs/}
+Content-Type: text/plain${charset:+; charset=$charset}
+X-git-update-subscribers: $mailto
+X-git-dir: $git_dir
+X-git-description: $project
+X-git-refstyle: $ref_style
+X-git-refname: $arg_refname
+X-git-oldrev: $arg_oldrev
+X-git-newrev: $arg_newrev
+X-git-URL: $gitweb_url
+
+Update of $git_dir
+
+__EOF
+}
+
+generate_create_branch_email()
+{
+	git rev-parse --not --all |
+		git rev-list --stdin --pretty "$arg_newrev" >"$DIFF"
+	if diff_is_too_large; then
+		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
+	elif [ "$DIFF_SIZE" -eq 0 ]; then
+		echo "New $ref_style \`$ref_name' is available without new commits."
+	else
+		echo "New $ref_style \`$ref_name' is available with the following commits:"
+		cat "$DIFF"
+	fi
+}
+
+generate_create_tag_email()
+{
+	# a pushed and annotated tag (usually) means a new version
+	if [ "$ref_type" = tag ]; then
+		local tag="$workdir/tag"
+		git cat-file tag "$arg_newrev" >"$tag"
+		local tagger ts date
+		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
+		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
+		date="$(date --date="1970-01-01 00:00:00 +0000 $ts seconds" +"$date_format")"
+		echo "Tag \`$ref_name' created by $tagger at $date"
+
+		git cat-file tag "$arg_newrev" |sed -n '5,$p' >"$DIFF"
+		if diff_is_too_large; then
+			echo "with very long message ($DIFF_SIZE bytes)."
+		else
+			echo "with the following message:"
+			cat "$DIFF"
+		fi
+
+		echo =======
+		echo
+	fi
+
+	local prev size
+	prev="$(git describe --abbrev=0 "$arg_newrev^" 2>/dev/null| sed 's/-g[0-9a-f]\{7\}$//')"
+	# the first tag in a repo will yield no $prev
+	if [ -z "$prev" ]; then
+		git rev-list --pretty "$arg_newrev" >"$DIFF"
+		show_large_info "Changelog since the dawn of time"
+	else
+		show_changes_statistics "$arg_newrev" "$prev" "\`$prev'"
+
+		git rev-list --pretty "$arg_newrev" "^$prev" >"$DIFF"
+		show_large_info "Changelog since \`$prev'"
+
+		git_diff "$arg_newrev" "^$prev" >"$DIFF"
+		show_large_info "Full diff since \`$prev'"
+	fi
+}
+
+generate_delete_ref_email()
+{
+	echo "Reference to $ref_style \`$ref_name' removed."
+}
+
+generate_update_ref_email()
+{
+	local base prev size
+	base="$(git merge-base "$arg_oldrev" "$arg_newrev")"
+	prev="$(git describe "$base" 2>/dev/null)" || prev="$base"
+	if [ -z "$prev" ]; then
+		git rev-list --pretty "$arg_newrev" >"$DIFF"
+		show_large_info "Changelog since the dawn of time"
+	else
+		local since_text
+		if [ "$base" = "$arg_oldrev" ]; then
+			since_text="\`$prev'"
+		else
+			since_text="common ancestor \`$prev'"
+		fi
+
+		if [ "$base" = "$arg_newrev" ]; then
+			echo "Reset to $since_text."
+			return 0
+		fi
+
+		show_changes_statistics "$arg_newrev" "$base" "$since_text"
+
+		git rev-list --pretty "$arg_newrev" "^$base" >"$DIFF"
+		show_large_info "Changelog since $since_text"
+
+		git_diff "$arg_newrev" "^$base" >"$DIFF"
+		show_large_info "Full diff since $since_text"
+	fi
+}
+
+generate_email()
+{
+	generate_email_header
+	if [ "$arg_oldrev" = '0000000000000000000000000000000000000000' ]; then
+		# new ref
+		case "$arg_refname" in
+		refs/heads/*|refs/remotes/*)
+			# new head
+			generate_create_branch_email
+			;;
+		refs/tags/*)
+			# new tag
+			generate_create_tag_email
+			;;
+		esac
+	elif [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
+		# del ref
+		generate_delete_ref_email
+	else
+		# update ref
+		generate_update_ref_email
+	fi
+}
+
+send_email()
+{
+	/usr/sbin/sendmail -i -t &&
+		message "email notification about \`$arg_refname' update sent."
+}

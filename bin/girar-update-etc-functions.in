@@ -3,8 +3,6 @@
 . girar-sh-functions
 . shell-mail-address
 
-workdir=
-
 validate_distribution_subscription()
 {
 	local where="$1"; shift
@@ -143,6 +141,13 @@ check_etc_directory()
 		return
 }
 
+check_etc()
+{
+	check_etc_directory packages "$@" ||
+	check_etc_directory private "$@" ||
+	check_etc_directory public "$@"
+}
+
 check_unsupported_update()
 {
 	local re="^($1)\$"; shift
@@ -210,4 +215,11 @@ handle_etc_public()
 				message "email $n configuration updated."
 		fi
 	done
+}
+
+handle_etc()
+{
+	handle_etc_packages "$@"
+	handle_etc_private "$@"
+	handle_etc_public "$@"
 }

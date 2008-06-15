@@ -8,4 +8,5 @@ girar-merge-acl
 girar-queue-task
 girar-sh
 girar-sh-functions
+girar-update-email-functions
 girar-update-etc-functions

@@ -1,7 +1,6 @@
 #!/bin/sh
 
 . girar-sh-functions
-. girar-update-etc-functions
 
 PROG=girar-update
 
@@ -62,9 +61,6 @@ refs/tags/*,*)
 	;;
 esac
 
-DIFF_MAX=32768
-DIFF_SIZE=
-date_format="%F %T %z"
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
 girar_home="$(readlink -ev "$GIRAR_HOME")" || exit 1
 git_dir="$GIRAR_HOME${git_dir#$girar_home}"
@@ -73,146 +69,13 @@ project_name="${project_name%.git}"
 project_type="${git_dir%/*}"
 project_type="${project_type##*/}"
 project="$project_type/$project_name"
-charset="$(head -n1 $GIT_DIR/charset 2>/dev/null)"
-[ -n "$charset" ] ||
-	charset='utf-8'
 
-size_of_file()
-{
-	stat -c %s -- "$@"
-}
-
-diff_is_too_large()
-{
-	DIFF_SIZE="$(size_of_file "$DIFF")"
-	[ "$DIFF_SIZE" -ge "$DIFF_MAX" ]
-}
-
-show_large_info()
-{
-	local text="$1"; shift
-
-	if diff_is_too_large; then
-		echo "$text is too large ($DIFF_SIZE bytes)."
-	else
-		echo "$text follows:"
-		cat "$DIFF"
-	fi
-}
-
-git_diff()
-{
-	(ulimit -t 60 && ulimit -St 30 && git diff -M "$@") &
-	wait
-}
-
-show_changes_statistics()
-{
-	local next="$1"; shift
-	local prev="$1"; shift
-
-	git_diff --stat "$next" "^$prev" >"$DIFF"
-	show_large_info "Changes statistics since $1"
-	echo
-}
-
-email_new_head()
-{
-	git rev-parse --not --all |
-		git rev-list --stdin --pretty "$3" >"$DIFF"
-	if diff_is_too_large; then
-		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
-	elif [ "$DIFF_SIZE" -eq 0 ]; then
-		echo "New $ref_style \`$ref_name' is available without new commits."
-	else
-		echo "New $ref_style \`$ref_name' is available with the following commits:"
-		cat "$DIFF"
-	fi
-}
-
-email_new_tag()
-{
-	# a pushed and annotated tag (usually) means a new version
-	if [ "$ref_type" = tag ]; then
-		local tag="$workdir/tag"
-		git cat-file tag "$3" >"$tag"
-		local tagger ts date
-		tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
-		ts="$(sed -ne '4s/^tagger [^>]\+>[^0-9]*\([0-9]\+\).*/\1/p' <"$tag")"
-		date="$(date --date="1970-01-01 00:00:00 +0000 $ts seconds" +"$date_format")"
-		echo "Tag \`$ref_name' created by $tagger at $date"
-
-		git cat-file tag "$3" |sed -n '5,$p' >"$DIFF"
-		if diff_is_too_large; then
-			echo "with very long message ($DIFF_SIZE bytes)."
-		else
-			echo "with the following message:"
-			cat "$DIFF"
-		fi
-
-		echo =======
-		echo
-	fi
-
-	local prev size
-	prev="$(git describe --abbrev=0 "$3^" 2>/dev/null| sed 's/-g[0-9a-f]\{7\}$//')"
-	# the first tag in a repo will yield no $prev
-	if [ -z "$prev" ]; then
-		git rev-list --pretty "$3" >"$DIFF"
-		show_large_info "Changelog since the dawn of time"
-	else
-		show_changes_statistics "$3" "$prev" "\`$prev'"
-
-		git rev-list --pretty "$3" "^$prev" >"$DIFF"
-		show_large_info "Changelog since \`$prev'"
-
-		git_diff "$3" "^$prev" >"$DIFF"
-		show_large_info "Full diff since \`$prev'"
-	fi
-}
-
-email_update_ref()
-{
-	local base prev size
-	base="$(git merge-base "$2" "$3")"
-	prev="$(git describe "$base" 2>/dev/null)" || prev="$base"
-	if [ -z "$prev" ]; then
-		git rev-list --pretty "$3" >"$DIFF"
-		show_large_info "Changelog since the dawn of time"
-	else
-		local since_text
-		if [ "$base" = "$2" ]; then
-			since_text="\`$prev'"
-		else
-			since_text="common ancestor \`$prev'"
-		fi
-
-		if [ "$base" = "$3" ]; then
-			echo "Reset to $since_text."
-			return 0
-		fi
-
-		show_changes_statistics "$3" "$base" "$since_text"
-
-		git rev-list --pretty "$3" "^$base" >"$DIFF"
-		show_large_info "Changelog since $since_text"
-
-		git_diff "$3" "^$base" >"$DIFF"
-		show_large_info "Full diff since $since_text"
-	fi
-}
-
-mailto="$(
-	find-subscribers "$project_name" "$ref_style" "$ref_name" |
-	tr -s '\n' , |
-	sed -e 's/^,\+//' -e 's/,\+$//' -e 's/,/, /g'
-)"
+. girar-update-etc-functions
+. girar-update-email-functions
 
 # Optimize
 [ -n "$mailto" ] ||
-	check_etc_directory packages "$@" ||
-	check_etc_directory private "$@" ||
-	check_etc_directory public "$@" ||
+	check_etc "$@" ||
 	exit 0
 
 workdir=
@@ -237,70 +100,9 @@ trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 
-if [ -n "$mailto" ]; then
-	DIFF="$workdir/diff"
-	MSG="$workdir/message"
-	from_addr="${GIRAR_USER}@@EMAIL_DOMAIN@ ($(getent passwd "$USER" |cut -d: -f5))"
-	case "$project_type" in
-		packages)
-			reply_addr="@PACKAGES_EMAIL@"
-			;;
-		*)
-			reply_addr="$from_addr"
-			;;
-	esac
-	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$arg_newrev"
+handle_etc "$@"
 
-	cat >"$MSG" <<__EOF
-To: git-update-subscribers
-Bcc: $mailto
-From: $from_addr
-Reply-To: $reply_addr
-Subject: [git update] $project: ${1#refs/}
-Content-Type: text/plain${charset:+; charset=$charset}
-X-git-update-subscribers: $mailto
-X-git-dir: $git_dir
-X-git-description: $project
-X-git-refstyle: $ref_style
-X-git-refname: $arg_refname
-X-git-oldrev: $arg_oldrev
-X-git-newrev: $arg_newrev
-X-git-URL: $gitweb_url
+[ -z "$mailto" ] ||
+	generate_email |send_email
 
-Update of $git_dir
-
-__EOF
-fi
-
-if [ "$arg_oldrev" = '0000000000000000000000000000000000000000' ]; then
-	# new ref
-	case "$arg_refname" in
-	refs/heads/*|refs/remotes/*)
-		# new head
-		[ -z "$mailto" ] ||
-			email_new_head "$@" >>"$MSG"
-		;;
-	refs/tags/*)
-		# new tag
-		[ -z "$mailto" ] ||
-			email_new_tag "$@" >>"$MSG"
-		;;
-	esac
-elif [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
-	# del ref
-	[ -z "$mailto" ] ||
-		echo "Reference to $ref_style \`$ref_name' removed." >>"$MSG"
-else
-	# update ref
-	handle_etc_packages "$@"
-	handle_etc_private "$@"
-	handle_etc_public "$@"
-	[ -z "$mailto" ] ||
-		email_update_ref "$@" >>"$MSG"
-fi
-
-if [ -n "$mailto" ]; then
-	/usr/sbin/sendmail -i -t <"$MSG" &&
-		message "email notification about \`$arg_refname' update sent."
-fi
 exit 0
