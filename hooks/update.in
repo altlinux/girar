@@ -37,8 +37,8 @@ esac
 enable -f /usr/lib/bash/lockf lockf || exit 1
 builtin lockf -v "$GIT_DIR" || exit 1
 
-if expr "$arg_newrev" : '0*$' >/dev/null; then
-	if expr "$arg_oldrev" : '0*$' >/dev/null; then
+if [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
+	if [ "$arg_oldrev" = '0000000000000000000000000000000000000000' ]; then
 		fatal "Non-existent ref name: $arg_refname"
 	fi
 	ref_type="$(git cat-file -t "$arg_oldrev")" || exit 1
@@ -271,7 +271,7 @@ Update of $git_dir
 __EOF
 fi
 
-if expr "$arg_oldrev" : '0*$' >/dev/null; then
+if [ "$arg_oldrev" = '0000000000000000000000000000000000000000' ]; then
 	# new ref
 	case "$arg_refname" in
 	refs/heads/*|refs/remotes/*)
@@ -285,7 +285,7 @@ if expr "$arg_oldrev" : '0*$' >/dev/null; then
 			email_new_tag "$@" >>"$MSG"
 		;;
 	esac
-elif expr "$arg_newrev" : '0*$' >/dev/null; then
+elif [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
 	# del ref
 	[ -z "$mailto" ] ||
 		echo "Reference to $ref_style \`$ref_name' removed." >>"$MSG"
