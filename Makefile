@@ -50,23 +50,26 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
 
-bin_TARGETS = \
+bin_auto_TARGETS = \
 	bin/find-subscribers \
-	bin/girar-build \
-	bin/girar-charset \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
 	bin/girar-forwarder \
 	bin/girar-init-db \
-	bin/girar-ls \
 	bin/girar-merge-acl \
-	bin/girar-mv-db \
 	bin/girar-queue-task \
-	bin/girar-quota \
-	bin/girar-rm-db \
 	bin/girar-sh \
 	bin/girar-sh-functions
+
+bin_TARGETS = \
+	${bin_auto_TARGETS} \
+	bin/girar-build \
+	bin/girar-charset \
+	bin/girar-ls \
+	bin/girar-mv-db \
+	bin/girar-quota \
+	bin/girar-rm-db
 
 sbin_TARGETS = \
 	sbin/girar-add \
@@ -84,7 +87,7 @@ TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
 all: ${TARGETS}
 
 clean:
-	${RM} ${bin_TARGETS} ${sbin_TARGETS} hooks/update
+	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS} hooks/update
 
 install: install-bin install-conf install-data install-sbin install-var
 
