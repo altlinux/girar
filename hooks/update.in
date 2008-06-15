@@ -9,7 +9,7 @@ arg_oldrev="$2"
 arg_newrev="$3"
 
 # Safety checks
-[ -n "$GIT_DIR" ] || fatal 'Environment variable GIT_DIR not set'
+[ -n "$GIT_DIR" ] || fatal 'Environment variable GIT_DIR is not set'
 if [ -z "$arg_refname" -o -z "$arg_oldrev" -o -z "$arg_newrev" ]; then
 	echo >&2 "Usage: $PROG <ref> <oldrev> <newrev>"
 	exit 1
@@ -38,26 +38,43 @@ enable -f /usr/lib/bash/lockf lockf || exit 1
 builtin lockf -v "$GIT_DIR" || exit 1
 
 if [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
-	if [ "$arg_oldrev" = '0000000000000000000000000000000000000000' ]; then
-		fatal "Non-existent ref name: $arg_refname"
-	fi
-	ref_type="$(git cat-file -t "$arg_oldrev")" || exit 1
+	ref_type=delete
 else
 	ref_type="$(git cat-file -t "$arg_newrev")" || exit 1
-	if [ "$arg_refname" = 'refs/heads/origin' ]; then
-		fatal "$arg_refname is not designed for publication and therefore is not allowed in this repo"
-	fi
 fi
 
-# Only allow annotated tags in a shared repo
 case "$arg_refname,$ref_type" in
 refs/tags/*,tag)
-	#echo >&2 "### Pushing $ref_style \`$ref_name' to the masses"
+	# annotated tag
 	;;
-refs/tags/*,*)
-	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repo"
+refs/tags/*,delete)
+	# delete tag
+	;;
+refs/tags/*,commit)
+	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repository"
 	echo >&2 "*** Use \`git tag [ -a | -s ]' for tags you want to propagate."
 	exit 1
+	;;
+
+refs/heads/origin,commit)
+	fatal "$arg_refname is not designed for publication and therefore is not allowed in this repository"
+	# branch
+	;;
+refs/heads/*,commit)
+	# branch
+	;;
+refs/heads/*,delete)
+	# delete branch
+	;;
+
+refs/remotes/*,commit)
+	# tracking branch
+	;;
+refs/remotes/*,delete)
+	# delete tracking branch
+	;;
+*)
+	fatal "Unsupported type of update to ref \`$arg_refname' of type \`$ref_type'"
 	;;
 esac
 

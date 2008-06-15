@@ -65,7 +65,9 @@ generate_email_header()
 			reply_addr="$from_addr"
 			;;
 	esac
-	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/};a=$ref_type;h=$arg_newrev"
+	gitweb_url="@GITWEB_URL@${git_dir%/*}/?p=${git_dir##*/}"
+	[ "$ref_type" = delete ] ||
+		gitweb_url="$gitweb_url;a=$ref_type;h=$arg_newrev"
 
 	cat <<__EOF
 To: git-update-subscribers
