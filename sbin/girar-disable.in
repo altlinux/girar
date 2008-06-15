@@ -14,12 +14,8 @@ usage()
 	exit 1
 }
 
-NAME="$1"
-[ -n "$NAME" ] ||
-	usage 'not specified: NAME'
+set_name "$1"
 shift
-printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
-	fatal "$NAME: invalid NAME specified"
 
 IT_NAME="@USER_PREFIX@$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"

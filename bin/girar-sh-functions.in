@@ -84,3 +84,12 @@ load_identity()
 				fatal "$IDFILE: invalid $type key size: $size" ;;
 	esac
 }
+
+set_name()
+{
+	NAME="$1"; shift
+	[ -n "$NAME" ] ||
+		usage 'not specified: NAME'
+	printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
+		fatal "$NAME: invalid NAME specified"
+}

@@ -16,12 +16,8 @@ usage()
 	exit 1
 }
 
-NAME="$1"
-[ -n "$NAME" ] ||
-	usage 'not specified: NAME'
+set_name "$1"
 shift
-printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
-	fatal "$NAME: invalid NAME specified"
 
 load_identity "$1"
 shift
