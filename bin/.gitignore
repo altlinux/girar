@@ -1,11 +1,3 @@
-find-subscribers
-girar-check-perms
-girar-clone
-girar-find
-girar-forwarder
-girar-hooks-sh-functions
-girar-init-db
-girar-merge-acl
-girar-queue-task
 girar-sh
+girar-sh-config
 girar-sh-functions

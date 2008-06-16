@@ -1,11 +1,11 @@
 #!/bin/sh -e
 
-. "@CMDDIR@/girar-sh-functions"
-. shell-quote
-
 export IFS=' 	
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+. "@CMDDIR@/girar-sh-functions"
+. shell-quote
 
 usage()
 {

@@ -1,11 +1,10 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-. shell-quote
 
-repositories_file="@GIRAR_REPOSITORIES@"
-acl_conf_dir="@GIRAR_ACL_CONF_DIR@"
-acl_state_dir="@GIRAR_ACL_STATE_DIR@"
+repositories_file="$GIRAR_REPOSITORIES"
+acl_conf_dir="$GIRAR_ACL_CONF_DIR"
+acl_state_dir="$GIRAR_ACL_STATE_DIR"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_conf_dir"

@@ -1,11 +1,11 @@
 #!/bin/sh -e
 
-. "@CMDDIR@/girar-sh-functions"
-
 export IFS=' 	
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
+
+. "@CMDDIR@/girar-sh-functions"
 
 usage()
 {

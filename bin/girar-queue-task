@@ -2,7 +2,9 @@
 
 [ "$#" -eq 0 ] || exit 1
 
-girar_queue="@GIRAR_PUBLIC_QUEUE@"
+. girar-sh-config
+
+girar_queue="$GIRAR_PUBLIC_QUEUE"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$girar_queue"

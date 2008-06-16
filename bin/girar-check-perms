@@ -2,9 +2,8 @@
 
 . girar-sh-functions
 
-PROG=girar-check-perms
-repositories_file="@GIRAR_REPOSITORIES@"
-acl_dir="@GIRAR_ACL_CONF_DIR@"
+repositories_file="$GIRAR_REPOSITORIES"
+acl_dir="$GIRAR_ACL_CONF_DIR"
 
 usage()
 {

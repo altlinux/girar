@@ -1,10 +1,8 @@
 #!/bin/sh -eu
 
 . girar-sh-functions
-. shell-quote
 
-PROG=girar-find-package
-packages_list='@GIRAR_PACKAGES_LIST@'
+packages_list="$GIRAR_PACKAGES_LIST"
 
 usage()
 {

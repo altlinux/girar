@@ -2,10 +2,10 @@
 
 . girar-sh-functions
 
-girar_queue="@GIRAR_PUBLIC_QUEUE@"
-private_queue="@GIRAR_PRIVATE_QUEUE@"
-upravdom_queue="@UPRAVDOM_QUEUE@"
-upravdom_account="@UPRAVDOM_ACCOUNT@"
+girar_queue="$GIRAR_PUBLIC_QUEUE"
+private_queue="$GIRAR_PRIVATE_QUEUE"
+upravdom_queue="$UPRAVDOM_QUEUE"
+upravdom_account="$UPRAVDOM_ACCOUNT"
 
 upravdomlock="$upravdom_queue/.lock"
 

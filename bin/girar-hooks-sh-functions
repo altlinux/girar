@@ -4,6 +4,7 @@ if [ -z "${__included_girar_hooks_sh_functions-}" ]; then
 __included_girar_hooks_sh_functions=1
 
 . shell-error
+. girar-sh-config
 
 # Safety checks
 [ -n "${GIT_DIR-}" ] ||
@@ -58,7 +59,7 @@ run_parts()
 {
 	local t="$1"; shift
 
-	for f in "@GIRAR_HOOKS_DIR@/$t.d"/*; do
+	for f in "$GIRAR_HOOKS_DIR/$t.d"/*; do
 		[ -f "$f" -a -r "$f" -a -x "$f" -a -s "$f" ] ||
 			continue
 		"$f"

@@ -2,8 +2,6 @@
 
 . girar-sh-functions
 
-PROG=girar-ls
-
 usage()
 {
 	echo >&2 "$PROG: $*"

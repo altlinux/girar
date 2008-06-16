@@ -2,8 +2,6 @@
 
 . girar-sh-functions
 
-PROG=girar-init-db
-
 usage()
 {
 	echo >&2 "$PROG: $*"
@@ -22,7 +20,7 @@ dir="$(validate_packages_dir "$1")"; shift
 dir="$(add_git_suffix "$dir")"
 mkdir -- "$dir"
 cd "$dir"
-GIT_DIR=. git init-db --template=@GIRAR_TEMPLATES_DIR@
+GIT_DIR=. git init-db --template="$GIRAR_TEMPLATES_DIR"
 echo "${dir%.git}" >description
 install -m600 -- /dev/null git-daemon-export-ok
 printf '%s:\t%s\n' "$PROG" "$PWD"

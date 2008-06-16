@@ -51,26 +51,29 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 CFLAGS = -pipe -Wall -O2
 
 bin_auto_TARGETS = \
+	bin/girar-sh-config \
+	bin/girar-sh-functions \
+	#
+
+bin_TARGETS = \
+	${bin_auto_TARGETS} \
 	bin/find-subscribers \
+	bin/girar-build \
+	bin/girar-charset \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
 	bin/girar-forwarder \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
-	bin/girar-merge-acl \
-	bin/girar-queue-task \
-	bin/girar-sh \
-	bin/girar-sh-functions
-
-bin_TARGETS = \
-	${bin_auto_TARGETS} \
-	bin/girar-build \
-	bin/girar-charset \
 	bin/girar-ls \
+	bin/girar-merge-acl \
 	bin/girar-mv-db \
+	bin/girar-queue-task \
 	bin/girar-quota \
-	bin/girar-rm-db
+	bin/girar-rm-db \
+	bin/girar-sh \
+	#
 
 sbin_TARGETS = \
 	sbin/girar-add \
@@ -79,19 +82,23 @@ sbin_TARGETS = \
 	sbin/girar-auth-zero \
 	sbin/girar-disable \
 	sbin/girar-enable \
-	sbin/girar-make-template-repos
+	sbin/girar-make-template-repos \
+	#
 
 hooks_TARGETS = \
 	hooks/post-receive \
 	hooks/post-update \
-	hooks/update
+	hooks/update \
+	#
 
 hooks_update_TARGETS = \
 	hooks/update.d/girar-update-check-refs \
-	hooks/update.d/girar-update-etc
+	hooks/update.d/girar-update-etc \
+	#
 
 hooks_receive_TARGETS = \
-	hooks/post-receive.d/girar-sendmail
+	hooks/post-receive.d/girar-sendmail \
+	#
 
 TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 

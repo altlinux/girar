@@ -2,8 +2,6 @@
 
 . girar-sh-functions
 
-PROG=girar-clone
-
 usage()
 {
 	echo >&2 "$PROG: $*"
@@ -53,10 +51,10 @@ dir="$(add_git_suffix "$dir")"
 [ ! -e "$dir" ] ||
 	fatal "$dir0: destination already exists"
 
-git clone --bare --template="@GIRAR_TEMPLATES_DIR@" "$p_repo" "$dir"
+git clone --bare --template="$GIRAR_TEMPLATES_DIR" "$p_repo" "$dir"
 cd "$dir"
 echo "${dir%.git}" >description
 install -m600 /dev/null git-daemon-export-ok
 GIT_DIR=`/bin/pwd`
 export GIT_DIR
-exec "@GIRAR_HOOKS_DIR@/post-update"
+exec "$GIRAR_HOOKS_DIR/post-update"

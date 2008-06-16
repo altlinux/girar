@@ -2,8 +2,6 @@
 
 . girar-sh-functions
 
-PROG=girar-mv-db
-
 usage()
 {
 	echo >&2 "$PROG: $*"
