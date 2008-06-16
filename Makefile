@@ -87,6 +87,7 @@ hooks_TARGETS = \
 	hooks/update
 
 hooks_update_TARGETS = \
+	hooks/update.d/girar-update-check-refs \
 	hooks/update.d/girar-update-etc
 
 hooks_receive_TARGETS = \
