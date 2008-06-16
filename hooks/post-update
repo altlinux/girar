@@ -5,6 +5,7 @@
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$GIT_DIR"
 
+echo -n 'Repacking repository... '
 git prune
 git repack -a -d
 if [ -d "$GIT_DIR/refs/heads" ]; then
@@ -18,3 +19,4 @@ if [ -d "$GIT_DIR/refs/heads" ]; then
 		rm -f -- "$f"
 	fi
 fi
+echo done
