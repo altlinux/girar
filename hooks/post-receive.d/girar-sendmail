@@ -77,7 +77,7 @@ To: git-update-subscribers
 Bcc: $mailto
 From: $from_addr
 Reply-To: $reply_addr
-Subject: [git update] $project: ${arg_refname#refs/}
+Subject: [SCM] $project: ${arg_refname#refs/}
 Content-Type: text/plain${charset:+; charset=$charset}
 X-git-update-subscribers: $mailto
 X-git-dir: $git_dir
