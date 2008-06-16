@@ -1,5 +1,5 @@
 Name: girar
-Version: 0.1
+Version: 0.2
 Release: alt1
 
 Summary: git.alt server engine
@@ -12,6 +12,8 @@ Source: %name-%version.tar
 Requires(pre): shadow-utils
 # due to "enable -f /usr/lib/bash/lockf lockf"
 Requires: bash-builtin-lockf >= 0:0.2
+# due to post-receive hook
+Requires: git-core >= 0:1.5.1
 
 %define girar_group girar
 %define girar_user girar
@@ -48,6 +50,9 @@ support and config files.
 %_localstatedir/%name
 
 %changelog
+* Mon Jun 16 2008 Dmitry V. Levin <ldv@altlinux.org> 0.2-alt1
+- Rewrote hooks using post-receive.
+
 * Tue Nov 21 2006 Dmitry V. Levin <ldv@altlinux.org> 0.1-alt1
 - Specfile cleanup.
 

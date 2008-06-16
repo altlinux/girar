@@ -1,0 +1,68 @@
+#!/bin/sh
+
+if [ -z "${__included_girar_hooks_sh_functions-}" ]; then
+__included_girar_hooks_sh_functions=1
+
+. shell-error
+
+# Safety checks
+[ -n "${GIT_DIR-}" ] ||
+	fatal 'Environment variable GIT_DIR is not set'
+[ -n "${GIRAR_HOME-}" ] ||
+	fatal 'Environment variable GIRAR_HOME is not set'
+
+git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
+girar_home="$(readlink -ev "$GIRAR_HOME")" || exit 1
+git_dir="$GIRAR_HOME${git_dir#$girar_home}"
+project_name="${git_dir##*/}"
+project_name="${project_name%.git}"
+project_type="${git_dir%/*}"
+project_type="${project_type##*/}"
+project="$project_type/$project_name"
+export git_dir project_name project_type project
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GIT_DIR"
+
+init_refs()
+{
+	# Set ref name
+	case "$arg_refname" in
+	refs/heads/*)
+		ref_style=head
+		ref_name="${arg_refname#refs/heads/}"
+		;;
+	refs/tags/*)
+		ref_style=tag
+		ref_name="${arg_refname#refs/tags/}"
+		;;
+	refs/remotes/*)
+		ref_style=remote
+		ref_name="${arg_refname#refs/remotes/}"
+		;;
+	*)
+		fatal "Unrecognized ref name: $arg_refname"
+		;;
+	esac
+
+	if [ "$arg_newrev" = '0000000000000000000000000000000000000000' ]; then
+		ref_type=delete
+	else
+		ref_type="$(git cat-file -t "$arg_newrev")"
+	fi
+
+	export arg_refname arg_oldrev arg_newrev ref_style ref_name ref_type
+}
+
+run_parts()
+{
+	local t="$1"; shift
+
+	for f in "@GIRAR_HOOKS_DIR@/$t.d"/*; do
+		[ -f "$f" -a -r "$f" -a -x "$f" -a -s "$f" ] ||
+			continue
+		"$f"
+	done
+}
+
+fi #__included_girar_hooks_sh_functions

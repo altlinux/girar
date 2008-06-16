@@ -1,0 +1,11 @@
+#!/bin/sh -eu
+
+. girar-hooks-sh-functions
+
+PROG=girar-post-receive
+
+while read arg_oldrev arg_newrev arg_refname; do
+	init_refs
+
+	run_parts post-receive
+done

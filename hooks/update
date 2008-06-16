@@ -1,0 +1,54 @@
+#!/bin/sh -eu
+
+. girar-hooks-sh-functions
+
+PROG=girar-update
+
+arg_refname="${1-}"
+arg_oldrev="${2-}"
+arg_newrev="${3-}"
+
+if [ -z "$arg_refname" -o -z "$arg_oldrev" -o -z "$arg_newrev" ]; then
+	echo >&2 "Usage: $PROG <ref> <oldrev> <newrev>"
+	exit 1
+fi
+
+init_refs
+
+case "$arg_refname,$ref_type" in
+refs/tags/*,tag)
+	# annotated tag
+	;;
+refs/tags/*,delete)
+	# delete tag
+	;;
+refs/tags/*,commit)
+	echo >&2 "*** Un-annotated ${ref_style}s are not allowed in this repository"
+	echo >&2 "*** Use \`git tag [ -a | -s ]' for tags you want to propagate."
+	exit 1
+	;;
+
+refs/heads/origin,commit)
+	fatal "$arg_refname is not designed for publication and therefore is not allowed in this repository"
+	# branch
+	;;
+refs/heads/*,commit)
+	# branch
+	;;
+refs/heads/*,delete)
+	# delete branch
+	;;
+
+refs/remotes/*,commit)
+	# tracking branch
+	;;
+refs/remotes/*,delete)
+	# delete tracking branch
+	;;
+*)
+	fatal "Unsupported type of update to ref \`$arg_refname' of type \`$ref_type'"
+	;;
+esac
+
+
+run_parts update

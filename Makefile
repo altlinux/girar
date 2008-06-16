@@ -56,13 +56,12 @@ bin_auto_TARGETS = \
 	bin/girar-clone \
 	bin/girar-find \
 	bin/girar-forwarder \
+	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
 	bin/girar-merge-acl \
 	bin/girar-queue-task \
 	bin/girar-sh \
-	bin/girar-sh-functions \
-	bin/girar-update-email-functions \
-	bin/girar-update-etc-functions
+	bin/girar-sh-functions
 
 bin_TARGETS = \
 	${bin_auto_TARGETS} \
@@ -82,14 +81,25 @@ sbin_TARGETS = \
 	sbin/girar-enable \
 	sbin/girar-make-template-repos
 
-TARGETS = ${bin_TARGETS} ${sbin_TARGETS} hooks/update
+hooks_TARGETS = \
+	hooks/post-receive \
+	hooks/post-update \
+	hooks/update
+
+hooks_update_TARGETS = \
+	hooks/update.d/girar-update-etc
+
+hooks_receive_TARGETS = \
+	hooks/post-receive.d/girar-sendmail
+
+TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 
 .PHONY: all clean install install-bin install-conf install-data install-sbin install-var
 
 all: ${TARGETS}
 
 clean:
-	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS} hooks/update
+	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS}
 
 install: install-bin install-conf install-data install-sbin install-var
 
@@ -106,14 +116,17 @@ install-conf:
 		${DESTDIR}${girar_confdir} \
 		${DESTDIR}${girar_acl_conf_dir}
 
-install-data: hooks
+install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \
 		${DESTDIR}${girar_datadir} \
 		${DESTDIR}${girar_hooks_dir} \
+		${DESTDIR}${girar_hooks_dir}/update.d \
+		${DESTDIR}${girar_hooks_dir}/post-receive.d \
 		${DESTDIR}${girar_templates_dir} \
 		${DESTDIR}${GIRAR_FAKE_HOME}
-	install -p hooks/* ${DESTDIR}${girar_hooks_dir}/
-	${RM} -- ${DESTDIR}${girar_hooks_dir}/*.in
+	install -pm750 ${hooks_TARGETS} ${DESTDIR}${girar_hooks_dir}/
+	install -pm750 ${hooks_update_TARGETS} ${DESTDIR}${girar_hooks_dir}/update.d/
+	install -pm750 ${hooks_receive_TARGETS} ${DESTDIR}${girar_hooks_dir}/post-receive.d/
 	ln -snf ${girar_hooks_dir} ${DESTDIR}${girar_templates_dir}/hooks
 
 install-var:

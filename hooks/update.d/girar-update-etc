@@ -1,7 +1,35 @@
-#!/bin/sh
+#!/bin/sh -efu
+
+[ "$project_type" = etc ] || exit 0
 
 . girar-sh-functions
 . shell-mail-address
+
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+make_workdir()
+{
+	[ -z "$workdir" ] || return 0
+	trap exit_handler EXIT
+	trap signal_handler HUP PIPE INT QUIT TERM
+	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+}
 
 validate_distribution_subscription()
 {
@@ -39,7 +67,7 @@ validate_email_list()
 				fatal "$where: invalid email address: $a"
 			continue
 		fi
-		cut -f1 -- "@GIRAR_EMAIL_ALIASES@" |
+		cut -f1 -- "${GIRAR_EMAIL_ALIASES}" |
 			fgrep -xqs "${GIRAR_USER_PREFIX}$a:" ||
 			fatal "$where: invalid email list: user $a not found."
 	done
@@ -88,7 +116,7 @@ validate_acl_groups()
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$group_name_regexp" ||
 			fatal "acl-groups:$line: invalid group name: $name"
-		[ "$u" != '*' ] || continue
+		[ "$rest" != '*' ] || continue
 		set -- ${rest}
 		local u
 		for u; do
@@ -107,12 +135,12 @@ validate_acl_packages()
 {
 	[ -s "$workdir/packages" ] || return 0
 	local name rest dups line=0
-	local groups="@GIRAR_ACL_CONF_DIR@/list.groups"
+	local groups="${GIRAR_ACL_CONF_DIR}/list.groups"
 	while read -r name rest; do
 		line="$((1+$line))"
 		printf %s "$name" |egrep -qs "$project_name_regexp" ||
 			fatal "acl-packages:$line: invalid package name: $name"
-		[ "$u" != '*' ] || continue
+		[ "$rest" != '*' ] || continue
 		set -- ${rest}
 		local u
 		for u; do
@@ -135,24 +163,11 @@ validate_acl_packages()
 		fatal "acl-packages: duplicate packages: $(printf %s "$dups" |tr -s '[:space:]' ' ')"
 }
 
-check_etc_directory()
-{
-	[ "$project" = "etc/$1" -a "$2" = "refs/heads/master" ] ||
-		return
-}
-
-check_etc()
-{
-	check_etc_directory packages "$@" ||
-	check_etc_directory private "$@" ||
-	check_etc_directory public "$@"
-}
-
 check_unsupported_update()
 {
 	local re="^($1)\$"; shift
 	local out
-	out="$(git diff-tree --name-only "$2" "$3" -- |egrep -v "$re")" ||
+	out="$(git diff-tree --name-only "$arg_oldrev" "$arg_newrev" -- |egrep -v "$re")" ||
 		return 0
 	fatal "unsupported files: $(printf %s "$out" |tr -s '[:space:]' ' ')"
 }
@@ -162,18 +177,18 @@ check_update()
 	local t="$1"; shift
 	local n="$1"; shift
 	rm -f -- "$workdir/$n"
-	git diff-tree --name-only "$2" "$3" -- "$t-$n" |
+	git diff-tree --name-only "$arg_oldrev" "$arg_newrev" -- "$t-$n" |
 		fgrep -qse "$t-$n" ||
 			return 0
-	git cat-file blob "$3:$t-$n" 2>/dev/null |
-		egrep '^[[:space:]]*[^#[:space:]]' >"$workdir/$n" ||:
-	eval "validate_${t}_$n"
+	git cat-file blob "$arg_newrev:$t-$n" 2>/dev/null |
+		egrep '^[[:space:]]*[^#[:space:]]' |
+		cat >"$workdir/$n"
+	"validate_${t}_$n"
 }
 
 handle_etc_packages()
 {
-	check_etc_directory packages "$@" || return 0
-	check_unsupported_update 'acl-groups|acl-packages|email-distribution|email-subscription' "$@"
+	check_unsupported_update 'acl-groups|acl-packages|email-distribution|email-subscription'
 	check_update acl groups "$@"
 	check_update acl packages "$@"
 	check_update email distribution "$@"
@@ -181,45 +196,50 @@ handle_etc_packages()
 
 	for n in groups packages; do
 		[ -r "$workdir/$n" ] || continue
-		cp "$workdir/$n" "@GIRAR_ACL_STATE_DIR@/$GIRAR_USER/" &&
+		cp "$workdir/$n" "${GIRAR_ACL_STATE_DIR}/$GIRAR_USER/" &&
 			message "$n acl configuration updated."
 	done
 
 	for n in distribution subscription; do
 		[ -r "$workdir/$n" ] || continue
-		cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/packages/$GIRAR_USER/" &&
+		cp "$workdir/$n" "${GIRAR_EMAIL_DIR}/packages/$GIRAR_USER/" &&
 			message "email $n configuration updated."
 	done
 }
 
 handle_etc_private()
 {
-	check_etc_directory private "$@" || return 0
-	check_unsupported_update 'email-distribution' "$@"
-	check_email_update distribution "$@"
+	check_unsupported_update 'email-distribution'
+	check_update email distribution
 
-	[ ! -s "$workdir/distribution" ] ||
-		cp "$workdir/distribution" "@GIRAR_EMAIL_DIR@/private/$GIRAR_USER/"
+	for n in distribution; do
+		[ -r "$workdir/$n" ] || continue
+		cp "$workdir/$n" "${GIRAR_EMAIL_DIR}/private/$GIRAR_USER/" &&
+			message "email $n configuration updated."
+	done
 }
 
 handle_etc_public()
 {
-	check_etc_directory public "$@" || return 0
-	check_unsupported_update 'email-distribution|email-subscription' "$@"
-	check_email_update distribution "$@"
-	check_email_update subscription "$@"
+	check_unsupported_update 'email-distribution|email-subscription'
+	check_update email distribution
+	check_update email subscription
 
 	for n in distribution subscription; do
-		if [ -r "$workdir/$n" ]; then
-			cp "$workdir/$n" "@GIRAR_EMAIL_DIR@/public/$GIRAR_USER/" &&
-				message "email $n configuration updated."
-		fi
+		[ -r "$workdir/$n" ] || continue
+		cp "$workdir/$n" "${GIRAR_EMAIL_DIR}/public/$GIRAR_USER/" &&
+			message "email $n configuration updated."
 	done
 }
 
-handle_etc()
-{
-	handle_etc_packages "$@"
-	handle_etc_private "$@"
-	handle_etc_public "$@"
-}
+case "$project_name" in
+	packages|private|public)
+		[ "$arg_refname" = 'refs/heads/master' ] ||
+			fatal "Unsupported ref name: $arg_refname"
+		make_workdir
+		"handle_etc_$project_name"
+		;;
+	*)
+		fatal "Unsupported repository: $project"
+		;;
+esac
