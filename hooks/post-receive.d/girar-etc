@@ -1,0 +1,34 @@
+#!/bin/sh -efu
+
+[ "$project_type" = etc ] || exit 0
+
+. girar-sh-functions
+
+update()
+{
+	local t="$1"; shift
+	local n="$1"; shift
+	local d="$1"; shift
+
+	git diff-tree --name-only "$arg_oldrev" "$arg_newrev" -- "$t-$n" |
+		fgrep -qse "$t-$n" ||
+			return 0
+	git cat-file blob "$arg_newrev:$t-$n" 2>/dev/null |
+		egrep '^[[:space:]]*[^#[:space:]]' |
+		cat >"$d/$n.new" &&
+	mv -- "$d/$n.new" "$d/$n" &&
+	message "updated $t $n configuration." ||
+		rm -f -- "$d/$n.new"
+}
+
+case "$project_name" in
+	packages)
+		update acl groups "$GIRAR_ACL_STATE_DIR/$GIRAR_USER"
+		update acl packages "$GIRAR_ACL_STATE_DIR/$GIRAR_USER"
+		update email subscription "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
+		;;
+	public)
+		update email subscription "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
+		;;
+esac
+update email distribution "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"

@@ -97,6 +97,7 @@ hooks_update_TARGETS = \
 	#
 
 hooks_receive_TARGETS = \
+	hooks/post-receive.d/girar-etc \
 	hooks/post-receive.d/girar-sendmail \
 	#
 
