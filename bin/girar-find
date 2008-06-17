@@ -1,6 +1,7 @@
 #!/bin/sh -eu
 
 . girar-sh-functions
+. shell-quote
 
 packages_list="$GIRAR_PACKAGES_LIST"
 
