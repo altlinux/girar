@@ -97,8 +97,12 @@ __EOF
 
 generate_create_head_email()
 {
-	git rev-parse --not --all |
+	# This shows all log entries that are not already covered by
+	# another ref - i.e. commits that are now accessible from this
+	# ref that were previously not accessible.
+	git rev-parse --not --branches |fgrep -vx "^$(git rev-parse "$arg_refname")" |
 		git rev-list --stdin --pretty "$arg_newrev" >"$DIFF"
+
 	if diff_is_too_large; then
 		echo "New $ref_style \`$ref_name' is available with too many changes ($DIFF_SIZE bytes)."
 	elif [ "$DIFF_SIZE" -eq 0 ]; then
