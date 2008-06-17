@@ -21,5 +21,8 @@ usage()
 	repo_name="$(quote_sed_regexp "$1")" ||
 	fatal 'invalid pattern'
 
+# Emulate * globbing.
+repo_name="$(printf %s "$repo_name" |sed 's/\\\*/.*/g')"
+
 grep "/packages/$repo_name\(\.git\)\?[[:space:]]" "$packages_list" |
 	sort -rn -k2,2
