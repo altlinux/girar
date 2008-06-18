@@ -1,0 +1,68 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task add'
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG [<task id>] <path to git repository> <tag name> [<project name>]"
+	exit 1
+}
+
+[ "${1-}" != '--help' ] ||
+	usage
+id=
+if [ -n "${1-}" -a -z "$(printf %s "${1-}" |tr -d '[:digit:]')" ]; then
+	id="$1"
+	shift
+fi
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 3 ] ||
+	usage 'Too many arguments.'
+
+cd "$HOME"
+
+dir0="$1"; shift
+dir="${dir0#$PWD/}"
+[ "${dir#/}" = "$dir" ] ||
+	fatal "$dir0: path to git repository does not belong to allowed directory tree"
+
+dir="$(validate_packages_dir "$dir")"
+dir="$(add_git_suffix "$dir")"
+[ -d "$dir" ] ||
+	fatal "$dir0: directory not available"
+
+[ -z "${dir%%packages/*}" ] ||
+	fatal "$dir0: directory should belong to packages/ directory tree"
+
+cd "$dir"
+
+tag_name="$1"; shift
+GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
+	fatal "$tag_name: invalid tag name"
+tag_id="$(git rev-parse --verify "$tag_name")"
+GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
+	fatal "$tag_name: invalid tag"
+
+if [ $# -gt 0 ]; then
+	project_name="$1"; shift
+else
+	project_name="${PWD##*/}"
+	project_name="${project_name%.git}"
+fi
+[ -n "$project_name" ] &&
+printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
+	fatal "$project_name: invalid project name"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+
+id="$(girar-task-find-current $id)"
+repo="$(sed '/^repo[[:space:]]*/I!d;s///;q' "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id")"
+
+girar-check-perms "$project_name" "$repo" ||
+	fatal "permission denied"
+
+echo "package $project_name $PWD $tag_name $tag_id $repo" >>"$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id"

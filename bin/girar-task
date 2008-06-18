@@ -1,0 +1,46 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG {list|new|show|drop|add|run} ..."
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ -n "${GIRAR_USER-}" ] ||
+	fatal "GIRAR_USER undefined"
+
+cd "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+
+enable -f /usr/lib/bash/lockf lockf
+
+op="$1"; shift
+case "$op" in
+	--help)
+		usage
+		;;
+	drop)
+		builtin lockf -v .
+		id="$(girar-task-find-current "$@")"
+		rm -f -- "$id"
+		;;
+	list)
+		builtin lockf -s -v .
+		ls -- "$@"
+		;;
+	show)
+		builtin lockf -s -v .
+		id="$(girar-task-find-current "$@")"
+		cat -- "$id"
+		;;
+	add|new|run)
+		exec "$PROG-$op" "$@"
+		;;
+	*)
+		usage "invalid operation: $op"
+		;;
+esac

@@ -45,6 +45,7 @@ static cmd_t commands[] = {
 	{"mv-db", "girar-mv-db", " <path to source directory> <path to destination directory>"},
 	{"quota", "girar-quota", ""},
 	{"rm-db", "girar-rm-db", " <path to git repository>"},
+	{"task", "girar-task", " {list|new|show|drop|add|run} ..."},
 	{"build", "girar-build", " <path to git repository> <tag name> <binary package repository name> [<project name>]"}
 };
 

@@ -1,0 +1,22 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+cd "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+
+if [ $# -gt 0 ]; then
+	id="$1"
+	shift
+	[ -n "$id" -a -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
+		fatal "invalid task id: $id"
+else
+	id="$(find . -mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[1-9][0-9]*$' -type f -printf '%f\n' |
+	       sort -n |tail -n1)"
+	[ -n "$id" ] ||
+		fatal 'no tasks found'
+fi
+
+[ -f "$id" ] ||
+	fatal "task not found: $id"
+
+echo "$id"

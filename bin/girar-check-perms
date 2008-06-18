@@ -46,7 +46,7 @@ cd "$HOME"
 	deny "repository list not available"
 
 # Denied if requested binary repository is not listed.
-fgrep -ixqs "$repository" "$repositories_file" ||
+fgrep -ixqse "$repository" "$repositories_file" ||
 	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
 
 # Normalize binary repository name.

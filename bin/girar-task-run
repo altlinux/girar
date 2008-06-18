@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task run'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [<task id>]"
+	exit 1
+}
+
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+[ "${1-}" != '--help' ] ||
+	usage
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v .
+builtin lockf -v "$GIRAR_PUBLIC_QUEUE"
+
+id="$(girar-task-find-current "$@")"
+grep -qs '^package' "$id" ||
+	fatal "$id: incomplete task"
+mv -- "$id" "$GIRAR_PUBLIC_QUEUE/"
+
+echo >&2 "Queued #$id"

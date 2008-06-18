@@ -1,0 +1,37 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task new'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [binary package repository name]"
+	exit 1
+}
+
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+[ "${1-}" != '--help' ] ||
+	usage
+
+repo="${1-}"
+[ -n "$repo" ] ||
+	repo=sisyphus
+fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
+	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
+
+id="$(girar-task-mkid)"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v .
+
+[ ! -f "$id" ] ||
+	fatal 'new task already exists'
+
+printf 'user %s\nrepo %s\n' "$GIRAR_USER" "$repo" >"$id" ||
+{
+	rm -f -- "$id"
+	exit 1
+}
+echo "$id"
