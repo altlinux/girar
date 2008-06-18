@@ -98,7 +98,7 @@ git_clone()
 	local dst="$1"; shift
 
 	su -l "$IT_NAME" -s /bin/sh -c \
-		"git clone --bare --template=@GIRAR_TEMPLATES_DIR@ '$src' '$dst'" &&
+		"git clone --bare --template=@GIRAR_TEMPLATES_DIR@ '$src' '$dst'" ||
 	fatal "$IT_NAME: failed to setup $dst"
 }
 
