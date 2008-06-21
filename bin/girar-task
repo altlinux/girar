@@ -24,15 +24,21 @@ case "$op" in
 		usage
 		;;
 	drop)
+		[ "${1-}" != '--help' ] ||
+			exec echo >&2 "usage: $PROG drop [<task id>]"
 		builtin lockf -v .
 		id="$(girar-task-find-current "$@")"
 		rm -f -- "$id"
 		;;
 	list)
+		[ "${1-}" != '--help' ] ||
+			exec echo >&2 "usage: $PROG list [<task id>...]"
 		builtin lockf -s -v .
 		ls -- "$@"
 		;;
 	show)
+		[ "${1-}" != '--help' ] ||
+			exec echo >&2 "usage: $PROG show [<task id>]"
 		builtin lockf -s -v .
 		id="$(girar-task-find-current "$@")"
 		cat -- "$id"
