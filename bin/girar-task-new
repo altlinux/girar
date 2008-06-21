@@ -19,7 +19,7 @@ repo="${1-}"
 [ -n "$repo" ] ||
 	repo=sisyphus
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
-	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
+	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
 
 id="$(girar-task-mkid)"
 
