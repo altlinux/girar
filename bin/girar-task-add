@@ -5,7 +5,7 @@ PROG='girar-task add'
 
 usage()
 {
-	echo >&2 "$PROG: $*"
+	[ -z "$*" ] || message "$*"
 	echo >&2 "usage: $PROG [<task id>] <path to git repository> <tag name> [<project name>]"
 	exit 1
 }
