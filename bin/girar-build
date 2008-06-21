@@ -5,13 +5,13 @@
 usage()
 {
 	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <path to git repository> <tag name> <binary package repository name> [<project name>]"
+	echo >&2 "usage: $PROG <path to git repository> <tag name> [<binary package repository name>] [<project name>]"
 	exit 1
 }
 
 [ "${1-}" != '--help' ] ||
 	usage
-[ "$#" -ge 3 ] ||
+[ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
 [ "$#" -le 4 ] ||
 	usage 'Too many arguments.'
@@ -20,10 +20,14 @@ usage()
 
 dir="$1"; shift
 tag="$1"; shift
-repo="$1"; shift
+if [ $# -gt 0 ]; then
+	repo="$1"; shift
+else
+	repo=
+fi
 
 id="$(girar-task new "$repo")"
-girar-task add "$id" "$dir" "$tag" "$repo" "$@" &&
+girar-task add "$id" "$dir" "$tag" "$@" &&
 girar-task run "$id" ||
 {
 	girar-task drop "$id"

@@ -46,7 +46,7 @@ static cmd_t commands[] = {
 	{"quota", "girar-quota", ""},
 	{"rm-db", "girar-rm-db", " <path to git repository>"},
 	{"task", "girar-task", " {list|new|show|drop|add|run} ..."},
-	{"build", "girar-build", " <path to git repository> <tag name> <binary package repository name> [<project name>]"}
+	{"build", "girar-build", " <path to gear repository> <tag name> [<binary package repository name>] [<project name>]"}
 };
 
 static const char git_receive_pack[] = "git-receive-pack ";
