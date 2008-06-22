@@ -75,7 +75,6 @@ bin_TARGETS = \
 	bin/girar-task \
 	bin/girar-task-add \
 	bin/girar-task-find-current \
-	bin/girar-task-mkid \
 	bin/girar-task-new \
 	bin/girar-task-run \
 	#

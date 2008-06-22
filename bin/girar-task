@@ -5,7 +5,7 @@
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG {list|new|show|drop|add|run} ..."
+	echo >&2 "usage: $PROG {new|add|ls|show|run|rm} ..."
 	exit 1
 }
 
@@ -14,37 +14,13 @@ usage()
 [ -n "${GIRAR_USER-}" ] ||
 	fatal "GIRAR_USER undefined"
 
-cd "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+cd "$GIRAR_TASKS"
 
-enable -f /usr/lib/bash/lockf lockf
-
-op="$1"; shift
-case "$op" in
-	--help)
-		usage
-		;;
-	drop)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG drop [<task id>]"
-		builtin lockf -v .
-		id="$(girar-task-find-current "$@")"
-		rm -f -- "$id"
-		;;
-	list)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG list [<task id>...]"
-		builtin lockf -s -v .
-		ls -- "$@"
-		;;
-	show)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG show [<task id>]"
-		builtin lockf -s -v .
-		id="$(girar-task-find-current "$@")"
-		cat -- "$id"
-		;;
-	add|new|run)
-		exec "$PROG-$op" "$@"
+case "${1-}" in
+	--help|help|'')
+		usage ;;
+	new|add|ls|show|run|rm)
+		exec "$PROG-$1" "$@"
 		;;
 	*)
 		usage "invalid operation: $op"

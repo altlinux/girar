@@ -10,10 +10,13 @@ usage()
 	exit 1
 }
 
+case "${1-}" in
+	--help|help|'')
+		usage ;;
+esac
+
 [ "$#" -le 1 ] ||
 	usage 'Too many arguments.'
-[ "${1-}" != '--help' ] ||
-	usage
 
 repo="${1-}"
 [ -n "$repo" ] ||
@@ -21,17 +24,20 @@ repo="${1-}"
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
 
-id="$(girar-task-mkid)"
-
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
-[ ! -f "$id" ] ||
-	fatal 'new task already exists'
+id=$(cat .max-task-id)
+id=$(($id+1))
 
-printf 'user %s\nrepo %s\n' "$GIRAR_USER" "$repo" >"$id" ||
-{
-	rm -f -- "$id"
-	exit 1
-}
-echo "$id"
+trap '' HUP INT QUIT PIPE TERM
+echo "$id" >.max-task-id
+mkdir "$id"
+
+builtin lockf -v "$id"
+mkdir "$id"/task
+echo "$id" >"$id"/task/id
+echo "$GIRAR_USER" >"$id"/task/owner
+echo "$repo" >"$id"/task/repo
+
+echo >&2 "new task id=$id owner=$GIRAR_USER repo=$repo"
