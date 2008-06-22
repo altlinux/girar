@@ -2,7 +2,7 @@
 
 . girar-sh-functions
 
-cd "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+cd "$GIRAR_TASKS"
 
 if [ $# -gt 0 ]; then
 	id="$1"
@@ -10,13 +10,13 @@ if [ $# -gt 0 ]; then
 	[ -n "$id" -a -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
 		fatal "invalid task id: $id"
 else
-	id="$(find . -mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[1-9][0-9]*$' -type f -printf '%f\n' |
-	       sort -n |tail -n1)"
+	id="$(set +f; fgrep -l -x "$GIRAR_USER" [1-9]*/task/owner |
+	       sort -n |cut -d/ -f1 |tail -n1)"
 	[ -n "$id" ] ||
 		fatal 'no tasks found'
 fi
 
-[ -f "$id" ] ||
+[ -d "$id" ] ||
 	fatal "task not found: $id"
 
 echo "$id"
