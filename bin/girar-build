@@ -4,32 +4,53 @@
 
 usage()
 {
-	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <path to git repository> <tag name> [<binary package repository name>] [<project name>]"
+	[ -z "$*" ] || echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG [-b <binary-repo>] <gear-repo-1> <gear-tag-1> ..."
 	exit 1
 }
 
-[ "${1-}" != '--help' ] ||
+if [ "${1-}" = '--help' ]; then
 	usage
-[ "$#" -ge 2 ] ||
-	usage 'Not enough arguments.'
-[ "$#" -le 4 ] ||
-	usage 'Too many arguments.'
-[ -n "${GIRAR_USER:-}" ] || 
-	fatal "GIRAR_USER undefined"
-
-dir="$1"; shift
-tag="$1"; shift
-if [ $# -gt 0 ]; then
-	repo="$1"; shift
-else
-	repo=
 fi
 
-id="$(girar-task new "$repo")"
-girar-task add "$id" "$dir" "$tag" "$@" &&
-girar-task run "$id" ||
+if [ "$#" -lt 2 ]; then
+	usage "not enough arguments"
+fi
+
+repo=
+if [ "$1" = "-b" ]; then
+	repo="$2"
+	shift 2
+fi
+
+if [ "$#" -lt 2 ]; then
+	usage "not enough arguments"
+fi
+
+if [ "$(($#%2))" -ne 0 ]; then
+	usage "odd number of arguments"
+fi
+
+if [ -z "${GIRAR_USER:-}" ]; then
+	fatal "GIRAR_USER undefined"
+fi
+
+atexit()
 {
-	girar-task drop "$id"
-	exit 1
+	local rc=$?
+	trap - EXIT
+	[ "$rc" -eq 0 ] || girar-task rm "$id"
+	exit $rc
 }
+
+trap '' HUP INT QUIT PIPE TERM
+id="$(girar-task new "$repo")"
+trap atexit EXIT
+
+while [ $# -gt 0 ]; do
+	dir="$1" tag="$2"
+	shift 2
+	girar-task add "$id" "$dir" "$tag"
+done
+
+girar-task run "$id"

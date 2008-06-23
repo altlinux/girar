@@ -41,3 +41,4 @@ echo "$GIRAR_USER" >"$id"/task/owner
 echo "$repo" >"$id"/task/repo
 
 echo >&2 "new task id=$id owner=$GIRAR_USER repo=$repo"
+echo "$id"
