@@ -149,3 +149,5 @@ trap atexit EXIT
 echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
 echo "$tag_value" >gears/$i/tag_value
+
+echo >&2 "task $id added gear-repo #$i $dir $tag_name"
