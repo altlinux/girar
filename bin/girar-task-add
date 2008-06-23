@@ -6,21 +6,28 @@ PROG='girar-task add'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task id>] <path to git repository> <tag name> [<project name>]"
+	echo >&2 "usage: $PROG [<task-id>] <gear-repo> <gear-tag>"
 	exit 1
 }
 
-[ "${1-}" != '--help' ] ||
+if [ "${1-}" = '--help' ]; then
 	usage
-id=
-if [ -n "${1-}" -a -z "$(printf %s "${1-}" |tr -d '[:digit:]')" ]; then
-	id="$1"
-	shift
 fi
-[ "$#" -ge 2 ] ||
-	usage 'Not enough arguments.'
-[ "$#" -le 3 ] ||
+
+if [ "$#" -gt 3 ]; then
 	usage 'Too many arguments.'
+fi
+if [ "$#" -lt 2 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=
+if [ "$#" -eq 3 ]; then
+	id=$(girar-task-find-current "$1")
+	shift
+else
+	id=$(girar-task-find-current)
+fi
 
 cd "$HOME"
 
@@ -61,7 +68,6 @@ printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid project name"
 
 cd "$GIRAR_TASKS"
-id="$(girar-task-find-current $id)"
 
 # no need to lock $GIRAR_TASKS
 builtin lockf -v "$id" &&
