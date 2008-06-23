@@ -18,5 +18,7 @@ fi
 
 [ -d "$id" ] ||
 	fatal "task not found: $id"
+[ -s "$id"/task/owner ] ||
+	fatal "invalid task: $id"
 
 echo "$id"

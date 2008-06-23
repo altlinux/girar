@@ -70,9 +70,7 @@ printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 cd "$GIRAR_TASKS"
 
 # no need to lock $GIRAR_TASKS
-builtin lockf -v "$id" &&
-	[ -f "$id"/task/owner ] ||
-	fatal "invalid task $id"
+builtin lockf -v "$id"
 
 seq=
 if [ -f "$id"/task/seq ]; then
