@@ -6,23 +6,23 @@ PROG='girar-task new'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [binary package repository name]"
+	echo >&2 "usage: $PROG [<binary-repo>]"
 	exit 1
 }
 
-case "${1-}" in
-	--help|help|'')
-		usage ;;
-esac
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
 
-[ "$#" -le 1 ] ||
+if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
+fi
 
-repo="${1-}"
-[ -n "$repo" ] ||
-	repo=sisyphus
+repo="${1:-sisyphus}"
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
+
+cd "$GIRAR_TASKS"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
