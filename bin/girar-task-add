@@ -39,6 +39,10 @@ dir="$(add_git_suffix "$dir")"
 
 cd "$dir"
 
+enable -f /usr/lib/bash/lockf lockf
+# lock gear repo
+builtin lockf -v .
+
 tag_name="$1"; shift
 GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
 	fatal "$tag_name: invalid tag name"
@@ -56,13 +60,26 @@ fi
 printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
 	fatal "$project_name: invalid project name"
 
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
-
+cd "$GIRAR_TASKS"
 id="$(girar-task-find-current $id)"
-repo="$(sed '/^repo[[:space:]]*/I!d;s///;q' "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id")"
 
-girar-check-perms "$project_name" "$repo" ||
-	fatal "permission denied"
+# no need to lock $GIRAR_TASKS
+builtin lockf -v "$id" &&
+	[ -f "$id"/task/owner ] ||
+	fatal "invalid task $id"
 
-echo "package $project_name $PWD $tag_name $tag_id $repo" >>"$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id"
+seq=
+if [ -f "$id"/task/seq ]; then
+	seq=$(cat "$id"/task/seq)
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) ;;
+		# work in progress
+		1) fatal "task $id is a work in progress" ;;
+		# have build results
+		2) ;;
+	esac
+fi
+
+# TODO: add gear repo to task.
+fatal "$PROG not implemented"
