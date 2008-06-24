@@ -10,18 +10,41 @@ usage()
 	exit 1
 }
 
-[ "$#" -le 1 ] ||
-	usage 'Too many arguments.'
-[ "${1-}" != '--help' ] ||
+if [ "${1-}" = '--help' ]; then
 	usage
+fi
 
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+cd "$GIRAR_TASKS"
+id="$(girar-task-find-current "$@")"
+
+cd "$id"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
-builtin lockf -v "$GIRAR_PUBLIC_QUEUE"
 
-id="$(girar-task-find-current "$@")"
-grep -qs '^package' "$id" ||
-	fatal "$id: incomplete task"
-mv -- "$id" "$GIRAR_PUBLIC_QUEUE/"
+if ! [ -s gears/1/dir ]; then
+	fatal "cannot run empty task $id"
+fi
 
-echo >&2 "Queued #$id"
+seq=
+if [ -f task/seq ]; then
+	seq=$(cat task/seq)
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) fatal "task $id already scheduled for run" ;;
+		# work in progress
+		1) fatal "task $id is a work in progress" ;;
+		# have build results
+		2) seq=$(($seq+1))
+	esac
+else
+	seq=0
+fi
+
+trap '' HUP INT QUIT PIPE TERM
+echo "$seq" >task/seq
+
+echo >&2 "task $id seq=$seq"
