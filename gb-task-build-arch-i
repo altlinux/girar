@@ -1,0 +1,82 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+. gb-sh-hasher-functions
+
+id="$1" arch="$2" i="$3"; shift 3
+cd "$GB_TASKS/$id"
+
+dir=$(cat task/dir)
+tag_name=$(cat task/tag_name)
+echo >&2 "build ${dir##*/} $tag_name for $arch"
+
+hsh_dir=$(gb_hasher_dir "$arch")
+hsh_num=$(gb_hasher_num "$arch")
+hsh_aptconf=$(gb_hasher_aptconf "$arch")
+
+rm -rf "$hsh_dir"/.gb
+mkdir "$hsh_dir"/.gb
+
+# Step 1: initialize and query hasher chroot.
+hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
+	--mountpoints=/proc --nprocs=1 \
+	--initroot -- "$hsh_dir" >"$hsh_dir"/.gb/out 2>&1 ||
+		gb_task_fail "$id" "initroot failed: $(cat "$hsh_dir"/.gb/out)"
+
+qf1='%{NAME} %|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}'
+qf2='%{NAME}-%{VERSION}-%{RELEASE}.%|SOURCERPM?{%{ARCH}}:{src}|.rpm'
+qf_id="$qf1\\t$qf2\\n"
+hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$hsh_dir"/.gb/chroot_base
+
+# Step 2: build src.rpm (without sisyphus_check).
+# This will also install all BuildRequires packages.
+cat >"$hsh_dir"/.gb/save_srpm <<'EOF'
+mkdir ~/SRPMS
+cp -p --target-directory ~/SRPMS/
+EOF
+
+hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
+	--mountpoints=/proc --nprocs=1 \
+	--rebuild-prog="$hsh_dir"/.gb/save_srpm \
+	--lazy-cleanup -- "$hsh_dir" gears/$i/pkg.tar >"$hsh_dir"/.gb/out 2>&1 ||
+		gb_task_fail "$id" "cannot build src.rpm: $(cat "$hsh_dir"/.gb/out)"
+
+srpm=$(set +f; echo "$hsh_dir"/chroot/usr/src/SRPMS/*.src.rpm) &&
+	srpm_name=$(rpmquery --qf '%{NAME}' "$srpm") ||
+	gb_task_fail "$id" "cannot build valid src.rpm"
+
+# Step 4: examine BuildRequires.
+hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$hsh_dir"/.gb/chroot_BR
+sort -o "$hsh_dir"/.gb/chroot_base -u "$hsh_dir"/.gb/chroot_base
+sort -o "$hsh_dir"/.gb/chroot_BR -u "$hsh_dir"/.gb/chroot_BR
+comm -23 "$hsh_dir"/.gb/chroot_BR "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/chroot_BR+
+mv -f "$hsh_dir"/.gb/chroot_BR+ "$hsh_dir"/.gb/chroot_BR
+
+# Step 5: check if rebuild is needed at all.
+if [ -s build/$arch/$i/chroot_base ]; then
+	rm -f build/$arch/$i/REBUILD
+	if ! diff -U1 build/$arch/$i/chroot_base "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/out; then
+		echo 1 >build/$arch/$i/REBUILD
+		echo >>build/$arch/MERGE "chroot_base changed for ${dir##*/} $tag_name"
+		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
+	fi
+	if ! diff -U1 build/$arch/$i/chroot_BR "$hsh_dir"/.gb/chroot_BR >"$hsh_dir"/.gb/out; then
+		echo 1 >build/$arch/$i/REBUILD
+		echo >>build/$arch/MERGE "chroot_BR changed for ${dir##*/} $tag_name"
+		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
+	fi
+	# rebuild is still needed if previous packages has been rebuilt.
+	for j in `seq 1 $(($i-1))`; do
+		if [ -s build/$arch/$j/REBUILD ]; then
+			rm -f build/$arch/$j/REBUILD
+			echo 1 >build/$arch/$i/REBUILD
+		fi
+	done
+	if ! [ -s build/$arch/$i/REBUILD ]; then
+		(set +f; cp -p build/$arch/$i/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/)
+		[ $? -eq 0 ]
+		echo >&2 "no need to rebuild ${dir##*/} $tag_name for $arch"
+		exit 0
+	fi
+fi
+
