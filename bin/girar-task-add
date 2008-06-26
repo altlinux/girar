@@ -150,4 +150,8 @@ echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
 echo "$tag_value" >gears/$i/tag_value
 
+mkdir gears/$i/git
+GIT_DIR=gears/$i/git git init -q
+GIT_DIR=gears/$i/git git fetch -q "$dir" tag "$tag_name"
+
 echo >&2 "task $id added gear-repo #$i $dir $tag_name"
