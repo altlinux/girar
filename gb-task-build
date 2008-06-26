@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+for arch in i586 x86_64; do
+	$0-arch "$id" "$arch" &
+	sleep 1
+done
+
+wait

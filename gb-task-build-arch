@@ -1,0 +1,28 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+. gb-sh-hasher-functions
+
+id="$1" arch="$2"; shift 2
+cd "$GB_TASKS/$id"
+
+hsh_dir=$(gb_hasher_dir "$arch")
+hsh_num=$(gb_hasher_num "$arch")
+hsh_aptconf=$(gb_hasher_aptconf "$arch")
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
+
+mkdir -p "$hsh_dir"
+rm -rf "$hsh_dir"/repo
+
+nums=$(gear_nums)
+
+for i in $nums; do
+	hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
+		--mountpoints=/proc --nprocs=1 -- "$hsh_dir" gears/$i/pkg.tar
+done

@@ -1,0 +1,63 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+
+gb_hasher_num()
+{
+	local arch="$1"; shift
+	case "$GB_REPO,$arch" in
+		sisyphus,i586)
+			echo 1 ;;
+		sisyphus,x86_64)
+			echo 2 ;;
+		4.0,i586)
+			echo 3 ;;
+		4.0,x86_64)
+			echo 4 ;;
+		4.1,i586)
+			echo 5 ;;
+		4.1,x86_64)
+			echo 6 ;;
+		*)
+			echo >&2 "invalid $GB_REPO,$arch"
+			exit 1 ;;
+	esac
+}
+
+gb_hasher_dir()
+{
+	local arch="$1"; shift
+	local num dir
+	num=$(gb_hasher_num "$arch")
+	dir=$(echo "$TMPDIR/girar-builder/$num")
+	mkdir -p "$dir"
+	echo "$dir"
+}
+
+gb_hasher_aptconf()
+{
+	local arch="$1"; shift
+	local dir=
+	case "$GB_REPO" in
+		sisyphus)
+			dir=/ALT/Sisyphus ;;
+		4.0)
+			dir=/ALT/4.0 ;;
+		4.1)
+			dir=/ALT/4.1 ;;
+		*)
+			exit 1 ;;
+	esac
+	mkdir -p "$TMPDIR/girar-builder"
+	cat >"$TMPDIR/girar-builder/$GB_REPO-$arch-sources.list" <<EOF
+rpm file:$dir $arch classic
+rpm file:$dir noarch classic
+EOF
+	cat >"$TMPDIR/girar-builder/$GB_REPO-$arch-apt.conf" <<EOF
+Dir::Etc::main "/dev/null";
+Dir::Etc::parts "/var/empty";
+Dir::Etc::sourcelist "$TMPDIR/girar-builder/$GB_REPO-$arch-sources.list";
+Dir::Etc::sourceparts "/var/empty";
+EOF
+	echo "$TMPDIR/girar-builder/$GB_REPO-$arch-apt.conf"
+}
