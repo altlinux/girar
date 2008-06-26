@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+enable -f /usr/lib/bash/lockf lockf
+
+. gb-sh-setup
+
+id="$1"; shift
+
+cd "$GB_TASKS/$id"
+builtin lockf -v .
+
+exec >task/log 2>&1
+gb-task-pkgtar "$id"

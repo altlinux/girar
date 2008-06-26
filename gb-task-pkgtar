@@ -1,0 +1,31 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
+
+nums=$(gear_nums)
+
+for i in $nums; do
+	if [ -s gears/$i/pkg.tar ]; then
+		continue
+	fi
+	tag_name=$(cat gears/$i/tag_name)
+	GIT_DIR=gears/$i/git gear --hasher -t "$tag_name" -- \
+		cp -p --target-directory gears/$i/
+	if [ -s gears/$i/pkg.tar ]; then
+		dir=$(cat gears/$i/dir)
+		echo >&2 "created pkg.tar for ${dir##*/} $tag_name"
+	else
+		echo >&2 "cannot create pkg.tar for ${dir##*/} $tag_name"
+		exit 1
+	fi
+done
