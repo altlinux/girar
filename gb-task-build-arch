@@ -1,9 +1,14 @@
 #!/bin/sh -efu
 
 . gb-sh-setup
+. gb-sh-hasher-functions
 
 id="$1" arch="$2"; shift 2
 cd "$GB_TASKS/$id"
+
+hsh_dir=$(gb_hasher_dir "$arch")
+mkdir -p "$hsh_dir"
+rm -rf "$hsh_dir"/repo
 
 gear_nums()
 {
@@ -11,9 +16,6 @@ gear_nums()
 	cd gears &&
 	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
 }
-
-mkdir -p "$hsh_dir"
-rm -rf "$hsh_dir"/repo
 
 nums=$(gear_nums)
 

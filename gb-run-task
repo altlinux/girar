@@ -11,3 +11,4 @@ builtin lockf -v .
 
 exec >task/log 2>&1
 gb-task-pkgtar "$id"
+gb-task-build "$id"

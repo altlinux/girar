@@ -1,0 +1,36 @@
+#!/bin/sh -efu
+
+export GB_REPO=sisyphus
+cd `mktemp -d`
+export GB_TASKS=$PWD
+pwd >&2
+mkdir 333
+cd 333
+
+mkdir task
+echo 333 >task/id
+echo $USER >task/owner
+echo sisyphus >task/repo
+
+mkdir gears
+i=0
+for d; do
+	tag=$(GIT_DIR="$d"/.git git describe --abbrev=0)
+	i=$(($i+1))
+	mkdir gears/$i
+	cp -a "$d"/.git gears/$i/git
+	echo "$d" >gears/$i/dir
+	echo "$tag" >gears/$i/tag_name
+done
+
+gb_task_fail()
+{
+	echo "gb_task_fail: $*"
+	exit 1
+}
+export -f gb_task_fail
+
+gb-task-pkgtar 333
+gb-task-build 333
+
+find build/ -type f |sort

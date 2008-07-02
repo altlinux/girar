@@ -6,8 +6,8 @@
 id="$1" arch="$2" i="$3"; shift 3
 cd "$GB_TASKS/$id"
 
-dir=$(cat task/dir)
-tag_name=$(cat task/tag_name)
+dir=$(cat gears/$i/dir)
+tag_name=$(cat gears/$i/tag_name)
 echo >&2 "build ${dir##*/} $tag_name for $arch"
 
 hsh_dir=$(gb_hasher_dir "$arch")
@@ -32,27 +32,27 @@ hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$hsh_dir"/.gb/chroot_base
 # This will also install all BuildRequires packages.
 cat >"$hsh_dir"/.gb/save_srpm <<'EOF'
 mkdir ~/SRPMS
-cp -p --target-directory ~/SRPMS/
+cp -p --target-directory ~/SRPMS/ -- "$@"
 EOF
 
 hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--mountpoints=/proc --nprocs=1 \
-	--rebuild-prog="$hsh_dir"/.gb/save_srpm \
+	--rebuild-prog="$hsh_dir"/.gb/save_srpm --no-sisyphus-check \
 	--lazy-cleanup -- "$hsh_dir" gears/$i/pkg.tar >"$hsh_dir"/.gb/out 2>&1 ||
 		gb_task_fail "$id" "cannot build src.rpm: $(cat "$hsh_dir"/.gb/out)"
 
 srpm=$(set +f; echo "$hsh_dir"/chroot/usr/src/SRPMS/*.src.rpm) &&
-	srpm_name=$(rpmquery --qf '%{NAME}' "$srpm") ||
+	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
 	gb_task_fail "$id" "cannot build valid src.rpm"
 
-# Step 4: examine BuildRequires.
+# Step 3: examine BuildRequires.
 hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$hsh_dir"/.gb/chroot_BR
 sort -o "$hsh_dir"/.gb/chroot_base -u "$hsh_dir"/.gb/chroot_base
 sort -o "$hsh_dir"/.gb/chroot_BR -u "$hsh_dir"/.gb/chroot_BR
 comm -23 "$hsh_dir"/.gb/chroot_BR "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/chroot_BR+
 mv -f "$hsh_dir"/.gb/chroot_BR+ "$hsh_dir"/.gb/chroot_BR
 
-# Step 5: check if rebuild is needed at all.
+# Step 4: check if rebuild is needed at all.
 if [ -s build/$arch/$i/chroot_base ]; then
 	rm -f build/$arch/$i/REBUILD
 	if ! diff -U1 build/$arch/$i/chroot_base "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/out; then
@@ -80,3 +80,65 @@ if [ -s build/$arch/$i/chroot_base ]; then
 	fi
 fi
 
+# Step 5: examine repo/ contens.
+for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$hsh_dir"/.gb/srpm1
+for f in $(set +f; ls "$hsh_dir"/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$hsh_dir"/.gb/rpms1
+
+# Step 6: find out packager.
+packager='Alexey Tourbin <at@altlinux.ru>'
+
+# Step 7: build.
+mkdir -p build/$arch/$i
+hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
+	--mountpoints=/proc --nprocs=1 \
+	--packager="$packager" -- "$hsh_dir" gears/$i/pkg.tar >build/$arch/$i/log 2>&1 ||
+		gb_task_fail "$id" "cannot build $dir $tag_name: $(tail -33 build/$arch/$i/log)"
+
+# Step 8: save results.
+for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$hsh_dir"/.gb/srpm2
+for f in $(set +f; ls "$hsh_dir"/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$hsh_dir"/.gb/rpms2
+
+comm -23 "$hsh_dir"/.gb/rpms{1,2} >"$hsh_dir"/.gb/out
+if [ -s "$hsh_dir"/.gb/out ]; then
+	# we are under attack: they try to replace previous packages
+	gb_task_fail "$id" "${dir##*/} $tag_name bad intersections: $(cat "$hsh_dir"/.gb/out)"
+fi
+comm -23 "$hsh_dir"/.gb/srpm{1,2} >"$hsh_dir"/.gb/out
+if [ -s "$hsh_dir"/.gb/out ]; then
+	gb_task_fail "$id" "${dir##*/} $tag_name bad intersections: $(cat "$hsh_dir"/.gb/out)"
+fi
+
+comm -23 "$hsh_dir"/.gb/rpms{2,1} >"$hsh_dir"/.gb/out
+if ! [ -s "$hsh_dir"/.gb/out ]; then
+	gb_task_fail "$id" "${dir##*/} $tag_name produced no rpms"
+fi
+rm -rf build/$arch/$i/rpms
+mkdir -p build/$arch/$i/rpms
+tar -C "$hsh_dir"/repo/$arch/RPMS.hasher -cf - `cut -f1 "$hsh_dir"/.gb/out` |
+tar -C build/$arch/$i/rpms -xf -
+
+comm -23 "$hsh_dir"/.gb/srpm{2,1} >"$hsh_dir"/.gb/out
+if ! [ -s "$hsh_dir"/.gb/out ]; then
+	gb_task_fail "$id" "${dir##*/} $tag_name produced no srpm"
+fi
+rm -rf build/$arch/$i/srpm
+mkdir -p build/$arch/$i/srpm
+tar -C "$hsh_dir"/repo/SRPMS.hasher -cf - `cut -f1 "$hsh_dir"/.gb/out` |
+tar -C build/$arch/$i/srpm -xf -
+
+cp -p "$hsh_dir"/.gb/chroot_base build/$arch/$i/chroot_base
+cp -p "$hsh_dir"/.gb/chroot_BR build/$arch/$i/chroot_BR
+
+echo >&2 "build ${dir##*/} $tag_name for $arch OK"
