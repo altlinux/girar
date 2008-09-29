@@ -111,4 +111,4 @@ else
 	parse_cmd "$@"
 fi > "$workdir/$GIRAR_USER"
 
-mv -f -- "$workdir/$GIRAR_USER" "$acl_state_dir/"
+mv -f -- "$workdir/$GIRAR_USER" "$acl_state_dir/$repository/"
