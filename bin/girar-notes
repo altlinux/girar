@@ -75,7 +75,7 @@ parse_cmd()
 	qname="$(quote_sed_regexp "$name")"
 
 	if [ -z "${name##@*}" ]; then
-		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups")" ||
+		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups.$repository")" ||
 			fatal "Group \`$name' is not listed in acl file"
 	else
 		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||

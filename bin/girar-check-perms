@@ -91,8 +91,8 @@ if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
 fi
 
 # Expand groups if any.
-if [ -n "$groups" -a -s "$acl_dir/list.groups" ]; then
-	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$acl_dir/list.groups")"
+if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
+	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$acl_dir/list.groups.$repository")"
 	gpeople="$(printf %s "$gpeople" |tr -s '[:space:]' ' ')"
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.
