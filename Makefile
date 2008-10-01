@@ -69,6 +69,7 @@ bin_TARGETS = \
 	bin/girar-ls \
 	bin/girar-merge-acl \
 	bin/girar-mv-db \
+	bin/girar-notes \
 	bin/girar-quota \
 	bin/girar-rm-db \
 	bin/girar-sh \
