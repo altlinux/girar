@@ -41,7 +41,7 @@ check_leader()
 
 	while [ -z "${leader##@*}" ]; do
 		qgroup="$(quote_sed_regexp "$leader")"
-		leader="$(sed -n -e "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups")" #"
+		leader="$(sed -n -e "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups.$repository")"
 
 		[ -n "$leader" ] ||
 			fatal "$qgroup: Not found"
@@ -75,10 +75,10 @@ parse_cmd()
 	qname="$(quote_sed_regexp "$name")"
 
 	if [ -z "${name##@*}" ]; then
-		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups")" || #"
+		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups")" ||
 			fatal "Group \`$name' is not listed in acl file"
 	else
-		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" || #"
+		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||
 			fatal "Project \`$name' is not listed in acl file for repository \`$repository'"
 	fi
 
