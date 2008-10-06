@@ -21,6 +21,7 @@ NOMAILS=
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_conf_dir"
+builtin lockf -v "$acl_state_dir"
 
 workdir=
 cleanup()
@@ -393,9 +394,6 @@ mkdir -- list mails
 find "$acl_conf_dir" -type f -name 'list.*' \
 	-exec cp -at list -- \{\} \+
 
-# Set timestamp.
-touch "$acl_state_dir"/.new
-
 # Handle new spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old -printf '%T@\t%p\n' |
 	sort |
@@ -422,7 +420,9 @@ while read rulesfile; do
 	fi
 
 done
-mv -- "$acl_state_dir"/.new "$acl_state_dir"/.old
+
+# Update timestamp.
+touch -- "$acl_state_dir"/.old
 
 [ -z "$NOMAILS" ] ||
 	exit 0
