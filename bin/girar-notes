@@ -96,12 +96,17 @@ parse_cmd()
 repository="$1"
 shift
 
+# Abort if no non-empty repository list available.
+[ -s "$repositories_file" ] ||
+	fatal 'Sorry, list of available repositories is not available'
+
+# Abort if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$repositories_file" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+
 trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
-
-fgrep -ixqse "$repository" "$repositories_file" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
 
 if [ "$#" -eq 0 ]; then
 	while read cmd; do
