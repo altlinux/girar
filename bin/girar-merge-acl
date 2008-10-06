@@ -23,34 +23,40 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_conf_dir"
 
 workdir=
-cleanup() {
+cleanup()
+{
 	trap - EXIT
 	[ -z "$workdir" ] || rm -rf -- "$workdir"
 	exit "$@"
 }
 
-exit_handler() {
+exit_handler()
+{
 	cleanup $?
 }
 
-signal_handler() {
+signal_handler()
+{
 	cleanup 143
 }
 
-make_workdir() {
+make_workdir()
+{
 	[ -z "$workdir" ] || return 0
 	trap exit_handler EXIT
 	trap signal_handler HUP PIPE INT QUIT TERM
 	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 }
 
-writelog() {
+writelog()
+{
 	[ "$#" -eq 1 ] || return 0
 	printf '%s\n' "$cmd" >> "$srcfile"
 	printf '%s\n' "$1"   >> "$logfile"
 }
 
-change() {
+change()
+{
 	local action qtarget owners rc='PASS'
 
 	qtarget="$(quote_sed_regexp "$target")"
@@ -66,7 +72,8 @@ change() {
 
 }
 
-show_cmd_usage() {
+show_cmd_usage()
+{
 	local msg="IGNORE: $cmd => Usage: <PKG|GROUP> $action"
 	case "$action" in
 		create|*add|*del) msg="$msg <OWNERS ...>" ;;
@@ -76,7 +83,8 @@ show_cmd_usage() {
 	writelog "$msg"
 }
 
-check_target() {
+check_target()
+{
 	if [ -z "$prev_owners" ]; then
 		writelog "ERROR: $cmd => \`$target' not found"
 		return 1
@@ -88,7 +96,8 @@ check_target() {
 	fi
 }
 
-pkgadd() {
+pkgadd()
+{
 	local o owners=
 
 	check_target ||
@@ -104,7 +113,8 @@ pkgadd() {
 	change ${owners:-@nobody}
 }
 
-pkgdel() {
+pkgdel()
+{
 	local o owners=
 
 	check_target ||
@@ -121,7 +131,8 @@ pkgdel() {
 	change ${owners:-@nobody}
 }
 
-grpadd() {
+grpadd()
+{
 	local o owners=
 
 	check_target ||
@@ -135,7 +146,8 @@ grpadd() {
 	change $owners
 }
 
-grpdel() {
+grpdel()
+{
 	local o owners=
 
 	check_target ||
@@ -155,7 +167,8 @@ grpdel() {
 	change $owners
 }
 
-leader() {
+leader()
+{
 	local o new_leader owners=
 
 	check_target ||
@@ -176,7 +189,8 @@ leader() {
 	change $new_leader $owners
 }
 
-replace() {
+replace()
+{
 	local o old new found= owners=
 
 	check_target ||
@@ -213,7 +227,8 @@ replace() {
 	change $owners
 }
 
-create() {
+create()
+{
 	if [ -n "$prev_owners" ]; then
 		writelog "IGNORE: $cmd => \`$target' already exist"
 		return
@@ -235,7 +250,8 @@ create() {
 	writelog "$res: $cmd => $(date +'%Y-%m-%d %T')"
 }
 
-delete() {
+delete()
+{
 	if [ -z "$prev_owners" ]; then
 		writelog "IGNORE: $cmd => \`$target' not found"
 		return
@@ -255,7 +271,8 @@ delete() {
 	writelog "$res: $cmd => $(date +'%Y-%m-%d %T')"
 }
 
-check_leader() {
+check_leader()
+{
 	local loop qgroup
 
 	while [ -z "${leader##@*}" ]; do
@@ -277,7 +294,8 @@ check_leader() {
 	fi
 }
 
-process_user_rules() {
+process_user_rules()
+{
 	local function actiontype target action new_owners prev_owners leader cmd
 
 	while read target action new_owners; do
@@ -342,10 +360,8 @@ cd "$workdir"
 
 mkdir -- list mails
 
-"$helpers/altgpgkeys" "$workdir" > "$workdir/ownersdb.txt"
-
 find "$acl_conf_dir" -type f -name 'list.*' \
-	-exec cp -at ./list/ -- \{\} \+
+	-exec cp -at list -- \{\} \+
 
 touch "$acl_state_dir"/.new
 
@@ -385,12 +401,13 @@ X-Incominger: acl
 Subject: I: $repository: incoming acl status
 Content-Type: text/plain; charset=us-ascii
 
-Dear $commander !
-The initial list of commands:
-$(nl -w3 -s\  "$srcfile")
+Dear $commander@altlinux.org!
 
-The status of performance:
-$(nl -w3 -s\  "$logfile")
+Commands received:
+$(nl -w3 -s' ' "$srcfile")
+
+Result:
+$(nl -w3 -s' ' "$logfile")
 
 
 -- 
