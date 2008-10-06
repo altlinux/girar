@@ -12,7 +12,7 @@ acl_state_dir="$GIRAR_ACL_STATE_DIR"
 usage()
 {
 	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} <whitespace-separated-builders>]"
+	echo >&2 "usage: $PROG <binary-repository-name> [{<package>|@<group>} {add|del|leader|replace} <whitespace-separated-builders>]"
 	exit 1
 }
 
@@ -36,24 +36,24 @@ signal_handler()
 
 check_leader()
 {
-	local leader loop qgroup grp
+	local leader loop= qgroup grp
 	leader="$1"; shift
 
 	while [ -z "${leader##@*}" ]; do
-		qgroup="$(quote_sed_regexp "$leader")"
-		leader="$(sed -n -e "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups.$repository")"
+		grp="$leader"
+		qgroup="$(quote_sed_regexp "$grp")"
+		leader="$(sed -n "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups.$repository")"
 
 		[ -n "$leader" ] ||
-			fatal "$qgroup: Not found"
+			fatal "$grp: Group not found"
 
 		[ -z "$loop" -o -n "${loop##* $leader *}" ] ||
-			fatal "Loop detected"
+			fatal "$leader: Group loop detected"
 
 		loop=" $loop $leader "
 	done
 
-	[ "$leader" = "$GIRAR_USER" ] ||
-		fatal "Not enough permissions to commit this command"
+	[ "$leader" = "$GIRAR_USER" ]
 }
 
 # Format: {<package>|@<group>} {add|del|leader|replace} builder [ builder ...]
@@ -62,32 +62,34 @@ parse_cmd()
 	[ "$#" -ge 3 ] ||
 		usage 'Not enough arguments.'
 
-	local name qname command builders suffix
+	local name qname action name_type acl_type
 
 	name="$1"; shift
-	command="$1"; shift
-
-	case "$command" in
-		add|del|leader|replace) ;;
-		*) fatal "Unknown command \`$command'" ;;
-	esac
-
 	qname="$(quote_sed_regexp "$name")"
 
+	action="$1"; shift
+	case "$action" in
+		add|del|leader|replace) ;;
+		*) fatal "$action: Invalid action" ;;
+	esac
+
 	if [ -z "${name##@*}" ]; then
-		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.groups.$repository")" ||
-			fatal "Group \`$name' is not listed in acl file"
+		name_type='Group'
+		acl_type='groups'
 	else
-		leader="$(sed -n -e "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||
-			fatal "Project \`$name' is not listed in acl file for repository \`$repository'"
+		name_type='Project'
+		acl_type='packages'
 	fi
+	leader="$(sed -n "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.$acl_type.$repository")" ||
+		fatal "$name_type \`$name' is not listed in acl file for repository \`$repository'"
 
-	check_leader "$leader"
+	check_leader "$leader" ||
+		fatal "$name $action: Permission denied"
 
-	printf '%s\t%s\t%s\n' "$name" "$command" "$*"
+	printf '%s\t%s\t%s\n' "$name" "$action" "$*"
 }
 
-[ -n "${GIRAR_USER:-}" ] ||
+[ -n "${GIRAR_USER-}" ] ||
 	fatal "GIRAR_USER undefined"
 
 [ "$#" -ge 1 ] ||
@@ -108,12 +110,14 @@ trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 
-if [ "$#" -eq 0 ]; then
-	while read cmd; do
+# If caller specified arguments, parse them,
+# otherwise parse stdin line by line.
+if [ $# -eq 0 ]; then
+	while read -r cmd; do
 		parse_cmd $cmd
 	done
 else
 	parse_cmd "$@"
-fi > "$workdir/$GIRAR_USER"
+fi >"$workdir/$GIRAR_USER"
 
 mv -f -- "$workdir/$GIRAR_USER" "$acl_state_dir/$repository/"
