@@ -51,8 +51,8 @@ make_workdir()
 writelog()
 {
 	[ "$#" -eq 1 ] || return 0
-	printf '%s\n' "$cmd" >> "$srcfile"
-	printf '%s\n' "$1"   >> "$logfile"
+	printf '%s\n' "$cmd_info" >>"$srcfile"
+	printf '%s\n' "$1"   >>"$logfile"
 }
 
 change()
@@ -63,18 +63,18 @@ change()
 	owners="$*"
 
 	if [ "$owners" != "$prev_owners" ]; then
-		sed -i -e "s/^\($qtarget[[:space:]]\).*/\1$owners/" "$listfile" ||
+		sed -i "s/^\($qtarget[[:space:]]\).*/\1$owners/" "$listfile" ||
 			rc='ERROR'
 	else
 		rc='IGNORE'
 	fi
-	writelog "$rc: $cmd => $owners"
+	writelog "$rc: $cmd_info => $owners"
 
 }
 
 show_cmd_usage()
 {
-	local msg="IGNORE: $cmd => Usage: <PKG|GROUP> $action"
+	local msg="IGNORE: $cmd_info => Usage: <PKG|GROUP> $action"
 	case "$action" in
 		create|*add|*del) msg="$msg <OWNERS ...>" ;;
 		replace) msg="$msg <OLD-OWNER> <NEW-OWNER>" ;;
@@ -86,7 +86,7 @@ show_cmd_usage()
 check_target()
 {
 	if [ -z "$prev_owners" ]; then
-		writelog "ERROR: $cmd => \`$target' not found"
+		writelog "ERROR: $cmd_info => \`$target' not found"
 		return 1
 	fi
 
@@ -160,7 +160,7 @@ grpdel()
 	done
 
 	if [ -z "$owners" ]; then
-		writelog "IGNORE: $cmd => You try to remove all maintainers from group"
+		writelog "IGNORE: $cmd_info => You try to remove all maintainers from group"
 		return 0
 	fi
 
@@ -177,7 +177,7 @@ leader()
 	new_leader="${new_owners%% *}"
 
 	if [ "$leader" = "$new_leader" ]; then
-		writelog "IGNORE: $cmd => Maintainer already leader"
+		writelog "IGNORE: $cmd_info => Maintainer already leader"
 		return 0
 	fi
 
@@ -200,7 +200,7 @@ replace()
 	new="${new_owners##* }"
 
 	if [ "$old" = "$new" ]; then
-		writelog "ERROR: $cmd => \`$old' and \`$new' are the same maintainer"
+		writelog "ERROR: $cmd_info => \`$old' and \`$new' are the same maintainer"
 		return 1
 	fi
 
@@ -220,7 +220,7 @@ replace()
 	done
 
 	if [ "$found" != '11' ]; then
-		writelog "ERROR: $cmd => Both maintainers should be in list"
+		writelog "ERROR: $cmd_info => Both maintainers should be in list"
 		return 1
 	fi
 
@@ -230,7 +230,7 @@ replace()
 create()
 {
 	if [ -n "$prev_owners" ]; then
-		writelog "IGNORE: $cmd => \`$target' already exist"
+		writelog "IGNORE: $cmd_info => \`$target' already exist"
 		return
 	fi
 
@@ -241,19 +241,19 @@ create()
 
 	local res='PASS'
 
-	if printf '%s\t%s\n' "$target" "$new_owners" >> "$listfile"; then
+	if printf '%s\t%s\n' "$target" "$new_owners" >>"$listfile"; then
 		sort -uo "$listfile" "$listfile"
 	else
 		res='ERROR'
 	fi
 
-	writelog "$res: $cmd => $(date +'%Y-%m-%d %T')"
+	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
 }
 
 delete()
 {
 	if [ -z "$prev_owners" ]; then
-		writelog "IGNORE: $cmd => \`$target' not found"
+		writelog "IGNORE: $cmd_info => \`$target' not found"
 		return
 	fi
 
@@ -265,38 +265,44 @@ delete()
 	local qtarget res='PASS'
 
 	qtarget="$(quote_sed_regexp "$target")"
-	sed -i -e "/^$qtarget[[:space:]]/d" "$listfile" ||
+	sed -i "/^$qtarget[[:space:]]/d" "$listfile" ||
 		res='ERROR'
 
-	writelog "$res: $cmd => $(date +'%Y-%m-%d %T')"
+	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
 }
 
 check_leader()
 {
-	local loop qgroup
+	local leader loop= qgroup grp
+	leader="$1"; shift
 
 	while [ -z "${leader##@*}" ]; do
-		qgroup="$(quote_sed_regexp "$leader")"
-		leader="$(sed -n -e "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$listgroups")" #"
+		grp="$leader"
+		qgroup="$(quote_sed_regexp "$grp")"
+		leader="$(sed -n "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "list/list.groups.$repository")"
 
-		[ -n "$leader" ] ||
-			fatal "$qgroup: Not found"
+		if [ -z "$leader" ]; then
+			writelog "ERROR: $cmd_info => Group \`$grp' not found"
+			return 1
+		fi
 
-		[ -z "$loop" -o -n "${loop##* $leader *}" ] ||
-			fatal "Loop detected"
+		if [ -n "$loop" -z -z "${loop##* $leader *}" ]; then
+			writelog "ERROR: $cmd_info => Group \`$leader' loop detected"
+			return 1
+		fi
 
 		loop=" $loop $leader "
 	done
 
 	if [ "$person" != "$leader" ]; then
-		writelog "ERROR: $cmd => Permission denied"
+		writelog "ERROR: $cmd_info => Permission denied"
 		return 1
 	fi
 }
 
 process_user_rules()
 {
-	local function actiontype target action new_owners prev_owners leader cmd
+	local action action_type cmd_info func_name leader listfile new_owners prev_owners target
 
 	while read target action new_owners; do
 
@@ -305,54 +311,56 @@ process_user_rules()
 				continue
 				;;
 			@*)
-				actiontype="grp"
-				listfile="list.groups.$repository"
+				action_type='grp'
+				listfile="list/list.groups.$repository"
 				;;
 			*)
-				actiontype="pkg"
-				listfile="list.packages.$repository"
+				action_type='pkg'
+				listfile="list/list.packages.$repository"
 				;;
 		esac
 
-		# command alias
-		[ "$action" != 'rem' ] || action='del'
+		# Handle command aliases.
+		case "$action" in
+			rem) action=del ;;
+		esac
 
-		cmd="$target $action $new_owners"
+		cmd_info="$target $action $new_owners"
 
 		case "$action" in
-			add|del)	function="${actiontype}${action}" ;;
-			replace|leader)	function="$action" ;;
+			add|del)	func_name="${action_type}${action}" ;;
+			replace|leader)	func_name="$action" ;;
 
 			# superuser commands
 			create|delete)
 				if [ "$person" != "$superuser" ]; then
-					writelog "ERROR: $cmd => Permission denied"
+					writelog "ERROR: $target $action: Permission denied"
 					return 1
 				fi
-				function="$action"
+				func_name="$action"
 				;;
 			*)
-				writelog "ERROR: $cmd => Unknown action"
+				writelog "ERROR: $target $action: Invalid action"
 				return 1
 				;;
 		esac
 
 		qtarget="$(quote_sed_regexp "$target")"
-		prev_owners="$(sed -n -e "s/^$qtarget[[:space:]]//p" "$listfile")"
+		prev_owners="$(sed -n "s/^$qtarget[[:space:]]\+//p" "$listfile")"
 
 		# Get current leader
 		leader="${prev_owners%% *}"
 
 		# Check perms
 		[ "$person" = "$superuser" ] ||
-			check_leader ||
+			check_leader "$leader" ||
 			return 1
 
 		# Call to arms
-		$function ||
+		$func_name ||
 			return 1
 
-	done < "$rulesfile"
+	done <"$rulesfile"
 }
 
 make_workdir
@@ -360,12 +368,14 @@ cd "$workdir"
 
 mkdir -- list mails
 
+# Copy all active acl files to workdir.
 find "$acl_conf_dir" -type f -name 'list.*' \
 	-exec cp -at list -- \{\} \+
 
+# Set timestamp.
 touch "$acl_state_dir"/.new
 
-# Handle spooled acl files in ascending modification time order.
+# Handle new spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
@@ -377,14 +387,17 @@ while read rulesfile; do
 	logfile="mails/$person.$repository.status"
 	srcfile="mails/$person.$repository.source"
 
-	printf '%s %s %s %s\n' "$person" "$repository" "$srcfile" "$logfile" >> mails/info
+	# Store information required for sending emails at the end of processing.
+	printf '%s %s %s %s\n' "$person" "$repository" "$srcfile" "$logfile" >>mails/info
 
 	if process_user_rules "$rulesfile"; then
-		find ./list/ -type f -name 'list.*' \
+		# Install all working acl files as active.
+		find list -type f -name 'list.*' \
 			-exec cp -at "$acl_conf_dir" -- \{\} \+
 	else
+		# Copy all active acl files to workdir.
 		find "$acl_conf_dir" -type f -name 'list.*' \
-			-exec cp -at ./list/ -- \{\} \+
+			-exec cp -at list -- \{\} \+
 	fi
 
 done
