@@ -106,6 +106,9 @@ shift
 fgrep -ixqse "$repository" "$repositories_file" ||
 	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
 
+# Abort if acl spool dir for the repository is not available.
+cd "$acl_state_dir/$repository"
+
 trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
@@ -120,4 +123,4 @@ else
 	parse_cmd "$@"
 fi >"$workdir/$GIRAR_USER"
 
-mv -f -- "$workdir/$GIRAR_USER" "$acl_state_dir/$repository/"
+mv -f -- "$workdir/$GIRAR_USER" .
