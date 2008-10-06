@@ -288,7 +288,7 @@ check_leader()
 		loop=" $loop $leader "
 	done
 
-	if [ "$commander" != "$leader" ]; then
+	if [ "$person" != "$leader" ]; then
 		writelog "ERROR: $cmd => Permission denied"
 		return 1
 	fi
@@ -325,7 +325,7 @@ process_user_rules()
 
 			# superuser commands
 			create|delete)
-				if [ "$commander" != "$superuser" ]; then
+				if [ "$person" != "$superuser" ]; then
 					writelog "ERROR: $cmd => Permission denied"
 					return 1
 				fi
@@ -344,7 +344,7 @@ process_user_rules()
 		leader="${prev_owners%% *}"
 
 		# Check perms
-		[ "$commander" = "$superuser" ] ||
+		[ "$person" = "$superuser" ] ||
 			check_leader ||
 			return 1
 
@@ -365,18 +365,19 @@ find "$acl_conf_dir" -type f -name 'list.*' \
 
 touch "$acl_state_dir"/.new
 
+# Handle spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
 
-	commander="${rulesfile##*/}"
+	person="${rulesfile##*/}"
 	repository="${rulesfile%/*}"
 
-	logfile="mails/$commander.$repository.status"
-	srcfile="mails/$commander.$repository.source"
+	logfile="mails/$person.$repository.status"
+	srcfile="mails/$person.$repository.source"
 
-	printf '%s %s %s %s\n' "$commander" "$repository" "$srcfile" "$logfile" >> mails/info
+	printf '%s %s %s %s\n' "$person" "$repository" "$srcfile" "$logfile" >> mails/info
 
 	if process_user_rules "$rulesfile"; then
 		find ./list/ -type f -name 'list.*' \
@@ -392,16 +393,16 @@ mv -- "$acl_state_dir"/.new "$acl_state_dir"/.old
 [ -z "$NOMAILS" ] ||
 	exit 0
 
-while read commander repository srcfile logfile; do
+while read person repository srcfile logfile; do
 	/usr/sbin/sendmail -i -t <<EOF
 From: Upravdom Team Robot <upravdom@altlinux.org>
-To: <$commander@altlinux.org>
+To: <$person@altlinux.org>
 Reply-To: incoming@altlinux.org
 X-Incominger: acl
 Subject: I: $repository: incoming acl status
 Content-Type: text/plain; charset=us-ascii
 
-Dear $commander@altlinux.org!
+Dear $person@altlinux.org!
 
 Commands received:
 $(nl -w3 -s' ' "$srcfile")
@@ -415,4 +416,4 @@ Rgrds, your upravdom
 
 EOF
 
-done < mails/info
+done <mails/info
