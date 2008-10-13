@@ -78,7 +78,7 @@ parse_cmd()
 			fatal "End time in past"
 	fi
 
-	printf '%s\t%s\t%s\t%s\t%s\n' "$pkg" "$cmd" "$builder" "$start" "$end"
+	printf '%s\t%s\t%s\t%s\t%s\n' "$pkg" "$cmd" "$builder" "$start_time" "$end_time"
 }
 
 [ -n "${GIRAR_USER-}" ] ||
