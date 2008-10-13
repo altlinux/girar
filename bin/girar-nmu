@@ -46,7 +46,7 @@ parse_cmd()
 	esac
 	shift
 
-	builder='#anyone'
+	builder='*'
 	start_time=0
 	end_time=0
 

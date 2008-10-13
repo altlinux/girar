@@ -101,4 +101,16 @@ if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
 	fi
 fi
 
+if [ -s "$acl_dir/list.nmu.$repository" ]; then
+	cur_time="$(date +'%s')"
+	while read proj builder start_time end_time; do
+		[ "$project_name" = "$proj" ] &&
+			[ "$builder" = '*' -o "$builder" = "$GIRAR_USER" ] &&
+			[ $cur_time -gt "$start_time" ] &&
+			[ $end_time -eq 0 -o $cur_time -lt $end_time ] ||
+			continue
+		allow "approved NMU builder"
+	done < "$acl_dir/list.nmu.$repository"
+fi
+
 deny "does not belong to approved builders list: $leader $builders"
