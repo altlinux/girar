@@ -68,6 +68,7 @@ bin_TARGETS = \
 	bin/girar-init-db \
 	bin/girar-ls \
 	bin/girar-merge-acl \
+	bin/girar-merge-nmu \
 	bin/girar-mv-db \
 	bin/girar-nmu \
 	bin/girar-notes \
