@@ -34,6 +34,8 @@ signal_handler()
 
 parse_cmd()
 {
+	local pkg qpkg leader builder start_time end_time
+
 	[ "$#" -ge 2 ] ||
 		usage 'Not enough arguments.'
 
@@ -46,12 +48,21 @@ parse_cmd()
 	esac
 	shift
 
+	qpkg="$(quote_sed_regexp "$pkg")"
+	leader="$(sed -n "s/^$qpkg[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||
+		fatal "Package \`$pkg' is not listed in acl file for repository \`$repository'"
+
+	check_leader "$leader" ||
+		fatal "$pkg $cmd: Permission denied"
+
 	builder='*'
 	start_time=0
 	end_time=0
 
 	if [ "$#" -gt 0 ]; then
 		builder="$1"
+		[ -n "${builder##@*}" ] ||
+			fatal "$builder: Group is not allowed here"
 		shift
 	fi
 
@@ -97,13 +108,6 @@ shift
 # Abort if requested binary repository is not listed.
 fgrep -ixqse "$repository" "$repositories_file" ||
 	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
-
-qpkg="$(quote_sed_regexp "$pkg")"
-leader="$(sed -n "s/^$qpkg[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.$acl_type.$repository")" ||
-	fatal "Package \`$pkg' is not listed in acl file for repository \`$repository'"
-
-check_leader "$leader" ||
-	fatal "$pkg $cmd: Permission denied"
 
 # Abort if acl spool dir for the repository is not available.
 cd "$acl_state_dir/$repository"
