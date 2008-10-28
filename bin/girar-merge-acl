@@ -1,17 +1,27 @@
 #!/bin/sh -efu
+# Command format:
+# <Target> <Action> <Arguments>
+#
+# <Target> := Package|@Group
+# <Action> := add|del|leader|replace
+#
+# Superuser(root) additional actions:
+# <Action> := create|delete
+#
 
 . girar-sh-functions
+
+. shell-error
 . shell-quote
 
-repositories_file="$GIRAR_REPOSITORIES"
 acl_conf_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
+superuser="root"
+NOMAILS=
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_conf_dir"
-
-cd "$acl_state_dir"
-touch .new
+builtin lockf -v "$acl_state_dir"
 
 workdir=
 cleanup()
@@ -39,75 +49,405 @@ make_workdir()
 	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 }
 
-merge_file()
+writelog()
 {
-	local type="$1"; shift
-	local user="$1"; shift
-	local file="$1"; shift
+	[ "$#" -eq 1 ] || return 0
+	printf '%s\n' "$cmd_info" >>"$srcfile"
+	printf '%s\n' "$1"   >>"$logfile"
+}
 
-	[ -r "$file" ] || return 0
-	make_workdir
+change()
+{
+	local action qtarget owners rc='DONE'
 
-	local quser
-	quser="$(quote_sed_regexp "$user")"
+	qtarget="$(quote_sed_regexp "$target")"
+	owners="$*"
 
-	# acl line format: name leader [whitespace-separated-builders]
-	grep -v "^[^[:space:]]\\+[[:space:]]\+$quser\\>" -- "$file" |
-		sort -k1,1 >"$workdir/rest"
-	grep "^[^[:space:]]\\+[[:space:]]\+$quser\\>" -- "$file" |
-		tr -s '[:blank:]' ' ' |
-		sed 's/^\([^ ]\+\) \([^ ]\+\) */\1\t\2\t/' |
-		tr ' ' , |
-		sort -k1,1 >"$workdir/user"
-	# intermediate line format: name leader [comma-separated-builders]
+	if [ "$owners" != "$prev_owners" ]; then
+		sed -i "s/^\($qtarget[[:space:]]\).*/\1$owners/" "$listfile" ||
+			rc='ERROR'
+	else
+		rc='IGNORE'
+	fi
 
-	# input line format: name [whitespace-separated-builders]
-	tr -s '[:blank:]' ' ' <"$user/$type" |
-		sed 's/^\([^ ]\+\) /\1\t/' |
-		tr ' ' , |
-		sort -k1,1 >"$workdir/in"
-	# intermediate line format: name [comma-separated-builders]
+	writelog "$rc: $cmd_info => $owners"
+}
 
-	join -j 1 -o 1.1,1.2,2.2 -- "$workdir/user" "$workdir/in" |
-		tr , ' ' |
-		sed 's/[[:space:]]\+$//' >"$workdir/out"
+show_cmd_usage()
+{
+	local msg="IGNORE: $cmd_info => Usage: <PACKAGE|GROUP> $action"
+	case "$action" in
+		create|*add|*del) msg="$msg <OWNERS ...>" ;;
+		replace) msg="$msg <OLD-OWNER> <NEW-OWNER>" ;;
+		leader) msg="$msg <OWNER>" ;;
+	esac
+	writelog "$msg"
+}
 
-	join -v 1 -- "$workdir/user" "$workdir/in" |
-		tr , ' ' |
-		sed 's/[[:space:]]\+$//' >"$workdir/more"
+check_target()
+{
+	if [ -z "$prev_owners" ]; then
+		writelog "ERROR: $cmd_info => \`$target' not found in acl file"
+		return 1
+	fi
 
-	sort -u -- "$workdir/rest" "$workdir/more" "$workdir/out" >"$workdir/res"
-	if cmp -s -- "$file" "$workdir/res"; then
+	if [ -z "$new_owners" ]; then
+		show_cmd_usage
+		return 1
+	fi
+}
+
+pkgadd()
+{
+	local o owners=
+
+	check_target ||
+		return 1
+
+	# Add #nobody means change to @nobody.
+	if [ "$new_owners" != '#nobody' ]; then
+		# Merge old and new owners, remove dups and @nobody if any.
+		for o in $prev_owners $new_owners; do
+			if [ "$o" != '@nobody' -a -n "${owners#* $o *}" ]; then
+				owners="$owners $o "
+			fi
+		done
+	fi
+
+	change ${owners:-@nobody}
+}
+
+pkgdel()
+{
+	local o owners=
+
+	check_target ||
+		return 1
+
+	# Delete #all means change to @nobody.
+	if [ "$new_owners" != "#all" -a "$prev_owners" != "@nobody" ]; then
+		new_owners=" $new_owners "
+		# Filter out new owners from old owners.
+		for o in $prev_owners; do
+			if [ -n "${new_owners##* $o *}" ]; then
+				owners="$owners $o"
+			fi
+		done
+	fi
+
+	change ${owners:-@nobody}
+}
+
+grpadd()
+{
+	local o owners=
+
+	check_target ||
+		return 1
+
+	# Check new owners for nested groups.
+	for o in $new_owners; do
+		if [ -z "${o##@*}" ]; then
+			writelog "ERROR: $cmd_info => Nested group \`$o' detected"
+			return 1
+		fi
+	done
+
+	# Merge old and new owners, remove dups if any.
+	for o in $prev_owners $new_owners; do
+		if [ -n "${owners##* $o *}" ]; then
+			owners="$owners $o "
+		fi
+	done
+
+	change $owners
+}
+
+grpdel()
+{
+	local o owners=
+
+	check_target ||
+		return 1
+
+	new_owners=" $new_owners "
+	# Filter out new owners from old owners.
+	for o in $prev_owners; do
+		[ -z "${new_owners##* $o *}" ] ||
+			owners="$owners $o"
+	done
+
+	if [ -z "$owners" ]; then
+		writelog "ERROR: $cmd_info => Group list cannot be made empty"
+		return 1
+	fi
+
+	change $owners
+}
+
+leader()
+{
+	local o new_leader owners=
+
+	check_target ||
+		return 1
+
+	new_leader="${new_owners%% *}"
+
+	if [ "$leader" = "$new_leader" ]; then
+		writelog "IGNORE: $cmd_info => Specified maintainer is already leader"
 		return 0
 	fi
-	mv "$workdir/res" "$file.new"
-	diff "$file" "$file.new" ||:
-	mv "$file.new" "$file"
-}
 
-merge_user()
-{
-	local type="$1"; shift
-	local user="$1"; shift
-	local repository
-
-	merge_file "$type" "$user" "$acl_conf_dir/list.$type"
-	while read repository; do
-		merge_file "$type" "$user" "$acl_conf_dir/list.$type.$repository"
-	done < "$repositories_file"
-}
-
-merge_type()
-{
-	local t="$1"; shift
-	local u
-
-	for u in $(find . -mindepth 2 -maxdepth 2 -name "$t" -type f -newer .old -printf '%h\n' |cut -d/ -f2); do
-		merge_user "$t" "$u"
+	# Filter out new leader from old owners.
+	for o in $prev_owners; do
+		[ "$o" = "$new_leader" ] ||
+			owners="$owners $o"
 	done
+
+	change $new_leader $owners
 }
 
-merge_type groups
-merge_type packages
+replace()
+{
+	local o old new found= owners=
 
-mv .new .old
+	check_target ||
+		return 1
+
+	set -- $new_owners
+	if [ $# -ne 2 ]; then
+		show_cmd_usage
+		return 1
+	fi
+	old="$1"; shift
+	new="$1"; shift
+
+	if [ "$old" = "$new" ]; then
+		writelog "IGNORE: $cmd_info => Nothing to do"
+		return 0
+	fi
+
+	for o in $prev_owners; do
+		case "$o" in
+			$old)
+				found=1
+				owners="$owners $new"
+				;;
+			*)
+				owners="$owners $o"
+				;;
+		esac
+	done
+
+	if [ -z "$found" ]; then
+		writelog "ERROR: $cmd_info => Owner \`$old' not found"
+		return 1
+	fi
+
+	change $owners
+}
+
+create()
+{
+	if [ -n "$prev_owners" ]; then
+		writelog "IGNORE: $cmd_info => \`$target' already exist"
+		return 0
+	fi
+
+	if [ -z "$new_owners" ]; then
+		show_cmd_usage
+		return 1
+	fi
+
+	local res='DONE'
+
+	if printf '%s\t%s\n' "$target" "$new_owners" >>"$listfile"; then
+		sort -u -o "$listfile" "$listfile"
+	else
+		res='ERROR'
+	fi
+
+	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
+}
+
+delete()
+{
+	if [ -z "$prev_owners" ]; then
+		writelog "IGNORE: $cmd_info => \`$target' not found in acl file"
+		return
+	fi
+
+	if [ -n "$new_owners" ]; then
+		show_cmd_usage
+		return 1
+	fi
+
+	local qtarget res='DONE'
+
+	qtarget="$(quote_sed_regexp "$target")"
+	sed -i "/^$qtarget[[:space:]]/d" "$listfile" ||
+		res='ERROR'
+
+	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
+}
+
+check_leader()
+{
+	local leader loop= qgroup grp
+	leader="$1"; shift
+
+	while [ -z "${leader##@*}" ]; do
+		grp="$leader"
+		qgroup="$(quote_sed_regexp "$grp")"
+		leader="$(sed -n "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "list/list.groups.$repository")"
+
+		if [ -z "$leader" ]; then
+			writelog "ERROR: $cmd_info => Group \`$grp' not found in acl file"
+			return 1
+		fi
+
+		if [ -n "$loop" -z -z "${loop##* $leader *}" ]; then
+			writelog "ERROR: $cmd_info => Group \`$leader' loop detected"
+			return 1
+		fi
+
+		loop=" $loop $leader "
+	done
+
+	if [ "$person" != "$leader" ]; then
+		writelog "ERROR: $cmd_info => Permission denied"
+		return 1
+	fi
+}
+
+process_user_rules()
+{
+	local action action_type cmd_info func_name leader listfile new_owners prev_owners target
+
+	while read target action new_owners; do
+
+		case "$target" in
+			''|\#*)
+				continue
+				;;
+			@*)
+				action_type='grp'
+				listfile="list/list.groups.$repository"
+				;;
+			*)
+				action_type='pkg'
+				listfile="list/list.packages.$repository"
+				;;
+		esac
+
+		# Handle command aliases.
+		case "$action" in
+			rem) action=del ;;
+		esac
+
+		cmd_info="$target $action $new_owners"
+
+		# Check action name.
+		case "$action" in
+			add|del)	func_name="${action_type}${action}" ;;
+			replace|leader)	func_name="$action" ;;
+
+			# superuser commands
+			create|delete)
+				if [ "$person" != "$superuser" ]; then
+					writelog "ERROR: $target $action: Permission denied"
+					return 1
+				fi
+				func_name="$action"
+				;;
+			*)
+				writelog "ERROR: $target $action: Invalid action"
+				return 1
+				;;
+		esac
+
+		qtarget="$(quote_sed_regexp "$target")"
+		prev_owners="$(sed -n "s/^$qtarget[[:space:]]\+//p" "$listfile")"
+
+		# Get current leader
+		leader="${prev_owners%% *}"
+
+		# Check perms
+		[ "$person" = "$superuser" ] ||
+			check_leader "$leader" ||
+			return 1
+
+		# First failure breaks the loop
+		$func_name ||
+			return 1
+
+	done <"$rulesfile"
+}
+
+make_workdir
+cd "$workdir"
+
+mkdir -- list mails
+
+# Copy all active acl files to workdir.
+find "$acl_conf_dir" -type f -name 'list.*' \
+	-exec cp -at list -- \{\} \+
+
+# Handle new spooled acl files in ascending modification time order.
+find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old -printf '%T@\t%p\n' |
+	sort |
+	cut -f2 |
+while read rulesfile; do
+
+	person="${rulesfile##*/}"
+	repository="${rulesfile%/*}"
+
+	logfile="mails/$person.$repository.status"
+	srcfile="mails/$person.$repository.source"
+
+	# Store information required for sending emails at the end of processing.
+	printf '%s %s %s %s\n' "$person" "$repository" "$srcfile" "$logfile" >>mails/info
+
+	if process_user_rules "$rulesfile"; then
+		# Install all working acl files as active.
+		find list -type f -name 'list.*' \
+			-exec cp -at "$acl_conf_dir" -- \{\} \+
+	else
+		# Copy all active acl files to workdir.
+		find "$acl_conf_dir" -type f -name 'list.*' \
+			-exec cp -at list -- \{\} \+
+	fi
+
+done
+
+# Update timestamp.
+touch -- "$acl_state_dir"/.old
+
+[ -z "$NOMAILS" ] ||
+	exit 0
+
+while read person repository srcfile logfile; do
+	/usr/sbin/sendmail -i -t <<EOF
+From: Upravdom Team Robot <upravdom@altlinux.org>
+To: <$person@altlinux.org>
+Reply-To: incoming@altlinux.org
+X-Incominger: acl
+Subject: I: $repository: incoming acl status
+Content-Type: text/plain; charset=us-ascii
+
+Dear $person@altlinux.org!
+
+Commands received:
+$(nl -w3 -s' ' "$srcfile")
+
+Result:
+$(nl -w3 -s' ' "$logfile")
+
+
+-- 
+Rgrds, your upravdom
+
+EOF
+
+done <mails/info

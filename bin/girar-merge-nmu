@@ -1,0 +1,112 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+. shell-error
+
+acl_conf_dir="$GIRAR_ACL_CONF_DIR"
+acl_state_dir="$GIRAR_ACL_STATE_DIR"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$acl_conf_dir"
+builtin lockf -v "$acl_state_dir"
+
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+make_workdir()
+{
+	[ -z "$workdir" ] || return 0
+	trap exit_handler EXIT
+	trap signal_handler HUP PIPE INT QUIT TERM
+	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+}
+
+make_workdir
+cd "$workdir"
+
+mkdir -- list
+
+# Copy all active acl files to workdir.
+find "$acl_conf_dir" -type f -name 'list.nmu.*' \
+	-exec cp -at list -- \{\} \+
+
+# Handle new spooled acl files in ascending modification time order.
+find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old \
+	-name '*.nmu' \
+	-printf '%T@\t%p\n' |
+	sort |
+	cut -f2 |
+while read rulesfile; do
+
+	person="${rulesfile##*/}"
+	person="${person%.nmu}"
+
+	repository="${rulesfile%/*}"
+	repository="${repository##*/}"
+
+	while read pkg cmd builder start_time end_time; do
+		case "$cmd" in
+			add)
+				changed=
+				while read p b s e; do
+					if [ "$pkg" != "$p" ]; then
+						printf '%s\t%s\t%s\t%s\n' \
+							"$p" "$b" "$s" "$e"
+						continue
+					fi
+
+					if [ "$builder" = "$b" ]; then
+						builder="$b"
+					elif [ "$b" = '*' -o "$builder" = '*' ]; then
+						builder='*'
+					else
+						print_rule
+						continue
+					fi
+
+					[ $start_time -lt $s ] || start_time="$s"
+					[ $end_time -gt $e ]   || end_time="$e"
+
+					printf '%s\t%s\t%s\t%s\n' \
+						"$pkg" "$builder" "$start_time" "$end_time"
+					changed=1
+
+				done < "list/list.nmu.$repository" > new
+
+				[ -n "$changed" ] ||
+					print_rule >> new
+
+				sort -uo "list/list.nmu.$repository" new
+				;;
+			del)
+				quote_pkg="$(quote_sed_regexp "$pkg")"
+				quote_builder="$(quote_sed_regexp "$builder")"
+
+				sed -i "/^$quote_pkg[[:space:]]$quote_builder[[:space:]]$start_time[[:space:]]$end_time/d" \
+					"list/list.nmu.$repository"
+				;;
+		esac
+	done < "$rulesfile"
+done
+
+find list -type f -name 'list.nmu.*' \
+	-exec cp -at "$acl_conf_dir" -- \{\} \+
+
+# Update timestamp.
+touch -- "$acl_state_dir"/.old

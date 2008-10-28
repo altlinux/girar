@@ -1,0 +1,131 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+. shell-args
+
+PROG=girar-nmu
+acl_state_dir="$GIRAR_ACL_STATE_DIR"
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <binary-repository-name> <package> {add|del} [<builder> [<start-date> [<end-date>]]]"
+	exit 1
+}
+
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+parse_cmd()
+{
+	local pkg qpkg leader builder start_time end_time
+
+	[ "$#" -ge 2 ] ||
+		usage 'Not enough arguments.'
+
+	pkg="$1"
+	shift
+
+	case "$1" in
+		add|del) cmd="$1" ;;
+		*) fatal "$1: Invalid action" ;;
+	esac
+	shift
+
+	qpkg="$(quote_sed_regexp "$pkg")"
+	leader="$(sed -n "s/^$qpkg[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||
+		fatal "Package \`$pkg' is not listed in acl file for repository \`$repository'"
+
+	check_leader "$leader" ||
+		fatal "$pkg $cmd: Permission denied"
+
+	builder='*'
+	start_time=0
+	end_time=0
+
+	if [ "$#" -gt 0 ]; then
+		builder="$1"
+		[ -n "${builder##@*}" ] ||
+			fatal "$builder: Group is not allowed here"
+		shift
+	fi
+
+	if [ "$#" -gt 0 ]; then
+		start_time="$1"
+		shift
+	fi
+
+	if [ "$#" -gt 0 ]; then
+		end_time="$1"
+		shift
+	fi
+
+	if [ "$start_time" != 0 ]; then
+		opt_check_number 'start-time' "$start_time"
+	else
+		start_time="$(date +'%s')"
+	fi
+
+	if [ "$end_time" != 0 ]; then
+		opt_check_number 'end-time' "$end_time"
+
+		[ "$start_time" -lt "$end_time" ] ||
+			fatal "End time in the past"
+	fi
+
+	printf '%s\t%s\t%s\t%s\t%s\n' "$pkg" "$cmd" "$builder" "$start_time" "$end_time"
+}
+
+[ -n "${GIRAR_USER-}" ] ||
+	fatal "GIRAR_USER undefined"
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+
+repository="$1"
+shift
+
+# Abort if no non-empty repository list available.
+[ -s "$repositories_file" ] ||
+	fatal 'Sorry, list of available repositories is not available'
+
+# Abort if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$repositories_file" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+
+# Abort if acl spool dir for the repository is not available.
+cd "$acl_state_dir/$repository"
+
+trap exit_handler EXIT
+trap signal_handler HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+
+if [ $# -eq 0 ]; then
+	while read -r line; do
+		parse_cmd "$line"
+	done
+else
+	parse_cmd "$@"
+fi > "$workdir/$GIRAR_USER".nmu
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$acl_state_dir"
+sleep 1
+touch "$workdir/$GIRAR_USER".nmu
+mv -f -- "$workdir/$GIRAR_USER".nmu .

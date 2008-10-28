@@ -100,4 +100,26 @@ set_name()
 		fatal "$NAME: invalid NAME specified"
 }
 
+check_leader()
+{
+	local leader loop= qgroup grp
+	leader="$1"; shift
+
+	while [ -z "${leader##@*}" ]; do
+		grp="$leader"
+		qgroup="$(quote_sed_regexp "$grp")"
+		leader="$(sed -n "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$GIRAR_ACL_CONF_DIR/list.groups.$repository")"
+
+		[ -n "$leader" ] ||
+			fatal "$grp: Group not found"
+
+		[ -z "$loop" -o -n "${loop##* $leader *}" ] ||
+			fatal "$leader: Group loop detected"
+
+		loop=" $loop $leader "
+	done
+
+	[ "$leader" = "$GIRAR_USER" ]
+}
+
 fi #__included_girar_sh_functions
