@@ -160,7 +160,13 @@ generate_delete_ref_email()
 generate_update_ref_email()
 {
 	local base prev size
-	base="$(git merge-base "$arg_oldrev" "$arg_newrev")"
+	base="$(git merge-base "$arg_oldrev" "$arg_newrev")" ||
+	{
+		echo "Update of $ref_style \`$ref_name' has no common commits with previous $ref_style."
+		echo
+		generate_create_${ref_style}_email "$@"
+		return
+	}
 	prev="$(git describe "$base" 2>/dev/null)" || prev="$base"
 	if [ -z "$prev" ]; then
 		git rev-list --pretty "$arg_newrev" >"$DIFF"
