@@ -51,10 +51,9 @@ dir="$(add_git_suffix "$dir")"
 [ ! -e "$dir" ] ||
 	fatal "$dir0: destination already exists"
 
-git clone --bare --template="$GIRAR_TEMPLATES_DIR" "$p_repo" "$dir"
+git clone --bare --template="$GIRAR_TEMPLATES_DIR" "$p_repo" "$dir" >/dev/null
 cd "$dir"
 echo "${dir%.git}" >description
 install -m600 /dev/null git-daemon-export-ok
-GIT_DIR=`/bin/pwd`
-export GIT_DIR
-exec "$GIRAR_HOOKS_DIR/post-update"
+GIT_DIR="$PWD" "$GIRAR_HOOKS_DIR/post-update"
+printf '%s:\t%s\n' "$PROG" "$PWD"
