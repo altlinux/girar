@@ -395,7 +395,8 @@ find "$acl_conf_dir" -type f -name 'list.*' \
 	-exec cp -at list -- \{\} \+
 
 # Handle new spooled acl files in ascending modification time order.
-find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f -newer .old -printf '%T@\t%p\n' |
+find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f \
+	-newer "$acl_state_dir/.old" -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
