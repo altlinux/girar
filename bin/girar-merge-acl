@@ -396,7 +396,7 @@ find "$acl_conf_dir" -type f -name 'list.*' \
 
 # Handle new spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f \
-	-newer "$acl_state_dir/.old" -printf '%T@\t%p\n' |
+	-newer "$acl_state_dir/acl.stamp" -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
@@ -423,7 +423,7 @@ while read rulesfile; do
 done
 
 # Update timestamp.
-touch -- "$acl_state_dir"/.old
+touch -- "$acl_state_dir"/acl.stamp
 
 [ -z "$NOMAILS" -a -s mails/info ] ||
 	exit 0

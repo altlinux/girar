@@ -48,7 +48,7 @@ find "$acl_conf_dir" -type f -name 'list.nmu.*' \
 
 # Handle new spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f \
-	-newer "$acl_state_dir/.old" -name '*.nmu' -printf '%T@\t%p\n' |
+	-newer "$acl_state_dir/nmu.stamp" -name '*.nmu' -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
@@ -108,4 +108,4 @@ find list -type f -name 'list.nmu.*' \
 	-exec cp -at "$acl_conf_dir" -- \{\} \+
 
 # Update timestamp.
-touch -- "$acl_state_dir"/.old
+touch -- "$acl_state_dir"/nmu.stamp
