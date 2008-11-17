@@ -396,12 +396,13 @@ find "$acl_conf_dir" -type f -name 'list.*' \
 
 # Handle new spooled acl files in ascending modification time order.
 find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f \
-	-newer "$acl_state_dir/acl.stamp" -printf '%T@\t%p\n' |
+	-newer "$acl_state_dir/acl.stamp" -name '*.acl' -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
 
 	person="${rulesfile##*/}"
+	person="${person%.acl}"
 	repository="${rulesfile%/*}"
 	repository="${repository##*/}"
 
@@ -420,6 +421,7 @@ while read rulesfile; do
 		find "$acl_conf_dir" -type f -name 'list.*' \
 			-exec cp -at list -- \{\} \+
 	fi
+	rm -f -- "$rulesfile"
 
 done
 

@@ -99,9 +99,9 @@ if [ $# -eq 0 ]; then
 	done
 else
 	parse_cmd "$@"
-fi >"$workdir/$GIRAR_USER"
+fi >"$workdir/acl"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_state_dir"
 sleep 1
-cat -- "$workdir/$GIRAR_USER" >>"$GIRAR_USER"
+cat -- "$workdir/acl" >>"$GIRAR_USER.acl"
