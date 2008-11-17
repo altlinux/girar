@@ -1,20 +1,19 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-. shell-quote
+. shell-args
 
-PROG=girar-acl
+if [ "${1-}" = '--help' ]; then
+        cat <<EOF
+Usage: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated builders>]
+   or: $PROG <binary repository name> # reads commands from stdin, one command per line
+EOF
+	exit 0
+fi
 
 repositories_file="$GIRAR_REPOSITORIES"
 acl_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
-
-usage()
-{
-	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <binary-repository-name> [{<package>|@<group>} {add|del|leader|replace} <whitespace-separated-builders>]"
-	exit 1
-}
 
 workdir=
 cleanup()
@@ -34,18 +33,16 @@ signal_handler()
 	cleanup 143
 }
 
+nqueued=0
 # Format: {<package>|@<group>} {add|del|leader|replace} builder [ builder ...]
 parse_cmd()
 {
 	[ "$#" -ge 3 ] ||
-		usage 'Not enough arguments.'
+		show_usage 'Not enough arguments.'
 
-	local acl_type action leader name name_type qname
+	local name="$1"; shift
+	local action="$1"; shift
 
-	name="$1"; shift
-	qname="$(quote_sed_regexp "$name")"
-
-	action="$1"; shift
 	case "$action" in
 		add|del|leader|replace) ;;
 		create|delete)
@@ -54,28 +51,19 @@ parse_cmd()
 		*) fatal "$action: Invalid action" ;;
 	esac
 
-	if [ -z "${name##@*}" ]; then
-		name_type='Group'
-		acl_type='groups'
-	else
-		name_type='Project'
-		acl_type='packages'
-	fi
-	leader="$(sed -n "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.$acl_type.$repository")" ||
-		fatal "$name_type \`$name' is not listed in acl file for repository \`$repository'"
-
-	[ "${GIRAR_USER-}" = 'root' ] ||
-	check_leader "$leader" ||
-		fatal "$name $action: Permission denied"
+	girar-check-acl-leader "$GIRAR_USER" "$name" \
+		"$acl_dir/list.packages.$repository" \
+		"$acl_dir/list.groups.$repository" >&2
 
 	printf '%s\t%s\t%s\n' "$name" "$action" "$*"
+	nqueued="$(($nqueued+1))"
 }
 
 [ -n "${GIRAR_USER-}" ] ||
 	fatal "GIRAR_USER undefined"
 
 [ "$#" -ge 1 ] ||
-	usage 'Not enough arguments.'
+	show_usage 'Not enough arguments.'
 
 repository="$1"
 shift
@@ -98,8 +86,8 @@ workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 # If caller specified arguments, parse them,
 # otherwise parse stdin line by line.
 if [ $# -eq 0 ]; then
-	while read -r cmd; do
-		parse_cmd $cmd
+	while read -r line; do
+		parse_cmd $line
 	done
 else
 	parse_cmd "$@"
@@ -114,3 +102,5 @@ touch -- "$workdir/new"
 	cat -- "$GIRAR_USER.acl" >"$workdir/new"
 cat -- "$workdir/cmd" >>"$workdir/new"
 mv -f -- "$workdir/new" "$GIRAR_USER.acl"
+
+message "$nqueued command(s) queued"
