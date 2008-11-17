@@ -425,7 +425,7 @@ done
 # Update timestamp.
 touch -- "$acl_state_dir"/.old
 
-[ -z "$NOMAILS" ] ||
+[ -z "$NOMAILS" -a -s mails/info ] ||
 	exit 0
 
 while read person repository srcfile logfile; do
