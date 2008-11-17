@@ -40,7 +40,7 @@ parse_cmd()
 	[ "$#" -ge 3 ] ||
 		usage 'Not enough arguments.'
 
-	local name qname action name_type acl_type
+	local acl_type action leader name name_type qname
 
 	name="$1"; shift
 	qname="$(quote_sed_regexp "$name")"
@@ -99,9 +99,15 @@ if [ $# -eq 0 ]; then
 	done
 else
 	parse_cmd "$@"
-fi >"$workdir/acl"
+fi >"$workdir/cmd"
+[ -s "$workdir/cmd" ] || exit 0
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_state_dir"
+
+touch -- "$workdir/new"
+[ ! -s "$GIRAR_USER.acl" ] ||
+	cat -- "$GIRAR_USER.acl" >"$workdir/new"
 sleep 1
-cat -- "$workdir/acl" >>"$GIRAR_USER.acl"
+cat -- "$workdir/cmd" >>"$workdir/new"
+mv -f -- "$workdir/new" "$GIRAR_USER.acl"
