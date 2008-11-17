@@ -1,21 +1,19 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-. shell-quote
 . shell-args
 
-PROG=girar-nmu
+if [ "${1-}" = '--help' ]; then
+        cat <<EOF
+Usage: $PROG <binary repository name> <package> {add|del} [<login> [<start date> [<end date>]]]
+   or: $PROG <binary repository name> # reads commands from stdin, one command per line
+EOF
+	exit 0
+fi
 
 repositories_file="$GIRAR_REPOSITORIES"
 acl_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
-
-usage()
-{
-	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <binary-repository-name> <package> {add|del} [<builder> [<start-date> [<end-date>]]]"
-	exit 1
-}
 
 workdir=
 cleanup()
@@ -35,48 +33,41 @@ signal_handler()
 	cleanup 143
 }
 
+nqueued=0
+# Format: <package> {add|del} [<login> [<start date> [<end date>]]]
 parse_cmd()
 {
-	local pkg qpkg leader builder start_time end_time
-
 	[ "$#" -ge 2 ] ||
-		usage 'Not enough arguments.'
+		show_usage 'Not enough arguments.'
 
-	pkg="$1"
-	shift
+	local name="$1"; shift
+	[ -n "${name##@*}" ] ||
+		fatal "$name: Group is not allowed here"
 
-	case "$1" in
-		add|del) cmd="$1" ;;
+	local action="$1"; shift
+	case "$action" in
+		add|del) ;;
 		*) fatal "$1: Invalid action" ;;
 	esac
-	shift
 
-	qpkg="$(quote_sed_regexp "$pkg")"
-	leader="$(sed -n "s/^$qpkg[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.packages.$repository")" ||
-		fatal "Package \`$pkg' is not listed in acl file for repository \`$repository'"
+	girar-check-acl-leader "$GIRAR_USER" "$name" \
+		"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
+		"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
 
-	check_leader "$leader" ||
-		fatal "$pkg $cmd: Permission denied"
-
-	builder='*'
-	start_time=0
-	end_time=0
+	local login='*' start_time=0 end_time=0
 
 	if [ "$#" -gt 0 ]; then
-		builder="$1"
-		[ -n "${builder##@*}" ] ||
-			fatal "$builder: Group is not allowed here"
-		shift
+		login="$1"; shift
+		[ -n "${login##@*}" ] ||
+			fatal "$login: Group is not allowed here"
 	fi
 
 	if [ "$#" -gt 0 ]; then
-		start_time="$1"
-		shift
+		start_time="$1"; shift
 	fi
 
 	if [ "$#" -gt 0 ]; then
-		end_time="$1"
-		shift
+		end_time="$1"; shift
 	fi
 
 	if [ "$start_time" != 0 ]; then
@@ -92,14 +83,15 @@ parse_cmd()
 			fatal "End time in the past"
 	fi
 
-	printf '%s\t%s\t%s\t%s\t%s\n' "$pkg" "$cmd" "$builder" "$start_time" "$end_time"
+	printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$action" "$login" "$start_time" "$end_time"
+	nqueued="$(($nqueued+1))"
 }
 
 [ -n "${GIRAR_USER-}" ] ||
 	fatal "GIRAR_USER undefined"
 
 [ "$#" -ge 1 ] ||
-	usage 'Not enough arguments.'
+	show_usage 'Not enough arguments.'
 
 repository="$1"
 shift
@@ -119,9 +111,11 @@ trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 
+# If caller specified arguments, parse them,
+# otherwise parse stdin line by line.
 if [ $# -eq 0 ]; then
 	while read -r line; do
-		parse_cmd "$line"
+		parse_cmd $line
 	done
 else
 	parse_cmd "$@"
@@ -136,3 +130,5 @@ touch -- "$workdir/new"
 	cat -- "$GIRAR_USER.nmu" >"$workdir/new"
 cat -- "$workdir/cmd" >>"$workdir/new"
 mv -f -- "$workdir/new" "$GIRAR_USER.nmu"
+
+message "$nqueued command(s) queued"
