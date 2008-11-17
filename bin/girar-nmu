@@ -5,6 +5,9 @@
 . shell-args
 
 PROG=girar-nmu
+
+repositories_file="$GIRAR_REPOSITORIES"
+acl_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
 
 usage()
