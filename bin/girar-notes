@@ -104,5 +104,4 @@ fi >"$workdir/$GIRAR_USER"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_state_dir"
 sleep 1
-touch "$workdir/$GIRAR_USER"
-mv -f -- "$workdir/$GIRAR_USER" .
+cat -- "$workdir/$GIRAR_USER" >>"$GIRAR_USER"
