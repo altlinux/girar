@@ -16,7 +16,6 @@
 
 acl_conf_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
-superuser="root"
 NOMAILS=
 
 enable -f /usr/lib/bash/lockf lockf
@@ -354,9 +353,9 @@ process_user_rules()
 			add|del)	func_name="${action_type}${action}" ;;
 			replace|leader)	func_name="$action" ;;
 
-			# superuser commands
+			# privileged actions
 			create|delete)
-				if [ "$person" != "$superuser" ]; then
+				if [ "$person" != 'root' ]; then
 					writelog "ERROR: $target $action: Permission denied"
 					return 1
 				fi
@@ -375,7 +374,7 @@ process_user_rules()
 		leader="${prev_owners%% *}"
 
 		# Check perms
-		[ "$person" = "$superuser" ] ||
+		[ "$person" = 'root' ] ||
 			check_leader "$leader" ||
 			return 1
 
@@ -404,6 +403,7 @@ while read rulesfile; do
 
 	person="${rulesfile##*/}"
 	person="${person%.acl}"
+
 	repository="${rulesfile%/*}"
 	repository="${repository##*/}"
 
