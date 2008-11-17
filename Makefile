@@ -58,8 +58,10 @@ bin_auto_TARGETS = \
 bin_TARGETS = \
 	${bin_auto_TARGETS} \
 	bin/find-subscribers \
+	bin/girar-acl \
 	bin/girar-build \
 	bin/girar-charset \
+	bin/girar-check-acl-leader \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
@@ -71,7 +73,6 @@ bin_TARGETS = \
 	bin/girar-merge-nmu \
 	bin/girar-mv-db \
 	bin/girar-nmu \
-	bin/girar-acl \
 	bin/girar-quota \
 	bin/girar-rm-db \
 	bin/girar-sh \
