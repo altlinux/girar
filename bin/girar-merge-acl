@@ -16,7 +16,6 @@
 
 acl_conf_dir="$GIRAR_ACL_CONF_DIR"
 acl_state_dir="$GIRAR_ACL_STATE_DIR"
-NOMAILS=
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$acl_conf_dir"
@@ -430,7 +429,7 @@ done
 touch -- "$acl_state_dir"/acl.stamp
 sleep 1
 
-[ -z "$NOMAILS" -a -s mails/info ] ||
+[ -s mails/info ] ||
 	exit 0
 
 while read person repository srcfile logfile; do
