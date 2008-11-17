@@ -47,7 +47,7 @@ static cmd_t commands[] = {
 	{"rm-db", "girar-rm-db", " <path to git repository>"},
 	{"task", "girar-task", " {list|new|show|drop|add|run} ..."},
 	{"build", "girar-build", " <path to gear repository> <tag name> [<binary package repository name>] [<project name>]"},
-	{"notes", "girar-notes", " <repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace-separated-builders>]"},
+	{"acl", "girar-acl", " <repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace-separated-builders>]"},
 	{"nmu", "girar-nmu", " <repository name> <package> {add|del} [<builder> [<start-date> [<end-date>]]]"}
 };
 

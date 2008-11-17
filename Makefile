@@ -71,7 +71,7 @@ bin_TARGETS = \
 	bin/girar-merge-nmu \
 	bin/girar-mv-db \
 	bin/girar-nmu \
-	bin/girar-notes \
+	bin/girar-acl \
 	bin/girar-quota \
 	bin/girar-rm-db \
 	bin/girar-sh \
