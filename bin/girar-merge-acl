@@ -108,7 +108,8 @@ pkgadd()
 	if [ "$new_owners" != '#nobody' ]; then
 		# Merge old and new owners, remove dups and @nobody if any.
 		for o in $prev_owners $new_owners; do
-			if [ "$o" != '@nobody' -a -n "${owners#* $o *}" ]; then
+			if [ "$o" != '@nobody' ] &&
+			   [ -z "$owners" -o -n "${owners#* $o *}" ]; then
 				owners="$owners $o "
 			fi
 		done
@@ -155,7 +156,7 @@ grpadd()
 
 	# Merge old and new owners, remove dups if any.
 	for o in $prev_owners $new_owners; do
-		if [ -n "${owners##* $o *}" ]; then
+		if [ -z "$owners" -o -n "${owners##* $o *}" ]; then
 			owners="$owners $o "
 		fi
 	done
