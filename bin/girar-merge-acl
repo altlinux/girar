@@ -403,6 +403,7 @@ while read rulesfile; do
 
 	person="${rulesfile##*/}"
 	repository="${rulesfile%/*}"
+	repository="${repository##*/}"
 
 	logfile="mails/$person.$repository.status"
 	srcfile="mails/$person.$repository.source"
