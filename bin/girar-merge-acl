@@ -434,8 +434,9 @@ touch -- "$acl_state_dir"/acl.stamp
 
 while read person repository srcfile logfile; do
 	/usr/sbin/sendmail -i -t <<EOF
-From: Upravdom Team Robot <upravdom@altlinux.org>
+From: Upravdom <upravdom@altlinux.org>
 To: <$person@altlinux.org>
+Cc: Upravdom <upravdom@altlinux.org>
 Reply-To: incoming@altlinux.org
 X-Incominger: acl
 Subject: I: $repository: incoming acl status
