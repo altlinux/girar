@@ -428,6 +428,7 @@ done
 
 # Update timestamp.
 touch -- "$acl_state_dir"/acl.stamp
+sleep 1
 
 [ -z "$NOMAILS" -a -s mails/info ] ||
 	exit 0

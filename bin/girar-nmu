@@ -131,6 +131,5 @@ builtin lockf -v "$acl_state_dir"
 touch -- "$workdir/new"
 [ ! -s "$GIRAR_USER.nmu" ] ||
 	cat -- "$GIRAR_USER.nmu" >"$workdir/new"
-sleep 1
 cat -- "$workdir/cmd" >>"$workdir/new"
 mv -f -- "$workdir/new" "$GIRAR_USER.nmu"

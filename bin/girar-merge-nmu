@@ -109,3 +109,4 @@ find list -type f -name 'list.nmu.*' \
 
 # Update timestamp.
 touch -- "$acl_state_dir"/nmu.stamp
+sleep 1
