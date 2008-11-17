@@ -48,6 +48,9 @@ parse_cmd()
 	action="$1"; shift
 	case "$action" in
 		add|del|leader|replace) ;;
+		create|delete)
+			[ "${GIRAR_USER-}" = 'root' ] ||
+				fatal "$name $action: Permission denied" ;;
 		*) fatal "$action: Invalid action" ;;
 	esac
 
@@ -61,6 +64,7 @@ parse_cmd()
 	leader="$(sed -n "s/^$qname[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "$acl_dir/list.$acl_type.$repository")" ||
 		fatal "$name_type \`$name' is not listed in acl file for repository \`$repository'"
 
+	[ "${GIRAR_USER-}" = 'root' ] ||
 	check_leader "$leader" ||
 		fatal "$name $action: Permission denied"
 
