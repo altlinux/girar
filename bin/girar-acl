@@ -6,10 +6,11 @@
 
 if [ "${1-}" = '--help' ]; then
         cat <<EOF
-Usage: $PROG <binary repository name> [{<package>|@<group>} show
-   or: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
-   or: $PROG <binary repository name> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
-   or: $PROG <binary repository name> # reads commands from stdin, one command per line
+Usage: $PROG <repository> [{<package>|@<group>} show
+   or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
+   or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
+   or: $PROG <repository> # reads commands from stdin, one command per line
+Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
 EOF
 	exit 0
 fi
