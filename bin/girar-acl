@@ -55,6 +55,14 @@ parse_cmd()
 		"$acl_dir/list.packages.$repository" \
 		"$acl_dir/list.groups.$repository" >&2
 
+	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
+		fatal "$name $action: $*: Invalid argument(s)"
+	local a
+	for a; do
+		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+			fatal "$name $action: $*: Invalid argument(s)"
+	done
+
 	printf '%s\t%s\t%s\n' "$name" "$action" "$*"
 	nqueued="$(($nqueued+1))"
 }
