@@ -207,13 +207,7 @@ leader()
 		return
 	fi
 
-	# Filter out new leader from old owners.
-	for o in $prev_owners; do
-		[ "$o" = "$new_leader" ] ||
-			owners="$owners $o"
-	done
-
-	change $new_leader $owners
+	change $new_leader $prev_owners
 }
 
 replace()
