@@ -47,7 +47,7 @@ parse_cmd()
 	local action="$1"; shift
 	case "$action" in
 		add|del) ;;
-		*) fatal "$1: Invalid action" ;;
+		*) fatal "$action: Invalid action" ;;
 	esac
 
 	girar-check-acl-leader "$GIRAR_USER" "$name" \
@@ -60,6 +60,8 @@ parse_cmd()
 		login="$1"; shift
 		[ -n "${login##@*}" ] ||
 			fatal "$login: Group is not allowed here"
+		[ -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
+			fatal "$login: Invalid login name"
 	fi
 
 	if [ "$#" -gt 0 ]; then
