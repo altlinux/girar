@@ -1,20 +1,18 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
+. shell-quote
 . shell-args
 
 if [ "${1-}" = '--help' ]; then
         cat <<EOF
-Usage: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
+Usage: $PROG <binary repository name> [{<package>|@<group>} show
+   or: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
    or: $PROG <binary repository name> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
    or: $PROG <binary repository name> # reads commands from stdin, one command per line
 EOF
 	exit 0
 fi
-
-repositories_file="$GIRAR_REPOSITORIES"
-acl_dir="$GIRAR_ACL_CONF_DIR"
-acl_state_dir="$GIRAR_ACL_STATE_DIR"
 
 workdir=
 cleanup()
@@ -89,16 +87,29 @@ parse_cmd_acl()
 	printf '%s\t%s\t%s\n' "$item" "$action" "$*"
 }
 
+show_acl()
+{
+	local t qitem
+	[ "${item#@}" = "$item" ] &&
+		t=packages ||
+		t=groups
+	qitem="$(quote_sed_regexp "$item")"
+	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
+}
+
 nqueued=0
 parse_cmd()
 {
-	[ "$#" -ge 3 ] ||
+	[ "$#" -ge 2 ] ||
 		show_usage 'Not enough arguments.'
 
 	local item="$1"; shift
 	local action="$1"; shift
 
 	case "$action" in
+		show)
+			show_acl >&2
+			return ;;
 		add|del|leader|nmu|replace) ;;
 		create|delete)
 			[ "${GIRAR_USER-}" = 'root' ] ||
@@ -107,8 +118,11 @@ parse_cmd()
 	esac
 
 	girar-check-acl-leader "$GIRAR_USER" "$item" \
-		"$acl_dir/list.packages.$repository" \
-		"$acl_dir/list.groups.$repository" >&2
+		"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
+		"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+
+	[ "$#" -ge 1 ] ||
+		show_usage 'Not enough arguments.'
 
 	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
 		fatal "$item $action: $*: Invalid argument(s)"
@@ -132,15 +146,15 @@ repository="$1"
 shift
 
 # Abort if no non-empty repository list available.
-[ -s "$repositories_file" ] ||
+[ -s "$GIRAR_REPOSITORIES" ] ||
 	fatal 'Sorry, list of available repositories is not available'
 
 # Abort if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$repositories_file" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
 
 # Abort if acl spool dir for the repository is not available.
-cd "$acl_state_dir/$repository"
+cd "$GIRAR_ACL_STATE_DIR/$repository"
 
 trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
@@ -158,7 +172,7 @@ fi >"$workdir/cmd"
 [ -s "$workdir/cmd" ] || exit 0
 
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$acl_state_dir"
+builtin lockf -v "$GIRAR_ACL_STATE_DIR"
 
 touch -- "$workdir/new"
 [ ! -s "$GIRAR_USER.acl" ] ||
@@ -166,4 +180,5 @@ touch -- "$workdir/new"
 cat -- "$workdir/cmd" >>"$workdir/new"
 mv -f -- "$workdir/new" "$GIRAR_USER.acl"
 
-message "$nqueued command(s) queued"
+[ "$nqueued" = 0 ] ||
+	message "$nqueued command(s) queued"
