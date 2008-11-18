@@ -94,7 +94,7 @@ show_cmd_usage()
 	writelog "$msg"
 }
 
-check_item()
+check_usage()
 {
 	if [ -z "$prev_owners" ]; then
 		writelog "ERROR: $item: $item_type not found in acl file"
@@ -107,12 +107,31 @@ check_item()
 	fi
 }
 
+check_new_members()
+{
+	local i qi
+	for i; do
+		if [ "${i#@}" = "$i" ]; then
+			if [ ! -d "$GIRAR_PEOPLE_QUEUE/${i##*/}" ]; then
+				writelog "ERROR: $i: Login name not found"
+				return 1
+			fi
+		else
+			qi="$(quote_sed_regexp "$i")"
+			if [ -z "$(sed -n "/^$qi[[:space:]]/p" "list/list.groups.$repository")" ]; then
+				writelog "ERROR: $i: Group not found in acl file"
+				return 1
+			fi
+		fi
+	done
+}
+
 pkgadd()
 {
-	local o owners=
-
-	check_item ||
+	check_usage && check_new_members $new_owners ||
 		return 1
+
+	local o owners=
 
 	# Add #nobody means change to @nobody.
 	if [ "$new_owners" != '#nobody' ]; then
@@ -128,10 +147,10 @@ pkgadd()
 
 pkgdel()
 {
-	local o owners=
-
-	check_item ||
+	check_usage ||
 		return 1
+
+	local o owners=
 
 	# Delete #all means change to @nobody.
 	if [ "$new_owners" != "#all" -a "$prev_owners" != "@nobody" ]; then
@@ -149,10 +168,10 @@ pkgdel()
 
 grpadd()
 {
-	local o owners=
-
-	check_item ||
+	check_usage && check_new_members $new_owners ||
 		return 1
+
+	local o owners=
 
 	# Check new owners for nested groups.
 	for o in $new_owners; do
@@ -173,10 +192,10 @@ grpadd()
 
 grpdel()
 {
-	local o owners=
-
-	check_item ||
+	check_usage ||
 		return 1
+
+	local o owners=
 
 	new_owners=" $new_owners "
 	# Filter out new owners from old owners.
@@ -195,14 +214,14 @@ grpdel()
 
 leader()
 {
-	check_item ||
-		return 1
-
 	set -- $new_owners
 	if [ $# -ne 1 ]; then
 		show_cmd_usage
 		return 1
 	fi
+
+	check_usage && check_new_members $new_owners ||
+		return 1
 
 	local new_leader="$1"; shift
 	if [ "$leader" = "$new_leader" ]; then
@@ -215,24 +234,24 @@ leader()
 
 replace()
 {
-	local o old new found= owners=
-
-	check_item ||
-		return 1
-
 	set -- $new_owners
 	if [ $# -ne 2 ]; then
 		show_cmd_usage
 		return 1
 	fi
+	local old new
 	old="$1"; shift
 	new="$1"; shift
+
+	check_usage && check_new_members $new ||
+		return 1
 
 	if [ "$old" = "$new" ]; then
 		writelog "IGNORE: Nothing to change"
 		return
 	fi
 
+	local o found= owners=
 	for o in $prev_owners; do
 		case "$o" in
 			$old)
@@ -264,6 +283,9 @@ create()
 		show_cmd_usage
 		return 1
 	fi
+
+	check_new_members $new_owners ||
+		return 1
 
 	printf '%s\t%s\n' "$item" "$new_owners" >>"$listfile" &&
 		sort -u -o "$listfile" "$listfile" &&
@@ -350,11 +372,16 @@ pkgnmu()
 	esac
 
 	new_owners="$*"
-	check_item ||
+	check_usage ||
 		return 1
 
 	local login="$1"; shift
-	[ "$login" != '_' ] || login='*'
+	if [ "$login" = '_' ]; then
+		login='*'
+	else
+		check_new_members "$login" ||
+			return 1
+	fi
 	local start_time="$1"; shift
 	local end_time="$1"; shift
 	$func_name
