@@ -195,13 +195,16 @@ grpdel()
 
 leader()
 {
-	local o new_leader owners=
-
 	check_item ||
 		return 1
 
-	new_leader="${new_owners%% *}"
+	set -- $new_owners
+	if [ $# -ne 1 ]; then
+		show_cmd_usage
+		return 1
+	fi
 
+	local new_leader="$1"; shift
 	if [ "$leader" = "$new_leader" ]; then
 		writelog "IGNORE: Nothing to change"
 		return
