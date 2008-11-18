@@ -56,22 +56,18 @@ parse_cmd_nmu()
 	[ "$login" != '*' ] || login=_
 
 	if [ "$#" -gt 0 ]; then
-		start_time="$1"; shift
+		start_time="$(opt_check_number 'start-time' "$1")"; shift
 	fi
 
 	if [ "$#" -gt 0 ]; then
-		end_time="$1"; shift
+		end_time="$(opt_check_number 'end-time' "$1")"; shift
 	fi
 
-	if [ "$start_time" != 0 ]; then
-		opt_check_number 'start-time' "$start_time"
-	else
+	if [ "$start_time" = 0 ]; then
 		start_time="$(date +'%s')"
 	fi
 
 	if [ "$end_time" != 0 ]; then
-		opt_check_number 'end-time' "$end_time"
-
 		[ "$start_time" -lt "$end_time" ] ||
 			fatal "End time in the past"
 	fi
