@@ -50,42 +50,42 @@ make_workdir()
 writelog()
 {
 	[ "$#" -eq 1 ] || return 0
-	printf '%s\n' "$cmd_info" >>"$srcfile"
-	printf '%s\n' "$1"   >>"$logfile"
+	printf '< %s\n' "$(printf %s "$cmd_info" |tr -s '[:space:]' ' ')" >>"$logfile"
+	printf '> %s\n' "$(printf %s "$1" |tr -s '[:space:]' ' ')" >>"$logfile"
 }
 
 change()
 {
-	local action qtarget owners rc='DONE'
+	local action qitem owners rc='DONE'
 
-	qtarget="$(quote_sed_regexp "$target")"
+	qitem="$(quote_sed_regexp "$item")"
 	owners="$*"
 
 	if [ "$owners" != "$prev_owners" ]; then
-		sed -i "s/^\($qtarget[[:space:]]\).*/\1$owners/" "$listfile" ||
+		sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" ||
 			rc='ERROR'
 	else
 		rc='IGNORE'
 	fi
 
-	writelog "$rc: $cmd_info => $owners"
+	writelog "$rc: $item $owners"
 }
 
 show_cmd_usage()
 {
-	local msg="IGNORE: $cmd_info => Usage: <PACKAGE|GROUP> $action"
+	local msg="USAGE: <package|group> $action"
 	case "$action" in
-		create|*add|*del) msg="$msg <OWNERS ...>" ;;
-		replace) msg="$msg <OLD-OWNER> <NEW-OWNER>" ;;
-		leader) msg="$msg <OWNER>" ;;
+		create|*add|*del) msg="$msg <owners ...>" ;;
+		replace) msg="$msg <old-owner> <new-owner>" ;;
+		leader) msg="$msg <owner>" ;;
 	esac
 	writelog "$msg"
 }
 
-check_target()
+check_item()
 {
 	if [ -z "$prev_owners" ]; then
-		writelog "ERROR: $cmd_info => \`$target' not found in acl file"
+		writelog "ERROR: $item: $item_type not found in acl file"
 		return 1
 	fi
 
@@ -99,7 +99,7 @@ pkgadd()
 {
 	local o owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	# Add #nobody means change to @nobody.
@@ -120,7 +120,7 @@ pkgdel()
 {
 	local o owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	# Delete #all means change to @nobody.
@@ -141,13 +141,13 @@ grpadd()
 {
 	local o owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	# Check new owners for nested groups.
 	for o in $new_owners; do
 		if [ -z "${o##@*}" ]; then
-			writelog "ERROR: $cmd_info => Nested group \`$o' detected"
+			writelog "ERROR: Nested group \`$o' detected"
 			return 1
 		fi
 	done
@@ -166,7 +166,7 @@ grpdel()
 {
 	local o owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	new_owners=" $new_owners "
@@ -177,7 +177,7 @@ grpdel()
 	done
 
 	if [ -z "$owners" ]; then
-		writelog "ERROR: $cmd_info => Group list cannot be made empty"
+		writelog "ERROR: Group list cannot be made empty"
 		return 1
 	fi
 
@@ -188,13 +188,13 @@ leader()
 {
 	local o new_leader owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	new_leader="${new_owners%% *}"
 
 	if [ "$leader" = "$new_leader" ]; then
-		writelog "IGNORE: $cmd_info => Specified maintainer is already leader"
+		writelog "IGNORE: Specified maintainer is already leader"
 		return 0
 	fi
 
@@ -211,7 +211,7 @@ replace()
 {
 	local o old new found= owners=
 
-	check_target ||
+	check_item ||
 		return 1
 
 	set -- $new_owners
@@ -223,7 +223,7 @@ replace()
 	new="$1"; shift
 
 	if [ "$old" = "$new" ]; then
-		writelog "IGNORE: $cmd_info => Nothing to do"
+		writelog "IGNORE: Nothing to do"
 		return 0
 	fi
 
@@ -240,7 +240,7 @@ replace()
 	done
 
 	if [ -z "$found" ]; then
-		writelog "ERROR: $cmd_info => Owner \`$old' not found"
+		writelog "ERROR: Owner \`$old' not found"
 		return 1
 	fi
 
@@ -250,7 +250,7 @@ replace()
 create()
 {
 	if [ -n "$prev_owners" ]; then
-		writelog "IGNORE: $cmd_info => \`$target' already exist"
+		writelog "IGNORE: $item: $item_type already exist"
 		return 0
 	fi
 
@@ -261,19 +261,19 @@ create()
 
 	local res='DONE'
 
-	if printf '%s\t%s\n' "$target" "$new_owners" >>"$listfile"; then
+	if printf '%s\t%s\n' "$item" "$new_owners" >>"$listfile"; then
 		sort -u -o "$listfile" "$listfile"
 	else
 		res='ERROR'
 	fi
 
-	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
+	writelog "$res: $item $new_owners"
 }
 
 delete()
 {
 	if [ -z "$prev_owners" ]; then
-		writelog "IGNORE: $cmd_info => \`$target' not found in acl file"
+		writelog "IGNORE: $item: $item_type not found in acl file"
 		return
 	fi
 
@@ -282,59 +282,34 @@ delete()
 		return 1
 	fi
 
-	local qtarget res='DONE'
+	local qitem res='DONE'
 
-	qtarget="$(quote_sed_regexp "$target")"
-	sed -i "/^$qtarget[[:space:]]/d" "$listfile" ||
+	qitem="$(quote_sed_regexp "$item")"
+	sed -i "/^$qitem[[:space:]]/d" "$listfile" ||
 		res='ERROR'
 
-	writelog "$res: $cmd_info => $(date +'%Y-%m-%d %T')"
-}
-
-check_leader()
-{
-	local leader loop= qgroup grp
-	leader="$1"; shift
-
-	while [ -z "${leader##@*}" ]; do
-		grp="$leader"
-		qgroup="$(quote_sed_regexp "$grp")"
-		leader="$(sed -n "s/$qgroup[[:space:]]\+\([^[:space:]]\+\).*/\1/p" "list/list.groups.$repository")"
-
-		if [ -z "$leader" ]; then
-			writelog "ERROR: $cmd_info => Group \`$grp' not found in acl file"
-			return 1
-		fi
-
-		if [ -n "$loop" -z -z "${loop##* $leader *}" ]; then
-			writelog "ERROR: $cmd_info => Group \`$leader' loop detected"
-			return 1
-		fi
-
-		loop=" $loop $leader "
-	done
-
-	if [ "$person" != "$leader" ]; then
-		writelog "ERROR: $cmd_info => Permission denied"
-		return 1
-	fi
+	writelog "$res: $item: removed!"
 }
 
 process_user_rules()
 {
-	local action action_type cmd_info func_name leader listfile new_owners prev_owners target
+	local rulesfile="$1"; shift
 
-	while read target action new_owners; do
+	local item action new_owners
+	while read item action new_owners; do
+		local item_type action_type listfile
 
-		case "$target" in
+		case "$item" in
 			''|\#*)
 				continue
 				;;
 			@*)
+				item_type='Group'
 				action_type='grp'
 				listfile="list/list.groups.$repository"
 				;;
 			*)
+				item_type='Package'
 				action_type='pkg'
 				listfile="list/list.packages.$repository"
 				;;
@@ -345,9 +320,11 @@ process_user_rules()
 			rem) action=del ;;
 		esac
 
-		cmd_info="$target $action $new_owners"
+		local cmd_info
+		cmd_info="$item $action $new_owners"
 
 		# Check action name.
+		local func_name
 		case "$action" in
 			add|del)	func_name="${action_type}${action}" ;;
 			replace|leader)	func_name="$action" ;;
@@ -355,27 +332,46 @@ process_user_rules()
 			# privileged actions
 			create|delete)
 				if [ "$person" != 'root' ]; then
-					writelog "ERROR: $target $action: Permission denied"
+					writelog "ERROR: $item $action: Permission denied"
 					return 1
 				fi
 				func_name="$action"
 				;;
 			*)
-				writelog "ERROR: $target $action: Invalid action"
+				writelog "ERROR: $item $action: Invalid action"
 				return 1
 				;;
 		esac
 
-		qtarget="$(quote_sed_regexp "$target")"
-		prev_owners="$(sed -n "s/^$qtarget[[:space:]]\+//p" "$listfile")"
-
-		# Get current leader
-		leader="${prev_owners%% *}"
+		# Check new_owners
+		if [ -n "$(printf %s "$new_owners" |LANG=C tr -d '[@a-z_0-9 ]')" ]; then
+			writelog "ERROR: $item $action: $new_owners: Invalid argument(s)"
+			return 1
+		fi
+		local a
+		for a in $new_owners; do
+			printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+				writelog "ERROR: $item $action: $new_owners: Invalid argument(s)"
+				return 1
+		done
 
 		# Check perms
-		[ "$person" = 'root' ] ||
-			check_leader "$leader" ||
+		local msg
+		msg="$(girar-check-acl-leader "$person" "$item" \
+			"list/list.packages.$repository" \
+			"list/list.groups.$repository")" ||
+		{
+			writelog "ERROR: $item $action: $msg"
 			return 1
+		}
+
+		local qitem prev_owners
+		qitem="$(quote_sed_regexp "$item")"
+		prev_owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$listfile")"
+
+		# Get current leader
+		local leader
+		leader="${prev_owners%% *}"
 
 		# First failure breaks the loop
 		$func_name ||
@@ -407,10 +403,9 @@ while read rulesfile; do
 	repository="${repository##*/}"
 
 	logfile="mails/$person.$repository.status"
-	srcfile="mails/$person.$repository.source"
 
 	# Store information required for sending emails at the end of processing.
-	printf '%s %s %s %s\n' "$person" "$repository" "$srcfile" "$logfile" >>mails/info
+	printf '%s %s %s\n' "$person" "$repository" "$logfile" >>mails/info
 
 	if process_user_rules "$rulesfile"; then
 		# Install all working acl files as active.
@@ -432,28 +427,28 @@ sleep 1
 [ -s mails/info ] ||
 	exit 0
 
-while read person repository srcfile logfile; do
-	/usr/sbin/sendmail -i -t <<EOF
+while read person repository logfile; do
+	cat >mails/msg <<EOF
 From: Upravdom <upravdom@altlinux.org>
-To: <$person@altlinux.org>
+To: $person@altlinux.org
 Cc: Upravdom <upravdom@altlinux.org>
 Reply-To: incoming@altlinux.org
 X-Incominger: acl
-Subject: I: $repository: incoming acl status
+Subject: I: $repository: girar-acl status
 Content-Type: text/plain; charset=us-ascii
 
 Dear $person@altlinux.org!
 
-Commands received:
-$(nl -w3 -s' ' "$srcfile")
+Result of your acl command(s) is listed below:
 
-Result:
-$(nl -w3 -s' ' "$logfile")
+EOF
+	cat -- "$logfile" >>mails/msg
+	cat >>mails/msg <<EOF
 
 
 -- 
 Rgrds, your upravdom
 
 EOF
-
+	/usr/sbin/sendmail -i -t <mails/msg
 done <mails/info
