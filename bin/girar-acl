@@ -5,7 +5,8 @@
 
 if [ "${1-}" = '--help' ]; then
         cat <<EOF
-Usage: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated builders>]
+Usage: $PROG <binary repository name> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
+   or: $PROG <binary repository name> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
    or: $PROG <binary repository name> # reads commands from stdin, one command per line
 EOF
 	exit 0
@@ -33,37 +34,83 @@ signal_handler()
 	cleanup 143
 }
 
+parse_cmd_nmu()
+{
+	local login='*' start_time=0 end_time=0
+
+	if [ "$#" -gt 0 ]; then
+		login="$1"; shift
+		[ -n "${login##@*}" ] ||
+			fatal "$login: Group is not allowed here"
+		[ -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
+			fatal "$login: Invalid login name"
+	fi
+
+	if [ "$#" -gt 0 ]; then
+		start_time="$1"; shift
+	fi
+
+	if [ "$#" -gt 0 ]; then
+		end_time="$1"; shift
+	fi
+
+	if [ "$start_time" != 0 ]; then
+		opt_check_number 'start-time' "$start_time"
+	else
+		start_time="$(date +'%s')"
+	fi
+
+	if [ "$end_time" != 0 ]; then
+		opt_check_number 'end-time' "$end_time"
+
+		[ "$start_time" -lt "$end_time" ] ||
+			fatal "End time in the past"
+	fi
+
+	printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$item" 'nmu' "$action" "$login" "$start_time" "$end_time"
+}
+
+parse_cmd_acl()
+{
+	local a
+	for a; do
+		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+			fatal "$item $action: $*: Invalid argument(s)"
+	done
+
+	printf '%s\t%s\t%s\n' "$item" "$action" "$*"
+}
+
 nqueued=0
-# Format: {<package>|@<group>} {add|del|leader|replace} builder [ builder ...]
 parse_cmd()
 {
 	[ "$#" -ge 3 ] ||
 		show_usage 'Not enough arguments.'
 
-	local name="$1"; shift
+	local item="$1"; shift
 	local action="$1"; shift
 
 	case "$action" in
-		add|del|leader|replace) ;;
+		add|del|leader|nmu|replace) ;;
 		create|delete)
 			[ "${GIRAR_USER-}" = 'root' ] ||
-				fatal "$name $action: Permission denied" ;;
+				fatal "$item $action: Permission denied" ;;
 		*) fatal "$action: Invalid action" ;;
 	esac
 
-	girar-check-acl-leader "$GIRAR_USER" "$name" \
+	girar-check-acl-leader "$GIRAR_USER" "$item" \
 		"$acl_dir/list.packages.$repository" \
 		"$acl_dir/list.groups.$repository" >&2
 
 	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
-		fatal "$name $action: $*: Invalid argument(s)"
-	local a
-	for a; do
-		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
-			fatal "$name $action: $*: Invalid argument(s)"
-	done
+		fatal "$item $action: $*: Invalid argument(s)"
 
-	printf '%s\t%s\t%s\n' "$name" "$action" "$*"
+	if [ "$action" = 'nmu' ]; then
+		parse_cmd_nmu "$@"
+	else
+		parse_cmd_acl "$@"
+	fi
+
 	nqueued="$(($nqueued+1))"
 }
 
