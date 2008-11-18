@@ -54,18 +54,30 @@ writelog()
 	printf '> %s\n' "$(printf %s "$1" |tr -s '[:space:]' ' ')" >>"$logfile"
 }
 
+remove_dups()
+{
+	local list=
+	for o; do
+		[ -n "$list" -a -z "${list#* $o *}" ] ||
+			list="$list $o "
+	done
+	list="${list# }"
+	list="${list% }"
+	printf %s "$list" |tr -s '[:space:]' ' '
+}
+
 change()
 {
-	local action qitem owners
-
-	qitem="$(quote_sed_regexp "$item")"
-	owners="$*"
+	local owners
+	owners="$(remove_dups "$@")"
 
 	if [ "$owners" = "$prev_owners" ]; then
-		writelog "IGNORE: $item: $owners"
+		writelog "IGNORE: Nothing to change"
 		return
 	fi
 
+	local qitem
+	qitem="$(quote_sed_regexp "$item")"
 	sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" &&
 		writelog "OK: $item: $owners" ||
 		writelog "ERROR: $item: $owners"
@@ -104,12 +116,10 @@ pkgadd()
 
 	# Add #nobody means change to @nobody.
 	if [ "$new_owners" != '#nobody' ]; then
-		# Merge old and new owners, remove dups and @nobody if any.
+		# Merge old and new owners, remove @nobody if any.
 		for o in $prev_owners $new_owners; do
-			if [ "$o" != '@nobody' ] &&
-			   [ -z "$owners" -o -n "${owners#* $o *}" ]; then
+			[ "$o" = '@nobody' ] ||
 				owners="$owners $o "
-			fi
 		done
 	fi
 
@@ -152,11 +162,10 @@ grpadd()
 		fi
 	done
 
-	# Merge old and new owners, remove dups if any.
+	# Merge old and new owners, remove @nobody if any.
 	for o in $prev_owners $new_owners; do
-		if [ -z "$owners" -o -n "${owners##* $o *}" ]; then
+		[ "$o" = '@nobody' ] ||
 			owners="$owners $o "
-		fi
 	done
 
 	change $owners
@@ -195,7 +204,7 @@ leader()
 
 	if [ "$leader" = "$new_leader" ]; then
 		writelog "IGNORE: Nothing to change"
-		return 0
+		return
 	fi
 
 	# Filter out new leader from old owners.
@@ -224,21 +233,17 @@ replace()
 
 	if [ "$old" = "$new" ]; then
 		writelog "IGNORE: Nothing to change"
-		return 0
+		return
 	fi
 
 	for o in $prev_owners; do
 		case "$o" in
 			$old)
 				found=1
-				if [ -z "$owners" -o -n "${owners##* $new *}" ]; then
-					owners="$owners $new "
-				fi
+				owners="$owners $new "
 				;;
 			*)
-				if [ -z "$owners" -o -n "${owners##* $o *}" ]; then
-					owners="$owners $o "
-				fi
+				owners="$owners $o "
 				;;
 		esac
 	done
@@ -255,7 +260,7 @@ create()
 {
 	if [ -n "$prev_owners" ]; then
 		writelog "IGNORE: $item: $item_type already exist"
-		return 0
+		return
 	fi
 
 	if [ -z "$new_owners" ]; then
