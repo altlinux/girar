@@ -36,6 +36,12 @@ signal_handler()
 
 parse_cmd_nmu()
 {
+	local action="$1"; shift
+	case "$action" in
+		add|del) ;;
+		*) fatal "nmu $action: Invalid action" ;;
+	esac
+
 	local login='*' start_time=0 end_time=0
 
 	if [ "$#" -gt 0 ]; then
