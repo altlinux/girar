@@ -231,10 +231,14 @@ replace()
 		case "$o" in
 			$old)
 				found=1
-				owners="$owners $new"
+				if [ -z "$owners" -o -n "${owners##* $new *}" ]; then
+					owners="$owners $new "
+				fi
 				;;
 			*)
-				owners="$owners $o"
+				if [ -z "$owners" -o -n "${owners##* $o *}" ]; then
+					owners="$owners $o "
+				fi
 				;;
 		esac
 	done
