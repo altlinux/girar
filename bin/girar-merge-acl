@@ -56,19 +56,19 @@ writelog()
 
 change()
 {
-	local action qitem owners rc='DONE'
+	local action qitem owners
 
 	qitem="$(quote_sed_regexp "$item")"
 	owners="$*"
 
-	if [ "$owners" != "$prev_owners" ]; then
-		sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" ||
-			rc='ERROR'
-	else
-		rc='IGNORE'
+	if [ "$owners" = "$prev_owners" ]; then
+		writelog "IGNORE: $item: $owners"
+		return
 	fi
 
-	writelog "$rc: $item $owners"
+	sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" &&
+		writelog "OK: $item: $owners" ||
+		writelog "ERROR: $item: $owners"
 }
 
 show_cmd_usage()
@@ -194,7 +194,7 @@ leader()
 	new_leader="${new_owners%% *}"
 
 	if [ "$leader" = "$new_leader" ]; then
-		writelog "IGNORE: Specified maintainer is already leader"
+		writelog "IGNORE: Nothing to change"
 		return 0
 	fi
 
@@ -223,7 +223,7 @@ replace()
 	new="$1"; shift
 
 	if [ "$old" = "$new" ]; then
-		writelog "IGNORE: Nothing to do"
+		writelog "IGNORE: Nothing to change"
 		return 0
 	fi
 
@@ -259,15 +259,10 @@ create()
 		return 1
 	fi
 
-	local res='DONE'
-
-	if printf '%s\t%s\n' "$item" "$new_owners" >>"$listfile"; then
-		sort -u -o "$listfile" "$listfile"
-	else
-		res='ERROR'
-	fi
-
-	writelog "$res: $item $new_owners"
+	printf '%s\t%s\n' "$item" "$new_owners" >>"$listfile" &&
+		sort -u -o "$listfile" "$listfile" &&
+		writelog "OK: $item: $new_owners" ||
+		writelog "ERROR: $item: Failed to create"
 }
 
 delete()
@@ -282,13 +277,87 @@ delete()
 		return 1
 	fi
 
-	local qitem res='DONE'
-
+	local qitem
 	qitem="$(quote_sed_regexp "$item")"
-	sed -i "/^$qitem[[:space:]]/d" "$listfile" ||
-		res='ERROR'
+	sed -i "/^$qitem[[:space:]]/d" "$listfile" &&
+		writelog "OK: $item: Removed" ||
+		writelog "ERROR: $item: Failed to remove"
+}
 
-	writelog "$res: $item: removed!"
+nmuadd()
+{
+	local changed= p b s e
+	while read p b s e; do
+		if [ "$item" != "$p" -o "$login" != "$b" ]; then
+			printf '%s\t%s\t%s\t%s\n' \
+				"$p" "$b" "$s" "$e"
+			continue
+		fi
+
+		[ $start_time -lt $s ] || start_time="$s"
+		[ $end_time -gt $e ]   || end_time="$e"
+
+		printf '%s\t%s\t%s\t%s\n' \
+			"$item" "$login" "$start_time" "$end_time"
+		changed=1
+
+	done <"list/list.nmu.$repository" >new
+
+	[ -n "$changed" ] ||
+		printf '%s\t%s\t%s\t%s\n' \
+			"$item" "$login" "$start_time" "$end_time" >> new
+
+	sort -uo "list/list.nmu.$repository" new &&
+		writelog "OK: $item $login $start_time $end_time" ||
+		writelog "ERROR: Failed to add NMU"
+}
+
+nmudel()
+{
+	local qitem qlogin
+	qitem="$(quote_sed_regexp "$item")"
+	qlogin="$(quote_sed_regexp "$login")"
+
+	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]$start_time[[:space:]]$end_time$/p"
+		"list/list.nmu.$repository")" ]; then
+		writelog "IGNORE: NMU not found in acl file"
+		return
+	fi
+
+	sed -i "/^$qitem[[:space:]]$qlogin[[:space:]]$start_time[[:space:]]$end_time$/d" \
+		"list/list.nmu.$repository" &&
+		writelog "OK: NMU removed" ||
+		writelog "ERROR: Failed to remove NMU"
+}
+
+pkgnmu()
+{
+	set -- $new_owners
+
+	local cmd="$1"; shift
+	case "$cmd" in
+		add|del) func_name="nmu${cmd}" ;;
+		*)
+			writelog "ERROR: nmu $cmd: Invalid action"
+			return 1
+			;;
+	esac
+
+	new_owners="$*"
+	check_item ||
+		return 1
+
+	local login="$1"; shift
+	[ "$login" != '_' ] || login='*'
+	local start_time="$1"; shift
+	local end_time="$1"; shift
+	$func_name
+}
+
+grpnmu()
+{
+	writelog "ERROR: @item: Group is not allowed here"
+	return 1
 }
 
 process_user_rules()
@@ -326,7 +395,7 @@ process_user_rules()
 		# Check action name.
 		local func_name
 		case "$action" in
-			add|del)	func_name="${action_type}${action}" ;;
+			add|del|nmu)	func_name="${action_type}${action}" ;;
 			replace|leader)	func_name="$action" ;;
 
 			# privileged actions
@@ -344,15 +413,17 @@ process_user_rules()
 		esac
 
 		# Check new_owners
-		if [ -n "$(printf %s "$new_owners" |LANG=C tr -d '[@a-z_0-9 ]')" ]; then
+		if [ -n "$(printf %s "$new_owners" |LANG=C tr -d '[@a-z_0-9[:space:]]')" ]; then
 			writelog "ERROR: $item $action: $new_owners: Invalid argument(s)"
 			return 1
 		fi
 		local a
 		for a in $new_owners; do
 			printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+			{
 				writelog "ERROR: $item $action: $new_owners: Invalid argument(s)"
 				return 1
+			}
 		done
 
 		# Check perms
@@ -411,10 +482,12 @@ while read rulesfile; do
 		# Install all working acl files as active.
 		find list -type f -name 'list.*' \
 			-exec cp -at "$acl_conf_dir" -- \{\} \+
+		printf '\nSummary: acl change transaction COMPLETE.\n' >>"$logfile"
 	else
 		# Copy all active acl files to workdir.
 		find "$acl_conf_dir" -type f -name 'list.*' \
 			-exec cp -at list -- \{\} \+
+		printf '\nSummary: acl change transaction ABORTED.\n' >>"$logfile"
 	fi
 	rm -f -- "$rulesfile"
 

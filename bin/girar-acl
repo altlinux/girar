@@ -48,9 +48,11 @@ parse_cmd_nmu()
 		login="$1"; shift
 		[ -n "${login##@*}" ] ||
 			fatal "$login: Group is not allowed here"
-		[ -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
+		[ "$login" = '*' -o \
+		  -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
 			fatal "$login: Invalid login name"
 	fi
+	[ "$login" != '*' ] || login=_
 
 	if [ "$#" -gt 0 ]; then
 		start_time="$1"; shift
