@@ -7,10 +7,12 @@
 if [ "${1-}" = '--help' ]; then
         cat <<EOF
 Usage: $PROG <repository> [{<package>|@<group>} show
-   or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} <whitespace separated members>]
+   or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
-   or: $PROG <repository> # reads commands from stdin, one command per line
+   or: $PROG <repository>
 Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
+If no package is given, read commands from stdin, one command per line.
+See http://www.altlinux.org/Incoming/acl for details.
 EOF
 	exit 0
 fi
@@ -164,6 +166,7 @@ workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 # If caller specified arguments, parse them,
 # otherwise parse stdin line by line.
 if [ $# -eq 0 ]; then
+	message 'Go ahead and type your commands' >&2
 	while read -r line; do
 		parse_cmd $line
 	done
