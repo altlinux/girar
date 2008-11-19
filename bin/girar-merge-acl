@@ -535,15 +535,14 @@ sleep 1
 
 while read person repository logfile; do
 	cat >mails/msg <<EOF
-From: Upravdom <upravdom@altlinux.org>
-To: $person@altlinux.org
-Cc: Upravdom <upravdom@altlinux.org>
-Reply-To: incoming@altlinux.org
+From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+To: $person@$EMAIL_DOMAIN
+Cc: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
 X-Incominger: acl
 Subject: [girar-acl] $repository
 Content-Type: text/plain; charset=us-ascii
 
-Dear $person@altlinux.org!
+Dear $person@$EMAIL_DOMAIN!
 
 Result of your acl command(s) is listed below:
 
@@ -553,7 +552,7 @@ EOF
 
 
 -- 
-Rgrds, your upravdom
+Rgrds, your Girar ACL robot
 
 EOF
 	/usr/sbin/sendmail -i -t <mails/msg
