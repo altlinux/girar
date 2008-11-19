@@ -8,6 +8,7 @@ if [ "${1-}" = '--help' ]; then
         cat <<EOF
 Usage: $PROG <repository> [{<package>|@<group>} show
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
+   or: $PROG <repository> <package> nmu show
    or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
    or: $PROG <repository>
 Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
@@ -35,10 +36,20 @@ signal_handler()
 	cleanup 143
 }
 
+show_nmu()
+{
+	local qitem
+	qitem="$(quote_sed_regexp "$item")"
+	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository"
+}
+
 parse_cmd_nmu()
 {
 	local action="$1"; shift
 	case "$action" in
+		show)
+			show_nmu >&2
+			return ;;
 		add|del) ;;
 		*) fatal "nmu $action: Invalid action" ;;
 	esac
