@@ -540,7 +540,7 @@ To: $person@altlinux.org
 Cc: Upravdom <upravdom@altlinux.org>
 Reply-To: incoming@altlinux.org
 X-Incominger: acl
-Subject: I: $repository: girar-acl status
+Subject: [girar-acl] $repository
 Content-Type: text/plain; charset=us-ascii
 
 Dear $person@altlinux.org!
