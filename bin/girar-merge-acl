@@ -343,13 +343,13 @@ nmudel()
 	qitem="$(quote_sed_regexp "$item")"
 	qlogin="$(quote_sed_regexp "$login")"
 
-	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]$start_time[[:space:]]$end_time\$/p" \
+	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]/p" \
 		"list/list.nmu.$repository")" ]; then
 		writelog "IGNORE: NMU not found in acl file"
 		return
 	fi
 
-	sed -i "/^$qitem[[:space:]]$qlogin[[:space:]]$start_time[[:space:]]$end_time\$/d" \
+	sed -i "/^$qitem[[:space:]]$qlogin[[:space:]]/d" \
 		"list/list.nmu.$repository" &&
 		writelog "OK: NMU removed" ||
 		writelog "ERROR: Failed to remove NMU"
