@@ -58,7 +58,7 @@ remove_dups()
 {
 	local list=
 	for o; do
-		[ -n "$list" -a -z "${list#* $o *}" ] ||
+		[ -n "$list" -a -z "${list##* $o *}" ] ||
 			list="$list $o "
 	done
 	list="${list# }"
