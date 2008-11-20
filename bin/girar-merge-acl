@@ -14,12 +14,9 @@
 . shell-error
 . shell-quote
 
-acl_conf_dir="$GIRAR_ACL_CONF_DIR"
-acl_state_dir="$GIRAR_ACL_STATE_DIR"
-
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$acl_conf_dir"
-builtin lockf -v "$acl_state_dir"
+builtin lockf -v "$GIRAR_ACL_CONF_DIR"
+builtin lockf -v "$GIRAR_ACL_STATE_DIR"
 
 workdir=
 cleanup()
@@ -490,12 +487,12 @@ cd "$workdir"
 mkdir -- list mails
 
 # Copy all active acl files to workdir.
-find "$acl_conf_dir" -type f -name 'list.*' \
+find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
 	-exec cp -at list -- \{\} \+
 
 # Handle new spooled acl files in ascending modification time order.
-find "$acl_state_dir" -mindepth 2 -maxdepth 2 -type f \
-	-newer "$acl_state_dir/.stamp" -name '*.acl' -printf '%T@\t%p\n' |
+find "$GIRAR_ACL_STATE_DIR" -mindepth 2 -maxdepth 2 -type f \
+	-newer "$GIRAR_ACL_STATE_DIR/.stamp" -name '*.acl' -printf '%T@\t%p\n' |
 	sort |
 	cut -f2 |
 while read rulesfile; do
@@ -514,11 +511,12 @@ while read rulesfile; do
 	if process_user_rules "$rulesfile"; then
 		# Install all working acl files as active.
 		find list -type f -name 'list.*' \
-			-exec cp -at "$acl_conf_dir" -- \{\} \+
+			-exec cp -at "$GIRAR_ACL_CONF_DIR" -- \{\} \+
 		printf '\nSummary: acl change transaction COMPLETE.\n' >>"$logfile"
+		acl_changed=1
 	else
 		# Copy all active acl files to workdir.
-		find "$acl_conf_dir" -type f -name 'list.*' \
+		find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
 			-exec cp -at list -- \{\} \+
 		printf '\nSummary: acl change transaction ABORTED.\n' >>"$logfile"
 	fi
@@ -527,11 +525,13 @@ while read rulesfile; do
 done
 
 # Update timestamp.
-touch -- "$acl_state_dir"/.stamp
+touch -- "$GIRAR_ACL_STATE_DIR"/.stamp
 sleep 1
 
 [ -s mails/info ] ||
 	exit 0
+
+rsync -rlt -- "$GIRAR_ACL_CONF_DIR/" "$GIRAR_ACL_PUB_DIR/"
 
 while read person repository logfile; do
 	cat >mails/msg <<EOF
