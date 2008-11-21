@@ -131,6 +131,7 @@ parse_cmd()
 		"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
 		"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
 
+	[ "${GIRAR_USER-}" = 'root' ] ||
 	[ "$#" -ge 1 ] ||
 		show_usage 'Not enough arguments.'
 
