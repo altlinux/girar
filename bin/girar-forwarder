@@ -7,32 +7,12 @@ our_queue="$GIRAR_PRIVATE_QUEUE"
 remote_queue="$UPRAVDOM_QUEUE"
 remote_account="$UPRAVDOM_ACCOUNT"
 
-remotelock="$remote_queue/.lock"
-
 find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
 
 findin()
 {
 	eval find "\$1" $find_args |
 		sort -n
-}
-
-findin_remote_queue()
-{
-	ssh -n "$remote_account" "find '$remote_queue' $find_args" |
-		sort -n
-}
-
-exit_handler()
-{
-	local rc=$?
-	trap - EXIT
-
-	# unlock remote queue if and only if we own it
-	ssh -n "$remote_account" "[ ! -d '$remotelock' -o ! -O '$remotelock' ] || rmdir -- '$remotelock'" ||
-		message "$remote_account: $remotelock: unable to remove lockdir"
-
-	exit $rc
 }
 
 enable -f /usr/lib/bash/lockf lockf
@@ -43,33 +23,26 @@ builtin lockf -v "$input_queue"
 for name in $(findin "$input_queue"); do
 	task="$input_queue/$name"
 
-	if [ ! -s "$task" ]; then
+	[ -s "$task" ] && cat "$task" >/dev/null ||
+	{
 		rm -f -- "$task"
 		continue
-	fi
+	}
 
-	if ! mv -- "$task" "$our_queue/"; then
-		message "$task: unable to move"
+	mv -- "$task" "$our_queue/" ||
+	{
+		message "$name: unable to move task"
 		continue
-	fi
+	}
 done
 
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
-
-# lock remote queue
-ssh -n "$remote_account" "while ! mkdir -- '$remotelock'>/dev/null 2>&1; do sleep 1; done" ||
-	fatal "unable to lock remote queue"
-
-remote_num="$(findin_remote_queue |tail -1)"
-
-[ -n "$remote_num" ] && 
-	remote_num=$(($remote_num+1)) ||
-	remote_num=0
+# exit if our queue is empty
+[ -n "$(findin "$our_queue")" ] || exit 0
 
 # move tasks from our queue to remote queue
 for name in $(findin "$our_queue"); do
-	rsync -tp "$our_queue/$name" "$remote_account:$remote_queue/$remote_num" ||
-		fatal "unable to forward task '$our_queue/$name' -> '$remote_account:$remote_queue/$remote_num': rc=$?"
+	rsync --rsync-path="enable -f /usr/lib/bash/lockf lockf && builtin lockf $remote_queue && rsync" \
+	      -rt "$our_queue/$name" "$remote_account:$remote_queue/" ||
+		fatal "$name: unable to forward task: rc=$?"
 	rm -f -- "$our_queue/$name"
-	remote_num=$(($remote_num+1))
 done
