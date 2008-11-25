@@ -39,13 +39,7 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$our_queue"
 builtin lockf -v "$input_queue"
 
-private_num="$(findin "$our_queue" |tail -1)"
-
-[ -n "$private_num" ] &&
-	private_num=$(($private_num+1)) ||
-	private_num=0
-
-# move tasks from public queue to private queue
+# move tasks from input queue to our queue
 for name in $(findin "$input_queue"); do
 	task="$input_queue/$name"
 
@@ -54,12 +48,10 @@ for name in $(findin "$input_queue"); do
 		continue
 	fi
 
-	if ! mv -- "$task" "$our_queue/$private_num"; then
-		message "unable to move '$task' -> '$our_queue/$private_num'"
+	if ! mv -- "$task" "$our_queue/"; then
+		message "$task: unable to move"
 		continue
 	fi
-
-	private_num=$(($private_num+1))
 done
 
 trap exit_handler HUP PIPE INT QUIT TERM EXIT
@@ -74,7 +66,7 @@ remote_num="$(findin_remote_queue |tail -1)"
 	remote_num=$(($remote_num+1)) ||
 	remote_num=0
 
-# move tasks from private queue to remote queue
+# move tasks from our queue to remote queue
 for name in $(findin "$our_queue"); do
 	rsync -tp "$our_queue/$name" "$remote_account:$remote_queue/$remote_num" ||
 		fatal "unable to forward task '$our_queue/$name' -> '$remote_account:$remote_queue/$remote_num': rc=$?"
