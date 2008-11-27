@@ -113,7 +113,7 @@ check_new_members()
 				writelog "ERROR: $i: Login name not found"
 				return 1
 			fi
-		else
+		elif [ "$i" != '@everybody' ]; then
 			qi="$(quote_sed_regexp "$i")"
 			if [ -z "$(sed -n "/^$qi[[:space:]]/p" "list/list.groups.$repository")" ]; then
 				writelog "ERROR: $i: Group not found in acl file"
