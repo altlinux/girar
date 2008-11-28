@@ -57,18 +57,18 @@ if [ -s build/$i/$arch/chroot_base ]; then
 	rm -f build/$i/$arch/REBUILD
 	if ! diff -U1 build/$i/$arch/chroot_base "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/out; then
 		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$arch/MERGE "chroot_base changed for ${dir##*/} $tag_name"
-		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
+		echo >>build/$i/$arch/MERGE "chroot_base changed for ${dir##*/} $tag_name"
+		cat >>build/$i/$arch/MERGE <"$hsh_dir"/.gb/out
 	fi
 	if ! diff -U1 build/$i/$arch/chroot_BR "$hsh_dir"/.gb/chroot_BR >"$hsh_dir"/.gb/out; then
 		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$arch/MERGE "chroot_BR changed for ${dir##*/} $tag_name"
-		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
+		echo >>build/$i/$arch/MERGE "chroot_BR changed for ${dir##*/} $tag_name"
+		cat >>build/$i/$arch/MERGE <"$hsh_dir"/.gb/out
 	fi
 	# rebuild is still needed if previous packages has been rebuilt.
 	for j in `seq 1 $(($i-1))`; do
-		if [ -s build/$arch/$j/REBUILD ]; then
-			rm -f build/$arch/$j/REBUILD
+		if [ -s build/$j/$arch/REBUILD ]; then
+			rm -f build/$j/$arch/REBUILD
 			echo 1 >build/$i/$arch/REBUILD
 		fi
 	done
