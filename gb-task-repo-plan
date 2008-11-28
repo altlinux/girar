@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+# Make a plan for upgrade: assuming that all new packages go
+# into the repo, find out the existing packages which should
+# be replaced or removed.
+
+. gb-sh-setup
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+N="%{NAME}"
+VR="%{VERSION}-%{RELEASE}"
+EVR="%|SERIAL?{%{SERIAL}:}|$VR"
+NVR="%{NAME}-$VR"
+
+set +f
+
+qsrc()
+{
+	find "$@" -name '*.src.rpm' -print0 | xargs -r0 \
+		rpmquery --qf "$N\t$EVR\t$NVR.src.rpm\n" -p --
+}
+
+qbin()
+{
+	find "$@" -name '*.rpm' -not -name '*.src.rpm' -print0 | xargs -r0 \
+		rpmquery --qf "$N\t$EVR\t$NVR.%{ARCH}.rpm\t%{SOURCERPM}\n" -p --
+}
+
+. tmpdir.sh
+
+qsrc build/*/*/srpm/ >$TMPDIR/new.src
+qbin build/*/*/rpms/ >$TMPDIR/new.bin
+
+# XXX no setup yet
+repo=/ALT/$GB_REPO
+
+qsrc $repo/{i586,x86_64,noarch}/SRPMS.*/ >$TMPDIR/old.src
+qbin $repo/{i586,x86_64,noarch}/RPMS.*/ >$TMPDIR/old.bin
