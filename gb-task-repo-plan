@@ -71,3 +71,30 @@ mktable()
 
 mktable new
 mktable old
+
+# Tuples are replaced
+# 1) by explicit src-N match (src->bin+);
+O='1.1 1.2 1.3 1.4 1.5 1.6'
+join -o "$O" -j 1 $TMPDIR/{old,new} >$TMPDIR/rm-by-src
+sort -u -o $TMPDIR/rm-by-src{,}
+
+# 2) by implicit bin-N match (src<-bin).
+sort -k4,4 -o $TMPDIR/old{,}
+sort -k4,4 -o $TMPDIR/new{,}
+join -o "$O" -j 4 $TMPDIR/{old,new} >$TMPDIR/rm-by-bin
+sort -u -o $TMPDIR/rm-by-bin{,}
+
+# Implicit match can be wrong, so issue a warning.
+comm -23 $TMPDIR/rm-by-{bin,src} >$TMPDIR/rm-by-bin-only
+if [ -s $TMPDIR/rm-by-bin-only ]; then
+	echo ' *** Warning: existing src.rpm kicked by new non-matching rpm'
+	cut -f3,4 <$TMPDIR/rm-by-bin-only
+fi >&2
+
+# Implicit (src<-bin) match should be propagated to (src->bin+).
+sort -u -o $TMPDIR/old{,}
+sort -u -o $TMPDIR/rm-by-bin{,}
+join -o "$O" -j 1 $TMPDIR/{old,rm-by-bin} >$TMPDIR/rm-by-bin+
+
+# Replaced tuples.
+sort -u $TMPDIR/rm-by-{src,bin+} >$TMPDIR/rm
