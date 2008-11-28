@@ -5,9 +5,17 @@
 id="$1"; shift
 cd "$GB_TASKS/$id"
 
+. tmpdir.sh
+
 for arch in i586 x86_64; do
-	$0-arch "$id" "$arch" &
-	sleep 1
+	$0-arch "$id" "$arch" ||
+		echo "$arch build failed" >$TMPDIR/FAIL &
+	sleep 9
 done
 
 wait
+
+if [ -s $TMPDIR/FAIL ]; then
+	cat >&2 $TMPDIR/FAIL
+	exit 1
+fi
