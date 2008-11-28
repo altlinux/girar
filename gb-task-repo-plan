@@ -31,9 +31,43 @@ qbin()
 
 qsrc build/*/*/srpm/ >$TMPDIR/new.src
 qbin build/*/*/rpms/ >$TMPDIR/new.bin
+sort -u -o $TMPDIR/new.src{,}
+sort -u -o $TMPDIR/new.bin{,}
 
 # XXX no setup yet
 repo=/ALT/$GB_REPO
 
 qsrc $repo/{i586,x86_64,noarch}/SRPMS.*/ >$TMPDIR/old.src
 qbin $repo/{i586,x86_64,noarch}/RPMS.*/ >$TMPDIR/old.bin
+sort -u -o $TMPDIR/old.src{,}
+sort -u -o $TMPDIR/old.bin{,}
+
+# Now what's the plan?  I guess we don't just move some files around.
+# We deal with "tuples" (src,bin+).  Therefore, the consistent plan is
+# to group files into such tuples, and decide how new tuples replace
+# the existing tuples.
+#
+# Thus we have to assume that the repo is consistent: both src->bin+
+# and bin->src mappings must exist for every package in the repo.  Stale
+# packages cannot be handled by the plan consistently, and removing them
+# is someone else's job.
+#
+# Tuples are represented with the following table:
+#
+# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-F
+# -----  -------  -----  -----  -------  -----
+#
+# Note: the fact that both mappings mentioned above exist roughly means
+# that we can join src+bin on %{SOURCERPM}.  This is how we do the table.
+
+mktable()
+{
+	local x="$1"; shift
+	sort -k3 -o $TMPDIR/$x.src{,}
+	sort -k4 -o $TMPDIR/$x.bin{,}
+	join -t$'\t' -13 -24 -o '1.1 1.2 1.3 2.1 2.2 2.3' $TMPDIR/$x.{src,bin} >$TMPDIR/$x
+	sort -u -o $TMPDIR/$x{,}
+}
+
+mktable new
+mktable old
