@@ -1,0 +1,31 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+id="$1" i="$2"; shift 2
+cd "$GB_TASKS/$id/build/$i"
+
+check_srpms()
+{
+	set +f
+	for arch in i586 x86_64; do
+		set $arch/srpm/*.src.rpm
+		if [ $# -gt 1 ]; then
+			gb_task_fail "$id" "$arch: multiple src.rpm: $@"
+			return 1
+		fi
+		if [ ! -f "$1" ]; then
+			gb_task_fail "$id" "$arch: no src.rpm"
+			return 1
+		fi
+		echo "${1##*/}"
+	done
+}
+
+srpms=$(check_srpms)
+n=$(echo "$srpms" |sort -u |wc -l)
+
+if [ "$n" -ne 1 ]; then
+	gb_task_fail "$id" "different per-arch srpms:" $srpms
+fi
+
+echo >&2 "src.rpm check ok: $srpms"

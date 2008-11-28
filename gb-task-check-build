@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
+
+nums=$(gear_nums)
+
+for i in $nums; do
+	$0-i "$id" "$i"
+done
+

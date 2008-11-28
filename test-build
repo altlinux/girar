@@ -25,12 +25,13 @@ done
 
 gb_task_fail()
 {
-	echo "gb_task_fail: $*"
+	echo "gb_task_fail: $*" >&2
 	exit 1
 }
 export -f gb_task_fail
 
 gb-task-pkgtar 333
 gb-task-build 333
+gb-task-check-build 333
 
 find build/ -type f |sort
