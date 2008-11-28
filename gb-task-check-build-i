@@ -29,3 +29,39 @@ if [ "$n" -ne 1 ]; then
 fi
 
 echo >&2 "src.rpm check ok: $srpms"
+
+noarch()
+{
+	set +f
+	local arch="$1"; shift
+	(cd $arch/rpms && ls *.noarch.rpm) 2>/dev/null ||:
+}
+
+. tmpdir.sh
+
+noarch i586 >$TMPDIR/i586.noarch
+noarch x86_64 >$TMPDIR/x86_64.noarch
+if ! (cd $TMPDIR && diff -U1 {i586,x86_64}.noarch); then
+	gb_task_fail "$id" 'different set of noarch packages'
+fi
+
+dump_noarch()
+{
+	F='[%{FILENAMES}\n]'
+	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
+	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
+	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
+	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
+	rpmquery --qf "$F$R$P$O$C" -p "$1"
+}
+
+while read -r rpm; do
+	dump_noarch i586/rpms/"$rpm" >$TMPDIR/$rpm.i586
+	dump_noarch x86_64/rpms/"$rpm" >$TMPDIR/$rpm.x86_64
+	if ! (cd $TMPDIR && diff -U1 $rpm.{i586,x86_64} ); then
+		gb_task_fail "$id" 'non-idential noarch packages'
+	fi
+done <$TMPDIR/i586.noarch
+
+echo >&2 'noarch rpm check ok' $(cat $TMPDIR/i586.noarch)
+
