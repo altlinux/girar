@@ -53,15 +53,15 @@ comm -23 "$hsh_dir"/.gb/chroot_BR "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/chr
 mv -f "$hsh_dir"/.gb/chroot_BR+ "$hsh_dir"/.gb/chroot_BR
 
 # Step 4: check if rebuild is needed at all.
-if [ -s build/$arch/$i/chroot_base ]; then
-	rm -f build/$arch/$i/REBUILD
-	if ! diff -U1 build/$arch/$i/chroot_base "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/out; then
-		echo 1 >build/$arch/$i/REBUILD
+if [ -s build/$i/$arch/chroot_base ]; then
+	rm -f build/$i/$arch/REBUILD
+	if ! diff -U1 build/$i/$arch/chroot_base "$hsh_dir"/.gb/chroot_base >"$hsh_dir"/.gb/out; then
+		echo 1 >build/$i/$arch/REBUILD
 		echo >>build/$arch/MERGE "chroot_base changed for ${dir##*/} $tag_name"
 		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
 	fi
-	if ! diff -U1 build/$arch/$i/chroot_BR "$hsh_dir"/.gb/chroot_BR >"$hsh_dir"/.gb/out; then
-		echo 1 >build/$arch/$i/REBUILD
+	if ! diff -U1 build/$i/$arch/chroot_BR "$hsh_dir"/.gb/chroot_BR >"$hsh_dir"/.gb/out; then
+		echo 1 >build/$i/$arch/REBUILD
 		echo >>build/$arch/MERGE "chroot_BR changed for ${dir##*/} $tag_name"
 		cat >>build/$arch/MERGE <"$hsh_dir"/.gb/out
 	fi
@@ -69,11 +69,11 @@ if [ -s build/$arch/$i/chroot_base ]; then
 	for j in `seq 1 $(($i-1))`; do
 		if [ -s build/$arch/$j/REBUILD ]; then
 			rm -f build/$arch/$j/REBUILD
-			echo 1 >build/$arch/$i/REBUILD
+			echo 1 >build/$i/$arch/REBUILD
 		fi
 	done
-	if ! [ -s build/$arch/$i/REBUILD ]; then
-		(set +f; cp -p build/$arch/$i/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/)
+	if ! [ -s build/$i/$arch/REBUILD ]; then
+		(set +f; cp -p build/$i/$arch/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/)
 		[ $? -eq 0 ]
 		echo >&2 "no need to rebuild ${dir##*/} $tag_name for $arch"
 		exit 0
@@ -94,11 +94,11 @@ done |sort >"$hsh_dir"/.gb/rpms1
 packager='Alexey Tourbin <at@altlinux.ru>'
 
 # Step 7: build.
-mkdir -p build/$arch/$i
+mkdir -p build/$i/$arch
 hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--mountpoints=/proc --nprocs=1 \
-	--packager="$packager" -- "$hsh_dir" gears/$i/pkg.tar >build/$arch/$i/log 2>&1 ||
-		gb_task_fail "$id" "cannot build $dir $tag_name: $(tail -33 build/$arch/$i/log)"
+	--packager="$packager" -- "$hsh_dir" gears/$i/pkg.tar >build/$i/$arch/log 2>&1 ||
+		gb_task_fail "$id" "cannot build $dir $tag_name: $(tail -33 build/$i/$arch/log)"
 
 # Step 8: save results.
 for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
@@ -124,21 +124,21 @@ comm -23 "$hsh_dir"/.gb/rpms{2,1} >"$hsh_dir"/.gb/out
 if ! [ -s "$hsh_dir"/.gb/out ]; then
 	gb_task_fail "$id" "${dir##*/} $tag_name produced no rpms"
 fi
-rm -rf build/$arch/$i/rpms
-mkdir -p build/$arch/$i/rpms
+rm -rf build/$i/$arch/rpms
+mkdir -p build/$i/$arch/rpms
 tar -C "$hsh_dir"/repo/$arch/RPMS.hasher -cf - `cut -f1 "$hsh_dir"/.gb/out` |
-tar -C build/$arch/$i/rpms -xf -
+tar -C build/$i/$arch/rpms -xf -
 
 comm -23 "$hsh_dir"/.gb/srpm{2,1} >"$hsh_dir"/.gb/out
 if ! [ -s "$hsh_dir"/.gb/out ]; then
 	gb_task_fail "$id" "${dir##*/} $tag_name produced no srpm"
 fi
-rm -rf build/$arch/$i/srpm
-mkdir -p build/$arch/$i/srpm
+rm -rf build/$i/$arch/srpm
+mkdir -p build/$i/$arch/srpm
 tar -C "$hsh_dir"/repo/SRPMS.hasher -cf - `cut -f1 "$hsh_dir"/.gb/out` |
-tar -C build/$arch/$i/srpm -xf -
+tar -C build/$i/$arch/srpm -xf -
 
-cp -p "$hsh_dir"/.gb/chroot_base build/$arch/$i/chroot_base
-cp -p "$hsh_dir"/.gb/chroot_BR build/$arch/$i/chroot_BR
+cp -p "$hsh_dir"/.gb/chroot_base build/$i/$arch/chroot_base
+cp -p "$hsh_dir"/.gb/chroot_BR build/$i/$arch/chroot_BR
 
 echo >&2 "build ${dir##*/} $tag_name for $arch OK"
