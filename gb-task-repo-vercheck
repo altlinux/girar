@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-# Check that the plain is consitent with respect to package versioning:
+# Check that the plan is consitent with respect to package versioning:
 # when replacing packages, versions must increase.
 
 . gb-sh-setup
