@@ -1,0 +1,80 @@
+#!/bin/sh -efu
+
+. gb-sh-setup
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+# XXX no setup yet
+REPO=/ALT/Sisyphus
+
+. tmpdir.sh
+repo=$TMPDIR/repo
+mkdir "$repo"
+
+cp -prs $REPO/{i586,x86_64,noarch} $repo/
+
+for arch in i586 x86_64; do
+	cat >$TMPDIR/$arch-sources.list <<EOF
+rpm file:$repo $arch classic
+rpm file:$repo noarch classic
+EOF
+	cat >$TMPDIR/$arch-apt.conf <<EOF
+Dir::Etc::main "/dev/null";
+Dir::Etc::parts "/var/empty";
+Dir::Etc::sourcelist "$TMPDIR/$arch-sources.list";
+Dir::Etc::sourceparts "/var/empty";
+EOF
+	unmets -c $TMPDIR/$arch-apt.conf >$TMPDIR/$arch-unmets.old
+done
+
+while read -r N EVR A F; do
+	rm $repo/$A/RPMS.classic/$F
+done <plan/rm-bin
+
+findbin()
+{
+	local f="$1"; shift
+	set +f
+	set -- build/*/*/rpms/$f
+	if [ -f "$1" ]; then
+		echo "$1"
+		return
+	else
+		echo >&2 " *** cannot find $f under build/"
+		return 1
+	fi
+}
+
+while read -r N EVR A F; do
+	bin=$(findbin "$F")
+	ln -s $PWD/$bin $repo/$A/RPMS.classic/$F
+done <plan/add-bin
+
+rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic
+rm -r $repo/{i586,x86_64,noarch}/base
+for arch in i586 x86_64 noarch; do
+	mkdir $repo/$arch/base
+	genbasedir --topdir=$repo --no-oldhashfile --bz2only --mapi $arch classic
+done
+
+for arch in i586 x86_64; do
+	unmets -c $TMPDIR/$arch-apt.conf >$TMPDIR/$arch-unmets.new
+done
+
+rc=0
+
+for arch in i586 x86_64; do
+	comm -13 $TMPDIR/$arch-unmets.{old,new} >$TMPDIR/$arch-unmets.plus
+	comm -23 $TMPDIR/$arch-unmets.{old,new} >$TMPDIR/$arch-unmets.minus
+	if [ -s $TMPDIR/$arch-unmets.minus ]; then
+		echo " $arch: old unmet dependencies resolved"
+		cat $TMPDIR/$arch-unmets.minus
+	fi >&2
+	if [ -s $TMPDIR/$arch-unmets.plus ]; then
+		echo " *** $arch: new unmet dependencies detected"
+		cat $TMPDIR/$arch-unmets.plus
+		rc=1
+	fi >&2
+done
+
+exit $rc
