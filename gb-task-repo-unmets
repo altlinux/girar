@@ -18,13 +18,7 @@ for arch in i586 x86_64; do
 rpm file:$repo $arch classic
 rpm file:$repo noarch classic
 EOF
-	cat >$TMPDIR/$arch-apt.conf <<EOF
-Dir::Etc::main "/dev/null";
-Dir::Etc::parts "/var/empty";
-Dir::Etc::sourcelist "$TMPDIR/$arch-sources.list";
-Dir::Etc::sourceparts "/var/empty";
-EOF
-	unmets -c $TMPDIR/$arch-apt.conf >$TMPDIR/$arch-unmets.old
+	unmets -s $TMPDIR/$arch-sources.list >$TMPDIR/$arch-unmets.old
 done
 
 while read -r N EVR A F; do
@@ -58,7 +52,7 @@ for arch in i586 x86_64 noarch; do
 done
 
 for arch in i586 x86_64; do
-	unmets -c $TMPDIR/$arch-apt.conf >$TMPDIR/$arch-unmets.new
+	unmets -s $TMPDIR/$arch-sources.list >$TMPDIR/$arch-unmets.new
 done
 
 rc=0
