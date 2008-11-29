@@ -1,0 +1,85 @@
+#!/bin/sh -efu
+
+# Check that the plain is consitent with respect to package versioning:
+# when replacing packages, versions must increase.
+
+. gb-sh-setup
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+vercheck()
+{
+	local EVR1="${1:?}" EVR2="${2:?}"
+	local IFS=:
+	set -- $EVR1
+	local E1= VR1=
+	if [ $# -eq 2 ] && [ -n "$1" ] && [ -n "$2" ]; then
+		E1="$1" VR1="$2"
+	elif [ $# -eq 1 ] && [ -n "$1" ]; then
+		VR1="$1"
+	else
+		echo " *** bad EVR: $EVR1"
+		return 1
+	fi >&2
+	set -- $EVR2
+	local E2= VR2=
+	if [ $# -eq 2 ] && [ -n "$1" ] && [ -n "$2" ]; then
+		E2="$1" VR2="$2"
+	elif [ $# -eq 1 ] && [ -n "$1" ]; then
+		VR2="$1"
+	else
+		echo " *** bad EVR: $EVR2"
+		return 1
+	fi >&2
+	if [ -n "$E1" ] && [ -z "$E2" ]; then
+		return 1
+	elif [ -z "$E1" ] && [ -n "$E2" ]; then
+		return 0
+	elif [ -n "$E1" ] && [ -n "$E2"]; then
+		if [ "$E1" -gt "$E2" ]; then
+			return 1
+		elif [ "$E1" -lt "$E2" ]; then
+			return 0
+		fi
+	fi
+	local cmp
+	cmp=$(rpmvercmp "$VR1" "$VR2")
+	[ "$cmp" = -1 ] || return 1
+}
+
+rc=0
+
+join -t$'\t' plan/rm-src plan/add-src >$TMPDIR/replace-src
+sort -u -o $TMPDIR/replace-src{,}
+
+while read -r N EVR1 F1 EVR2 F2; do
+	if ! vercheck "$EVR1" "$EVR2"; then
+		echo ' *** source package version is either the same or older than existing'
+		printf '%s\%s\t%s\n' "$N" "$EVR1" "$EVR2"
+		rc=1
+	fi >&2
+	if [ "$F1" = "$F2" ]; then
+		echo ' *** new and existing source packages have the same filename'
+		printf '%s\t%s\n' "$N" "$F1"
+		rc=1
+	fi >&2
+done <$TMPDIR/replace-src
+
+join -t$'\t' plan/rm-bin plan/add-bin >$TMPDIR/replace-bin
+sort -u -o $TMPDIR/replace-bin{,}
+
+while read -r N EVR1 A1 F1 EVR2 A2 F2; do
+	[ "$A1" = "$A2" ] || [ "$A1" = noarch ] || [ "$A2" = noarch ] || continue
+	if ! vercheck "$EVR1" "$EVR2"; then
+		echo ' *** binary package version is either the same or older than existing'
+		printf '%s\%s\t%s\n' "$N" "$EVR1" "$EVR2"
+		rc=1
+	fi >&2
+	if [ "$F1" = "$F2" ]; then
+		echo ' *** new and existing binary packages have the same filename'
+		printf '%s\t%s\n' "$N" "$F1"
+		rc=1
+	fi >&2
+done <$TMPDIR/replace-src
+
+exit $rc
