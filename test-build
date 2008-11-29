@@ -30,8 +30,11 @@ gb_task_fail()
 }
 export -f gb_task_fail
 
+set -x
 gb-task-pkgtar 333
 gb-task-build 333
 gb-task-check-build 333
+gb-task-repo-plan 333
+gb-task-repo-vercheck 333
 
 find build/ -type f |sort

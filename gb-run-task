@@ -13,3 +13,5 @@ exec >task/log 2>&1
 gb-task-pkgtar "$id"
 gb-task-build "$id"
 gb-task-check-build "$id"
+gb-task-repo-plan "$id"
+gb-task-repo-vercheck "$id"
