@@ -12,6 +12,7 @@ N="%{NAME}"
 VR="%{VERSION}-%{RELEASE}"
 EVR="%|SERIAL?{%{SERIAL}:}|$VR"
 NVR="%{NAME}-$VR"
+A="%{ARCH}"
 
 set +f
 
@@ -24,7 +25,7 @@ qsrc()
 qbin()
 {
 	find "$@" -name '*.rpm' -not -name '*.src.rpm' -print0 | xargs -r0 \
-		rpmquery --qf "$N\t$EVR\t$NVR.%{ARCH}.rpm\t%{SOURCERPM}\n" -p --
+		rpmquery --qf "$N\t$EVR\t$A\t$NVR.$A.rpm\t%{SOURCERPM}\n" -p --
 }
 
 . tmpdir.sh
@@ -54,8 +55,8 @@ sort -u -o $TMPDIR/old.bin{,}
 #
 # Tuples are represented with the following table:
 #
-# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-F
-# -----  -------  -----  -----  -------  -----
+# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
+# -----  -------  -----  -----  -------  -----  -----
 #
 # Note: the fact that both mappings mentioned above exist roughly means
 # that we can join src+bin on %{SOURCERPM}.  This is how we do the table.
@@ -64,8 +65,8 @@ mktable()
 {
 	local x="$1"; shift
 	sort -k3 -o $TMPDIR/$x.src{,}
-	sort -k4 -o $TMPDIR/$x.bin{,}
-	join -t$'\t' -13 -24 -o '1.1 1.2 1.3 2.1 2.2 2.3' $TMPDIR/$x.{src,bin} >$TMPDIR/$x
+	sort -k5 -o $TMPDIR/$x.bin{,}
+	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' $TMPDIR/$x.{src,bin} >$TMPDIR/$x
 	sort -u -o $TMPDIR/$x{,}
 }
 
@@ -74,7 +75,7 @@ mktable old
 
 # Tuples are replaced
 # 1) by explicit src-N match (src->bin+);
-O='1.1 1.2 1.3 1.4 1.5 1.6'
+O='1.1 1.2 1.3 1.4 1.5 1.6 1.7'
 join -t$'\t' -o "$O" -j 1 $TMPDIR/{old,new} >$TMPDIR/rm-by-src
 sort -u -o $TMPDIR/rm-by-src{,}
 
@@ -100,10 +101,9 @@ join -t$'\t' -o "$O" -j 1 $TMPDIR/{old,rm-by-bin} >$TMPDIR/rm-by-bin+
 sort -u $TMPDIR/rm-by-{src,bin+} >$TMPDIR/rm
 
 # Guess what.  The plan is actually about moving some files around.
-# Slice the tables into (F,N,EVR) triples.
 mkdir -p plan
-awk -F'\t' 'BEGIN{OFS=FS}{print$3,$1,$2}' <$TMPDIR/new |sort -u >plan/add-src
-awk -F'\t' 'BEGIN{OFS=FS}{print$6,$4,$5}' <$TMPDIR/new |sort -u >plan/add-bin
+cut -f1-3 <$TMPDIR/new |sort -u >plan/add-src
+cut -f4-7 <$TMPDIR/new |sort -u >plan/add-bin
 
-awk -F'\t' 'BEGIN{OFS=FS}{print$3,$1,$2}' <$TMPDIR/rm |sort -u >plan/rm-src
-awk -F'\t' 'BEGIN{OFS=FS}{print$6,$4,$5}' <$TMPDIR/rm |sort -u >plan/rm-bin
+cut -f1-3 <$TMPDIR/rm |sort -u >plan/rm-src
+cut -f4-7 <$TMPDIR/rm |sort -u >plan/rm-bin
