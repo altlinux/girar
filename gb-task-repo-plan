@@ -88,7 +88,7 @@ sort -u -o $TMPDIR/rm-by-bin{,}
 comm -23 $TMPDIR/rm-by-{bin,src} >$TMPDIR/rm-by-bin-only
 if [ -s $TMPDIR/rm-by-bin-only ]; then
 	echo ' *** Warning: existing src.rpm kicked by new non-matching rpm'
-	cut -f3,4 <$TMPDIR/rm-by-bin-only
+	cut -f3,4 <$TMPDIR/rm-by-bin-only |sort -u
 fi >&2
 
 # Implicit (src<-bin) match should be propagated to (src->bin+).
@@ -98,3 +98,12 @@ join -t$'\t' -o "$O" -j 1 $TMPDIR/{old,rm-by-bin} >$TMPDIR/rm-by-bin+
 
 # Replaced tuples.
 sort -u $TMPDIR/rm-by-{src,bin+} >$TMPDIR/rm
+
+# Guess what.  The plan is actually about moving some files around.
+# Slice the tables into (F,N,EVR) triples.
+mkdir -p plan
+awk -F'\t' 'BEGIN{OFS=FS}{print$3,$1,$2}' <$TMPDIR/new |sort -u >plan/add-src
+awk -F'\t' 'BEGIN{OFS=FS}{print$6,$4,$5}' <$TMPDIR/new |sort -u >plan/add-bin
+
+awk -F'\t' 'BEGIN{OFS=FS}{print$3,$1,$2}' <$TMPDIR/rm |sort -u >plan/rm-src
+awk -F'\t' 'BEGIN{OFS=FS}{print$6,$4,$5}' <$TMPDIR/rm |sort -u >plan/rm-bin

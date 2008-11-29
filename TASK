@@ -23,3 +23,8 @@ TASK_ID/gears/build/$i/$arch/chroot_BR		BuildRequires packages
 TASK_ID/gears/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
 TASK_ID/gears/build/$i/$arch/rpms/*.rpm		1+ *.$arch.rpm or *.noarch.rpm
 
+# After the build is successful, there is a palan to upgrade the repo.
+TASK_ID/paln/add-src
+TASK_ID/paln/add-bin
+TASK_ID/paln/rm-src
+TASK_ID/paln/rm-bin
