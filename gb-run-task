@@ -10,8 +10,8 @@ builtin lockf -v .
 (
 	exec >>task/log 2>&1
 	[ -s task/log ] &&
-		echo "Starting on $(date)" ||
-		echo "Resuming on $(date)"
+		echo "Resuming on $(date)" ||
+		echo "Starting on $(date)"
 	set -x
 	gb-task-pkgtar
 	gb-task-build
