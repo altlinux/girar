@@ -7,7 +7,7 @@ trap '' HUP INT QUIT PIPE TERM
 
 id=$(gb-select-task)
 if [ -n "$id" ]; then
-	echo >&2 -n "Running task $id "
+	echo >&2 -n "Running task $id ... "
 	gb-run-task "$id"
 fi
 
