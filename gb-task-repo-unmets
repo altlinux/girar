@@ -6,12 +6,13 @@ cd "$GB_TASKS/$id"
 
 # XXX no setup yet
 REPO=/ALT/Sisyphus
-
-. tmpdir.sh
-repo=$TMPDIR/repo
+repo=$TMPDIR/Sisyphus
+rm -rf "$repo"
 mkdir "$repo"
 
 cp -prs $REPO/{i586,x86_64,noarch} $repo/
+
+. tmpdir.sh
 
 for arch in i586 x86_64; do
 	cat >$TMPDIR/$arch-sources.list <<EOF

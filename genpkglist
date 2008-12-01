@@ -1,0 +1,3 @@
+#!/bin/sh -efu
+mkdir -p /tmp/.private/$USER/.gb-cache/genpkglist
+exec /usr/bin/genpkglist --cachedir /tmp/.private/$USER/.gb-cache "$@"
