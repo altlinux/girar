@@ -21,7 +21,7 @@ select_task()
 	builtin lockf -n .
 	[ -s task/seq ]
 	local seq
-	seq=$(cat task/id)
+	seq=$(cat task/seq)
 	[ -n "$seq" ]
 	[ "$(($seq%3))" -eq 0 ]
 	seq=$(($seq+1))
