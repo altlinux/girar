@@ -62,18 +62,18 @@ cd "$GIRAR_TASKS/$id"
 builtin lockf -nv . ||
 	fatal "task #$id is locked"
 
-seq=
-if [ -f task/seq ]; then
-	seq=$(cat task/seq)
-	case "$(($seq%3))" in
-		# awaiting for build
-		0) ;;
-		# work in progress
-		1) fatal "task $id is a work in progress" ;;
-		# have build results
-		2) ;;
-	esac
-fi
+#seq=
+#if [ -f task/seq ]; then
+#	seq=$(cat task/seq)
+#	case "$(($seq%3))" in
+#		# awaiting for build
+#		0) ;;
+#		# work in progress
+#		1) fatal "task $id is a work in progress" ;;
+#		# have build results
+#		2) ;;
+#	esac
+#fi
 
 gear_nums()
 {
