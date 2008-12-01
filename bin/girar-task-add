@@ -138,7 +138,7 @@ mkdir gears/"$i"
 trap atexit EXIT
 echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
-echo "$tag_value" >gears/$i/tag_value
+echo "$tag_id" >gears/$i/tag_id
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git git init -q
