@@ -1,0 +1,12 @@
+#!/bin/sh
+
+remove_tmpdir()
+{
+	local rc=$?
+	trap - EXIT
+	rm -rf "$tmpdir"
+	exit $rc
+}
+
+tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+trap remove_tmpdir EXIT HUP INT QUIT PIPE TERM
