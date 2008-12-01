@@ -18,7 +18,7 @@ usage()
 	usage 'Too many arguments.'
 
 [ -n "$1" -a -n "${1##*/*}" ] &&
-	repo_name="$(quote_sed_regexp "$1")" ||
+	repo_name="$(quote_sed_regexp "$(printf %s "$1" |tr -s '*')")" ||
 	fatal 'invalid pattern'
 
 # Emulate * globbing.

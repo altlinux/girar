@@ -2,12 +2,10 @@
 
 . girar-sh-functions
 
-girar_queue="$GIRAR_PUBLIC_QUEUE"
-private_queue="$GIRAR_PRIVATE_QUEUE"
-upravdom_queue="$UPRAVDOM_QUEUE"
-upravdom_account="$UPRAVDOM_ACCOUNT"
-
-upravdomlock="$upravdom_queue/.lock"
+input_queue="$GIRAR_PUBLIC_QUEUE"
+our_queue="$GIRAR_PRIVATE_QUEUE"
+remote_queue="$UPRAVDOM_QUEUE"
+remote_account="$UPRAVDOM_ACCOUNT"
 
 find_args="-mindepth 1 -maxdepth 1 -regextype posix-basic -regex '^.*/[[:digit:]]\+$' -type f -printf '%f\n'"
 
@@ -17,67 +15,34 @@ findin()
 		sort -n
 }
 
-findin_upravdom_queue()
-{
-	ssh -n "$upravdom_account" "find '$upravdom_queue' $find_args" |
-		sort -n
-}
-
-exit_handler()
-{
-	local rc=$?
-	trap - EXIT
-
-	# unlock upravdom queue if and only if we own it
-	ssh -n "$upravdom_account" "[ ! -d '$upravdomlock' -o ! -O '$upravdomlock' ] || rmdir -- '$upravdomlock'" ||
-		message "$upravdom_account: $upravdomlock: unable to remove lockdir"
-
-	exit $rc
-}
-
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$private_queue"
-builtin lockf -v "$girar_queue"
+builtin lockf -v "$our_queue"
+builtin lockf -v "$input_queue"
 
-private_num="$(findin "$private_queue" |tail -1)"
+# move tasks from input queue to our queue
+for name in $(findin "$input_queue"); do
+	task="$input_queue/$name"
 
-[ -n "$private_num" ] &&
-	private_num=$(($private_num+1)) ||
-	private_num=0
-
-# move tasks from public queue to private queue
-for name in $(findin "$girar_queue"); do
-	task="$girar_queue/$name"
-
-	if [ ! -s "$task" ]; then
+	[ -s "$task" ] && cat "$task" >/dev/null ||
+	{
 		rm -f -- "$task"
 		continue
-	fi
+	}
 
-	if ! mv -- "$task" "$private_queue/$private_num"; then
-		message "unable to move '$task' -> '$private_queue/$private_num'"
+	mv -- "$task" "$our_queue/" ||
+	{
+		message "$name: unable to move task"
 		continue
-	fi
-
-	private_num=$(($private_num+1))
+	}
 done
 
-trap exit_handler HUP PIPE INT QUIT TERM EXIT
+# exit if our queue is empty
+[ -n "$(findin "$our_queue")" ] || exit 0
 
-# lock upravdom queue
-ssh -n "$upravdom_account" "while ! mkdir -- '$upravdomlock'>/dev/null 2>&1; do sleep 1; done" ||
-	fatal "unable to lock upravdom queue"
-
-upravdom_num="$(findin_upravdom_queue |tail -1)"
-
-[ -n "$upravdom_num" ] && 
-	upravdom_num=$(($upravdom_num+1)) ||
-	upravdom_num=0
-
-# move tasks from private queue to upravdom queue
-for name in $(findin "$private_queue"); do
-	rsync -tp "$private_queue/$name" "$upravdom_account:$upravdom_queue/$upravdom_num" ||
-		fatal "unable to forward task '$private_queue/$name' -> '$upravdom_account:$upravdom_queue/$upravdom_num': rc=$?"
-	rm -f -- "$private_queue/$name"
-	upravdom_num=$(($upravdom_num+1))
+# move tasks from our queue to remote queue
+for name in $(findin "$our_queue"); do
+	rsync --rsync-path="enable -f /usr/lib/bash/lockf lockf && builtin lockf $remote_queue && rsync" \
+	      -rt "$our_queue/$name" "$remote_account:$remote_queue/" ||
+		fatal "$name: unable to forward task: rc=$?"
+	rm -f -- "$our_queue/$name"
 done

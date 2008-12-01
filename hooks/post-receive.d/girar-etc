@@ -23,8 +23,6 @@ update()
 
 case "$project_name" in
 	packages)
-		update acl groups "$GIRAR_ACL_STATE_DIR/$GIRAR_USER"
-		update acl packages "$GIRAR_ACL_STATE_DIR/$GIRAR_USER"
 		update email subscription "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
 		;;
 	public)

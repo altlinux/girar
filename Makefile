@@ -19,6 +19,7 @@ girar_private_dir = ${girar_datadir}/private.git
 girar_public_dir = ${girar_datadir}/public.git
 girar_email_dir = ${girar_statedir}/email
 girar_acl_conf_dir = ${girar_confdir}/acl
+girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_acl_state_dir = ${girar_statedir}/acl
 
 EMAIL_DOMAIN = altlinux.org
@@ -58,8 +59,10 @@ bin_auto_TARGETS = \
 bin_TARGETS = \
 	${bin_auto_TARGETS} \
 	bin/find-subscribers \
+	bin/girar-acl \
 	bin/girar-build \
 	bin/girar-charset \
+	bin/girar-check-acl-leader \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
@@ -170,6 +173,7 @@ bin/girar-sh: bin/girar-sh.c
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
+	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
 	    -e 's,@GIRAR_ARCHIVE@,${GIRAR_ARCHIVE},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \

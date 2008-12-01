@@ -1,0 +1,70 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+. shell-args
+
+if [ "${1-}" = '--help' ]; then
+	echo 'Usage: $PROG person item acl_packages acl_groups'
+	exit 0
+fi
+[ "$#" -ge 4 ] || show_usage 'Not enough arguments.'
+[ "$#" -le 4 ] || show_usage 'Too many arguments.'
+
+person="$1"; shift
+if [ "$person" = 'root' ]; then
+	# no further checks for root
+	exit 0
+fi
+
+item="$1"; shift
+[ -n "$item" ] ||
+	fatal 'Empty item'
+
+acl_packages="$1"; shift
+acl_groups="$1"; shift
+
+deny()
+{
+	printf '%s\n' "$*"
+	exit 1
+}
+
+if [ -z "${item##@*}" ]; then
+	item_type='Group'
+	item_acl="$acl_groups"
+else
+	item_type='Project'
+	item_acl="$acl_packages"
+fi
+
+qitem="$(quote_sed_regexp "$item")"
+owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$item_acl")"
+[ -n "$owners" ] ||
+	deny "$item: $item_type not found in ${item_acl##*/}"
+
+leader="${owners%% *}"
+[ -n "$leader" ] ||
+	deny "$item: $item_type leader not found in ${item_acl##*/}"
+
+loop=
+while [ -n "$leader" -a -z "${leader##@*}" -a "$leader" != "@nobody" ]; do
+	grp="$leader"
+	qitem="$(quote_sed_regexp "$grp")"
+
+	owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$acl_groups")"
+	[ -n "$owners" ] ||
+		deny "$grp: Group not found in ${item_acl##*/}"
+
+	leader="${owners%% *}"
+	[ -n "$leader" ] ||
+		deny "$grp: Group leader not found in ${acl_groups##*/}"
+
+	[ -z "$loop" -o -n "${loop##* $leader *}" ] ||
+		deny "$leader: Group loop detected"
+
+	loop=" $loop $leader "
+done
+
+[ "$leader" = "$person" ] ||
+	deny "$item: Permission denied, only $leader is allowed to change this acl"

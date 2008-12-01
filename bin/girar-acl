@@ -1,0 +1,196 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+. shell-args
+
+if [ "${1-}" = '--help' ]; then
+        cat <<EOF
+Usage: $PROG <repository> [{<package>|@<group>} show
+   or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
+   or: $PROG <repository> <package> nmu show
+   or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
+   or: $PROG <repository>
+Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
+If no package is given, read commands from stdin, one command per line.
+See http://www.altlinux.org/Incoming/acl for details.
+EOF
+	exit 0
+fi
+
+workdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 143
+}
+
+show_nmu()
+{
+	local qitem
+	qitem="$(quote_sed_regexp "$item")"
+	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository"
+}
+
+parse_cmd_nmu()
+{
+	local action="$1"; shift
+	case "$action" in
+		show)
+			show_nmu >&2
+			return ;;
+		add|del) ;;
+		*) fatal "nmu $action: Invalid action" ;;
+	esac
+
+	local login='*' start_time=0 end_time=0
+
+	if [ "$#" -gt 0 ]; then
+		login="$1"; shift
+		[ -n "${login##@*}" ] ||
+			fatal "$login: Group is not allowed here"
+		[ "$login" = '*' -o \
+		  -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
+			fatal "$login: Invalid login name"
+	fi
+	[ "$login" != '*' ] || login=_
+
+	if [ "$#" -gt 0 ]; then
+		start_time="$(opt_check_number 'start-time' "$1")"; shift
+	fi
+
+	if [ "$#" -gt 0 ]; then
+		end_time="$(opt_check_number 'end-time' "$1")"; shift
+	fi
+
+	if [ "$start_time" = 0 ]; then
+		start_time="$(date +'%s')"
+	fi
+
+	if [ "$end_time" != 0 ]; then
+		[ "$start_time" -lt "$end_time" ] ||
+			fatal "End time in the past"
+	fi
+
+	printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$item" 'nmu' "$action" "$login" "$start_time" "$end_time"
+}
+
+parse_cmd_acl()
+{
+	local a
+	for a; do
+		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+			fatal "$item $action: $*: Invalid argument(s)"
+	done
+
+	printf '%s\t%s\t%s\n' "$item" "$action" "$*"
+}
+
+show_acl()
+{
+	local t qitem
+	[ "${item#@}" = "$item" ] &&
+		t=packages ||
+		t=groups
+	qitem="$(quote_sed_regexp "$item")"
+	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
+}
+
+nqueued=0
+parse_cmd()
+{
+	[ "$#" -ge 2 ] ||
+		show_usage 'Not enough arguments.'
+
+	local item="$1"; shift
+	local action="$1"; shift
+
+	case "$action" in
+		show)
+			show_acl >&2
+			return ;;
+		add|del|leader|nmu|replace) ;;
+		create|delete)
+			[ "${GIRAR_USER-}" = 'root' ] ||
+				fatal "$item $action: Permission denied" ;;
+		*) fatal "$action: Invalid action" ;;
+	esac
+
+	girar-check-acl-leader "$GIRAR_USER" "$item" \
+		"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
+		"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+
+	[ "${GIRAR_USER-}" = 'root' ] ||
+	[ "$#" -ge 1 ] ||
+		show_usage 'Not enough arguments.'
+
+	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
+		fatal "$item $action: $*: Invalid argument(s)"
+
+	if [ "$action" = 'nmu' ]; then
+		parse_cmd_nmu "$@"
+	else
+		parse_cmd_acl "$@"
+	fi
+
+	nqueued="$(($nqueued+1))"
+}
+
+[ -n "${GIRAR_USER-}" ] ||
+	fatal "GIRAR_USER undefined"
+
+[ "$#" -ge 1 ] ||
+	show_usage 'Not enough arguments.'
+
+repository="$1"
+shift
+
+# Abort if no non-empty repository list available.
+[ -s "$GIRAR_REPOSITORIES" ] ||
+	fatal 'Sorry, list of available repositories is not available'
+
+# Abort if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
+
+# Abort if acl spool dir for the repository is not available.
+cd "$GIRAR_ACL_STATE_DIR/$repository"
+
+trap exit_handler EXIT
+trap signal_handler HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+
+# If caller specified arguments, parse them,
+# otherwise parse stdin line by line.
+if [ $# -eq 0 ]; then
+	message 'Go ahead and type your commands' >&2
+	while read -r line; do
+		parse_cmd $line
+	done
+else
+	parse_cmd "$@"
+fi >"$workdir/cmd"
+[ -s "$workdir/cmd" ] || exit 0
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GIRAR_ACL_STATE_DIR"
+
+touch -- "$workdir/new"
+[ ! -s "$GIRAR_USER.acl" ] ||
+	cat -- "$GIRAR_USER.acl" >"$workdir/new"
+cat -- "$workdir/cmd" >>"$workdir/new"
+mv -f -- "$workdir/new" "$GIRAR_USER.acl"
+
+[ "$nqueued" = 0 ] ||
+	message "$nqueued command(s) queued"
