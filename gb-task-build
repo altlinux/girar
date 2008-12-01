@@ -1,23 +1,16 @@
 #!/bin/sh -efu
 
-. gb-sh-setup
-
-id="$1"; shift
-cd "$GB_TASKS/$id"
-
-FAIL=`mktemp`
+. gb-sh-tmpdir
 
 for arch in i586 x86_64; do
-	$0-arch "$id" "$arch" ||
-		echo "$arch build failed" >"$FAIL" &
+	$0-arch "$arch" ||
+		echo "$arch build failed" >>"$tmpdir"/FAIL &
 	sleep 9
 done
 
 wait
 
-if [ -s "$FAIL" ]; then
-	cat >&2 "$FAIL"
-	rm "$FAIL"
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
 	exit 1
 fi
-rm "$FAIL"
