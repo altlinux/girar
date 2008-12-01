@@ -58,16 +58,6 @@ tag_id="$(git rev-parse --verify "$tag_name")"
 GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
 	fatal "$tag_name: invalid tag"
 
-if [ $# -gt 0 ]; then
-	project_name="$1"; shift
-else
-	project_name="${PWD##*/}"
-	project_name="${project_name%.git}"
-fi
-[ -n "$project_name" ] &&
-printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
-	fatal "$project_name: invalid project name"
-
 cd "$GIRAR_TASKS/$id"
 # no need to lock $GIRAR_TASKS
 builtin lockf -v .
