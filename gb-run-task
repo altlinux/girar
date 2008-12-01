@@ -1,19 +1,32 @@
 #!/bin/sh -efu
 
-enable -f /usr/lib/bash/lockf lockf
-
 . gb-sh-setup
-
 id="$1"; shift
 
-cd "$GB_TASKS/$id"
+cd "$GIRAR_TASKS/$id"
+enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
-exec >task/log 2>&1
-gb-task-pkgtar "$id"
-gb-task-build "$id"
-gb-task-check-build "$id"
-gb-task-repo-plan "$id"
-gb-task-repo-vercheck "$id"
-gb-task-repo-unmets "$id"
-gb-task-acl "$id"
+(
+	exec >>task/log 2>&1
+	[ -s task/log ] &&
+		echo "Starting on $(date)" ||
+		echo "Resuming on $(date)"
+	set -x
+	gb-task-pkgtar
+	gb-task-build
+	gb-task-check-build
+	gb-task-repo-plan
+	gb-task-repo-vercheck
+	gb-task-repo-unmets
+	gb-task-acl
+)
+
+rc=$?
+
+seq=$(cat task/seq)
+seq=$(($seq+1))
+echo "$seq" >task/seq
+
+# for girar-builder
+echo >&2 rc=$rc
