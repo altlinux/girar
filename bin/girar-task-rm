@@ -29,7 +29,8 @@ else
 fi
 
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$id"
+builtin lockf -nv "$id" ||
+	fatal "task #$id is locked"
 
 # TODO: girar superusers can remove tasks.
 owner=$(cat "$id"/task/owner)
