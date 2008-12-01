@@ -2,18 +2,26 @@
 
 # Toplevel select-task/run-task loop.
 
-# Task sequence number must be updated consistently.
-trap '' HUP INT QUIT PIPE TERM
+signal=
+trap 'signal=1' HUP INT QUIT PIPE TERM
 
-id=$(gb-select-task)
-if [ -n "$id" ]; then
-	echo >&2 -n "Running task $id ... "
-	gb-run-task "$id"
+(
+	# Task sequence number must be updated consistently.
+	trap '' HUP INT QUIT PIPE TERM
+	id=$(gb-select-task)
+	if [ -n "$id" ]; then
+		echo >&2 -n "Running task $id ... "
+		gb-run-task "$id"
+	fi
+)
+
+trap - HUP INT QUIT PIPE TERM
+
+if [ -n "$signal" ]; then
+	echo >&2 'exiting due to pending signals'
+	exit
 fi
 
-# Chance to kill.
-trap - HUP INT QUIT PIPE TERM
 sleep 9
 
-# Run on.
 exec "$0"
