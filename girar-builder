@@ -1,7 +1,19 @@
 #!/bin/sh -efu
 
-export GB_REPO="${1:?}"
-ids=$(gb-sync-tasks)
-for id in $ids; do
+# Toplevel select-task/run-task loop.
+
+# Task sequence number must be updated consistently.
+trap '' HUP INT QUIT PIPE TERM
+
+id=$(gb-select-task)
+if [ -n "$id" ]; then
+	echo >&2 -n "Running task $id "
 	gb-run-task "$id"
-done
+fi
+
+# Chance to kill.
+trap - HUP INT QUIT PIPE TERM
+sleep 9
+
+# Run on.
+exec "$0"
