@@ -4,17 +4,31 @@
 
 cd "$GIRAR_TASKS"
 
+enable -f /usr/lib/bash/lockf lockf
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
+
 ls1()
 {
 	local id="$1"; shift
-	# maybe lock?
-	printf "%d seq=%s" "$id" "$(cat "$id"/task/seq 2>/dev/null)"
-	if [ -s "$id"/gears/1/dir ]; then
-		local dir tag_name
-		dir=$(cat "$id"/gears/1/dir)
-		tag_name=$(cat "$id"/gears/1/tag_name)
-		printf ' %s=%s' "${dir##*/}" "$tag_name"
+	cd "$id" || return
+	printf '%d' "$id"
+	# status is not implemented yet
+	if ! (builtin lockf -n . ); then
+		printf ' [locked]'
 	fi
+	printf ' %s' "$(cat task/repo)"
+	local i dir tag_name
+	for i in $(gear_nums); do
+		dir=$(cat gears/$i/dir)
+		tag_name=$(cat gears/$i/tag_name)
+		printf ' %s=%s' "${dir##*/}" "$tag_name"
+	done
 	printf '\n'
 }
 
@@ -25,6 +39,6 @@ if [ -z "$ids" ]; then
 	message "no tasks for $GIRAR_USER"
 else
 	for id in $ids; do
-		ls1 "$id"
+		(ls1 "$id")
 	done
 fi
