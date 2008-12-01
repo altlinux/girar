@@ -3,10 +3,7 @@
 . girar-sh-functions
 . gb-sh-setup
 
-enable -f /usr/lib/bash/lockf lockf
-
 cd "$GIRAR_TASKS"
-builtin lockf -v .
 
 repo_tasks()
 {
@@ -14,6 +11,8 @@ repo_tasks()
 	fgrep -l -i -x "$GB_REPO" [1-9]*/task/repo |
 	sort -n |cut -d/ -f1
 }
+
+enable -f /usr/lib/bash/lockf lockf
 
 select_task()
 {
