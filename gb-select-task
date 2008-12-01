@@ -1,0 +1,38 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. gb-sh-setup
+
+enable -f /usr/lib/bash/lockf lockf
+
+cd "$GIRAR_TASKS"
+builtin lockf -v .
+
+repo_tasks()
+{
+	set +f
+	fgrep -l -i -x "$GB_REPO" [1-9]*/task/repo |
+	sort -n |cut -d/ -f1
+}
+
+select_task()
+{
+	local id="$1"; shift
+	cd "$id"
+	builtin lockf -n .
+	[ -s task/seq ]
+	local seq
+	seq=$(cat task/id)
+	[ -n "$seq" ]
+	[ "$(($seq%3))" -eq 0 ]
+	seq=$(($seq+1))
+	echo "$seq" >task/seq
+}
+
+for id in $(repo_tasks); do
+	(select_task "$id")
+	if [ $? -eq 0 ]; then
+		echo "$id"
+		exit
+	fi
+done
