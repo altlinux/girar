@@ -93,14 +93,14 @@ check_already_added()
 		a_tag_id=$(cat gears/$i/tag_id)
 		if [ "${a_dir##*/}" = "${dir##*/}" ] &&
 		   [ "$a_tag_name" = "$tag_name" ]; then
-			message "${dir##*/}: $tag_name already added"
+			message "${dir##*/}: tag $tag_name was already added"
 			[ "$a_tag_id" = "$tag_id" ] ||
-				fatal "$tag_name: tag has changed"
+				fatal "${dir##*/}: tag $tag_name has changed"
 			exit 0
 		fi
-		if [ "$a_tag_id" = "$tag_id"]; then
-			# XXX WTF
-			message "tag_id $a_tag_id already added"
+		if [ "$a_tag_id" = "$tag_id" ]; then
+			# maybe added by another guy
+			message "${dir##*/}: tag $tag_name was already added (from $a_dir $a_tag_name)"
 			exit 0
 		fi
 	done
