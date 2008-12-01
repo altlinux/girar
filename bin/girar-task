@@ -9,18 +9,17 @@ usage()
 	exit 1
 }
 
-[ "$#" -ge 1 ] ||
+if [ "$#" -lt 1 ]; then
 	usage 'Not enough arguments.'
-[ -n "${GIRAR_USER-}" ] ||
-	fatal "GIRAR_USER undefined"
+fi
 
-cd "$GIRAR_TASKS"
+op="$1"; shift
 
 case "${1-}" in
 	--help|help|'')
 		usage ;;
 	new|add|ls|show|run|rm)
-		exec "$PROG-$1" "$@"
+		exec "$PROG-$op" "$@"
 		;;
 	*)
 		usage "invalid operation: $op"
