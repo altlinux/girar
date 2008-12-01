@@ -44,12 +44,12 @@ dir="$(add_git_suffix "$dir")"
 [ -z "${dir%%packages/*}" ] ||
 	fatal "$dir0: directory should belong to packages/ directory tree"
 
-cd "$dir"
-dir=$(/bin/pwd)
-
 enable -f /usr/lib/bash/lockf lockf
-# lock gear repo
-builtin lockf -v .
+
+cd "$dir"
+builtin lockf -nv . ||
+	fatal "gear repo ${dir##*/} is locked"
+dir=$(/bin/pwd)
 
 tag_name="$1"; shift
 GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
@@ -59,8 +59,8 @@ GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
 	fatal "$tag_name: invalid tag"
 
 cd "$GIRAR_TASKS/$id"
-# no need to lock $GIRAR_TASKS
-builtin lockf -v .
+builtin lockf -nv . ||
+	fatal "task #$id is locked"
 
 seq=
 if [ -f task/seq ]; then
