@@ -3,8 +3,7 @@
 . gb-sh-setup
 . gb-sh-hasher-functions
 
-id="$1" arch="$2"; shift 2
-cd "$GB_TASKS/$id"
+arch="$1"; shift
 
 hsh_dir=$(gb_hasher_dir "$arch")
 mkdir -p "$hsh_dir"
@@ -20,5 +19,5 @@ gear_nums()
 nums=$(gear_nums)
 
 for i in $nums; do
-	$0-i "$id" "$arch" "$i"
+	$0-i "$arch" "$i"
 done
