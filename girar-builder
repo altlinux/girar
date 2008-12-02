@@ -11,7 +11,7 @@ trap 'signal=1' HUP INT QUIT PIPE TERM
 	id=$(gb-select-task)
 	if [ -n "$id" ]; then
 		echo >&2 -n "Running task $id ... "
-		gb-run-task "$id"
+		exec gb-run-task "$id"
 	fi
 )
 
