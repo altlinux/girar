@@ -1,14 +1,13 @@
 #!/bin/sh -efu
 
-. girar-sh-functions
-. gb-sh-setup
+. gb-sh-repo-conf
 
 cd "$GIRAR_TASKS"
 
 repo_tasks()
 {
 	set +f
-	fgrep -l -i -x "$GB_REPO" [1-9]*/task/repo |
+	fgrep -l -i -x "$GB_REPO_NAME" [1-9]*/task/repo |
 	sort -n |cut -d/ -f1
 }
 

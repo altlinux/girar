@@ -1,12 +1,10 @@
 #!/bin/sh -efu
 
-. gb-sh-setup
-. gb-sh-hasher-functions
+. gb-sh-hasher-conf
 
 arch="$1"; shift
 
 hsh_dir=$(gb_hasher_dir "$arch")
-mkdir -p "$hsh_dir"
 rm -rf "$hsh_dir"/repo
 
 gear_nums()
