@@ -4,10 +4,6 @@
 # into the repo, find out the existing packages which should
 # be replaced or removed.
 
-. gb-sh-setup
-id="$1"; shift
-cd "$GB_TASKS/$id"
-
 N="%{NAME}"
 VR="%{VERSION}-%{RELEASE}"
 EVR="%|SERIAL?{%{SERIAL}:}|$VR"
@@ -35,11 +31,10 @@ qbin build/*/*/rpms/ >$TMPDIR/new.bin
 sort -u -o $TMPDIR/new.src{,}
 sort -u -o $TMPDIR/new.bin{,}
 
-# XXX no setup yet
-repo=/ALT/Sisyphus
+. gb-sh-repo-conf
 
-qsrc $repo/{i586,x86_64,noarch}/SRPMS.*/ >$TMPDIR/old.src
-qbin $repo/{i586,x86_64,noarch}/RPMS.*/ >$TMPDIR/old.bin
+qsrc $GB_REPO_DIR/{i586,x86_64,noarch}/SRPMS.*/ >$TMPDIR/old.src
+qbin $GB_REPO_DIR/{i586,x86_64,noarch}/RPMS.*/ >$TMPDIR/old.bin
 sort -u -o $TMPDIR/old.src{,}
 sort -u -o $TMPDIR/old.bin{,}
 
