@@ -1,16 +1,13 @@
 #!/bin/sh -efu
 
-. gb-sh-setup
-id="$1"; shift
-cd "$GB_TASKS/$id"
+. gb-sh-repo-conf
 
-# XXX no setup yet
-REPO=/ALT/Sisyphus
-repo=$TMPDIR/Sisyphus
+# Use a fixed path so that genpkglist md5cache works.
+repo=$TMPDIR/gb-repo
 rm -rf "$repo"
 mkdir "$repo"
 
-cp -prs $REPO/{i586,x86_64,noarch} $repo/
+cp -prs $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 
 . tmpdir.sh
 
