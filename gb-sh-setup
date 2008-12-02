@@ -1,4 +1,0 @@
-#!/bin/sh -efu
-
-#GB_TASKS=@GB_SPOOL@/${GB_REPO:?}
-

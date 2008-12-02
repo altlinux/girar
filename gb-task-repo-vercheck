@@ -3,10 +3,6 @@
 # Check that the plan is consitent with respect to package versioning:
 # when replacing packages, versions must increase.
 
-. gb-sh-setup
-id="$1"; shift
-cd "$GB_TASKS/$id"
-
 vercheck()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"

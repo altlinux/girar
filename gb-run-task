@@ -1,6 +1,5 @@
 #!/bin/sh -efu
 
-. gb-sh-setup
 id="$1"; shift
 
 cd "$GIRAR_TASKS/$id"
