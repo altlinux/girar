@@ -15,9 +15,8 @@ for i in $nums; do
 	fi
 	dir=$(cat gears/$i/dir)
 	tag_name=$(cat gears/$i/tag_name)
-	GIT_DIR=gears/$i/git gear --hasher -t "$tag_name" -- \
-		cp -p --target-directory gears/$i/
-	if [ -s gears/$i/pkg.tar ]; then
+	if GIT_DIR=gears/$i/git gear -t "$tag_name" -- gears/$i/pkg.tar &&
+	   [ -s gears/$i/pkg.tar ]; then
 		echo >&2 "created pkg.tar for ${dir##*/} $tag_name"
 	else
 		echo >&2 "cannot create pkg.tar for ${dir##*/} $tag_name"
