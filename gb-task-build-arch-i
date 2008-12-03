@@ -28,10 +28,8 @@ hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--initroot -- "$hsh_dir" >"$tmpdir"/out 2>&1 ||
 		{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
 
-qf1='%{NAME} %|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}'
-qf2='%{NAME}-%{VERSION}-%{RELEASE}.%|SOURCERPM?{%{ARCH}}:{src}|.rpm'
-qf_id="$qf1\\t$qf2\\n"
-hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$tmpdir"/chroot_base
+q_bin='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+hsh-run -- "$hsh_dir" rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
 
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.
@@ -51,9 +49,9 @@ srpm=$(set +f; echo "$hsh_dir"/chroot/usr/src/SRPMS/*.src.rpm) &&
 		Fatal "cannot build valid src.rpm"
 
 # Step 3: examine BuildRequires.
-hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$tmpdir"/chroot_BR
-sort -o "$tmpdir"/chroot_base -u "$tmpdir"/chroot_base
-sort -o "$tmpdir"/chroot_BR -u "$tmpdir"/chroot_BR
+hsh-run -- "$hsh_dir" rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
+sort -u -o "$tmpdir"/chroot_base{,}
+sort -u -o "$tmpdir"/chroot_BR{,}
 comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
 mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
 
