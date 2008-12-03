@@ -1,0 +1,20 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-tmpdir
+
+set +f
+
+Q='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+rpmquery --qf "$Q" -p build/*/$arch/rpms/*.rpm >"$tmpdir"/$arch-pkg.all
+
+cd "$tmpdir"
+
+sort -u -k1,1 -k2,2 -k3,3 -k4,4 -o $arch-pkg.all{,}
+sort -u -k1,1 <$arch-pkg.all >$arch-pkg.uniq
+
+if ! diff -U1 $arch-pkg.{all,uniq}; then
+	echo >&2 "non-unique set of $arch packages"
+	exit 1
+fi

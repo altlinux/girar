@@ -13,20 +13,6 @@ for i in $nums; do
 	$0-i "$i"
 done
 
-. tmpdir.sh
-
-set +f
-check_arch()
-{
-	local arch="$1"; shift
-	Q='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
-	rpmquery --qf "$Q" -p build/*/$arch/rpms/*.rpm >$TMPDIR/pkg.all
-	sort -u -k1,1 -k2,2 -k3,3 -k4,4 -o $TMPDIR/pkg.all $TMPDIR/pkg.all
-	sort -u -k1,1 <$TMPDIR/pkg.all >$TMPDIR/pkg.uniq
-	if ! (cd $TMPDIR && diff -U1 pkg.{all,uniq} ); then
-		gb_task_fail "$id" "$arch: inconsistent package set"
-	fi
-}
-
-check_arch i586
-check_arch x86_64
+for arch in i586 x86_64; do
+	$0-arch "$arch"
+done
