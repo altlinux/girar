@@ -68,7 +68,7 @@ if [ -s build/$i/$arch/chroot_base ]; then
 		echo >>build/$i/$arch/MERGE "chroot_BR changed for $I"
 		cat >>build/$i/$arch/MERGE <"$tmpdir"/out
 	fi
-	# rebuild is still needed if previous packages has been rebuilt.
+	# Rebuild is still needed if previous packages have been rebuilt.
 	for j in `seq 1 $(($i-1))`; do
 		if [ -s build/$j/$arch/REBUILD ]; then
 			rm -f build/$j/$arch/REBUILD
@@ -76,8 +76,10 @@ if [ -s build/$i/$arch/chroot_base ]; then
 		fi
 	done
 	if ! [ -s build/$i/$arch/REBUILD ]; then
-		(set +f; cp -p build/$i/$arch/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/)
-		[ $? -eq 0 ]
+		(set +f
+		 cp -p build/$i/$arch/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/
+		 cp -p build/$i/$arch/srpm/*.rpm "$hsh_dir"/repo/SRPMS.hasher/ ) ||
+			Fatal 'failed to obtain packages from previous run'
 		echo >&2 "$I: no need to rebuild"
 		exit 0
 	fi
