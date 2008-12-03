@@ -20,6 +20,7 @@ for i in $nums; do
 		echo >&2 "created pkg.tar for ${dir##*/} $tag_name"
 	else
 		echo >&2 "cannot create pkg.tar for ${dir##*/} $tag_name"
+		rm -f gears/$i/pkg.tar
 		exit 1
 	fi
 done
