@@ -1,6 +1,17 @@
 #!/bin/sh -efu
 
 i="$1"; shift
+
+dir=$(cat gears/$i/dir)
+tag_name=$(cat gears/$i/tag_name)
+I="${dir##*/} $tag_name"
+
+Fatal()
+{
+	echo >&2 "$I: $*"
+	exit 1
+}
+
 cd build/$i
 
 check_srpms()
@@ -9,12 +20,11 @@ check_srpms()
 	for arch in i586 x86_64; do
 		set $arch/srpm/*.src.rpm
 		if [ $# -gt 1 ]; then
-			gb_task_fail "$id" "$arch: multiple src.rpm: $@"
-			return 1
+			Fatal "multiple $arch source packages:" "$@"
 		fi
 		if [ ! -f "$1" ]; then
-			gb_task_fail "$id" "$arch: no src.rpm"
-			return 1
+			Fatal "no $arch source package"
+
 		fi
 		echo "${1##*/}"
 	done
@@ -24,25 +34,22 @@ srpms=$(check_srpms)
 n=$(echo "$srpms" |sort -u |wc -l)
 
 if [ "$n" -ne 1 ]; then
-	gb_task_fail "$id" "different per-arch srpms:" $srpms
+	Fatal 'different per-arch srpms:' $srpms
 fi
-
-echo >&2 "src.rpm check ok: $srpms"
 
 noarch()
 {
 	set +f
 	local arch="$1"; shift
-	(cd $arch/rpms && ls *.noarch.rpm) 2>/dev/null ||:
+	(cd $arch/rpms && ls *.noarch.rpm 2>/dev/null) ||:
 }
 
-. tmpdir.sh
+. gb-sh-tmpdir
 
-noarch i586 >$TMPDIR/i586.noarch
-noarch x86_64 >$TMPDIR/x86_64.noarch
-if ! (cd $TMPDIR && diff -U1 {i586,x86_64}.noarch); then
-	gb_task_fail "$id" 'different set of noarch packages'
-fi
+noarch i586 >"$tmpdir"/i586.noarch
+noarch x86_64 >$tmpdir/x86_64.noarch
+(cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ) ||
+	Fatal 'different set of noarch packages'
 
 dump_noarch()
 {
@@ -55,12 +62,8 @@ dump_noarch()
 }
 
 while read -r rpm; do
-	dump_noarch i586/rpms/"$rpm" >$TMPDIR/$rpm.i586
-	dump_noarch x86_64/rpms/"$rpm" >$TMPDIR/$rpm.x86_64
-	if ! (cd $TMPDIR && diff -U1 $rpm.{i586,x86_64} ); then
-		gb_task_fail "$id" 'non-idential noarch packages'
-	fi
-done <$TMPDIR/i586.noarch
-
-echo >&2 'noarch rpm check ok' $(cat $TMPDIR/i586.noarch)
-
+	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
+	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
+	(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
+		Fatal 'non-idential noarch packages'
+done <$tmpdir/i586.noarch
