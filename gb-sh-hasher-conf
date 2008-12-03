@@ -19,7 +19,7 @@ gb_hasher_num()
 gb_hasher_dir()
 {
 	local arch="$1"; shift
-	dir="$TMPDIR/girar-builder/$arch"
+	dir="$TMPDIR/gb-hasher/$arch"
 	mkdir -p "$dir"
 	echo "$dir"
 }
@@ -27,16 +27,16 @@ gb_hasher_dir()
 gb_hasher_aptconf()
 {
 	local arch="$1"; shift
-	mkdir -p "$TMPDIR/girar-builder"
-	cat >"$TMPDIR/girar-builder/$arch-sources.list" <<EOF
+	mkdir -p "$TMPDIR/gb-hasher"
+	cat >"$TMPDIR/gb-hasher/$arch-sources.list" <<EOF
 rpm file:$GB_REPO_DIR $arch classic
 rpm file:$GB_REPO_DIR noarch classic
 EOF
-	cat >"$TMPDIR/girar-builder/$arch-apt.conf" <<EOF
+	cat >"$TMPDIR/gb-hasher/$arch-apt.conf" <<EOF
 Dir::Etc::main "/dev/null";
 Dir::Etc::parts "/var/empty";
-Dir::Etc::sourcelist "$TMPDIR/girar-builder/$arch-sources.list";
+Dir::Etc::sourcelist "$TMPDIR/gb-hasher/$arch-sources.list";
 Dir::Etc::sourceparts "/var/empty";
 EOF
-	echo "$TMPDIR/girar-builder/$GB_REPO-$arch-apt.conf"
+	echo "$TMPDIR/gb-hasher/$arch-apt.conf"
 }
