@@ -129,23 +129,39 @@ if [ -s "$tmpdir"/out ]; then
 fi >&2
 
 comm -23 "$tmpdir"/rpms{2,1} >"$tmpdir"/out
-if ! [ -s "$tmpdir"/out ]; then
-	Fatal "no binary packages"
-fi
-rm -rf build/$i/$arch/rpms
-mkdir -p build/$i/$arch/rpms
-tar -C "$hsh_dir"/repo/$arch/RPMS.hasher -cf - `cut -f1 "$tmpdir"/out` |
-tar -C build/$i/$arch/rpms -xf -
+[ -s "$tmpdir"/out ] || Fatal "no binary packages"
+cut -f1 "$tmpdir"/out >"$tmpdir"/add-bin
 
 comm -23 "$tmpdir"/srpm{2,1} >"$tmpdir"/out
-if ! [ -s "$tmpdir"/out ]; then
-	Fatal "no source package"
-fi
+[ -s "$tmpdir"/out ] || Fatal "no source package"
+cut -f1 "$tmpdir"/out >"$tmpdir"/add-src
+
+# Check that we've got (src,bin+) tuple.
+n=$(wc -l <"$tmpdir"/add-src)
+if [ "$n" -ne 1 ]; then
+	cat "$tmpdir"/add-src
+	Fatal "multpile source packages"
+fi >&2
+
+(cd "$hsh_dir"/repo/$arch/RPMS.hasher
+ xargs -r <"$tmpdir"/add-bin \
+	rpmquery --qf '%{SOURCERPM}\n' -p ) >"$tmpdir"/ref-src || false
+sort -u -o "$tmpdir"/ref-src{,}
+(cd "$tmpdir" && diff -U1 {add,ref}-src ) ||
+	Fatal 'binary packages refer wrong %{SOURCERPM}'
+
+# Copyout.
+rm -rf build/$i/$arch/rpms
+mkdir -p build/$i/$arch/rpms
+tar -C "$hsh_dir"/repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
+tar -C build/$i/$arch/rpms -xf -
+
 rm -rf build/$i/$arch/srpm
 mkdir -p build/$i/$arch/srpm
-tar -C "$hsh_dir"/repo/SRPMS.hasher -cf - `cut -f1 "$tmpdir"/out` |
+tar -C "$hsh_dir"/repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
 tar -C build/$i/$arch/srpm -xf -
 
+# Meta copyout.
 cp -p "$tmpdir"/chroot_base build/$i/$arch/chroot_base
 cp -p "$tmpdir"/chroot_BR build/$i/$arch/chroot_BR
 
