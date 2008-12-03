@@ -1,11 +1,8 @@
 #!/bin/sh -efu
 
-export GB_REPO=sisyphus
-cd `mktemp -d`
-export GB_TASKS=$PWD
-pwd >&2
-mkdir 333
-cd 333
+export GIRAR_TASKS=$TMPDIR/girar-tasks
+mkdir -p $GIRAR_TASKS/333
+cd $GIRAR_TASKS/333
 
 mkdir task
 echo 333 >task/id
@@ -22,13 +19,6 @@ for d; do
 	echo "$d" >gears/$i/dir
 	echo "$tag" >gears/$i/tag_name
 done
-
-gb_task_fail()
-{
-	echo "gb_task_fail: $*" >&2
-	exit 1
-}
-export -f gb_task_fail
 
 set -x
 gb-task-pkgtar 333
