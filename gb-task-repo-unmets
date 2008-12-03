@@ -9,14 +9,14 @@ mkdir "$repo"
 
 cp -prs $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 
-. tmpdir.sh
+. gb-sh-tmpdir
 
 for arch in i586 x86_64; do
-	cat >$TMPDIR/$arch-sources.list <<EOF
+	cat >$tmpdir/$arch-sources.list <<EOF
 rpm file:$repo $arch classic
 rpm file:$repo noarch classic
 EOF
-	unmets -s $TMPDIR/$arch-sources.list >$TMPDIR/$arch-unmets.old
+	unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.old
 done
 
 while read -r N EVR A F; do
@@ -50,21 +50,22 @@ for arch in i586 x86_64 noarch; do
 done
 
 for arch in i586 x86_64; do
-	unmets -s $TMPDIR/$arch-sources.list >$TMPDIR/$arch-unmets.new
+	unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.new
 done
 
 rc=0
 
+cd "$tmpdir"
 for arch in i586 x86_64; do
-	comm -13 $TMPDIR/$arch-unmets.{old,new} >$TMPDIR/$arch-unmets.plus
-	comm -23 $TMPDIR/$arch-unmets.{old,new} >$TMPDIR/$arch-unmets.minus
-	if [ -s $TMPDIR/$arch-unmets.minus ]; then
+	comm -13 $arch-unmets.{old,new} >$arch-unmets.plus
+	comm -23 $arch-unmets.{old,new} >$arch-unmets.minus
+	if [ -s $arch-unmets.minus ]; then
 		echo " $arch: old unmet dependencies resolved"
-		cat $TMPDIR/$arch-unmets.minus
+		cat $arch-unmets.minus
 	fi >&2
-	if [ -s $TMPDIR/$arch-unmets.plus ]; then
+	if [ -s $arch-unmets.plus ]; then
 		echo " *** $arch: new unmet dependencies detected"
-		cat $TMPDIR/$arch-unmets.plus
+		cat $arch-unmets.plus
 		rc=1
 	fi >&2
 done
