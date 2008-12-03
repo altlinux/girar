@@ -2,12 +2,19 @@
 
 . gb-sh-hasher-conf
 
-id=666 # XXX
 arch="$1" i="$2"; shift 2
 
 dir=$(cat gears/$i/dir)
 tag_name=$(cat gears/$i/tag_name)
-echo >&2 "build ${dir##*/} $tag_name for $arch"
+
+I="[$arch] ${dir##*/} $tag_name"
+echo >&2 "$I: start build"
+
+Fatal()
+{
+	echo >&2 "$I: $*"
+	exit 1
+}
 
 hsh_dir=$(gb_hasher_dir "$arch")
 hsh_num=$(gb_hasher_num "$arch")
@@ -19,7 +26,7 @@ hsh_aptconf=$(gb_hasher_aptconf "$arch")
 hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--mountpoints=/proc --nprocs=1 \
 	--initroot -- "$hsh_dir" >"$tmpdir"/out 2>&1 ||
-		gb_task_fail "$id" "initroot failed: $(cat "$tmpdir"/out)"
+		{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
 
 qf1='%{NAME} %|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}'
 qf2='%{NAME}-%{VERSION}-%{RELEASE}.%|SOURCERPM?{%{ARCH}}:{src}|.rpm'
@@ -37,11 +44,11 @@ hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--mountpoints=/proc --nprocs=1 \
 	--rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check \
 	--lazy-cleanup -- "$hsh_dir" gears/$i/pkg.tar >"$tmpdir"/out 2>&1 ||
-		gb_task_fail "$id" "cannot build src.rpm: $(cat "$tmpdir"/out)"
+		{ cat "$tmpdir"/out; Fatal "cannot build src.rpm"; } >&2
 
 srpm=$(set +f; echo "$hsh_dir"/chroot/usr/src/SRPMS/*.src.rpm) &&
 	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
-	gb_task_fail "$id" "cannot build valid src.rpm"
+		Fatal "cannot build valid src.rpm"
 
 # Step 3: examine BuildRequires.
 hsh-run -- "$hsh_dir" rpmquery -a --qf="$qf_id" >"$tmpdir"/chroot_BR
@@ -55,12 +62,12 @@ if [ -s build/$i/$arch/chroot_base ]; then
 	rm -f build/$i/$arch/REBUILD
 	if ! diff -U1 build/$i/$arch/chroot_base "$tmpdir"/chroot_base >"$tmpdir"/out; then
 		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$i/$arch/MERGE "chroot_base changed for ${dir##*/} $tag_name"
+		echo >>build/$i/$arch/MERGE "chroot_base changed for $I"
 		cat >>build/$i/$arch/MERGE <"$tmpdir"/out
 	fi
 	if ! diff -U1 build/$i/$arch/chroot_BR "$tmpdir"/chroot_BR >"$tmpdir"/out; then
 		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$i/$arch/MERGE "chroot_BR changed for ${dir##*/} $tag_name"
+		echo >>build/$i/$arch/MERGE "chroot_BR changed for $I"
 		cat >>build/$i/$arch/MERGE <"$tmpdir"/out
 	fi
 	# rebuild is still needed if previous packages has been rebuilt.
@@ -73,7 +80,7 @@ if [ -s build/$i/$arch/chroot_base ]; then
 	if ! [ -s build/$i/$arch/REBUILD ]; then
 		(set +f; cp -p build/$i/$arch/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/)
 		[ $? -eq 0 ]
-		echo >&2 "no need to rebuild ${dir##*/} $tag_name for $arch"
+		echo >&2 "$I: no need to rebuild"
 		exit 0
 	fi
 fi
@@ -96,7 +103,8 @@ mkdir -p build/$i/$arch
 hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
 	--mountpoints=/proc --nprocs=1 \
 	--packager="$packager" -- "$hsh_dir" gears/$i/pkg.tar >build/$i/$arch/log 2>&1 ||
-		gb_task_fail "$id" "cannot build $dir $tag_name: $(tail -33 build/$i/$arch/log)"
+		{ . buildlog.sh; buildlog_errors build/$i/$arch/log
+		  Fatal "build failed"; } >&2
 
 # Step 8: save results.
 for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
@@ -111,16 +119,18 @@ done |sort >"$tmpdir"/rpms2
 comm -23 "$tmpdir"/rpms{1,2} >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
 	# we are under attack: they try to replace previous packages
-	gb_task_fail "$id" "${dir##*/} $tag_name bad intersections: $(cat "$tmpdir"/out)"
-fi
+	cat "$tmpdir"/out
+	Fatal "attempt to replace binary packages"
+fi >&2
 comm -23 "$tmpdir"/srpm{1,2} >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
-	gb_task_fail "$id" "${dir##*/} $tag_name bad intersections: $(cat "$tmpdir"/out)"
-fi
+	cat "$tmpdir"/out
+	Fatal "attempt to replace source packages"
+fi >&2
 
 comm -23 "$tmpdir"/rpms{2,1} >"$tmpdir"/out
 if ! [ -s "$tmpdir"/out ]; then
-	gb_task_fail "$id" "${dir##*/} $tag_name produced no rpms"
+	Fatal "no binary packages"
 fi
 rm -rf build/$i/$arch/rpms
 mkdir -p build/$i/$arch/rpms
@@ -129,7 +139,7 @@ tar -C build/$i/$arch/rpms -xf -
 
 comm -23 "$tmpdir"/srpm{2,1} >"$tmpdir"/out
 if ! [ -s "$tmpdir"/out ]; then
-	gb_task_fail "$id" "${dir##*/} $tag_name produced no srpm"
+	Fatal "no source package"
 fi
 rm -rf build/$i/$arch/srpm
 mkdir -p build/$i/$arch/srpm
@@ -139,4 +149,4 @@ tar -C build/$i/$arch/srpm -xf -
 cp -p "$tmpdir"/chroot_base build/$i/$arch/chroot_base
 cp -p "$tmpdir"/chroot_BR build/$i/$arch/chroot_BR
 
-echo >&2 "build ${dir##*/} $tag_name for $arch OK"
+echo >&2 "$I: build OK"
