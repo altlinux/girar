@@ -43,10 +43,12 @@ vercheck()
 	[ "$cmp" = -1 ] || return 1
 }
 
+. gb-sh-tmpdir
+
 rc=0
 
-join -t$'\t' plan/rm-src plan/add-src >$TMPDIR/replace-src
-sort -u -o $TMPDIR/replace-src{,}
+join -t$'\t' plan/rm-src plan/add-src >$tmpdir/replace-src
+sort -u -o $tmpdir/replace-src{,}
 
 while read -r N EVR1 F1 EVR2 F2; do
 	if ! vercheck "$EVR1" "$EVR2"; then
@@ -59,10 +61,10 @@ while read -r N EVR1 F1 EVR2 F2; do
 		printf '%s\t%s\n' "$N" "$F1"
 		rc=1
 	fi >&2
-done <$TMPDIR/replace-src
+done <$tmpdir/replace-src
 
-join -t$'\t' plan/rm-bin plan/add-bin >$TMPDIR/replace-bin
-sort -u -o $TMPDIR/replace-bin{,}
+join -t$'\t' plan/rm-bin plan/add-bin >$tmpdir/replace-bin
+sort -u -o $tmpdir/replace-bin{,}
 
 while read -r N EVR1 A1 F1 EVR2 A2 F2; do
 	[ "$A1" = "$A2" ] || [ "$A1" = noarch ] || [ "$A2" = noarch ] || continue
@@ -76,6 +78,6 @@ while read -r N EVR1 A1 F1 EVR2 A2 F2; do
 		printf '%s\t%s\n' "$N" "$F1"
 		rc=1
 	fi >&2
-done <$TMPDIR/replace-bin
+done <$tmpdir/replace-bin
 
 exit $rc
