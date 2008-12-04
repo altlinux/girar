@@ -36,3 +36,8 @@ refs/remotes/*,delete)
 	fatal "Unsupported type of update to ref \`$arg_refname' of type \`$ref_type'"
 	;;
 esac
+
+if [ "$ref_type" = delete ]; then
+	git cat-file -t "$arg_refname" >/dev/null ||
+		fatal "Deletion of invalid ref \`$arg_refname' declined"
+fi
