@@ -96,7 +96,7 @@ for f in $(set +f; ls "$hsh_dir"/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
 done |sort >"$tmpdir"/rpms1
 
 # Step 6: find out packager.
-packager='Alexey Tourbin <at@altlinux.ru>'
+packager=$(cat gears/$i/tag_author)
 
 # Step 7: build.
 mkdir -p build/$i/$arch
