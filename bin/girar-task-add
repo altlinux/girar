@@ -52,11 +52,18 @@ builtin lockf -nv . ||
 dir=$(/bin/pwd)
 
 tag_name="$1"; shift
-GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
+git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
 	fatal "$tag_name: invalid tag name"
 tag_id="$(git rev-parse --verify "$tag_name")"
-GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
+GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
 	fatal "$tag_name: invalid tag"
+
+tag_author=$(git cat-file tag "$tag_name" |sed -n '/^tagger /{s/^tagger //;s/>.*/>/p;q}')
+domain=${EMAIL_DOMAIN%.*}
+case "$tag_author" in
+	*@$domain*) ;;
+	*) fatal "$tag_name: invalid tagger: $tag_author (should be @$domain)"
+esac
 
 cd "$GIRAR_TASKS/$id"
 builtin lockf -nv . ||
@@ -139,6 +146,7 @@ trap atexit EXIT
 echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
 echo "$tag_id" >gears/$i/tag_id
+echo "$tag_author" >gears/$i/tag_author
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git git init -q
