@@ -97,6 +97,11 @@ CP()
 LN()
 {
 	ln -v -s "$1" "$2"
+	if ! [ -f "$2" ]; then
+		echo "$2: created dangling symlink"
+		rm -v "$2"
+		return 1
+	fi >&2
 }
 
 # real commit
