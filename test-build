@@ -12,21 +12,21 @@ echo sisyphus >task/repo
 mkdir gears
 i=0
 for d; do
-	tag=$(GIT_DIR="$d"/.git git describe --abbrev=0)
+	tag_name=$(GIT_DIR="$d"/.git git describe --abbrev=0)
 	i=$(($i+1))
 	mkdir gears/$i
 	cp -a "$d"/.git gears/$i/git
 	echo "$d" >gears/$i/dir
-	echo "$tag" >gears/$i/tag_name
+	echo "$tag_name" >gears/$i/tag_name
+	tag_author=$(GIT_DIR="$d"/.git git cat-file tag "$tag_name" |sed -n '/^tagger /{s/^tagger //;s/>.*/>/p;q}')
+	echo "$tag_author" >gears/$i/tag_author
 done
 
 set -x
-gb-task-pkgtar 333
-gb-task-build 333
-gb-task-check-build 333
-gb-task-repo-plan 333
-gb-task-repo-vercheck 333
-gb-task-repo-unmets 333
-gb-task-check-acl 333
-
-find build/ -type f |sort
+gb-task-pkgtar
+gb-task-build
+gb-task-check-build
+gb-task-repo-plan
+gb-task-repo-vercheck
+gb-task-repo-unmets
+gb-task-check-acl
