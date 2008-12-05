@@ -1,0 +1,78 @@
+#!/bin/sh -efu
+
+. gb-sh-repo-conf
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GB_REPO_DIR"
+
+RM()
+{
+	if [ ! -f "$1" ]; then
+		echo "$1: file not found"
+		exit 1
+	fi >&2
+}
+
+CP()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		exit 1
+	fi >&2
+}
+
+LN()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		exit 1
+	fi >&2
+}
+
+findbin()
+{
+	local f="$1"; shift
+	set +f
+	set -- build/*/*/rpms/$f
+	if [ -f "$1" ]; then
+		echo "$1"
+		return
+	else
+		echo >&2 " *** cannot find $f under build/"
+		return 1
+	fi
+}
+
+commit()
+{
+	while read -r N EVR A F; do
+		RM $GB_REPO_DIR/files/$A/RPMS/$F
+		RM $GB_REPO_DIR/$A/RPMS.classic/$F
+	done <plan/rm-bin
+	while read -r N EVR A F; do
+		bin=$(findbin "$F")
+		CP "$PWD/$bin" $GB_REPO_DIR/files/$A/RPMS/$F
+		LN ../../files/$A/RPMS/$F $GB_REPO_DIR/$A/RPMS.classic/$F
+	done <plan/add-bin
+}
+
+# test commit
+commit
+
+RM()
+{
+	rm -v "$1"
+}
+
+CP()
+{
+	install -v -p -m644 "$1" "$2"
+}
+
+LN()
+{
+	ln -v -s "$1" "$2"
+}
+
+# real commit
+commit
