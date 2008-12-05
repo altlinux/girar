@@ -7,6 +7,7 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
 (
+	umask 002
 	exec >>task/log 2>&1
 	[ -s task/log ] &&
 		echo "Resuming task $id on $(date)" ||
