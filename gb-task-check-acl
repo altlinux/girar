@@ -1,6 +1,18 @@
 #!/bin/sh -efu
 
-. gb-sh-tmpdir
+. gb-sh-repo-conf
+
+rc=0
+
+check_acl()
+{
+	local u="$1" src="$2"; shift 2
+	if ! out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1); then
+		echo "$out"
+		echo "pkg=$src author=$u repo=$GB_REPO_NAME: ACL check failed"
+		rc=1
+	fi >&2
+}
 
 srpm2i()
 {
@@ -17,26 +29,43 @@ srpm2i()
 	echo "$1"
 }
 
-cut -f1,3 plan/{add,rm}-src >$tmpdir/src2srpm
+. gb-sh-tmpdir
+
+cut -f1,3 plan/add-src >$tmpdir/src2srpm
 sort -u -o $tmpdir/src2srpm{,}
 
 while read -r N F; do
 	i=$(srpm2i "$F")
-	echo "$i $N"
-done <$tmpdir/src2srpm >$tmpdir/i2src
-sort -u -k1,1n -k2 -o $tmpdir/i2src{,}
-
-. gb-sh-repo-conf
-
-rc=0
-
-while read -r i src; do
 	u=$(sed -n 's/.*<\(.*\)@.*/\1/p' gears/$i/tag_author)
-	if ! out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1); then
-		echo "$out"
-		echo "pkg=$src author=$u repo=$GB_REPO_NAME: ACL check failed"
-		rc=1
-	fi >&2
-done <$tmpdir/i2src
+	check_acl "$u" "$N"
+done <$tmpdir/src2srpm
+
+# Deal with removed/replaced packages.
+join -t$'\t' -v1 -o 0 plan/{rm,add}-src >$tmpdir/rm
+sort -u -o $tmpdir/rm{,}
+
+join -t$'\t' -o '0 2.4' $tmpdir/rm paln/rm-src+bin >$tmpdir/rm-src2bin
+sort -u -k2,2 -k1,1 -o $tmpdir/rm-src2bin{,}
+
+awk '{print$4"\t"$3}' <plan/add-src+bin >$tmpdir/add-bin2srpm
+sort -u -o $tmpdir/add-bin2srpm
+
+join $'\t' -12 -21 -o '1.1 2.2' $tmpdir/rm-src2bin $tmpdir/add-bin2srpm >$tmpdir/oldsrc2newsrpm
+sort -u -o $tmpdir/oldsrc2newsrpm{,}
+
+join -t$'\t' -v1 $tmpdir/rm $tmpdir/oldsrc2newsrpm >$tmpdir/unrm
+sort -u -o $tmpdir/unrm{,}
+if [ -s $tmpdir/unrm ]; then
+	# Can't happen.
+	echo ' *** cannot map replaced src to new srpm'
+	cat $tmpdir/unrm
+fi >&2
+
+while read -r N F; do
+	i=$(srpm2i "$F")
+	u=$(sed -n 's/.*<\(.*\)@.*/\1/p' gears/$i/tag_author)
+	echo >&2 "$N is replaced with $F"
+	check_acl "$u" "$N"
+done <$tmpdir/oldsrc2newsrpm
 
 exit $rc
