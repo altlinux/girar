@@ -19,6 +19,7 @@ case "${1-}" in
 	--help|help|'')
 		usage ;;
 	new|add|ls|show|run|rm)
+		umask 002
 		exec "$PROG-$op" "$@"
 		;;
 	*)
