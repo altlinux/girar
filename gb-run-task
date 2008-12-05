@@ -28,5 +28,7 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
+mutt -x -s "task=$id rc=$rc" -a task/log "$(cat task/owner)"@altlinux.org
+
 # for girar-builder
 echo >&2 rc=$rc
