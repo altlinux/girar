@@ -18,7 +18,7 @@ builtin lockf -v .
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 	gb-task-repo-unmets
-	gb-task-acl
+	gb-task-check-acl
 )
 
 rc=$?
