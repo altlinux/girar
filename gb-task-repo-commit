@@ -84,6 +84,17 @@ LN()
 # test commit
 commit
 
+# TODO: sign packages
+while read -r N EVR A F; do
+	bin=$(findbin "$F")
+	: sign "$bin"
+done <plan/add-bin
+
+while read -r N EVR F; do
+	src=$(findsrc "$F")
+	: sign "$src"
+done <plan/add-src
+
 RM()
 {
 	rm -v "$1"
