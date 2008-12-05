@@ -101,9 +101,9 @@ sort -u rm-by-{src,bin+} >rm
 cd - >/dev/null
 mkdir -p plan
 cut -f1-3 <$tmpdir/new |sort -u >plan/add-src
-cut -f3,6 <$tmpdir/new |sort -u >paln/add-srpm2arch
+cut -f3,6 <$tmpdir/new |sort -u >plan/add-srpm2arch
 cut -f4-7 <$tmpdir/new |sort -u >plan/add-bin
 
 cut -f1-3 <$tmpdir/rm |sort -u >plan/rm-src
-cut -f3,6 <$tmpdir/rm |sort -u >paln/rm-srpm2arch
+cut -f3,6 <$tmpdir/rm |sort -u >plan/rm-srpm2arch
 cut -f4-7 <$tmpdir/rm |sort -u >plan/rm-bin
