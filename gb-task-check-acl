@@ -1,32 +1,42 @@
 #!/bin/sh -efu
 
-. gb-sh-repo-conf
+. gb-sh-tmpdir
 
-packages=$(cut -f1 plan/{rm,add}-src)
-packages=$(echo "$packages" |sort -u)
-
-src2i()
+srpm2i()
 {
-	local src="$1"; shift
+	local f="$1"; shift
 	cd build
 	set +f
-	set -- [1-9]*/*/srpm/"$src"
-	[ -f "$1" ]
+	set -- [1-9]*/*/srpm/"$f"
+	if ! [ -f "$1" ]; then
+		echo " *** cannot find $f under build/"
+		return 1
+	fi >&2
 	local IFS=/
 	set -- $1
 	echo "$1"
 }
 
+cut -f1,3 plan/{add,rm}-src >$tmpdir/src2srpm
+sort -u -o $tmpdir/src2srpm{,}
+
+while read -r N F; do
+	i=$(srpm2i "$F")
+	echo "$i $N"
+done <$tmpdir/src2srpm >$tmpdir/i2src
+sort -u -k1,1n -k2 -o $tmpdir/i2src{,}
+
+. gb-sh-repo-conf
+
 rc=0
 
-for src in $packages; do
-	i=$(src2i "$src")
+while read -r i src; do
 	u=$(sed -n 's/.*<\(.*\)@.*/\1/p' gears/$i/tag_author)
 	if ! out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1); then
 		echo "$out"
 		echo "pkg=$src author=$u repo=$GB_REPO_NAME: ACL check failed"
 		rc=1
 	fi >&2
-done
+done <$tmpdir/i2src
 
 exit $rc
