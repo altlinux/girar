@@ -1,11 +1,14 @@
 #!/bin/sh -efu
 
-. gb-sh-repo-conf
-
 # Use a fixed path so that genpkglist md5cache works.
 repo=$TMPDIR/gb-repo
 rm -rf "$repo"
 mkdir "$repo"
+
+. gb-sh-repo-conf
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v -s "$GB_REPO_DIR"
 
 cp -prs $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 
