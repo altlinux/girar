@@ -5,30 +5,6 @@
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$GB_REPO_DIR"
 
-RM()
-{
-	if [ ! -f "$1" ]; then
-		echo "$1: file not found"
-		exit 1
-	fi >&2
-}
-
-CP()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		exit 1
-	fi >&2
-}
-
-LN()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		exit 1
-	fi >&2
-}
-
 findrpm()
 {
 	local dir="$1" f="$2"; shift 2
@@ -79,6 +55,30 @@ commit()
 	while read -r F A; do
 		LN ../../files/SRPMS/$F $GB_REPO_DIR/$A/SRPMS.classic/$F
 	done <plan/add-srpm2arch
+}
+
+RM()
+{
+	if ! [ -f "$1" ]; then
+		echo "$1: file not found"
+		return 1
+	fi >&2
+}
+
+CP()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		return 1
+	fi >&2
+}
+
+LN()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		return 1
+	fi >&2
 }
 
 # test commit
