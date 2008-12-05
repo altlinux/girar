@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. gb-repo-conf
+. gb-sh-repo-conf
 
 packages=$(cut -f1 plan/{rm,add}-src)
 packages=$(echo "$packages" |sort -u)
