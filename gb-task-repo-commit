@@ -29,11 +29,11 @@ LN()
 	fi >&2
 }
 
-findbin()
+findrpm()
 {
-	local f="$1"; shift
+	local dir="$1" f="$2"; shift 2
 	set +f
-	set -- build/*/*/rpms/$f
+	set -- build/*/*/"$dir"/"$f"
 	if [ -f "$1" ]; then
 		echo "$1"
 		return
@@ -41,6 +41,16 @@ findbin()
 		echo >&2 " *** cannot find $f under build/"
 		return 1
 	fi
+}
+
+findbin()
+{
+	findrpm rpms "$1"
+}
+
+findsrc()
+{
+	findrpm srpm "$1"
 }
 
 commit()
@@ -51,9 +61,24 @@ commit()
 	done <plan/rm-bin
 	while read -r N EVR A F; do
 		bin=$(findbin "$F")
-		CP "$PWD/$bin" $GB_REPO_DIR/files/$A/RPMS/$F
+		CP "$bin" $GB_REPO_DIR/files/$A/RPMS/$F
 		LN ../../files/$A/RPMS/$F $GB_REPO_DIR/$A/RPMS.classic/$F
 	done <plan/add-bin
+
+	while read -r N EVR F; do
+		RM $GB_REPO_DIR/files/SRPMS/$F
+	done <plan/rm-src
+	while read -r N EVR F; do
+		src=$(findsrc "$F")
+		CP "$src" $GB_REPO_DIR/files/SRPMS/$F
+	done <plan/add-src
+
+	while read -r F A; do
+		RM $GB_REPO_DIR/$A/SRPMS.classic/$F
+	done <plan/rm-srpm2arch
+	while read -r F A; do
+		LN ../../files/SRPMS/$F $GB_REPO_DIR/$A/SRPMS.classic/$F
+	done <plan/add-srpm2arch
 }
 
 # test commit
