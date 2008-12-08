@@ -61,6 +61,7 @@ GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
 tag_author=$(git cat-file tag "$tag_name" |sed -n '/^tagger /{s/^tagger //;s/>.*/>/p;q}')
 domain=${EMAIL_DOMAIN%.*}
 case "$tag_author" in
+	*'<'*'<'* | *'@'*'@'*) fatal "$tag_name: malformed tagger: $tag_author" ;;
 	# XXX php_coder -> php-coder?
 	*"<$GIRAR_USER@$domain"*) ;;
 	*) fatal "$tag_name: invalid tagger: $tag_author (expected $GIRAR_USER@$domain)"
