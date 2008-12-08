@@ -123,7 +123,14 @@ check_add_first()
 		fatal "only $task_owner can add 1st gear-repo"
 }
 
+check_add_nth()
+{
+	[ -w gears ] ||
+		fatal "gears: permission denied"
+}
+
 if [ -n "$gear_nums" ]; then
+	check_add_nth
 	check_already_added
 	i=$(echo "$nums" |tail -n1)
 else
@@ -142,7 +149,8 @@ atexit()
 }
 
 trap '' HUP INT QUIT PIPE TERM
-mkdir -p gears
+# gears are not shared by default
+mkdir -p -m755 gears
 mkdir gears/"$i"
 trap atexit EXIT
 echo "$dir" >gears/$i/dir

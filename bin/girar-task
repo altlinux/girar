@@ -18,7 +18,7 @@ op="$1"; shift
 case "${1-}" in
 	--help|help|'')
 		usage ;;
-	new|add|ls|show|run|rm)
+	new|add|ls|show|run|share|rm)
 		umask 002
 		exec "$PROG-$op" "$@"
 		;;
