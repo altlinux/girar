@@ -19,7 +19,7 @@ for arch in i586 x86_64; do
 rpm file:$repo $arch classic
 rpm file:$repo noarch classic
 EOF
-	unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.old
+	$arch unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.old
 done
 
 while read -r N EVR A F; do
@@ -53,7 +53,7 @@ for arch in i586 x86_64 noarch; do
 done
 
 for arch in i586 x86_64; do
-	unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.new
+	$arch unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.new
 done
 
 rc=0
