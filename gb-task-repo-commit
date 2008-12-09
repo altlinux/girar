@@ -84,16 +84,23 @@ LN()
 # test commit
 commit
 
-# TODO: sign packages
-while read -r N EVR A F; do
-	bin=$(findbin "$F")
-	: sign "$bin"
-done <plan/add-bin
+sign()
+{
+	expect - "$@" <<'EOF'
+	spawn -noecho rpm --addsign {*}$argv
+	expect -exact "Enter pass phrase: "
+	send -- "\r"
+	expect eof
+	set rc [lindex [wait] 3]
+	exit $rc
+EOF
+}
 
-while read -r N EVR F; do
-	src=$(findsrc "$F")
-	: sign "$src"
-done <plan/add-src
+if ! out=$(set +f && sign build/*/*/*/*.rpm); then
+	echo "$out"
+	echo 'cannot sign rpm packages'
+	exit 1
+fi >&2
 
 RM()
 {
