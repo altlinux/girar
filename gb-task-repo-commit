@@ -32,8 +32,8 @@ findsrc()
 commit()
 {
 	while read -r N EVR A F; do
-		RM $GB_REPO_DIR/files/$A/RPMS/$F
 		RM $GB_REPO_DIR/$A/RPMS.classic/$F
+		RM $GB_REPO_DIR/files/$A/RPMS/$F
 	done <plan/rm-bin
 	while read -r N EVR A F; do
 		bin=$(findbin "$F")
@@ -41,17 +41,17 @@ commit()
 		LN ../../files/$A/RPMS/$F $GB_REPO_DIR/$A/RPMS.classic/$F
 	done <plan/add-bin
 
+	while read -r F A; do
+		RM $GB_REPO_DIR/$A/SRPMS.classic/$F
+	done <plan/rm-srpm2arch
 	while read -r N EVR F; do
 		RM $GB_REPO_DIR/files/SRPMS/$F
 	done <plan/rm-src
+
 	while read -r N EVR F; do
 		src=$(findsrc "$F")
 		CP "$src" $GB_REPO_DIR/files/SRPMS/$F
 	done <plan/add-src
-
-	while read -r F A; do
-		RM $GB_REPO_DIR/$A/SRPMS.classic/$F
-	done <plan/rm-srpm2arch
 	while read -r F A; do
 		LN ../../files/SRPMS/$F $GB_REPO_DIR/$A/SRPMS.classic/$F
 	done <plan/add-srpm2arch
