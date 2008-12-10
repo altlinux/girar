@@ -25,18 +25,17 @@ cd "$id"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
-if ! [ -s gears/1/dir ]; then
-	fatal "cannot run empty task $id"
-fi
+[ -s gears/1/dir ] ||
+	fatal "cannot run empty task #$id"
 
 seq=
 if [ -f task/seq ]; then
 	seq=$(cat task/seq)
 	case "$(($seq%3))" in
 		# awaiting for build
-		0) fatal "task $id already scheduled for run" ;;
+		0) fatal "task #$id already scheduled for run" ;;
 		# work in progress
-		1) fatal "task $id is a work in progress" ;;
+		1) fatal "task #$id is a work in progress" ;;
 		# have build results
 		2) seq=$(($seq+1))
 	esac
