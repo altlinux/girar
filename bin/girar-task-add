@@ -89,7 +89,7 @@ gear_nums()
 {
 	set +f
 	cd gears &&
-	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+	ls [1-9]*/dir |sort -n |cut -d/ -f1
 }
 
 nums=$(gear_nums 2>/dev/null)
