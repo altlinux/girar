@@ -1,0 +1,33 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task share'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [<task-id>]"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+id=
+if [ "$#" -eq 1 ]; then
+	id=$(girar-task-find-current "$1")
+	shift
+else
+	id=$(girar-task-find-current)
+fi
+
+cd "$GB_TASKS/$id"
+builtin lockf -nv . ||
+	fatal "task #$id is locked"
+
+chmod 775 gears

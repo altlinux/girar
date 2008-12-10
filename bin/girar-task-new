@@ -6,32 +6,42 @@ PROG='girar-task new'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [binary package repository name]"
+	echo >&2 "usage: $PROG [<binary-repo>]"
 	exit 1
 }
 
-[ "$#" -le 1 ] ||
-	usage 'Too many arguments.'
-[ "${1-}" != '--help' ] ||
+if [ "${1-}" = '--help' ]; then
 	usage
+fi
 
-repo="${1-}"
-[ -n "$repo" ] ||
-	repo=sisyphus
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+# dumb protection against frequent runs
+sleep $(( ${RANDOM:-$$} % 3 ))
+
+repo="${1:-sisyphus}"
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
 
-id="$(girar-task-mkid)"
+cd "$GB_TASKS"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
-[ ! -f "$id" ] ||
-	fatal 'new task already exists'
+id=$(cat .max-task-id)
+id=$(($id+1))
 
-printf 'user %s\nrepo %s\n' "$GIRAR_USER" "$repo" >"$id" ||
-{
-	rm -f -- "$id"
-	exit 1
-}
+trap '' HUP INT QUIT PIPE TERM
+echo "$id" >.max-task-id
+mkdir "$id"
+
+builtin lockf -v "$id"
+mkdir "$id"/task
+echo "$id" >"$id"/task/id
+echo "$GIRAR_USER" >"$id"/task/owner
+echo "$repo" >"$id"/task/repo
+
+echo >&2 "new task id=$id owner=$GIRAR_USER repo=$repo"
 echo "$id"

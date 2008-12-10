@@ -5,45 +5,21 @@
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG {list|new|show|drop|add|run} ..."
+	echo >&2 "usage: $PROG {new|add|ls|show|run|rm} ..."
 	exit 1
 }
 
-[ "$#" -ge 1 ] ||
+if [ "$#" -lt 1 ]; then
 	usage 'Not enough arguments.'
-[ -n "${GIRAR_USER-}" ] ||
-	fatal "GIRAR_USER undefined"
-
-cd "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
-
-enable -f /usr/lib/bash/lockf lockf
+fi
 
 op="$1"; shift
-case "$op" in
-	--help)
-		usage
-		;;
-	drop)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG drop [<task id>]"
-		builtin lockf -v .
-		id="$(girar-task-find-current "$@")"
-		rm -f -- "$id"
-		;;
-	list)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG list [<task id>...]"
-		builtin lockf -s -v .
-		ls -- "$@"
-		;;
-	show)
-		[ "${1-}" != '--help' ] ||
-			exec echo >&2 "usage: $PROG show [<task id>]"
-		builtin lockf -s -v .
-		id="$(girar-task-find-current "$@")"
-		cat -- "$id"
-		;;
-	add|new|run)
+
+case "${1-}" in
+	--help|help|'')
+		usage ;;
+	new|add|ls|show|run|share|rm)
+		umask 002
 		exec "$PROG-$op" "$@"
 		;;
 	*)

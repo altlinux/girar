@@ -1,0 +1,55 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task rm'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [<task-id>]"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+cd "$GB_TASKS"
+
+id=
+if [ "$#" -eq 1 ]; then
+	id=$(girar-task-find-current "$1")
+	shift
+else
+	id=$(girar-task-find-current)
+fi
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -nv "$id" ||
+	fatal "task #$id is locked"
+
+# TODO: girar superusers can remove tasks.
+owner=$(cat "$id"/task/owner)
+[ "$owner" = "$GIRAR_USER" ] ||
+	fatal "task $id belongs to $owner"
+
+seq=
+if [ -f "$id"/task/seq ]; then
+	seq=$(cat "$id"/task/seq)
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) ;;
+		# work in progress
+		1) fatal "task $id is a work in progress" ;;
+		# have build results
+		2) ;;
+	esac
+fi
+
+echo >&2 -n "removing task $id ... "
+rm -rf -- "$id"/
+echo >&2 done

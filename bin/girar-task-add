@@ -6,21 +6,28 @@ PROG='girar-task add'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task id>] <path to git repository> <tag name> [<project name>]"
+	echo >&2 "usage: $PROG [<task-id>] <gear-repo> <gear-tag>"
 	exit 1
 }
 
-[ "${1-}" != '--help' ] ||
+if [ "${1-}" = '--help' ]; then
 	usage
-id=
-if [ -n "${1-}" -a -z "$(printf %s "${1-}" |tr -d '[:digit:]')" ]; then
-	id="$1"
-	shift
 fi
-[ "$#" -ge 2 ] ||
-	usage 'Not enough arguments.'
-[ "$#" -le 3 ] ||
+
+if [ "$#" -gt 3 ]; then
 	usage 'Too many arguments.'
+fi
+if [ "$#" -lt 2 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=
+if [ "$#" -eq 3 ]; then
+	id=$(girar-task-find-current "$1")
+	shift
+else
+	id=$(girar-task-find-current)
+fi
 
 cd "$HOME"
 
@@ -37,32 +44,122 @@ dir="$(add_git_suffix "$dir")"
 [ -z "${dir%%packages/*}" ] ||
 	fatal "$dir0: directory should belong to packages/ directory tree"
 
+enable -f /usr/lib/bash/lockf lockf
+
 cd "$dir"
+builtin lockf -nv . ||
+	fatal "gear repo ${dir##*/} is locked"
+dir=$(/bin/pwd)
 
 tag_name="$1"; shift
-GIT_DIR=. git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
+git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
 	fatal "$tag_name: invalid tag name"
 tag_id="$(git rev-parse --verify "$tag_name")"
-GIT_DIR=. GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
+GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
 	fatal "$tag_name: invalid tag"
 
-if [ $# -gt 0 ]; then
-	project_name="$1"; shift
-else
-	project_name="${PWD##*/}"
-	project_name="${project_name%.git}"
+tag_author=$(git cat-file tag "$tag_name" |sed -n '/^tagger /{s/^tagger //;s/>.*/>/p;q}')
+domain=${EMAIL_DOMAIN%.*}
+case "$tag_author" in
+	*'<'*'<'* | *'@'*'@'*) fatal "$tag_name: malformed tagger: $tag_author" ;;
+	# XXX php_coder -> php-coder?
+	*"<$GIRAR_USER@$domain"*) ;;
+	*) fatal "$tag_name: invalid tagger: $tag_author (expected $GIRAR_USER@$domain)"
+esac
+
+cd "$GB_TASKS/$id"
+builtin lockf -nv . ||
+	fatal "task #$id is locked"
+
+seq=
+if [ -f task/seq ]; then
+	seq=$(cat task/seq)
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) ;;
+		# work in progress
+		1) fatal "task $id is a work in progress" ;;
+		# have build results
+		2) ;;
+	esac
 fi
-[ -n "$project_name" ] &&
-printf %s "$project_name" |egrep -qs "$project_name_regexp" ||
-	fatal "$project_name: invalid project name"
 
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER"
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
 
-id="$(girar-task-find-current $id)"
-repo="$(sed '/^repo[[:space:]]*/I!d;s///;q' "$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id")"
+nums=$(gear_nums 2>/dev/null)
 
-girar-check-perms "$project_name" "$repo" ||
-	fatal "permission denied"
+check_already_added()
+{
+	local i a_dir a_tag_name a_tag_id
+	for i in $nums; do
+		a_dir=$(cat gears/$i/dir)
+		a_tag_name=$(cat gears/$i/tag_name)
+		a_tag_id=$(cat gears/$i/tag_id)
+		if [ "${a_dir##*/}" = "${dir##*/}" ] &&
+		   [ "$a_tag_name" = "$tag_name" ]; then
+			message "${dir##*/}: tag $tag_name was already added"
+			[ "$a_tag_id" = "$tag_id" ] ||
+				fatal "${dir##*/}: tag $tag_name has changed"
+			exit 0
+		fi
+		if [ "$a_tag_id" = "$tag_id" ]; then
+			# maybe added by another guy
+			message "${dir##*/}: tag $tag_name was already added (from $a_dir $a_tag_name)"
+			exit 0
+		fi
+	done
+}
 
-echo "package $project_name $PWD $tag_name $tag_id $repo" >>"$GIRAR_PEOPLE_QUEUE/$GIRAR_USER/$id"
+check_add_first()
+{
+	local task_owner
+	task_owner=$(cat task/owner)
+	[ "$GIRAR_USER" = "$task_owner" ] ||
+		fatal "only $task_owner can add 1st gear-repo"
+}
+
+check_add_nth()
+{
+	[ -w gears ] ||
+		fatal "gears: permission denied"
+}
+
+if [ -n "$gear_nums" ]; then
+	check_add_nth
+	check_already_added
+	i=$(echo "$nums" |tail -n1)
+else
+	check_add_first
+	i=0
+fi
+
+i=$(($i+1))
+
+atexit()
+{
+	local rc=$?
+	trap - EXIT
+	[ "$rc" -eq 0 ] || rm -rf gears/"$i"/
+	exit $rc
+}
+
+trap '' HUP INT QUIT PIPE TERM
+# gears are not shared by default
+mkdir -p -m755 gears
+mkdir gears/"$i"
+trap atexit EXIT
+echo "$dir" >gears/$i/dir
+echo "$tag_name" >gears/$i/tag_name
+echo "$tag_id" >gears/$i/tag_id
+echo "$tag_author" >gears/$i/tag_author
+
+mkdir gears/$i/git
+GIT_DIR=gears/$i/git git init -q
+GIT_DIR=gears/$i/git git fetch -q "$dir" tag "$tag_name"
+
+echo >&2 "task $id added gear-repo #$i $dir $tag_name"
