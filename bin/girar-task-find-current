@@ -2,7 +2,7 @@
 
 . girar-sh-functions
 
-cd "$GIRAR_TASKS"
+cd "$GB_TASKS"
 
 if [ $# -gt 0 ]; then
 	id="$1"

@@ -18,7 +18,7 @@ if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
 
-cd "$GIRAR_TASKS"
+cd "$GB_TASKS"
 id="$(girar-task-find-current "$@")"
 
 cd "$id"

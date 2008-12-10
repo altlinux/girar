@@ -25,7 +25,7 @@ repo="${1:-sisyphus}"
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
 
-cd "$GIRAR_TASKS"
+cd "$GB_TASKS"
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
