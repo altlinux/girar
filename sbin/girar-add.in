@@ -58,7 +58,7 @@ printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@GIRAR_EMAIL_ALIASES@" &
 	newaliases ||
 	fatal "$IT_NAME: error adding email alias"
 
-echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding $IDENTITY" >"$AUTH" ||
+echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
 GIRAR_HOME_MOUNT="$(df -P "$GIRAR_HOME" |awk '{dir=$6} END{print dir}')"
