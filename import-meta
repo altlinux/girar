@@ -1,0 +1,59 @@
+#!/bin/sh -efu
+
+repo=/ALT/Sisyphus
+logs=$PWD/logs/rebuild
+meta=$PWD/meta
+
+cd $TMPDIR
+
+packages $repo/files/SRPMS >srpms
+cut -f1,3 srpms |sort -u -k1,1 >src:N-F
+
+for arch in i586 x86_64 noarch; do
+	packages $repo/files/$arch/RPMS >$arch-rpms
+	cut -f3 $arch-rpms |sort -u >$arch:F
+	(cd $repo/files/$arch/RPMS
+	 xargs -r rpmquery --qf '%{SOURCERPM}\n' -p ) <$arch:F >$arch:src_F
+	n1=$(wc -l <$arch:F)
+	n2=$(wc -l <$arch:src_F)
+	[ $n1 = $n2 ]
+	sed 's/\(.*\)-.*-.*/\1/' <$arch:src_F >$arch:src_N
+	paste $arch:F $arch:src_N |sort -u >$arch:F-src_N
+	sort -k2,2 -o $arch:F-src_N{,}
+	join -t$'\t' -11 -22 src:N-F $arch:F-src_N -o '1.2 2.1' >$arch:src_F-F
+	sort -u -o $arch:src_F-F{,}
+done
+
+sort -u -m {i586,x86_64,noarch}:src_F-F{,} >src_F-F
+n1=$(wc -l <src_F-F)
+sort -u -k2,2 -o src_F-F{,}
+n2=$(wc -l <src_F-F)
+[ $n1 = $n2 ]
+perl -alne <src_F-F >srpm2rpms '
+	push @{$srpm2rpms{$F[0]}}, $F[1];
+	END { print "$_ @{$srpm2rpms{$_}}" for keys %srpm2rpms }'
+sort -u -o srpm2rpms{,}
+
+mkdir -p $meta
+(cd $meta && git init) || false
+
+while read -r srpm rpms; do
+	src=$srpm
+	src=${src%-*}
+	src=${src%-*}
+	rm -rf $meta/$src
+	for arch in i586 x86_64; do
+		mkdir -p $meta/$src/srpm/$arch
+		log=$logs/$arch/$src.done.log.bz2
+		if [ -f "$log" ]; then
+			bzcat $log >$meta/$src/srpm/$arch/log
+		else
+			echo >&2 "$log: file not found"
+		fi
+	done
+done <srpm2rpms
+
+cd $meta
+git add .
+git commit -m "${repo##*/} $(date +%Y%m%d)"
+git repack -a -d
