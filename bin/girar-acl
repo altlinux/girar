@@ -4,6 +4,9 @@
 . shell-quote
 . shell-args
 
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
 # Abort if no non-empty repository list available.
 [ -s "$GIRAR_REPOSITORIES" ] ||
 	fatal 'Sorry, list of available repositories is not available'
@@ -157,9 +160,6 @@ parse_cmd()
 
 	nqueued="$(($nqueued+1))"
 }
-
-[ -n "${GIRAR_USER-}" ] ||
-	fatal "GIRAR_USER undefined"
 
 [ "$#" -ge 1 ] ||
 	show_usage 'Not enough arguments.'

@@ -2,6 +2,9 @@
 
 . girar-sh-functions
 
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
 usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
@@ -29,10 +32,6 @@ fi
 
 if [ "$(($#%2))" -ne 0 ]; then
 	usage "odd number of arguments"
-fi
-
-if [ -z "${GIRAR_USER:-}" ]; then
-	fatal "GIRAR_USER undefined"
 fi
 
 atexit()

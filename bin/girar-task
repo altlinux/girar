@@ -2,6 +2,9 @@
 
 . girar-sh-functions
 
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
 usage()
 {
 	[ -z "$*" ] || message "$*"

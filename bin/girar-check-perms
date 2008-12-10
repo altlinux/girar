@@ -2,6 +2,9 @@
 
 . girar-sh-functions
 
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
 repositories_file="$GIRAR_REPOSITORIES"
 acl_dir="$GIRAR_ACL_CONF_DIR"
 
@@ -31,9 +34,6 @@ deny()
 
 project_name="$1"; shift
 repository="$1"; shift
-
-[ -n "${GIRAR_USER:-}" ] || 
-	fatal "GIRAR_USER undefined"
 
 cd "$HOME"
 
