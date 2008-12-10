@@ -35,9 +35,18 @@ id=$(($id+1))
 
 trap '' HUP INT QUIT PIPE TERM
 echo "$id" >.max-task-id
-mkdir "$id"
 
+atexit()
+{
+	local rc=$?
+	trap - EXIT
+	[ "$rc" -eq 0 ] || rm -rf "$id"
+	exit $rc
+}
+
+mkdir "$id"
 builtin lockf -v "$id"
+trap atexit EXIT
 mkdir "$id"/task
 echo "$id" >"$id"/task/id
 echo "$GIRAR_USER" >"$id"/task/owner
