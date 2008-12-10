@@ -31,7 +31,7 @@ vercheck()
 		return 1
 	elif [ -z "$E1" ] && [ -n "$E2" ]; then
 		return 0
-	elif [ -n "$E1" ] && [ -n "$E2"]; then
+	elif [ -n "$E1" ] && [ -n "$E2" ]; then
 		if [ "$E1" -gt "$E2" ]; then
 			return 1
 		elif [ "$E1" -lt "$E2" ]; then
