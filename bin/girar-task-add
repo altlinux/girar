@@ -1,6 +1,7 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
+. shell-quote
 PROG='girar-task add'
 
 usage()
@@ -55,17 +56,17 @@ tag_name="$1"; shift
 git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
 	fatal "$tag_name: invalid tag name"
 tag_id="$(git rev-parse --verify "$tag_name")"
-GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" ||
+if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)"; then
+	printf >&2 '%s\n' "$sig_text"
 	fatal "$tag_name: invalid tag"
+fi
 
-tag_author=$(git cat-file tag "$tag_name" |sed -n '/^tagger /{s/^tagger //;s/>.*/>/p;q}')
 domain=${EMAIL_DOMAIN%.*}
-case "$tag_author" in
-	*'<'*'<'* | *'@'*'@'*) fatal "$tag_name: malformed tagger: $tag_author" ;;
-	# XXX php_coder -> php-coder?
-	*"<$GIRAR_USER@$domain"*) ;;
-	*) fatal "$tag_name: invalid tagger: $tag_author (expected $GIRAR_USER@$domain)"
-esac
+tag_author="$(printf %s "$sig_text" |
+	LANG=C sed -n 's/^[^<]*[[:space:]]\(from\|aka\)[[:space:]][^<]\+<\([^@>]\+\)@'"$(quote_sed_regexp "$domain")"'\.[a-z]\+>[^>]*$/\2/p' |
+	tr '[:upper:]' '[:lower:]' |tr - _ |sort -u)"
+[ "$tag_author" = "$GIRAR_USER" ] ||
+	fatal "$tag_name: unacceptable signature: $(printf %s "tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$domain)"
 
 cd "$GB_TASKS/$id"
 builtin lockf -nv . ||
