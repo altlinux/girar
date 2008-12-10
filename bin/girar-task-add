@@ -48,9 +48,8 @@ dir="$(add_git_suffix "$dir")"
 enable -f /usr/lib/bash/lockf lockf
 
 cd "$dir"
-builtin lockf -nv . ||
-	fatal "gear repo ${dir##*/} is locked"
-dir=$(/bin/pwd)
+builtin lockf -v .
+dir=$PWD
 
 tag_name="$1"; shift
 git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
