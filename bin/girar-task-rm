@@ -32,10 +32,11 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -nv "$id" ||
 	fatal "task #$id is locked"
 
-# TODO: girar superusers can remove tasks.
-owner=$(cat "$id"/task/owner)
-[ "$owner" = "$GIRAR_USER" ] ||
-	fatal "task $id belongs to $owner"
+if [ 'root' != "$GIRAR_USER" ]; then
+	owner=$(cat "$id"/task/owner)
+	[ "$owner" = "$GIRAR_USER" ] ||
+		fatal "task #$id belongs to $owner"
+fi
 
 seq=
 if [ -f "$id"/task/seq ]; then
@@ -44,12 +45,12 @@ if [ -f "$id"/task/seq ]; then
 		# awaiting for build
 		0) ;;
 		# work in progress
-		1) fatal "task $id is a work in progress" ;;
+		1) fatal "task #$id is a work in progress" ;;
 		# have build results
 		2) ;;
 	esac
 fi
 
-echo >&2 -n "removing task $id ... "
+echo >&2 -n "removing task #$id ... "
 rm -rf -- "$id"/
 echo >&2 done
