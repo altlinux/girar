@@ -1,8 +1,8 @@
 #!/bin/sh -efu
 
-export GIRAR_TASKS=$TMPDIR/girar-tasks
-mkdir -p $GIRAR_TASKS/333
-cd $GIRAR_TASKS/333
+export GB_TASKS=$TMPDIR/girar-tasks
+mkdir -p $GB_TASKS/333
+cd $GB_TASKS/333
 
 mkdir task
 echo 333 >task/id

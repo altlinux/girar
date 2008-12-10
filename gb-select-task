@@ -2,7 +2,7 @@
 
 . gb-sh-repo-conf
 
-cd "$GIRAR_TASKS"
+cd "$GB_TASKS"
 
 repo_tasks()
 {

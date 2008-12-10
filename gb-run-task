@@ -2,7 +2,7 @@
 
 id="$1"; shift
 
-cd "$GIRAR_TASKS/$id"
+cd "$GB_TASKS/$id"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
