@@ -60,6 +60,7 @@ while read -r srpm rpms; do
 	fi
 	mkdir -p $src/srpm
 	rpmquery --qf '%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\n' -p $repo/files/SRPMS/$srpm >$src/srpm/EVR
+	gb-x-rpm-changelog $repo/files/SRPMS/$srpm >$src/srpm/changelog
 	for arch in $src_arches; do
 		mkdir -p $src/srpm/$arch
 		rpmquery -R -p $repo/files/SRPMS/$srpm >$src/srpm/$arch/BR
