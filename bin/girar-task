@@ -8,7 +8,7 @@
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG {new|add|ls|show|run|rm} ..."
+	echo >&2 "usage: $PROG {new|add|ls|show|run|share|rm} ..."
 	exit 1
 }
 
