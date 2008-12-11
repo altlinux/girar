@@ -88,7 +88,7 @@ gear_nums()
 {
 	set +f
 	cd gears &&
-	ls [1-9]*/dir |sort -n |cut -d/ -f1
+	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
 }
 
 nums=$(gear_nums 2>/dev/null)
@@ -129,7 +129,7 @@ check_add_nth()
 		fatal "gears: permission denied"
 }
 
-if [ -n "$gear_nums" ]; then
+if [ -n "$nums" ]; then
 	check_add_nth
 	check_already_added
 	i=$(echo "$nums" |tail -n1)
