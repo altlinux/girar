@@ -32,7 +32,7 @@ ls1()
 	printf '\n'
 }
 
-ids=$(set +f; fgrep -l -x "$GIRAR_USER" [1-9]*/task/owner |
+ids=$(set +f; fgrep -lx "$GIRAR_USER" [1-9]*/task/owner 2>/dev/null |
        sort -rn |cut -d/ -f1)
 
 if [ -z "$ids" ]; then

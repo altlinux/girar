@@ -10,7 +10,7 @@ if [ $# -gt 0 ]; then
 	[ -n "$id" -a -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
 		fatal "invalid task id: $id"
 else
-	id="$(set +f; fgrep -l -x "$GIRAR_USER" [1-9]*/task/owner |
+	id="$(set +f; fgrep -lx "$GIRAR_USER" [1-9]*/task/owner 2>/dev/null |
 	       sort -n |cut -d/ -f1 |tail -n1)"
 	[ -n "$id" ] ||
 		fatal 'no tasks found'
