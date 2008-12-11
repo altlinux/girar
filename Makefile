@@ -29,8 +29,6 @@ GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_HOME = /people
 GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
-GIRAR_PRIVATE_QUEUE = ${girar_spooldir}/private
-GIRAR_PUBLIC_QUEUE = ${girar_spooldir}/public
 GIRAR_REPOSITORIES = ${girar_confdir}/repositories
 GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
@@ -66,7 +64,6 @@ bin_TARGETS = \
 	bin/girar-check-perms \
 	bin/girar-clone \
 	bin/girar-find \
-	bin/girar-forwarder \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
 	bin/girar-ls \
@@ -155,9 +152,7 @@ install-var:
 		${DESTDIR}${girar_email_dir}/public \
 		${DESTDIR}${girar_spooldir} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
-		${DESTDIR}${GIRAR_PEOPLE_QUEUE}/.timestamp \
-		${DESTDIR}${GIRAR_PUBLIC_QUEUE} \
-		${DESTDIR}${GIRAR_PRIVATE_QUEUE}
+		${DESTDIR}${GIRAR_PEOPLE_QUEUE}/.timestamp
 
 install-perms:
 	chgrp girar \
@@ -185,8 +180,6 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
 	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
 	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
-	    -e 's,@GIRAR_PRIVATE_QUEUE@,${GIRAR_PRIVATE_QUEUE},g' \
-	    -e 's,@GIRAR_PUBLIC_QUEUE@,${GIRAR_PUBLIC_QUEUE},g' \
 	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
 	    -e 's,@GIRAR_PACKAGES_LIST@,${GIRAR_PACKAGES_LIST},g' \
