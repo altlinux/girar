@@ -1,0 +1,53 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task show'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [<task-id>]"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+id=
+if [ "$#" -eq 1 ]; then
+	id=$(girar-task-find-current "$1")
+	shift
+else
+	id=$(girar-task-find-current)
+fi
+
+cd "$GB_TASKS/$id"
+enable -f /usr/lib/bash/lockf lockf
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
+}
+
+printf 'id=%d\n' "$id"
+printf 'locked=%s\n' "$(builtin lockf -n . && echo no || echo yes)"
+printf 'repo=%s\n' "$(cat task/repo)"
+printf 'owner=%s\n' "$(cat task/owner)"
+printf 'seq=%s\n' "$(cat task/seq 2>/dev/null)"
+
+nums="$(gear_nums 2>/dev/null)"
+[ -n "$nums" ] || exit 0
+
+for i in $nums; do
+	printf ' %s:dir=%s\n' "$i" "$(cat gears/"$i"/dir)"
+	printf ' %s:tag_name=%s\n' "$i" "$(cat gears/"$i"/tag_name)"
+	printf ' %s:tag_id=%s\n' "$i" "$(cat gears/"$i"/tag_id)"
+	printf ' %s:tag_author=%s\n' "$i" "$(cat gears/"$i"/tag_author)"
+done

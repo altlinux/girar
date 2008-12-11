@@ -81,6 +81,7 @@ bin_TARGETS = \
 	bin/girar-task-rm \
 	bin/girar-task-run \
 	bin/girar-task-share \
+	bin/girar-task-show \
 	#
 
 sbin_TARGETS = \
