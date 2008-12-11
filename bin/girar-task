@@ -18,7 +18,7 @@ fi
 
 op="$1"; shift
 
-case "${1-}" in
+case "$op" in
 	--help|help|'')
 		usage ;;
 	new|add|ls|show|run|share|rm)
