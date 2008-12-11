@@ -18,14 +18,14 @@ if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
 
-# dumb protection against frequent runs
-sleep $(( ${RANDOM:-$$} % 3 ))
-
 repo="${1:-sisyphus}"
 fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
 
 cd "$GB_TASKS"
+
+# dumb protection against frequent runs
+sleep 1
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
