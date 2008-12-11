@@ -1,5 +1,5 @@
 Name: girar
-Version: 0.2
+Version: 0.3
 Release: alt1
 
 Summary: git.alt server engine
@@ -50,6 +50,9 @@ support and config files.
 %_localstatedir/%name
 
 %changelog
+* Thu Dec 11 2008 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1
+- Added task subcommands.
+
 * Mon Jun 16 2008 Dmitry V. Levin <ldv@altlinux.org> 0.2-alt1
 - Rewrote hooks using post-receive.
 
