@@ -194,6 +194,7 @@ main (int ac, char *av[])
 		shell(av);
 	}
 
-	error(0, 0, "Invalid number of arguments");
-	show_help(EXIT_FAILURE);
+	error(0, 0, "%s arguments.  Try the 'help' command.\r",
+		(ac < 3) ? "Not enough" : "Too many");
+	return EXIT_FAILURE;
 }
