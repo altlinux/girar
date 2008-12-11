@@ -23,11 +23,12 @@ girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_acl_state_dir = ${girar_statedir}/acl
 
 EMAIL_DOMAIN = altlinux.org
+GB_TASKS = ${girar_spooldir}/tasks
 GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
-GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_HOME = /people
+GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
 GIRAR_REPOSITORIES = ${girar_confdir}/repositories
 GITWEB_URL = http://git.altlinux.org
@@ -167,6 +168,7 @@ bin/girar-sh: bin/girar-sh.c
 %: %.in
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
+	    -e 's,@GB_TASKS@,${GB_TASKS},g' \
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
@@ -177,12 +179,12 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_HOME@,${GIRAR_HOME},g' \
 	    -e 's,@GIRAR_HOOKS_DIR@,${girar_hooks_dir},g' \
 	    -e 's,@GIRAR_PACKAGES_DIR@,${girar_confdir}/packages.git,g' \
+	    -e 's,@GIRAR_PACKAGES_LIST@,${GIRAR_PACKAGES_LIST},g' \
+	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
 	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
-	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
-	    -e 's,@GIRAR_PACKAGES_LIST@,${GIRAR_PACKAGES_LIST},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \

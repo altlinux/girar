@@ -46,6 +46,7 @@ support and config files.
 %dir %_spooldir/%name
 %dir %_spooldir/%name/people
 %dir %attr(770,root,%girar_group) %_spooldir/%name/people/.timestamp
+%dir %attr(1770,%girar_user,%girar_group) %_spooldir/%name/tasks
 %_localstatedir/%name
 
 %changelog
