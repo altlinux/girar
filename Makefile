@@ -76,8 +76,11 @@ bin_TARGETS = \
 	bin/girar-task \
 	bin/girar-task-add \
 	bin/girar-task-find-current \
+	bin/girar-task-ls \
 	bin/girar-task-new \
+	bin/girar-task-rm \
 	bin/girar-task-run \
+	bin/girar-task-share \
 	#
 
 sbin_TARGETS = \
@@ -152,6 +155,7 @@ install-var:
 		${DESTDIR}${girar_email_dir}/private \
 		${DESTDIR}${girar_email_dir}/public \
 		${DESTDIR}${girar_spooldir} \
+		${DESTDIR}${GB_TASKS} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE}/.timestamp
 
