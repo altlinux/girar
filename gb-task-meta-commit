@@ -29,6 +29,21 @@ findsrc()
 	findrpm srpm "$1"
 }
 
+srpm2i()
+{
+	local f="$1"; shift
+	cd build
+	set +f
+	set -- [1-9]*/*/srpm/"$f"
+	if ! [ -f "$1" ]; then
+		echo " *** cannot find $f under build/"
+		return 1
+	fi >&2
+	local IFS=/
+	set -- $1
+	echo "$1"
+}
+
 while read -r N EVR F; do
 	rm -rf $GB_META_DIR/$N/
 done <plan/rm-src
@@ -41,4 +56,10 @@ while read -r N EVR F; do
 	mkdir -p $GB_META_DIR/$src/srpm
 	echo "$EVR" >$GB_META_DIR/$src/srpm/EVR
 	gb-x-rpm-changelog $srpm >$GB_META_DIR/$src/srpm/changelog
+	i=$(srpm2i "$F")
+	for arch in i586 x86_64; do
+		mkdir -p $GB_META_DIR/$src/srpm/$arch
+		cat build/$i/$arch/log >$GB_META_DIR/$src/srpm/$arch/buildlog
+		gb-x-fixup-buildlog $GB_META_DIR/$src/srpm/$arch/buildlog
+	done
 done <plan/add-src
