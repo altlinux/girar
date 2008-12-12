@@ -137,7 +137,8 @@ shell (char *av[])
 	}
 
 	error(0, 0, "%s: Invalid command", cmd);
-	show_help(EXIT_FAILURE);
+	error(0, 0, "Try `help' command for more information.");
+	exit(EXIT_FAILURE);
 }
 
 int
@@ -194,7 +195,7 @@ main (int ac, char *av[])
 		shell(av);
 	}
 
-	error(0, 0, "%s arguments.  Try the 'help' command.\r",
-		(ac < 3) ? "Not enough" : "Too many");
+	error(0, 0, "%s arguments.\r", (ac < 3) ? "Not enough" : "Too many");
+	error(0, 0, "Try `help' command for more information.\r");
 	return EXIT_FAILURE;
 }
