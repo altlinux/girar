@@ -61,5 +61,10 @@ while read -r N EVR F; do
 		mkdir -p $GB_META_DIR/$src/srpm/$arch
 		cat build/$i/$arch/log >$GB_META_DIR/$src/srpm/$arch/buildlog
 		gb-x-fixup-buildlog $GB_META_DIR/$src/srpm/$arch/buildlog
+		srpm=build/$i/$arch/srpm/$F
+		rpmquery -R -p $srpm >$GB_META_DIR/$src/srpm/$arch/BR
+		sed -i '/^rpmlib(/d' $GB_META_DIR/$src/srpm/$arch/BR
+		sed -i 's/ *$//' $GB_META_DIR/$src/srpm/$arch/BR
+		sort -u -o $GB_META_DIR/$src/srpm/$arch/BR{,}
 	done
 done <plan/add-src
