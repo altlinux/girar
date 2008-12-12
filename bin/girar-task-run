@@ -19,7 +19,7 @@ if [ "$#" -gt 1 ]; then
 fi
 
 cd "$GB_TASKS"
-id="$(girar-task-find-current "$@")"
+id="$(PROG="$PROG" girar-task-find-current "$@")"
 
 cd "$id"
 enable -f /usr/lib/bash/lockf lockf

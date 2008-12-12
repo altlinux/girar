@@ -20,10 +20,10 @@ fi
 
 id=
 if [ "$#" -eq 1 ]; then
-	id=$(girar-task-find-current "$1")
+	id=$(PROG="$PROG" girar-task-find-current "$1")
 	shift
 else
-	id=$(girar-task-find-current)
+	id=$(PROG="$PROG" girar-task-find-current)
 fi
 
 cd "$GB_TASKS/$id"

@@ -24,10 +24,10 @@ fi
 
 id=
 if [ "$#" -eq 3 ]; then
-	id=$(girar-task-find-current "$1")
+	id=$(PROG="$PROG" girar-task-find-current "$1")
 	shift
 else
-	id=$(girar-task-find-current)
+	id=$(PROG="$PROG" girar-task-find-current)
 fi
 
 cd "$HOME"
