@@ -69,7 +69,8 @@ while read -r srpm rpms; do
 		sort -u -o $src/srpm/$arch/BR{,}
 		log=$logs/$arch/$src.done.log.bz2
 		if [ -f "$log" ]; then
-			bzcat $log >$src/srpm/$arch/log
+			bzcat $log >$src/srpm/$arch/buildlog
+			gb-x-fixup-buildlog $src/srpm/$arch/buildlog
 		else
 			echo >&2 "$log: file not found"
 		fi

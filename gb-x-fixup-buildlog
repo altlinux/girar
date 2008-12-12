@@ -1,0 +1,4 @@
+#!/usr/bin/perl -pi
+
+s/<\d+>\w{3}\s+\d+\s+\d{2}:\d{2}:\d{2}\s+(\S+?)(?:\[\d+\])?:\s+/<syslog> $1: /;
+s/\/rpm-tmp\.\d+/\/rpm-tmp.XXXXXX/;
