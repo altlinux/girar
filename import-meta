@@ -75,6 +75,27 @@ while read -r srpm rpms; do
 			echo >&2 "$log: file not found"
 		fi
 	done
+	for rpm in $rpms; do
+		arch=
+		case $rpm in
+			*.i586.rpm) arch=i586 ;;
+			*.x86_64.rpm) arch=x86_64 ;;
+			*.noarch.rpm) arch=noarch ;;
+		esac
+		[ -n "$arch" ]
+		name=$rpm
+		name=${name%-*}
+		name=${name%-*}
+		mkdir -p $src/rpms/$arch/$name
+		rpmquery --qf '%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\n' -p $repo/files/$arch/RPMS/$rpm >$src/rpms/$arch/$name/EVR
+		rpmquery --list -p $repo/files/$arch/RPMS/$rpm >$src/rpms/$arch/$name/F
+		for q in requires provides obsoletes conflicts; do
+			Q=$(echo $q |sed 's/\(.\).*/\U\1/')
+			rpmquery --$q -p $repo/files/$arch/RPMS/$rpm >$src/rpms/$arch/$name/$Q
+			sed -i 's/ *$//' $src/rpms/$arch/$name/$Q
+			sort -u -o $src/rpms/$arch/$name/$Q{,}
+		done
+	done
 done <$TMPDIR/srpm2rpms
 
 git add .
