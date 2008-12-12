@@ -18,13 +18,7 @@ if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
 
-id=
-if [ "$#" -eq 1 ]; then
-	id=$(PROG="$PROG" girar-task-find-current "$1")
-	shift
-else
-	id=$(PROG="$PROG" girar-task-find-current)
-fi
+id=$(PROG="$PROG" girar-task-find-current "$@")
 
 cd "$GB_TASKS/$id"
 builtin lockf -nv . ||

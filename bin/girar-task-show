@@ -18,16 +18,8 @@ if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
 
-id=
-if [ "$#" -eq 1 ]; then
-	id=$(PROG="$PROG" girar-task-find-current "$1")
-	shift
-else
-	id=$(PROG="$PROG" girar-task-find-current)
-fi
-
+id=$(PROG="$PROG" girar-task-find-current "$@")
 cd "$GB_TASKS/$id"
-enable -f /usr/lib/bash/lockf lockf
 
 gear_nums()
 {
@@ -37,6 +29,7 @@ gear_nums()
 }
 
 printf 'id=%d\n' "$id"
+enable -f /usr/lib/bash/lockf lockf
 printf 'locked=%s\n' "$(builtin lockf -n . && echo no || echo yes)"
 printf 'repo=%s\n' "$(cat task/repo)"
 printf 'owner=%s\n' "$(cat task/owner)"

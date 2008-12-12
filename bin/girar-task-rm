@@ -20,13 +20,7 @@ fi
 
 cd "$GB_TASKS"
 
-id=
-if [ "$#" -eq 1 ]; then
-	id=$(PROG="$PROG" girar-task-find-current "$1")
-	shift
-else
-	id=$(PROG="$PROG" girar-task-find-current)
-fi
+id=$(PROG="$PROG" girar-task-find-current "$@")
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -nv "$id" ||
