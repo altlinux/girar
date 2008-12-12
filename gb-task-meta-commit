@@ -1,0 +1,44 @@
+#!/bin/sh -efu
+
+. gb-sh-meta-conf
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GB_META_DIR"
+
+findrpm()
+{
+	local dir="$1" f="$2"; shift 2
+	set +f
+	set -- build/*/*/"$dir"/"$f"
+	if [ -f "$1" ]; then
+		echo "$1"
+		return
+	else
+		echo >&2 " *** cannot find $f under build/"
+		return 1
+	fi
+}
+
+findbin()
+{
+	findrpm rpms "$1"
+}
+
+findsrc()
+{
+	findrpm srpm "$1"
+}
+
+while read -r N EVR F; do
+	rm -rf $GB_META_DIR/$N/
+done <plan/rm-src
+
+while read -r N EVR F; do
+	src=$F
+	src=${src%-*}
+	src=${src%-*}
+	srpm=$(findsrc "$F")
+	mkdir -p $GB_META_DIR/$src/srpm
+	echo "$EVR" >$GB_META_DIR/$src/srpm/EVR
+	gb-x-rpm-changelog $srpm >$GB_META_DIR/$src/srpm/changelog
+done <plan/add-src
