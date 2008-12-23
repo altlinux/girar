@@ -36,9 +36,8 @@ girar_check()
 			RC=1
 		fi
 	else
-		# cannot happen
-		echo >&2 "error: $N.git is neither real nor srpm"
-		RC=1
+		# fist-time push, no check
+		:
 	fi
 }
 
