@@ -1,0 +1,4 @@
+#!/bin/sh -efu
+
+. gb-sh-task-conf-$USER
+: ${GB_TASKS:?}

@@ -1,5 +1,7 @@
 #!/bin/sh -efu
 
+. gb-sh-task-conf
+
 id="$1"; shift
 
 cd "$GB_TASKS/$id"

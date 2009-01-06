@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+. gb-sh-task-conf
 . gb-sh-repo-conf
 
 cd "$GB_TASKS"
