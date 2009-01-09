@@ -5,7 +5,6 @@
 for arch in i586 x86_64; do
 	$0-arch "$arch" ||
 		echo "$arch build failed" >>"$tmpdir"/FAIL &
-	sleep 9
 done
 
 wait
