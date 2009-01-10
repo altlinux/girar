@@ -28,6 +28,7 @@ fi
 # copy source package and build data to remote side
 rsync -q -- "gears/$i/pkg.tar" "$remote_host:tmp/"
 mkdir -p "build/$i/$arch"
+touch "build/$i/$arch/log"
 rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
 ssh "$remote_host" ./gb-remote-build \
@@ -36,7 +37,7 @@ ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" ||
 		{ stamp_echo >&2 "$I FAILED";
-		  rsync -q -- "$remote_host:build/log" "build/$i/$arch/" ||:;
+		  rsync -q -- "$remote_host:build/log" "build/$i/$arch/";
 		  exit 1; }
 
 # copy build result from remote side
