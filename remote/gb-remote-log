@@ -1,0 +1,158 @@
+#!/bin/sh
+# Various pieces for processing build logs
+# logs can be gzipped
+
+# size_time_regression /raid/beehive/success
+# size_time_regression ~/.cmdcache/rebuild -not -name '*.[^g]*'
+size_time_regression()
+{
+	find "$@" -type f -print0 |xargs -r0 gzip -cdfq |
+		LC_ALL=C awk 'NF==2 && /^Installing .*[.]src[.]rpm$/ { pkg=$2 }
+			NF>4 && $1~/user$/ && $2~/system$/ && 
+				$3~/elapsed$/ && $4~/CPU$/ {
+					if (match($3, /^([0-9]+):([0-9]+[.][0-9]+)/, a))
+						print pkg "\t" int(a[1]*60+a[2]+0.5) }' |
+				sort -k2,2rn |sort -u -k1,1 >buildtime
+	while IFS=$'\t' read -r pkg time; do
+		f="${sisyphus:-/ALT/Sisyphus}"/files/SRPMS/"$pkg"
+		if [ -s "$f" ]; then
+			size="$(du -bk "$f" |cut -f1)"
+			printf "%s\t%s\t%s\n" "$pkg" "$size" "$time"
+		fi
+	done <buildtime >buildsizetime
+	cut -f2,3 buildsizetime >buildsizetime.dat
+	env R -q --vanilla <<'__EOF__' |tee R.output
+	dat=read.table("buildsizetime.dat", col.names=c("size", "time"))
+	summary(dat)
+	library(boot)
+	corr(dat)
+	x=c(as.matrix(dat["size"]))
+	y=c(as.matrix(dat["time"]))
+	linear=lm(y~x); linear
+	cat("coeff_a0=", linear$coefficients[1], "\n", sep="")
+	cat("coeff_a1=", linear$coefficients[2], "\n", sep="")
+	qx=quantile(x, probs=c(0.95,0.99)); qx
+	cat("q95_size=", round(qx[1]), "\n", sep="")
+	qy=quantile(y, probs=c(0.95,0.99)); qy
+	cat("q95_time=", round(qy[1]), "\n", sep="")
+__EOF__
+	eval "$(grep -E '^(q95_size|q95_time|coeff_a.)=' R.output)"
+	gnuplot <<__EOF__
+	set terminal png size 1024,768
+	set output "buildsizetime.png"
+	set xtics 0, 1024
+	set ytics 0, 60
+	set xlabel "source package size, KB"
+	set ylabel "build time, sec"
+	plot [1:$q95_size] [1:$q95_time] "buildsizetime.dat", $coeff_a0+$coeff_a1*x
+__EOF__
+	gnuplot <<__EOF__
+	set terminal png size 1024,768
+	set output "buildsizetime2.png"
+	set logscale xy 2
+	set xlabel "source package size, KB"
+	set ylabel "build time, sec"
+	plot "buildsizetime.dat", $coeff_a0+$coeff_a1*x
+__EOF__
+	[ -z "$DISPLAY"] || gqview -t buildsizetime.png buildsizetime2.png
+}
+
+# src.rpm -> log
+buildlog_map()
+{
+	find "$@" -type f -print0 |xargs -r0 zgrep -H '^Installing .*[.]src[.]rpm$' |
+		sed 's/^\(.\+\):Installing \(.\+\)$/\2\t\1/'
+}
+
+# chroot build list <N, i586|noarch.rpm>
+buildlog_uris()
+{
+	find "$@" -type f -print0 |xargs -r0 gzip -cdfq |
+		awk '/^Preparing packages for installation/,/^Installing .*[.]src[.]rpm$/ {
+			if (/^[[:alnum:]][[:graph:]]*[[:alnum:]]-(alt|ipl)[[:graph:]]*$/ && !/[.]rpm$/)
+				print }' |sort |uniq -c |awk '{print $1 "\t" $2 }' |sort -n
+}
+
+buildlog_self_buildreq()
+{
+	find "$@" -type f |while read f; do
+		gzip -cdfq "$f" |awk -f /dev/fd/3 3<<'__EOF__'
+			/^Preparing packages for installation/,/^Installing .*[.]src[.]rpm$/ {
+				if (/^[[:alnum:]][[:graph:]]*[[:alnum:]]-(alt|ipl)[[:graph:]]*$/)
+					installed[++n] = $1 }
+			/^Wrote: [/].*[.]src[.]rpm$/ { m = 0; next }
+			/^Wrote: [/].*[.]rpm$/ {
+				sub(/^.*[/]/, "", $2)
+				sub(/[.][[:alnum:]]+[.]rpm$/, "", $2)
+				wrote[++m] = $2
+			}
+			END {
+				for (i=1; i<=m; i++)
+					for (j=1; j<=n; j++)
+						if (wrote[i] == installed[j])
+							print wrote[i]
+			}
+__EOF__
+	done
+}
+
+# <pkg-alt1 Requires|Provides dep>
+buildlog_deps()
+{
+	find "$@" -type f -print0 |xargs -r0 gzip -cdfq |
+		awk  -F'[:,] +' '/^Processing files:/ { pkg = $NF }
+			/^PreReq:|^Requires([(].+[)])?:|^Provides:|^Obsoletes:/ {
+				if (pkg) for(i=2;i<=NF;i++) print pkg "\t" $1 "\t" $i }' |sort -u
+}
+
+buildlog_errors()
+{
+	local out=
+	out=$(gzip -cdfq "$1" |uniq |tail -192 |grep '[[:alnum:]]') || return
+	while echo "$out" |tail -1 |grep -qs -E -f /dev/fd/3 3<<'__EOF__'; do
+user.*system.*elapsed.*CPU
+inputs.*outputs.*pagefaults
+Bad exit status from .*/rpm-tmp
+hsh-rebuild: rebuild of .* failed
+RPM build errors:
+^error:$
+^Command exited with non-zero status
+__EOF__
+		out=$(echo "$out" |sed '$d')
+	done
+	echo "$out" |grep -m10 -C1 -f /dev/fd/3 3<<'__EOF__' || echo "$out" |tail -10
+ error:
+^error: [^B]
+^ERROR
+ ERROR\>
+^FATAL
+^Fatal
+^E:
+^verify-elf: ERROR:
+Error:
+syntax error
+check failed
+undefined reference
+installation failed
+need at least
+BEGIN failed
+DIED
+FAILED
+FAIL:
+/ld: cannot find
+treated as errors
+No such file or directory
+No rule to make target
+Command not found
+Test returned status .* [(]wstat\>
+Test failed
+Failed test
+tests failed
+No package .* found
+Package .* not found
+Error while parsing
+idle time limit
+__EOF__
+}
+
+

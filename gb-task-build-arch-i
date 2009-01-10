@@ -1,168 +1,45 @@
 #!/bin/sh -efu
 
-. gb-sh-hasher-conf
+. shell-quote
 
 arch="$1" i="$2"; shift 2
 
+. gb-sh-remote-conf
+
 dir=$(cat gears/$i/dir)
 tag_name=$(cat gears/$i/tag_name)
+tag_author=$(cat gears/$i/tag_author)
 
-I="[$arch] ${dir##*/} $tag_name"
-echo >&2 "$I: start build"
+I="[$arch] ${dir##*/} $tag_name: build"
+echo >&2 "$I start"
 
-Fatal()
-{
-	echo >&2 "$I: $*"
-	exit 1
-}
-
-hsh_dir=$(gb_hasher_dir "$arch")
-hsh_num=$(gb_hasher_num "$arch")
-hsh_aptconf=$(gb_hasher_aptconf "$arch")
-
-. gb-sh-tmpdir
-
-# Step 1: initialize and query hasher chroot.
-hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
-	--mountpoints=/proc --nprocs=1 \
-	--initroot -- "$hsh_dir" >"$tmpdir"/out 2>&1 ||
-		{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
-
-q_bin='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
-hsh-run -- "$hsh_dir" rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
-
-# Step 2: build src.rpm (without sisyphus_check).
-# This will also install all BuildRequires packages.
-cat >"$tmpdir"/save_srpm <<'EOF'
-mkdir ~/SRPMS
-cp -p --target-directory ~/SRPMS/ -- "$@"
-EOF
-
-hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
-	--mountpoints=/proc --nprocs=1 \
-	--rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check \
-	--lazy-cleanup -- "$hsh_dir" gears/$i/pkg.tar >"$tmpdir"/out 2>&1 ||
-		{ cat "$tmpdir"/out; Fatal "cannot build src.rpm"; } >&2
-
-srpm=$(set +f; echo "$hsh_dir"/chroot/usr/src/SRPMS/*.src.rpm) &&
-	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
-		Fatal "cannot build valid src.rpm"
-
-# Step 3: examine BuildRequires.
-hsh-run -- "$hsh_dir" rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
-sort -u -o "$tmpdir"/chroot_base{,}
-sort -u -o "$tmpdir"/chroot_BR{,}
-comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
-mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
-
-# Step 4: check if rebuild is needed at all.
+# check if rebuild is needed at all
 if [ -s build/$i/$arch/chroot_base ]; then
 	rm -f build/$i/$arch/REBUILD
-	if ! diff -U1 build/$i/$arch/chroot_base "$tmpdir"/chroot_base >"$tmpdir"/out; then
-		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$i/$arch/MERGE "chroot_base changed for $I"
-		cat >>build/$i/$arch/MERGE <"$tmpdir"/out
-	fi
-	if ! diff -U1 build/$i/$arch/chroot_BR "$tmpdir"/chroot_BR >"$tmpdir"/out; then
-		echo 1 >build/$i/$arch/REBUILD
-		echo >>build/$i/$arch/MERGE "chroot_BR changed for $I"
-		cat >>build/$i/$arch/MERGE <"$tmpdir"/out
-	fi
-	# Rebuild is still needed if previous packages have been rebuilt.
+	# rebuild is still needed if previous packages have been rebuilt
 	for j in `seq 1 $(($i-1))`; do
 		if [ -s build/$j/$arch/REBUILD ]; then
 			rm -f build/$j/$arch/REBUILD
 			echo 1 >build/$i/$arch/REBUILD
 		fi
 	done
-	if ! [ -s build/$i/$arch/REBUILD ]; then
-		(set +f
-		 cp -p build/$i/$arch/rpms/*.rpm "$hsh_dir"/repo/$arch/RPMS.hasher/
-		 cp -p build/$i/$arch/srpm/*.rpm "$hsh_dir"/repo/SRPMS.hasher/ ) ||
-			Fatal 'failed to obtain packages from previous run'
-		echo >&2 "$I: no need to rebuild"
-		exit 0
-	fi
 fi
 
-# Step 5: examine repo/ contens.
-for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
-	crc=$(sha1sum -b "$f" |head -c16)
-	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
-done |sort >"$tmpdir"/srpm1
-for f in $(set +f; ls "$hsh_dir"/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
-	crc=$(sha1sum -b "$f" |head -c16)
-	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
-done |sort >"$tmpdir"/rpms1
+# copy source package and build data to remote side
+rsync -q -- "gears/$i/pkg.tar" "$remote_host:tmp/"
+mkdir -p "build/$i/$arch"
+rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
-# Step 6: find out packager.
-packager=$(cat gears/$i/tag_author)
+ssh "$remote_host" ./gb-remote-build \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell "${dir##*/}")\"" \
+	"\"$(quote_shell "$tag_name")\"" \
+	"\"$(quote_shell "$tag_author")\"" ||
+		{ echo >&2 "$I FAILED";
+		  rsync -q -- "$remote_host:build/log" "build/$i/$arch/" ||:;
+		  exit 1; }
 
-# Step 7: build.
-mkdir -p build/$i/$arch
-hsh --target="$arch" --apt-config="$hsh_aptconf" --number="$hsh_num" \
-	--mountpoints=/proc --nprocs=1 \
-	--packager="$packager" -- "$hsh_dir" gears/$i/pkg.tar >build/$i/$arch/log 2>&1 ||
-		{ . buildlog.sh; buildlog_errors build/$i/$arch/log
-		  Fatal "build failed"; } >&2
+# copy build result from remote side
+rsync -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
 
-# Step 8: save results.
-for f in $(set +f; ls "$hsh_dir"/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
-	crc=$(sha1sum -b "$f" |head -c16)
-	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
-done |sort >"$tmpdir"/srpm2
-for f in $(set +f; ls "$hsh_dir"/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
-	crc=$(sha1sum -b "$f" |head -c16)
-	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
-done |sort >"$tmpdir"/rpms2
-
-comm -23 "$tmpdir"/rpms{1,2} >"$tmpdir"/out
-if [ -s "$tmpdir"/out ]; then
-	# we are under attack: they try to replace previous packages
-	cat "$tmpdir"/out
-	Fatal "attempt to replace binary packages"
-fi >&2
-comm -23 "$tmpdir"/srpm{1,2} >"$tmpdir"/out
-if [ -s "$tmpdir"/out ]; then
-	cat "$tmpdir"/out
-	Fatal "attempt to replace source packages"
-fi >&2
-
-comm -23 "$tmpdir"/rpms{2,1} >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal "no binary packages"
-cut -f1 "$tmpdir"/out >"$tmpdir"/add-bin
-
-comm -23 "$tmpdir"/srpm{2,1} >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal "no source package"
-cut -f1 "$tmpdir"/out >"$tmpdir"/add-src
-
-# Check that we've got (src,bin+) tuple.
-n=$(wc -l <"$tmpdir"/add-src)
-if [ "$n" -ne 1 ]; then
-	cat "$tmpdir"/add-src
-	Fatal "multpile source packages"
-fi >&2
-
-(cd "$hsh_dir"/repo/$arch/RPMS.hasher
- xargs -r <"$tmpdir"/add-bin \
-	rpmquery --qf '%{SOURCERPM}\n' -p ) >"$tmpdir"/ref-src || false
-sort -u -o "$tmpdir"/ref-src{,}
-(cd "$tmpdir" && diff -U1 {add,ref}-src ) ||
-	Fatal 'binary packages refer wrong %{SOURCERPM}'
-
-# Copyout.
-rm -rf build/$i/$arch/rpms
-mkdir -p build/$i/$arch/rpms
-tar -C "$hsh_dir"/repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
-tar -C build/$i/$arch/rpms -xf -
-
-rm -rf build/$i/$arch/srpm
-mkdir -p build/$i/$arch/srpm
-tar -C "$hsh_dir"/repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
-tar -C build/$i/$arch/srpm -xf -
-
-# Meta copyout.
-cp -p "$tmpdir"/chroot_base build/$i/$arch/chroot_base
-cp -p "$tmpdir"/chroot_BR build/$i/$arch/chroot_BR
-
-echo >&2 "$I: build OK"
+echo >&2 "$I OK"

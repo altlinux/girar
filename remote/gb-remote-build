@@ -1,0 +1,166 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+dir="$1"; shift
+tag_name="$1"; shift
+tag_author="$1"; shift
+
+I="[$arch] $dir $tag_name: remote"
+echo >&2 "$I: start"
+
+Fatal()
+{
+	echo >&2 "$I: $*"
+	exit 1
+}
+
+tmpdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 1
+}
+
+trap exit_handler EXIT
+trap signal_handler HUP INT QUIT PIPE TERM
+
+tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+
+# Step 1: initialize and query hasher chroot.
+setarch "$arch" -- hsh --init --packager="$tag_author" >"$tmpdir"/out 2>&1 ||
+	{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
+
+q_bin='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
+
+# Step 2: build src.rpm (without sisyphus_check).
+# This will also install all BuildRequires packages.
+cat >"$tmpdir"/save_srpm <<'EOF'
+mkdir ~/SRPMS
+cp -p --target-directory ~/SRPMS/ -- "$@"
+EOF
+
+setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/pkg.tar \
+	>"$tmpdir"/out 2>&1 ||
+		{ cat "$tmpdir"/out; Fatal "cannot build src.rpm"; } >&2
+
+srpm=$(set +f; echo hasher/chroot/usr/src/SRPMS/*.src.rpm) &&
+	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
+		Fatal "cannot build valid src.rpm"
+
+# Step 3: examine BuildRequires.
+setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
+sort -u -o "$tmpdir"/chroot_base{,}
+sort -u -o "$tmpdir"/chroot_BR{,}
+comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
+mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
+
+# Step 4: check if rebuild is needed at all.
+if [ -s build/chroot_base ]; then
+	if ! diff -U1 build/chroot_base "$tmpdir"/chroot_base >"$tmpdir"/out; then
+		echo 1 >build/REBUILD
+		echo >>build/MERGE "chroot_base changed for $I"
+		cat >>build/MERGE <"$tmpdir"/out
+	fi
+	if ! diff -U1 build/chroot_BR "$tmpdir"/chroot_BR >"$tmpdir"/out; then
+		echo 1 >build/REBUILD
+		echo >>build/MERGE "chroot_BR changed for $I"
+		cat >>build/MERGE <"$tmpdir"/out
+	fi
+	if ! [ -s build/REBUILD ]; then
+		(set +f
+		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/
+		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+			Fatal 'failed to obtain packages from previous run'
+		echo >&2 "$I: no need to rebuild"
+		exit 0
+	fi
+fi
+
+# Step 5: examine repo/ contens.
+for f in $(set +f; ls hasher/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$tmpdir"/srpm1
+for f in $(set +f; ls hasher/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$tmpdir"/rpms1
+
+# Step 7: build.
+setarch "$arch" -- hsh-rebuild tmp/pkg.tar >build/log 2>&1 ||
+	{ . gb-remote-log; buildlog_errors build/log;
+		  Fatal "build failed"; } >&2
+setarch "$arch" -- hsh-rmchroot
+
+# Step 8: save results.
+for f in $(set +f; ls hasher/repo/SRPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$tmpdir"/srpm2
+for f in $(set +f; ls hasher/repo/$arch/RPMS.hasher/*.rpm 2>/dev/null); do
+	crc=$(sha1sum -b "$f" |head -c16)
+	printf '%s\t%s\n' "${f##*/}" "${crc:?}"
+done |sort >"$tmpdir"/rpms2
+
+comm -23 "$tmpdir"/rpms{1,2} >"$tmpdir"/out
+if [ -s "$tmpdir"/out ]; then
+	# we are under attack: they try to replace previous packages
+	cat "$tmpdir"/out
+	Fatal "attempt to replace binary packages"
+fi >&2
+comm -23 "$tmpdir"/srpm{1,2} >"$tmpdir"/out
+if [ -s "$tmpdir"/out ]; then
+	cat "$tmpdir"/out
+	Fatal "attempt to replace source packages"
+fi >&2
+
+comm -23 "$tmpdir"/rpms{2,1} >"$tmpdir"/out
+[ -s "$tmpdir"/out ] || Fatal "no binary packages"
+cut -f1 "$tmpdir"/out >"$tmpdir"/add-bin
+
+comm -23 "$tmpdir"/srpm{2,1} >"$tmpdir"/out
+[ -s "$tmpdir"/out ] || Fatal "no source package"
+cut -f1 "$tmpdir"/out >"$tmpdir"/add-src
+
+# Check that we've got (src,bin+) tuple.
+n=$(wc -l <"$tmpdir"/add-src)
+if [ "$n" -ne 1 ]; then
+	cat "$tmpdir"/add-src
+	Fatal "multpile source packages"
+fi >&2
+
+(cd hasher/repo/$arch/RPMS.hasher
+ xargs -r <"$tmpdir"/add-bin \
+	rpmquery --qf '%{SOURCERPM}\n' -p ) >"$tmpdir"/ref-src || false
+sort -u -o "$tmpdir"/ref-src{,}
+(cd "$tmpdir" && diff -U1 {add,ref}-src ) ||
+	Fatal 'binary packages refer wrong %{SOURCERPM}'
+
+# Copyout.
+rm -rf build/rpms
+mkdir -p build/rpms
+tar -C hasher/repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
+tar -C build/rpms -xf -
+
+rm -rf build/srpm
+mkdir -p build/srpm
+tar -C hasher/repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
+tar -C build/srpm -xf -
+
+# Meta copyout.
+cp -p "$tmpdir"/chroot_base build/chroot_base
+cp -p "$tmpdir"/chroot_BR build/chroot_BR
+
+echo >&2 "$I: done"

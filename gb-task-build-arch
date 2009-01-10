@@ -1,11 +1,13 @@
 #!/bin/sh -efu
 
-. gb-sh-hasher-conf
+. shell-quote
 
 arch="$1"; shift
 
-hsh_dir=$(gb_hasher_dir "$arch")
-rm -rf "$hsh_dir"/repo
+. gb-sh-remote-conf
+
+ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$GB_REPO_DIR")\"" "\"$(quote_shell "$arch")\""
 
 gear_nums()
 {

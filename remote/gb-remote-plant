@@ -1,0 +1,43 @@
+#!/bin/sh -efu
+
+dir="$1"; shift
+arch="$1"; shift
+
+cd
+
+mkdir -p -- .hasher
+cat >.hasher/config <<EOF
+workdir="\$TMPDIR/hasher"
+apt_config="\$workdir/apt.conf"
+def_target="$arch"
+nprocs=1
+known_mountpoints=/proc
+rpmargs="--define '_binary_payload w5.lzdio' --define '_source_payload w7.lzdio'"
+EOF
+
+tmpdir="$TMPDIR/tmp"
+rm -rf -- "$tmpdir"
+mkdir -p -- "$tmpdir"
+rm -rf tmp
+ln -snf -- "$tmpdir"
+
+build="$TMPDIR/build"
+rm -rf -- "$build"
+mkdir -p -- "$build"
+ln -snf -- "$build"
+
+workdir="$TMPDIR/hasher"
+mkdir -p -- "$workdir"
+ln -snf -- "$workdir"
+
+cat >"$workdir/apt.conf" <<EOF
+Dir::Etc::main "/dev/null";
+Dir::Etc::parts "/var/empty";
+Dir::Etc::sourceparts "/var/empty";
+Dir::Etc::sourcelist "$workdir/sources.list";
+EOF
+
+cat >"$workdir/sources.list" <<EOF
+rpm file:$dir $arch classic
+rpm file:$dir noarch classic
+EOF
