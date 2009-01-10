@@ -5,12 +5,17 @@ dir="$1"; shift
 tag_name="$1"; shift
 tag_author="$1"; shift
 
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+}
+
 I="[$arch] $dir $tag_name: remote"
-echo >&2 "$I: start"
+stamp_echo >&2 "$I: start"
 
 Fatal()
 {
-	echo >&2 "$I: $*"
+	stamp_echo >&2 "$I: $*"
 	exit 1
 }
 
@@ -70,12 +75,12 @@ mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
 if [ -s build/chroot_base ]; then
 	if ! diff -U1 build/chroot_base "$tmpdir"/chroot_base >"$tmpdir"/out; then
 		echo 1 >build/REBUILD
-		echo >>build/MERGE "chroot_base changed for $I"
+		stamp_echo >>build/MERGE "$I: chroot_base changed"
 		cat >>build/MERGE <"$tmpdir"/out
 	fi
 	if ! diff -U1 build/chroot_BR "$tmpdir"/chroot_BR >"$tmpdir"/out; then
 		echo 1 >build/REBUILD
-		echo >>build/MERGE "chroot_BR changed for $I"
+		stamp_echo >>build/MERGE "$I: chroot_BR changed"
 		cat >>build/MERGE <"$tmpdir"/out
 	fi
 	if ! [ -s build/REBUILD ]; then
@@ -83,7 +88,7 @@ if [ -s build/chroot_base ]; then
 		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/
 		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
-		echo >&2 "$I: no need to rebuild"
+		stamp_echo >&2 "$I: no need to rebuild"
 		exit 0
 	fi
 fi
@@ -163,4 +168,4 @@ tar -C build/srpm -xf -
 cp -p "$tmpdir"/chroot_base build/chroot_base
 cp -p "$tmpdir"/chroot_BR build/chroot_BR
 
-echo >&2 "$I: done"
+stamp_echo >&2 "$I: done"
