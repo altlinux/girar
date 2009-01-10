@@ -29,6 +29,7 @@ ln -snf -- "$build"
 workdir="$TMPDIR/hasher"
 mkdir -p -- "$workdir"
 ln -snf -- "$workdir"
+rm -rf -- "$workdir/repo"
 
 cat >"$workdir/apt.conf" <<EOF
 Dir::Etc::main "/dev/null";
