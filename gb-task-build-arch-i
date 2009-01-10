@@ -14,14 +14,13 @@ tag_author=$(cat gears/$i/tag_author)
 I="[$arch] ${dir##*/} $tag_name: build"
 stamp_echo >&2 "$I start"
 
-# check if rebuild is needed at all
+rm -f build/$i/$arch/REBUILD
+# rebuild is needed if previous packages have been rebuilt
 if [ -s build/$i/$arch/chroot_base ]; then
-	rm -f build/$i/$arch/REBUILD
-	# rebuild is still needed if previous packages have been rebuilt
 	for j in `seq 1 $(($i-1))`; do
 		if [ -s build/$j/$arch/REBUILD ]; then
-			rm -f build/$j/$arch/REBUILD
 			echo 1 >build/$i/$arch/REBUILD
+			break
 		fi
 	done
 fi
