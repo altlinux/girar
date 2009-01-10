@@ -57,8 +57,8 @@ cp -p --target-directory ~/SRPMS/ -- "$@"
 EOF
 
 setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/pkg.tar \
-	>"$tmpdir"/out 2>&1 ||
-		{ cat "$tmpdir"/out; Fatal "cannot build src.rpm"; } >&2
+	>build/srpm.log 2>&1 ||
+		{ cat build/srpm.log; Fatal "cannot build src.rpm"; } >&2
 
 srpm=$(set +f; echo hasher/chroot/usr/src/SRPMS/*.src.rpm) &&
 	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
