@@ -1,12 +1,24 @@
 #!/bin/sh
 
-remove_tmpdir()
+tmpdir=
+cleanup_tmpdir()
 {
-	local rc=$?
 	trap - EXIT
-	rm -rf "$tmpdir"
-	exit $rc
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
 }
 
+exit_handler()
+{
+	cleanup_tmpdir $?
+}
+
+signal_handler()
+{
+	cleanup_tmpdir 1
+}
+
+trap exit_handler EXIT
+trap signal_handler HUP INT QUIT PIPE TERM
+
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
-trap remove_tmpdir EXIT HUP INT QUIT PIPE TERM
