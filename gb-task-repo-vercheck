@@ -6,41 +6,10 @@
 vercheck()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"
-	local IFS=:
-	set -- $EVR1
-	local E1= VR1=
-	if [ $# -eq 2 ] && [ -n "$1" ] && [ -n "$2" ]; then
-		E1="$1" VR1="$2"
-	elif [ $# -eq 1 ] && [ -n "$1" ]; then
-		VR1="$1"
-	else
-		echo " *** bad EVR: $EVR1"
-		return 1
-	fi >&2
-	set -- $EVR2
-	local E2= VR2=
-	if [ $# -eq 2 ] && [ -n "$1" ] && [ -n "$2" ]; then
-		E2="$1" VR2="$2"
-	elif [ $# -eq 1 ] && [ -n "$1" ]; then
-		VR2="$1"
-	else
-		echo " *** bad EVR: $EVR2"
-		return 1
-	fi >&2
-	if [ -n "$E1" ] && [ -z "$E2" ]; then
-		return 1
-	elif [ -z "$E1" ] && [ -n "$E2" ]; then
-		return 0
-	elif [ -n "$E1" ] && [ -n "$E2" ]; then
-		if [ "$E1" -gt "$E2" ]; then
-			return 1
-		elif [ "$E1" -lt "$E2" ]; then
-			return 0
-		fi
-	fi
-	local cmp
-	cmp=$(rpmvercmp "$VR1" "$VR2")
-	[ "$cmp" = -1 ] || return 1
+	# add zero epoch if EVRn does not have epoch
+	[ -z "${EVR1##*:*}" ] || EVR1="0:$EVR1"
+	[ -z "${EVR2##*:*}" ] || EVR2="0:$EVR2"
+	[ "$(rpmevrcmp "$EVR1" "$EVR2")" = -1 ] || return 1
 }
 
 . gb-sh-tmpdir
