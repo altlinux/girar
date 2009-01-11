@@ -5,11 +5,12 @@
 
 for arch in i586 x86_64; do
 	$0-arch "$arch" ||
-		stamp_echo "$arch build FAILED" >>"$tmpdir"/FAIL &
+		stamp_echo "[$arch] build FAILED" >>"$tmpdir"/FAIL &
 done
 
 wait
 
+# Fail if at least one arch failed to build.
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
 	exit 1
