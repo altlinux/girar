@@ -15,7 +15,7 @@ I="[$arch] ${dir##*/} $tag_name: build"
 stamp_echo >&2 "$I start"
 
 rm -f build/$i/$arch/REBUILD
-# rebuild is needed if previous packages have been rebuilt
+# rebuild is certainly needed if previous packages have been rebuilt
 if [ -s build/$i/$arch/chroot_base ]; then
 	for j in `seq 1 $(($i-1))`; do
 		if [ -s build/$j/$arch/REBUILD ]; then
@@ -25,19 +25,20 @@ if [ -s build/$i/$arch/chroot_base ]; then
 	done
 fi
 
-# copy source package and build data to remote side
+# copy source package and accompanying build data to remote side
 rsync -q -- "gears/$i/pkg.tar" "$remote_host:tmp/"
 mkdir -p "build/$i/$arch"
 touch "build/$i/$arch/log"
 rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
+# run the build on remote side
 ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "${dir##*/}")\"" \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" ||
 		{ stamp_echo >&2 "$I FAILED";
-		  rsync -q -- "$remote_host:build/log" "build/$i/$arch/";
+		  rsync -q -- "$remote_host:build/*log" "build/$i/$arch/";
 		  exit 1; }
 
 # copy build result from remote side
