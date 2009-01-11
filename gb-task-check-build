@@ -1,15 +1,8 @@
 #!/bin/sh -efu
 
-gear_nums()
-{
-	set +f
-	cd gears &&
-	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
-}
+. gb-sh-nums
 
-nums=$(gear_nums)
-
-for i in $nums; do
+for i in $(gear_nums); do
 	$0-i "$i"
 done
 

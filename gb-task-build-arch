@@ -9,15 +9,8 @@ arch="$1"; shift
 ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$GB_REPO_DIR")\"" "\"$(quote_shell "$arch")\""
 
-gear_nums()
-{
-	set +f
-	cd gears &&
-	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
-}
+. gb-sh-nums
 
-nums=$(gear_nums)
-
-for i in $nums; do
+for i in $(gear_nums); do
 	$0-i "$arch" "$i"
 done
