@@ -2,10 +2,12 @@
 
 . gb-sh-nums
 
+# check each built package separately
 for i in $(gear_nums); do
 	$0-i "$i"
 done
 
+# check all $arch packages in whole
 for arch in i586 x86_64; do
 	$0-arch "$arch"
 done
