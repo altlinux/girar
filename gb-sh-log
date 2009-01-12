@@ -1,6 +1,11 @@
 #!/bin/sh
 
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
 stamp_echo()
 {
-	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $(oneliner "$*")"
 }

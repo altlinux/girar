@@ -1,5 +1,7 @@
 #!/bin/sh -efu
 
+. gb-sh-log
+
 i="$1"; shift
 
 dir=$(cat gears/$i/dir)
@@ -8,7 +10,7 @@ I="${dir##*/} $tag_name"
 
 Fatal()
 {
-	echo >&2 "$I: $*"
+	stamp_echo >&2 "$I: $*"
 	exit 1
 }
 
@@ -22,10 +24,8 @@ check_srpms()
 		if [ $# -gt 1 ]; then
 			Fatal "multiple $arch source packages:" "$@"
 		fi
-		if [ ! -f "$1" ]; then
+		[ -f "$1" ] ||
 			Fatal "no $arch source package"
-
-		fi
 		echo "${1##*/}"
 	done
 }
@@ -33,9 +33,8 @@ check_srpms()
 srpms=$(check_srpms)
 n=$(echo "$srpms" |sort -u |wc -l)
 
-if [ "$n" -ne 1 ]; then
+[ "$n" -eq 1 ] ||
 	Fatal 'different per-arch srpms:' $srpms
-fi
 
 noarch()
 {

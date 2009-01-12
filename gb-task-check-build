@@ -1,13 +1,20 @@
 #!/bin/sh -efu
 
+. gb-sh-log
 . gb-sh-nums
+
+fail()
+{
+	stamp_echo >&2 "check FAILED for $*"
+	exit 1
+}
 
 # check each built package separately
 for i in $(gear_nums); do
-	$0-i "$i"
+	$0-i "$i" || fail "$i"
 done
 
 # check all $arch packages in whole
 for arch in i586 x86_64; do
-	$0-arch "$arch"
+	$0-arch "$arch" || fail "$arch"
 done
