@@ -60,12 +60,23 @@ if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)";
 	fatal "$tag_name: invalid tag"
 fi
 
-domain=${EMAIL_DOMAIN%.*}
-tag_author="$(printf %s "$sig_text" |
-	LANG=C sed -n 's/^[^<]*[[:space:]]\(from\|aka\)[[:space:]][^<]\+<\([^@>]\+\)@'"$(quote_sed_regexp "$domain")"'\.[a-z]\+>[^>]*$/\2/p' |
-	tr '[:upper:]' '[:lower:]' |tr - _ |sort -u)"
-[ "$tag_author" = "$GIRAR_USER" ] ||
-	fatal "$tag_name: unacceptable signature: $(printf %s "tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$domain)"
+fpr="$(printf %s "$sig_text" |
+	sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
+[ -n "$fpr" ] ||
+	fatal "$tag_name: gpg fingerprint not found"
+
+tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
+	sed '/^uid[[:space:]]\+/!d;s///;q')"
+[ -n "$tag_author" ] ||
+	fatal "$tag_name: gpg uid not found"
+tag_author="$(printf %s "$tag_author" |
+	LANG=C sed 's/@'"$(quote_sed_regexp "${EMAIL_DOMAIN%.*}")"'\.[a-z]\+>/@'"$(quote_sed_regexp "$EMAIL_DOMAIN")"'>/')"
+
+tag_userid="$(printf %s "$tag_author" |
+	LANG=C sed -n 's/^[^<]\+<\([^@>]\+\)@[^@>]\+>[^>]*$/\1/p' |
+	tr '[:upper:]' '[:lower:]' |tr - _)"
+[ "$tag_userid" = "$GIRAR_USER" ] ||
+	fatal "$tag_name: unacceptable signature: $(printf %s "$tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$EMAIL_DOMAIN)"
 
 cd "$GB_TASKS/$id"
 builtin lockf -nv . ||
@@ -157,6 +168,7 @@ echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
 echo "$tag_id" >gears/$i/tag_id
 echo "$tag_author" >gears/$i/tag_author
+echo "$tag_userid" >gears/$i/tag_userid
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git git init -q
