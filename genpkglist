@@ -1,3 +1,3 @@
 #!/bin/sh -efu
-mkdir -p $TMPDIR/gb-cache/genpkglist
-exec /usr/bin/genpkglist --cachedir $TMPDIR/gb-cache "$@"
+mkdir -p "$HOME/.cache/genpkglist"
+exec /usr/bin/genpkglist --cachedir "$HOME/.cache" "$@"
