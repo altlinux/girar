@@ -5,7 +5,7 @@ arch="$1"; shift
 . gb-sh-log
 . gb-sh-tmpdir
 
-Q='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
 set +f
 rpmquery --qf "$Q" -p build/*/$arch/rpms/*.rpm >"$tmpdir"/$arch-pkg.all
 set -f

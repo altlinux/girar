@@ -6,7 +6,7 @@
 
 N="%{NAME}"
 VR="%{VERSION}-%{RELEASE}"
-EVR="%|SERIAL?{%{SERIAL}:}|$VR"
+EVR="%|EPOCH?{%{EPOCH}:}|$VR"
 NVR="%{NAME}-$VR"
 A="%{ARCH}"
 
@@ -64,8 +64,10 @@ sort -u -o old.bin{,}
 mktable()
 {
 	local x="$1"; shift
+	# sort by src.rpm field
 	sort -k3 -o $x.src{,}
 	sort -k5 -o $x.bin{,}
+	# join by src.rpm field
 	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' $x.{src,bin} >$x
 	sort -u -o $x{,}
 }

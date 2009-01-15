@@ -70,7 +70,7 @@ done <plan/add-src
 while read -r src _ _ N EVR A F; do
 	mkdir -p $GB_META_DIR/$src/rpms/$A/$N
 	bin=$(findbin "$F")
-	rpmquery --qf '%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\n' -p $bin >$GB_META_DIR/$src/rpms/$A/$N/EVR
+	rpmquery --qf '%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\n' -p $bin >$GB_META_DIR/$src/rpms/$A/$N/EVR
 	rpmquery --list -p $bin >$GB_META_DIR/$src/rpms/$A/$N/F
 	for q in requires provides obsoletes conflicts; do
 		Q=$(echo $q |sed 's/\(.\).*/\U\1/')
