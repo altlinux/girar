@@ -10,8 +10,6 @@ EVR="%|SERIAL?{%{SERIAL}:}|$VR"
 NVR="%{NAME}-$VR"
 A="%{ARCH}"
 
-set +f
-
 qsrc()
 {
 	find "$@" -name '*.src.rpm' -print0 | xargs -r0 \
@@ -26,8 +24,10 @@ qbin()
 
 . gb-sh-tmpdir
 
+set +f
 qsrc build/*/*/srpm/ >$tmpdir/new.src
 qbin build/*/*/rpms/ >$tmpdir/new.bin
+set -f
 
 . gb-sh-repo-conf
 
