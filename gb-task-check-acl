@@ -2,6 +2,9 @@
 
 . gb-sh-repo-conf
 
+[ -z "${PATH##/usr/libexec/girar:*}" -o -z "${PATH%%*:/usr/libexec/girar}" ] ||
+	PATH="$PATH:/usr/libexec/girar"
+
 rc=0
 
 check_acl()
