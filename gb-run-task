@@ -30,7 +30,7 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-mutt -x -s "task=$id rc=$rc" -a task/log "$(cat task/owner)"@altlinux.org
+mutt -x -s "[$(cat task/repo)] task=$id rc=$rc" -a task/log "git_$(cat task/owner)" </dev/null
 
 # for girar-builder
 echo >&2 rc=$rc
