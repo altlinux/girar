@@ -11,7 +11,6 @@ stamp_echo()
 }
 
 I="[$arch] $dir $tag_name: remote"
-stamp_echo >&2 "$I: start"
 
 Fatal()
 {
@@ -166,5 +165,3 @@ tar -C build/srpm -xf -
 # Meta copyout.
 cp -p "$tmpdir"/chroot_base build/chroot_base
 cp -p "$tmpdir"/chroot_BR build/chroot_BR
-
-stamp_echo >&2 "$I: done"
