@@ -12,12 +12,14 @@ A="%{ARCH}"
 
 qsrc()
 {
+	# src-N  src-EVR  src-F
 	find "$@" -name '*.src.rpm' -print0 | xargs -r0 \
 		rpmquery --qf "$N\t$EVR\t$NVR.src.rpm\n" -p --
 }
 
 qbin()
 {
+	# bin-N  bin-EVR  bin-A  bin-F  src-F
 	find "$@" -name '*.rpm' -not -name '*.src.rpm' -print0 | xargs -r0 \
 		rpmquery --qf "$N\t$EVR\t$A\t$NVR.$A.rpm\t%{SOURCERPM}\n" -p --
 }
@@ -64,10 +66,10 @@ sort -u -o old.bin{,}
 mktable()
 {
 	local x="$1"; shift
-	# sort by src.rpm field
+	# sort by src-F field
 	sort -k3 -o $x.src{,}
 	sort -k5 -o $x.bin{,}
-	# join by src.rpm field
+	# join by src-F field
 	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' $x.{src,bin} >$x
 	sort -u -o $x{,}
 }
@@ -105,9 +107,14 @@ sort -u rm-by-{src,bin+} >rm
 # Guess what.  The plan is actually about moving some files around.
 cd - >/dev/null
 mkdir -p plan
+
+# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
 cut -f1-7 <$tmpdir/new |sort -u >plan/add-src+bin
+# src-N  src-EVR  src-F
 cut -f1-3 <$tmpdir/new |sort -u >plan/add-src
+# src-F  bin-A
 cut -f3,6 <$tmpdir/new |sort -u >plan/add-srpm2arch
+# bin-N  bin-EVR  bin-A  bin-F
 cut -f4-7 <$tmpdir/new |sort -u >plan/add-bin
 
 cut -f1-7 <$tmpdir/rm |sort -u >plan/rm-src+bin
