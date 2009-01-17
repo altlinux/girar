@@ -10,10 +10,12 @@ mkdir "$repo"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v -s "$GB_REPO_DIR"
 
-cp -prs $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
+# symlinked repository clone
+cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 
 . gb-sh-tmpdir
 
+# dump old unmets
 for arch in i586 x86_64; do
 	cat >$tmpdir/$arch-sources.list <<EOF
 rpm file:$repo $arch classic
@@ -22,8 +24,9 @@ EOF
 	$arch unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.old
 done
 
+# remove old binary files
 while read -r N EVR A F; do
-	rm $repo/$A/RPMS.classic/$F
+	rm -- $repo/$A/RPMS.classic/$F
 done <plan/rm-bin
 
 findbin()
@@ -31,6 +34,7 @@ findbin()
 	local f="$1"; shift
 	set +f
 	set -- build/*/*/rpms/$f
+	set -f
 	if [ -f "$1" ]; then
 		echo "$1"
 		return
@@ -40,18 +44,21 @@ findbin()
 	fi
 }
 
+# add symlinks to new binary files
 while read -r N EVR A F; do
 	bin=$(findbin "$F")
-	ln -s $PWD/$bin $repo/$A/RPMS.classic/$F
+	ln -s -- $PWD/$bin $repo/$A/RPMS.classic/$F
 done <plan/add-bin
 
-rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic
-rm -r $repo/{i586,x86_64,noarch}/base
+# regenerate apt indices
+rm -r -- $repo/{i586,x86_64,noarch}/SRPMS.classic
+rm -r -- $repo/{i586,x86_64,noarch}/base
 for arch in i586 x86_64 noarch; do
-	mkdir $repo/$arch/base
+	mkdir -- $repo/$arch/base
 	genbasedir --topdir=$repo --no-oldhashfile --bz2only --mapi $arch classic
 done
 
+# dump new unmets
 for arch in i586 x86_64; do
 	$arch unmets -s $tmpdir/$arch-sources.list >$tmpdir/$arch-unmets.new
 done
@@ -59,6 +66,7 @@ done
 rc=0
 
 cd "$tmpdir"
+# compare unmets
 for arch in i586 x86_64; do
 	comm -13 $arch-unmets.{old,new} >$arch-unmets.plus
 	comm -23 $arch-unmets.{old,new} >$arch-unmets.minus
