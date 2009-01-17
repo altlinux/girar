@@ -35,6 +35,7 @@ srpm2i()
 
 . gb-sh-tmpdir
 
+# Deal with added packages.
 # input: src-N  src-EVR  src-F
 cut -f1,3 plan/add-src >$tmpdir/src2srpm
 sort -u -o $tmpdir/src2srpm{,}
@@ -46,31 +47,12 @@ while read -r N F; do
 done <$tmpdir/src2srpm
 
 # Deal with removed/replaced packages.
-join -t$'\t' -v1 -o 0 plan/{rm,add}-src >$tmpdir/rm
-sort -u -o $tmpdir/rm{,}
-
-join -t$'\t' -o '0 2.4' $tmpdir/rm plan/rm-src+bin >$tmpdir/rm-src2bin
-sort -u -k2,2 -k1,1 -o $tmpdir/rm-src2bin{,}
-
-awk '{print$4"\t"$3}' <plan/add-src+bin >$tmpdir/add-bin2srpm
-sort -u -o $tmpdir/add-bin2srpm{,}
-
-join -t$'\t' -12 -21 -o '1.1 2.2' $tmpdir/rm-src2bin $tmpdir/add-bin2srpm >$tmpdir/oldsrc2newsrpm
-sort -u -o $tmpdir/oldsrc2newsrpm{,}
-
-join -t$'\t' -v1 $tmpdir/rm $tmpdir/oldsrc2newsrpm >$tmpdir/unrm
-sort -u -o $tmpdir/unrm{,}
-if [ -s $tmpdir/unrm ]; then
-	# Can't happen.
-	echo ' *** cannot map replaced src to new srpm'
-	cat $tmpdir/unrm
-fi >&2
-
+# input: src1-N  src2-F
 while read -r N F; do
 	i=$(srpm2i "$F")
 	u=$(cat gears/$i/tag_userid)
 	echo >&2 "$N is replaced with $F"
 	check_acl "$u" "$N"
-done <$tmpdir/oldsrc2newsrpm
+done <plan/oldsrc2newsrpm
 
 exit $rc
