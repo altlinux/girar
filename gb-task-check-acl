@@ -23,6 +23,7 @@ srpm2i()
 	cd build
 	set +f
 	set -- [1-9]*/*/srpm/"$f"
+	set -f
 	if ! [ -f "$1" ]; then
 		echo " *** cannot find $f under build/"
 		return 1
@@ -34,12 +35,13 @@ srpm2i()
 
 . gb-sh-tmpdir
 
+# input: src-N  src-EVR  src-F
 cut -f1,3 plan/add-src >$tmpdir/src2srpm
 sort -u -o $tmpdir/src2srpm{,}
 
 while read -r N F; do
 	i=$(srpm2i "$F")
-	u=$(sed -n 's/.*<\(.*\)@.*/\1/p' gears/$i/tag_author)
+	u=$(cat gears/$i/tag_userid)
 	check_acl "$u" "$N"
 done <$tmpdir/src2srpm
 
@@ -66,7 +68,7 @@ fi >&2
 
 while read -r N F; do
 	i=$(srpm2i "$F")
-	u=$(sed -n 's/.*<\(.*\)@.*/\1/p' gears/$i/tag_author)
+	u=$(cat gears/$i/tag_userid)
 	echo >&2 "$N is replaced with $F"
 	check_acl "$u" "$N"
 done <$tmpdir/oldsrc2newsrpm
