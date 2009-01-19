@@ -1,7 +1,6 @@
 #!/bin/sh -efu
 
-. gb-sh-log
-. gb-sh-nums
+. gb-sh-functions
 
 fail()
 {

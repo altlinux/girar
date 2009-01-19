@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+. gb-sh-functions
 . gb-sh-repo-conf
 
 [ -z "${PATH##/usr/libexec/girar:*}" -o -z "${PATH%%*:/usr/libexec/girar}" ] ||
@@ -15,22 +16,6 @@ check_acl()
 		echo "pkg=$src author=$u repo=$GB_REPO_NAME: ACL check failed"
 		rc=1
 	fi >&2
-}
-
-srpm2i()
-{
-	local f="$1"; shift
-	cd build
-	set +f
-	set -- [1-9]*/*/srpm/"$f"
-	set -f
-	if ! [ -f "$1" ]; then
-		echo " *** cannot find $f under build/"
-		return 1
-	fi >&2
-	local IFS=/
-	set -- $1
-	echo "$1"
 }
 
 . gb-sh-tmpdir

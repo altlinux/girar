@@ -1,33 +1,10 @@
 #!/bin/sh -efu
 
+. gb-sh-functions
 . gb-sh-repo-conf
 
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$GB_REPO_DIR"
-
-findrpm()
-{
-	local dir="$1" f="$2"; shift 2
-	set +f
-	set -- build/*/*/"$dir"/"$f"
-	if [ -f "$1" ]; then
-		echo "$1"
-		return
-	else
-		echo >&2 " *** cannot find $f under build/"
-		return 1
-	fi
-}
-
-findbin()
-{
-	findrpm rpms "$1"
-}
-
-findsrc()
-{
-	findrpm srpm "$1"
-}
 
 commit()
 {

@@ -1,0 +1,59 @@
+#!/bin/sh
+
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $(oneliner "$*")"
+}
+
+gear_nums()
+{
+	set +f
+	cd gears &&
+	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+}
+
+srpm2i()
+{
+	local f="$1"; shift
+	cd build
+	set +f
+	set -- [1-9]*/*/srpm/"$f"
+	set -f
+	if ! [ -f "$1" ]; then
+		echo " *** cannot find $f in build/*/*/srpm/"
+		return 1
+	fi >&2
+	local IFS=/
+	set -- $1
+	echo "$1"
+}
+
+findrpm()
+{
+	local dir="$1" f="$2"; shift 2
+	set +f
+	set -- build/*/*/"$dir"/"$f"
+	set -f
+	if [ -f "$1" ]; then
+		echo "$1"
+		return
+	else
+		echo >&2 " *** cannot find $f in build/*/*/$dir/"
+		return 1
+	fi
+}
+
+findbin()
+{
+	findrpm rpms "$1"
+}
+
+findsrc()
+{
+	findrpm srpm "$1"
+}

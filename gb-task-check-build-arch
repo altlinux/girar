@@ -2,7 +2,7 @@
 
 arch="$1"; shift
 
-. gb-sh-log
+. gb-sh-functions
 . gb-sh-tmpdir
 
 Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'

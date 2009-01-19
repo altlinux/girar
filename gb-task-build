@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. gb-sh-log
+. gb-sh-functions
 . gb-sh-tmpdir
 
 for arch in i586 x86_64; do

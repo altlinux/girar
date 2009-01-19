@@ -1,5 +1,7 @@
 #!/bin/sh -efu
 
+. gb-sh-functions
+
 # Use a fixed path so that genpkglist md5cache works.
 repo=$TMPDIR/gb-repo
 rm -rf "$repo"
@@ -28,21 +30,6 @@ done
 while read -r N EVR A F; do
 	rm -- $repo/$A/RPMS.classic/$F
 done <plan/rm-bin
-
-findbin()
-{
-	local f="$1"; shift
-	set +f
-	set -- build/*/*/rpms/$f
-	set -f
-	if [ -f "$1" ]; then
-		echo "$1"
-		return
-	else
-		echo >&2 " *** cannot find $f under build/"
-		return 1
-	fi
-}
 
 # add symlinks to new binary files
 while read -r N EVR A F; do

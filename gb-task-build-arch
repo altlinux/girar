@@ -10,7 +10,7 @@ arch="$1"; shift
 ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$GB_REPO_DIR")\"" "\"$(quote_shell "$arch")\""
 
-. gb-sh-nums
+. gb-sh-functions
 
 for i in $(gear_nums); do
 	$0-i "$arch" "$i"
