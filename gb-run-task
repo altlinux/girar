@@ -39,3 +39,5 @@ mutt -x -s "[$(cat task/repo)] task=$id rc=$rc" -a task/log "git_$(cat task/owne
 
 # for girar-builder
 echo >&2 rc=$rc
+
+exit $rc
