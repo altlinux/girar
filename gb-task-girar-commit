@@ -3,26 +3,74 @@
 . gb-sh-functions
 . gb-sh-girar-conf
 
+umask 022
+RC=0
+
+set_GIT_DIR()
+{
+	local sym="$(printf %s "$N" |cut -c1)"
+	GIT_DIR="$GB_REAL_GEARS/$sym/$N.git"
+	export GIT_DIR
+}
+
+girar_check()
+{
+	local N="$1" i="$2"; shift 2
+	local GIT_DIR old_id
+
+	set_GIT_DIR
+	mkdir -p -- "$GIT_DIR"
+	# obtain an exclusive lock on the target gear repository
+	builtin lockf -v -- "$GIT_DIR"
+
+	if old_id=$(git rev-parse --verify "$GB_GEAR_BRANCH^{commit}" 2>/dev/null); then
+		# real gear
+		local new_id dir tag_name
+		new_id="$(cat "gears/$i/tag_id")"
+		dir="$(cat "gears/$i/dir")"
+		tag_name="$(cat "gears/$i/tag_name")"
+		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
+
+		if [ "$old_id" = "$new_id" ]; then
+			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_GEAR_BRANCH"
+			RC=1
+		elif [ -n "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="gears/$i/git/objects" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
+			echo >&2 "error: ${dir##*/} $tag_name is not inherited from $GIT_DIR $GB_GEAR_BRANCH"
+			RC=1
+		fi
+	else
+		# first time push
+		:
+	fi
+}
+
 girar_commit()
 {
 	local N="$1" i="$2"; shift 2
-	local old
-	local tag
-	tag=$(cat gears/$i/tag_name)
-	if old=$(cd "$GB_REAL_GEARS"/"$N".git && git rev-parse "$GB_GEAR_BRANCH"); then
+	local GIT_DIR tag_name
+	set_GIT_DIR
+	tag_name="$(cat "gears/$i/tag_name")"
+	if git rev-parse --verify "$GB_GEAR_BRANCH" >/dev/null 2>&1; then
 		# real gear
-		(cd gears/$i/git &&
-		 git push --tags "$GB_REAL_GEARS"/"$N".git "$tag":"$GB_GEAR_BRANCH") || false
-	elif old=$(cd "$GB_SRPM_GEARS"/"$N".git && git rev-parse "$GB_GEAR_BRANCH"); then
-		# srpm gear
-		(cd gears/$i/git &&
-		 git push --tags "$GB_SRPM_GEARS"/"$N".git "$tag":"$GB_GEAR_BRANCH") || false
+		git fetch -q -n gears/$i/git tag "$tag_name"
+		git branch -f "$GB_GEAR_BRANCH" "tags/$tag_name"
 	else
-		# fist-time push
-		echo >&2 "$N.git: first-time push, don't know what to do"
-		return 1
+		# first time push
+		git init -q --template=/var/empty
+		git fetch -q -n gears/$i/git tag "$tag_name"
+		git branch "$GB_GEAR_BRANCH" "tags/$tag_name"
+		touch -- "$GIT_DIR/git-daemon-export-ok"
 	fi
 }
+
+enable -f /usr/lib/bash/lockf lockf
+
+while read -r N EVR F; do
+	i=$(srpm2i "$F")
+	girar_check "$N" "$i"
+done <plan/add-src
+
+[ "$RC" -eq 0 ] || exit $RC
 
 while read -r N EVR F; do
 	i=$(srpm2i "$F")
