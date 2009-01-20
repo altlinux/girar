@@ -6,6 +6,7 @@ id="$1"; shift
 
 cd "$GB_TASKS/$id"
 enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
 
 seq=$(cat task/seq)

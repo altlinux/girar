@@ -10,7 +10,8 @@ mkdir "$repo"
 . gb-sh-repo-conf
 
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v -s "$GB_REPO_DIR"
+# obtain a shared lock on the $GB_REPO_DIR
+builtin lockf -s -v "$GB_REPO_DIR"
 
 # symlinked repository clone
 cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/

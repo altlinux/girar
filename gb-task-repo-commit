@@ -4,6 +4,7 @@
 . gb-sh-repo-conf
 
 enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the $GB_REPO_DIR
 builtin lockf -v "$GB_REPO_DIR"
 
 commit()

@@ -18,6 +18,8 @@ select_task()
 {
 	local id="$1"; shift
 	cd "$id"
+	# obtain an exclusive lock on the TASKS structure
+	# if the lock cannot be immediately acquired, fail
 	builtin lockf -n .
 	[ -s task/seq ]
 	local seq
