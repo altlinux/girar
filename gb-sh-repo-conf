@@ -1,4 +1,0 @@
-#!/bin/sh -efu
-
-. gb-sh-repo-conf-$USER
-: ${GB_REPO_NAME:?} ${GB_REPO_DIR:?}

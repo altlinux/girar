@@ -4,7 +4,7 @@
 
 arch="$1"; shift
 
-. gb-sh-remote-conf
+. gb-sh-conf
 
 # Prepare remote node to build $arch packages for $GB_REPO_NAME repository.
 ssh "$remote_host" ./gb-remote-plant \

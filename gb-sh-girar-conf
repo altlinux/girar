@@ -1,4 +1,0 @@
-#!/bin/sh -efu
-
-. gb-sh-girar-conf-$USER
-: ${GB_REAL_GEARS:?} ${GB_GEAR_BRANCH?:}

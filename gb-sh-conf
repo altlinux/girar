@@ -1,0 +1,7 @@
+#!/bin/sh -efu
+
+. gb-sh-conf-$USER
+: ${GB_TASKS:?} ${GB_REAL_GEARS:?} ${GB_GEAR_BRANCH?:} ${GB_REPO_NAME:?} ${GB_REPO_DIR:?} ${GB_META_DIR:?}
+
+[ -z "${arch-}" ] ||
+	remote_host="build-$GB_REPO_NAME-$arch"

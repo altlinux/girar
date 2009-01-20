@@ -7,7 +7,7 @@ repo=$TMPDIR/gb-repo
 rm -rf "$repo"
 mkdir "$repo"
 
-. gb-sh-repo-conf
+. gb-sh-conf
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain a shared lock on the $GB_REPO_DIR

@@ -1,7 +1,0 @@
-#!/bin/sh -efu
-
-. gb-sh-repo-conf
-
-: ${GB_REPO_NAME:?} ${arch:?}
-
-remote_host="build-$GB_REPO_NAME-$arch"

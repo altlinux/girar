@@ -31,7 +31,7 @@ qsrc build/*/*/srpm/ >$tmpdir/new.src
 qbin build/*/*/rpms/ >$tmpdir/new.bin
 set -f
 
-. gb-sh-repo-conf
+. gb-sh-conf
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain a shared lock on the $GB_REPO_DIR
