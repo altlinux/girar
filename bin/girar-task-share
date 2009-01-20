@@ -21,6 +21,7 @@ fi
 id=$(PROG="$PROG" girar-task-find-current "$@")
 
 cd "$GB_TASKS/$id"
+# obtain an exclusive lock on the TASKS structure
 builtin lockf -nv . ||
 	fatal "task #$id is locked"
 

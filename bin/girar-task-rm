@@ -23,6 +23,7 @@ cd "$GB_TASKS"
 id=$(PROG="$PROG" girar-task-find-current "$@")
 
 enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
 builtin lockf -nv "$id" ||
 	fatal "task #$id is locked"
 

@@ -24,6 +24,7 @@ id="$(PROG="$PROG" girar-task-find-current "$@")"
 cd "$id"
 
 enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
 
 [ -s gears/1/dir ] ||

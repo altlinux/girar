@@ -28,6 +28,7 @@ cd "$GB_TASKS"
 sleep 1
 
 enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on $GB_TASKS
 builtin lockf -v .
 
 id=$(cat .max-task-id)
@@ -45,6 +46,7 @@ atexit()
 }
 
 mkdir "$id"
+# obtain an exclusive lock on the TASKS structure
 builtin lockf -v "$id"
 trap atexit EXIT
 mkdir "$id"/task
