@@ -27,6 +27,7 @@ GB_TASKS = ${girar_spooldir}/tasks
 GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
+GIRAR_GEARS = /gears
 GIRAR_HOME = /people
 GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
@@ -46,6 +47,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGIRAR_ARCHIVE=\"${GIRAR_ARCHIVE}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
+	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
@@ -181,6 +183,7 @@ bin/girar-sh: bin/girar-sh.c
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
 	    -e 's,@GIRAR_FAKE_HOME@,${GIRAR_FAKE_HOME},g' \
+	    -e 's,@GIRAR_GEARS@,${GIRAR_GEARS},g' \
 	    -e 's,@GIRAR_HOME@,${GIRAR_HOME},g' \
 	    -e 's,@GIRAR_HOOKS_DIR@,${girar_hooks_dir},g' \
 	    -e 's,@GIRAR_PACKAGES_DIR@,${girar_confdir}/packages.git,g' \

@@ -20,6 +20,9 @@ usage()
 [ -n "${GIRAR_ARCHIVE:-}" ] ||
 	fatal 'GIRAR_ARCHIVE undefined'
 
+[ -n "${GIRAR_GEARS:-}" ] ||
+	fatal 'GIRAR_GEARS undefined'
+
 cd "$HOME"
 
 repo0="$1"; shift
@@ -30,7 +33,10 @@ if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$GIRAR_HOME")"
 	archive="$(readlink -ev "$GIRAR_ARCHIVE")"
-	[ -z "${repo##$people/*}" -o -z "${repo##$archive/*}" ] ||
+	gears="$(readlink -ev "$GIRAR_GEARS")"
+	[ -z "${repo##$people/*}" -o \
+	  -z "${repo##$archive/*}" -o \
+	  -z "${repo##$gears/*}" ] ||
 		fatal "$repo0: directory does not belong to allowed directory tree"
 fi
 if [ -z "$repo" ]; then

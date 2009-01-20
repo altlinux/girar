@@ -18,6 +18,9 @@ usage()
 [ -n "${GIRAR_ARCHIVE:-}" ] ||
 	fatal 'GIRAR_ARCHIVE undefined'
 
+[ -n "${GIRAR_GEARS:-}" ] ||
+	fatal 'GIRAR_GEARS undefined'
+
 cd
 
 if [ "$#" -ge 1 ]; then
@@ -32,13 +35,19 @@ fi
 	fatal "$dir: directory not available"
 
 [ -z "${dir%%*/}" ] || dir="$dir/"
-[ -n "${dir##/*}" -o -z "${dir##$GIRAR_HOME/*}" -o -z "${dir##$GIRAR_ARCHIVE/*}" ] ||
+[ -n "${dir##/*}" -o \
+  -z "${dir##$GIRAR_HOME/*}" -o \
+  -z "${dir##$GIRAR_ARCHIVE/*}" -o \
+  -z "${dir##$GIRAR_GEARS/*}" ] ||
 	fatal "$dir: directory does not belong to allowed directory tree"
 d="$(readlink -e "$dir")/" ||
 	fatal "$dir: directory not available"
 p="$(readlink -ev "$GIRAR_HOME")"
 a="$(readlink -ev "$GIRAR_ARCHIVE")"
-[ -z "${d##$p/*}" -o -z "${d##$a/*}" ] ||
+g="$(readlink -ev "$GIRAR_GEARS")"
+[ -z "${d##$p/*}" -o \
+  -z "${d##$a/*}" -o \
+  -z "${d##$g/*}" ] ||
 	fatal "$dir: directory does not belong to allowed directory tree"
 
 exec ls -log -- "$dir"
