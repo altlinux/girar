@@ -5,6 +5,9 @@ TASK_ID/task/id			TASK_ID==id
 TASK_ID/task/owner		GIRAR_USER
 TASK_ID/task/repo		Sisyphus or 5.0
 
+# Task processing files
+TASK_ID/task/seq		task status
+TASK_ID/task/rc			task run result code
 TASK_ID/task/log		important task events
 
 # Task "has-a" list of gear repositories for build.
