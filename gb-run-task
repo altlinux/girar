@@ -39,6 +39,7 @@ seq=$(cat task/seq)
 )
 
 rc=$?
+echo "$rc" >task/rc
 
 seq=$(cat task/seq)
 seq=$(($seq+1))
