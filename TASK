@@ -18,8 +18,8 @@ TASK_ID/gears/$i/tag_author	Joe Hacker <joe@altlinux.org>
 TASK_ID/gears/$i/pkg.tar
 
 # Build results build/$i/ is 1-1 to gears/$i/, with per-arch subdirs.
-TASK_ID/gears/build/$i/$arch/chroot_base	hsh --initroot packages
-TASK_ID/gears/build/$i/$arch/chroot_BR		BuildRequires packages
+TASK_ID/build/$i/$arch/chroot_base	hsh --initroot packages
+TASK_ID/build/$i/$arch/chroot_BR	BuildRequires packages
 
 # Packages built with hasher.
 TASK_ID/gears/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
