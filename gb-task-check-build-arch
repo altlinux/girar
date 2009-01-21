@@ -5,17 +5,16 @@ arch="$1"; shift
 . gb-sh-functions
 . gb-sh-tmpdir
 
-Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+cd build
 set +f
-rpmquery --qf "$Q" -p build/*/$arch/rpms/*.rpm >"$tmpdir"/$arch-pkg.all
+rpmquery --qf '%{name}\n' -p [1-9]*/$arch/rpms/*.rpm >"$tmpdir"/names
 set -f
 
 cd "$tmpdir"
+sort -o names{,}
+uniq -d names >dups
 
-sort -u -k1,1 -k2,2 -k3,3 -k4,4 -o $arch-pkg.all{,}
-sort -u -k1,1 <$arch-pkg.all >$arch-pkg.uniq
-
-if ! diff -U1 $arch-pkg.{all,uniq}; then
-	stamp_echo >&2 "[$arch] non-unique set of packages"
+if [ -s dups ]; then
+	stamp_echo >&2 "[$arch] duplicate packages: $(cat dups)"
 	exit 1
 fi
