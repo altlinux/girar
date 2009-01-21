@@ -21,16 +21,20 @@ seq=$(cat task/seq)
 		echo "Starting task $id on $(date)"
 	set -x
 	gb-task-pkgtar
+	# Obtain an exclusive lock on the $GB_REPO_DIR.
+	# Actually, only shared lock is required for build and checks,
+	# but an exclusive lock is required later for commit.
+	builtin lockf -v "$GB_REPO_DIR"
 	gb-task-build
 	gb-task-check-build
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 	gb-task-repo-unmets
 	gb-task-check-acl
-	# Obtain an exclusive lock on $GB_REAL_GEARS.
-	# Actually, only shared lock is required for check, but
-	# exclusive lock is required later for commit.
-	builtin lockf -v $GB_REAL_GEARS
+	# Obtain an exclusive lock on the $GB_REAL_GEARS.
+	# Actually, only shared lock is required for check,
+	# but an exclusive lock is required later for commit.
+	builtin lockf -v "$GB_REAL_GEARS"
 	gb-task-girar-check
 )
 

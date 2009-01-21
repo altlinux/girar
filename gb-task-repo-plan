@@ -33,10 +33,6 @@ set -f
 
 . gb-sh-conf
 
-enable -f /usr/lib/bash/lockf lockf
-# obtain a shared lock on the $GB_REPO_DIR
-builtin lockf -s -v "$GB_REPO_DIR"
-
 qsrc $GB_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/old.src
 qbin $GB_REPO_DIR/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/old.bin
 
