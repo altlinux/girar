@@ -22,7 +22,6 @@ case "$op" in
 	--help|help|'')
 		usage ;;
 	new|add|ls|show|run|share|rm)
-		umask 002
 		exec "$PROG-$op" "$@"
 		;;
 	*)
