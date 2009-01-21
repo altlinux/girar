@@ -5,6 +5,7 @@
 
 commit()
 {
+	local arch_all
 	while read -r N EVR A F; do
 		RM $GB_REPO_DIR/$A/RPMS.classic/$F
 		RM $GB_REPO_DIR/files/$A/RPMS/$F
@@ -17,6 +18,14 @@ commit()
 
 	while read -r F A; do
 		RM $GB_REPO_DIR/$A/SRPMS.classic/$F
+		if [ "$A" = 'noarch' ]; then
+			arch_all='i586 x86_64'
+		else
+			arch_all="$A"
+		fi
+		for arch in $arch_all; do
+			RM "$GB_REPO_DIR/$arch/SRPMS.all/$F"
+		done
 	done <plan/rm-srpm2arch
 	while read -r N EVR F; do
 		RM $GB_REPO_DIR/files/SRPMS/$F
@@ -28,6 +37,14 @@ commit()
 	done <plan/add-src
 	while read -r F A; do
 		LN ../../files/SRPMS/$F $GB_REPO_DIR/$A/SRPMS.classic/$F
+		if [ "$A" = 'noarch' ]; then
+			arch_all='i586 x86_64'
+		else
+			arch_all="$A"
+		fi
+		for arch in $arch_all; do
+			LN "../../files/SRPMS/$F" "$GB_REPO_DIR/$arch/SRPMS.all/$F"
+		done
 	done <plan/add-srpm2arch
 }
 
