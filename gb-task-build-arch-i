@@ -27,7 +27,7 @@ fi
 
 # copy source package and accompanying build data to remote side
 rsync -q -- "gears/$i/pkg.tar" "$remote_host:tmp/"
-mkdir -p "build/$i/$arch"
+(umask 002; mkdir -p "build/$i/$arch") || false
 touch "build/$i/$arch/log"
 rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
@@ -43,5 +43,7 @@ ssh "$remote_host" ./gb-remote-build \
 
 # copy build result from remote side
 rsync -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
+find "build/$i/$arch/" -type d -print0 |
+	xargs -r0 chmod 775 --
 
 stamp_echo >&2 "$I OK"

@@ -109,7 +109,7 @@ join -t$'\t' -o '1.1 2.3' -j 4 rm-by-bin-only new |
 
 # Guess what.  The plan is actually about moving some files around.
 cd - >/dev/null
-mkdir -p plan
+mkdir -pm775 plan
 
 # src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
 cut -f1-7 <$tmpdir/new |sort -u >plan/add-src+bin

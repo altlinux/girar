@@ -3,8 +3,6 @@
 . gb-sh-functions
 . gb-sh-conf
 
-umask 022
-
 set_GIT_DIR()
 {
 	local sym="$(printf %s "$N" |cut -c1)"

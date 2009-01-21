@@ -14,7 +14,6 @@ seq=$(cat task/seq)
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
 
 (
-	umask 002
 	exec >>task/log 2>&1
 	[ -s task/log ] &&
 		echo "Resuming task $id on $(date)" ||

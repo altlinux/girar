@@ -64,5 +64,5 @@ while read -r rpm; do
 	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
 	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
 	(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
-		Fatal 'non-idential noarch packages'
+		Fatal 'noarch packages mismatch'
 done <$tmpdir/i586.noarch
