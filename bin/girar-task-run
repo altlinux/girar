@@ -39,7 +39,11 @@ if [ -f task/seq ]; then
 		# work in progress
 		1) fatal "task #$id is a work in progress" ;;
 		# have build results
-		2) seq=$(($seq+1))
+		2)
+		if [ 0 = "$(cat task/rc)" ]; then
+			fatal "task #$id is already successfully processed"
+		fi
+		seq=$(($seq+1)) ;;
 	esac
 else
 	seq=0

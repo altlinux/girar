@@ -91,9 +91,12 @@ if [ -f task/seq ]; then
 		# awaiting for build
 		0) ;;
 		# work in progress
-		1) fatal "task $id is a work in progress" ;;
+		1) fatal "task #$id is a work in progress" ;;
 		# have build results
-		2) ;;
+		2)
+		if [ 0 = "$(cat task/rc)" ]; then
+			fatal "task #$id is already successfully processed"
+		fi ;;
 	esac
 fi
 
