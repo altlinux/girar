@@ -63,6 +63,20 @@ girar_commit()
 	fi
 }
 
+girar_obsolete()
+{
+	local N="$1"; shift
+	local GIT_DIR
+	set_GIT_DIR
+	[ -d "$GIT_DIR" ] || return 0
+	# obtain an exclusive lock on the target gear repository
+	builtin lockf -v -- "$GIT_DIR"
+	if git rev-parse --verify "$GB_GEAR_BRANCH" >/dev/null 2>&1; then
+		git branch -f "old/$GB_GEAR_BRANCH" "$GB_GEAR_BRANCH"
+		git branch -D "$GB_GEAR_BRANCH"
+	fi
+}
+
 enable -f /usr/lib/bash/lockf lockf
 
 while read -r N EVR F; do
@@ -77,3 +91,7 @@ while read -r N EVR F; do
 	girar_commit "$N" "$i"
 done <plan/add-src
 
+# handle obsoleted packages
+while read -r N F; do
+	girar_obsolete "$N"
+done <plan/oldsrc2newsrpm
