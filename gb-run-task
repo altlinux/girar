@@ -35,6 +35,8 @@ seq=$(cat task/seq)
 	# but an exclusive lock is required later for commit.
 	builtin lockf -v "$GB_REAL_GEARS"
 	gb-task-girar-check
+	gb-task-repo-commit
+	gb-task-girar-commit
 )
 
 rc=$?
