@@ -29,8 +29,13 @@ girar_check()
 		new_id="$(cat "gears/$i/tag_id")"
 		dir="$(cat "gears/$i/dir")"
 		tag_name="$(cat "gears/$i/tag_name")"
-		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
 
+		if git rev-parse --verify "$tag_name" >/dev/null 2>&1; then
+			echo >&2 "error: $GIT_DIR already contains tag $tag_name"
+			RC=1
+		fi
+
+		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
 		if [ "$old_id" = "$new_id" ]; then
 			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_GEAR_BRANCH"
 			RC=1
