@@ -27,6 +27,11 @@ seq=$(cat task/seq)
 	gb-task-repo-vercheck
 	gb-task-repo-unmets
 	gb-task-check-acl
+	# Obtain an exclusive lock on $GB_REAL_GEARS.
+	# Actually, only shared lock is required for check, but
+	# exclusive lock is required later for commit.
+	builtin lockf -v $GB_REAL_GEARS
+	gb-task-girar-check
 )
 
 rc=$?

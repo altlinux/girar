@@ -1,0 +1,54 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-conf
+
+RC=0
+
+set_GIT_DIR()
+{
+	local sym="$(printf %s "$N" |cut -c1)"
+	GIT_DIR="$GB_REAL_GEARS/$sym/$N.git"
+	export GIT_DIR
+}
+
+girar_check()
+{
+	local N="$1" i="$2"; shift 2
+	local GIT_DIR old_id
+
+	set_GIT_DIR
+	mkdir -p -- "$GIT_DIR"
+
+	if old_id=$(git rev-parse --verify "$GB_GEAR_BRANCH^{commit}" 2>/dev/null); then
+		# real gear
+		local new_id dir tag_name
+		new_id="$(cat "gears/$i/tag_id")"
+		dir="$(cat "gears/$i/dir")"
+		tag_name="$(cat "gears/$i/tag_name")"
+
+		if git rev-parse --verify "$tag_name" >/dev/null 2>&1; then
+			echo >&2 "error: $GIT_DIR already contains tag $tag_name"
+			RC=1
+		fi
+
+		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
+		if [ "$old_id" = "$new_id" ]; then
+			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_GEAR_BRANCH"
+			RC=1
+		elif [ -n "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="gears/$i/git/objects" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
+			echo >&2 "error: ${dir##*/} $tag_name is not inherited from $GIT_DIR $GB_GEAR_BRANCH"
+			RC=1
+		fi
+	else
+		# first time push
+		:
+	fi
+}
+
+while read -r N EVR F; do
+	i=$(srpm2i "$F")
+	girar_check "$N" "$i"
+done <plan/add-src
+
+exit $RC
