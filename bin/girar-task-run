@@ -45,6 +45,12 @@ else
 	seq=0
 fi
 
+# create group writable directories for build results
+mkdir -pm3775 build plan
+
+# create group writable files required for build
+(umask 002; touch task/log task/rc task/seq) || false
+
 trap '' HUP INT QUIT PIPE TERM
 echo "$seq" >task/seq
 
