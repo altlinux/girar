@@ -45,7 +45,7 @@ tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 setarch "$arch" -- hsh --init --packager="$tag_author" >"$tmpdir"/out 2>&1 ||
 	{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
 
-q_bin='%{NAME}\t%|SERIAL?{%{SERIAL}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
 setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
 
 # Step 2: build src.rpm (without sisyphus_check).
