@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+. gb-sh-functions
 . gb-sh-conf
 
 id="$1"; shift
@@ -15,9 +16,8 @@ seq=$(cat task/seq)
 
 (
 	exec >>task/log 2>&1
-	[ -s task/log ] &&
-		echo "Resuming task $id on $(date)" ||
-		echo "Starting task $id on $(date)"
+	[ -s task/log ] && text=resumed || text=started
+	stamp_echo "task #$id $text"
 	set -x
 	gb-task-pkgtar
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
@@ -41,6 +41,8 @@ seq=$(cat task/seq)
 
 rc=$?
 echo "$rc" >task/rc
+[ "$rc" = 0 ] && text=COMPLETE || text=FAILED
+stamp_echo >>task/log "task #$id $text"
 
 seq=$(cat task/seq)
 seq=$(($seq+1))

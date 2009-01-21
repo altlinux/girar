@@ -4,7 +4,7 @@
 
 fail()
 {
-	stamp_echo >&2 "check FAILED for $*"
+	stamp_echo >&2 "build check FAILED for $*"
 	exit 1
 }
 
@@ -17,3 +17,5 @@ done
 for arch in i586 x86_64; do
 	$0-arch "$arch" || fail "$arch"
 done
+
+stamp_echo >&2 'build check OK'

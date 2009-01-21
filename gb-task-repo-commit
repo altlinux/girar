@@ -78,7 +78,7 @@ commit
 sign()
 {
 	expect - "$@" <<'EOF'
-	spawn -noecho rpm --addsign {*}$argv
+	spawn -noecho rpmsign --addsign {*}$argv
 	expect -exact "Enter pass phrase: "
 	send -- "\r"
 	expect eof
@@ -92,6 +92,7 @@ if ! out=$(cd build && set +f && sign [1-9]*/*/*/*.rpm); then
 	echo 'cannot sign rpm packages'
 	exit 1
 fi >&2
+stamp_echo >&2 'rpmsign OK'
 
 RM()
 {
@@ -115,6 +116,7 @@ LN()
 
 # real commit
 commit
+stamp_echo >&2 'packages update OK'
 
 . gb-sh-tmpdir
 
@@ -138,3 +140,4 @@ for arch in i586 x86_64 noarch; do
 		mv -f $tmpdir/contents_index $GB_REPO_DIR/$arch/base/contents_index
 	stamp_echo >&2 "[$arch] gencontents OK"
 done
+stamp_echo >&2 'indices update OK'

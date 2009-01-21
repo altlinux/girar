@@ -65,4 +65,6 @@ for arch in i586 x86_64; do
 	fi >&2
 done
 
+[ "$rc" = 0 ] && text=OK || text=FAILED
+stamp_echo >&2 "dependencies check $text"
 exit $rc

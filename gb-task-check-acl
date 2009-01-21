@@ -40,4 +40,6 @@ while read -r N F; do
 	check_acl "$u" "$N"
 done <plan/oldsrc2newsrpm
 
+[ "$rc" = 0 ] && text=OK || text=FAILED
+stamp_echo >&2 "acl check $text"
 exit $rc

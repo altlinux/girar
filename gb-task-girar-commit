@@ -50,3 +50,5 @@ done <plan/add-src
 while read -r N F; do
 	girar_obsolete "$N"
 done <plan/oldsrc2newsrpm
+
+stamp_echo >&2 'gears update OK'
