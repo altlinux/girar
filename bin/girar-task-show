@@ -34,6 +34,7 @@ printf 'locked=%s\n' "$(builtin lockf -n . && echo no || echo yes)"
 printf 'repo=%s\n' "$(cat task/repo)"
 printf 'owner=%s\n' "$(cat task/owner)"
 printf 'seq=%s\n' "$(cat task/seq 2>/dev/null)"
+printf 'rc=%s\n' "$(cat task/rc 2>/dev/null)"
 
 nums="$(gear_nums 2>/dev/null)"
 [ -n "$nums" ] || exit 0
