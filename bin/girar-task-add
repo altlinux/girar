@@ -163,8 +163,8 @@ atexit()
 
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
-mkdir -p -m755 gears
-mkdir gears/"$i"
+mkdir -pm755 gears
+mkdir -m3775 gears/"$i"
 trap atexit EXIT
 echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
