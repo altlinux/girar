@@ -129,13 +129,13 @@ check_add_first()
 	local task_owner
 	task_owner=$(cat task/owner)
 	[ "$GIRAR_USER" = "$task_owner" ] ||
-		fatal "only $task_owner can add 1st gear-repo"
+		fatal "only $task_owner can add 1st gear repository"
 }
 
 check_add_nth()
 {
 	[ -w gears ] ||
-		fatal "gears: permission denied"
+		fatal 'gears: Permission denied'
 }
 
 if [ -n "$nums" ]; then
