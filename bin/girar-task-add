@@ -7,7 +7,7 @@ PROG='girar-task add'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task-id>] <gear-repo> <gear-tag>"
+	echo >&2 "usage: $PROG [<task_id>] <gear_repo> <gear_tag>"
 	exit 1
 }
 

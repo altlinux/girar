@@ -6,7 +6,7 @@ PROG='girar-task approve'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG <task-id> <repo-number>"
+	echo >&2 "usage: $PROG <task_id> <repo_number>"
 	exit 1
 }
 

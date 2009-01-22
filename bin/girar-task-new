@@ -6,7 +6,7 @@ PROG='girar-task new'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<binary-repo>]"
+	echo >&2 "usage: $PROG [<binary_repository_name>]"
 	exit 1
 }
 

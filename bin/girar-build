@@ -8,7 +8,7 @@
 usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG [-b <binary repository name>] <gear repo 1> <gear tag 1> ..."
+	echo >&2 "usage: $PROG [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."
 	exit 1
 }
 

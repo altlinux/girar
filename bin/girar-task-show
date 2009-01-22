@@ -6,7 +6,7 @@ PROG='girar-task show'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task-id>]"
+	echo >&2 "usage: $PROG [<task_id>]"
 	exit 1
 }
 
