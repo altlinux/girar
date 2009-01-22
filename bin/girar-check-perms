@@ -15,18 +15,6 @@ usage()
 	exit 1
 }
 
-allow()
-{
-	message "allowed: $*"
-	exit 0
-}
-
-deny()
-{
-	message "denied: $*"
-	exit 1
-}
-
 [ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
 [ "$#" -le 2 ] ||
@@ -34,6 +22,18 @@ deny()
 
 project_name="$1"; shift
 repository="$1"; shift
+
+allow()
+{
+	message "access to $project_name ALLOWED for $GIRAR_USER: $*"
+	exit 0
+}
+
+deny()
+{
+	message "access to $project_name DENIED for $GIRAR_USER: $*"
+	exit 1
+}
 
 cd "$HOME"
 
@@ -43,7 +43,7 @@ cd "$HOME"
 
 # Denied if no non-empty repository list available.
 [ -s "$repositories_file" ] ||
-	deny "repository list not available"
+	deny 'repository list not available'
 
 # Denied if requested binary repository is not listed.
 fgrep -ixqse "$repository" "$repositories_file" ||
@@ -67,13 +67,21 @@ set -- ${acl_line}
 leader="$2"; shift 2
 builders="$*"
 
+# Allowed if $GIRAR_USER is superuser.
+[ "$GIRAR_USER" != 'root' ] ||
+	allow 'superuser'
+
 # Allowed if $GIRAR_USER is leader.
 [ "$GIRAR_USER" != "$leader" ] ||
-	allow "project leader"
+	allow 'project leader'
+
+# Allowed if there are no leader
+[ "$leader" != '@nobody' ] ||
+	allow 'project is orphaned'
 
 # Wildcard builders are allowed.
-[ "$builders" != "*" ] ||
-	allow "project leader welcomes random builders"
+[ "$builders" != '*' -a "$builders" != '@everybody' ] ||
+	allow 'project leader welcomes random builders'
 
 # Separate people and groups.
 groups=
@@ -87,7 +95,7 @@ groups="${groups#|}"
 
 # Allowed if $GIRAR_USER is listed in $people.
 if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
-	allow "approved builder"
+	allow 'approved builder'
 fi
 
 # Expand groups if any.
@@ -97,7 +105,7 @@ if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.
 	if printf %s " $gpeople " |fgrep -qs " $GIRAR_USER "; then
-		allow "member of approved group"
+		allow 'member of approved group'
 	fi
 fi
 
@@ -109,7 +117,7 @@ if [ -s "$acl_dir/list.nmu.$repository" ]; then
 			[ $cur_time -gt "$start_time" ] &&
 			[ $end_time -eq 0 -o $cur_time -lt $end_time ] ||
 			continue
-		allow "approved NMU builder"
+		allow 'approved NMU builder'
 	done < "$acl_dir/list.nmu.$repository"
 fi
 
