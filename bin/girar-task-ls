@@ -7,13 +7,6 @@ cd "$GB_TASKS"
 
 enable -f /usr/lib/bash/lockf lockf
 
-gear_nums()
-{
-	set +f
-	cd gears 2>/dev/null &&
-	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
-}
-
 show_status()
 {
 	local seq

@@ -1,0 +1,35 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task approve'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <task-id> <repo-number>"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 2 ]; then
+	usage 'Too many arguments.'
+fi
+
+if [ "$#" -lt 2 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+num="$1"; shift
+
+cd "$GB_TASKS/$id"
+
+for i in $(gear_nums); do
+	[ "$i" = "$num" ] || continue
+	touch "acl/$i/$GIRAR_USER"
+	exit
+done
+fatal "repo #$num not found in task #$id"

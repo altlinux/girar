@@ -100,4 +100,11 @@ set_name()
 		fatal "$NAME: invalid NAME specified"
 }
 
+gear_nums()
+{
+	set +f
+	cd gears 2>/dev/null &&
+	ls [1-9]*/dir 2>/dev/null |sort -n |cut -d/ -f1 ||:
+}
+
 fi #__included_girar_sh_functions

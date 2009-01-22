@@ -100,14 +100,7 @@ if [ -f task/seq ]; then
 	esac
 fi
 
-gear_nums()
-{
-	set +f
-	cd gears &&
-	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
-}
-
-nums=$(gear_nums 2>/dev/null)
+nums=$(gear_nums)
 
 check_already_added()
 {

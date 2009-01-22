@@ -21,13 +21,6 @@ fi
 id=$(PROG="$PROG" girar-task-find-current "$@")
 cd "$GB_TASKS/$id"
 
-gear_nums()
-{
-	set +f
-	cd gears &&
-	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
-}
-
 printf 'id=%d' "$id"
 enable -f /usr/lib/bash/lockf lockf
 printf ' locked=%s' "$(builtin lockf -n . && echo no || echo yes)"
@@ -37,7 +30,7 @@ printf ' owner=%s' "$(cat task/owner)"
 printf ' seq=%s' "$(cat task/seq 2>/dev/null)"
 printf ' rc=%s\n' "$(cat task/rc 2>/dev/null)"
 
-nums="$(gear_nums 2>/dev/null)"
+nums="$(gear_nums)"
 [ -n "$nums" ] || exit 0
 
 for i in $nums; do
