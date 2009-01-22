@@ -14,12 +14,34 @@ gear_nums()
 	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
 }
 
+show_status()
+{
+	local seq
+	seq="$(cat task/seq 2>/dev/null)"
+	if [ -z "$seq" ]; then
+		printf ' NEW'
+		return
+	fi
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) printf ' AWAITING' ;;
+		# work in progress
+		1) printf ' BUILDING' ;;
+		# have build results
+		2)
+		[ 0 = "$(cat task/rc 2>/dev/null)" ] &&
+			printf ' DONE' ||
+			printf ' FAILED'
+		;;
+	esac
+}
+
 ls1()
 {
 	local id="$1"; shift
 	cd "$id" || return
-	printf '%d' "$id"
-	# status is not implemented yet
+	printf '#%d' "$id"
+	show_status
 	if ! (builtin lockf -n . ); then
 		printf ' [locked]'
 	fi
