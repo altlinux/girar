@@ -28,13 +28,14 @@ gear_nums()
 	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
 }
 
-printf 'id=%d\n' "$id"
+printf 'id=%d' "$id"
 enable -f /usr/lib/bash/lockf lockf
-printf 'locked=%s\n' "$(builtin lockf -n . && echo no || echo yes)"
-printf 'repo=%s\n' "$(cat task/repo)"
-printf 'owner=%s\n' "$(cat task/owner)"
-printf 'seq=%s\n' "$(cat task/seq 2>/dev/null)"
-printf 'rc=%s\n' "$(cat task/rc 2>/dev/null)"
+printf ' locked=%s' "$(builtin lockf -n . && echo no || echo yes)"
+printf ' shared=%s' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf yes -or -printf no 2>/dev/null || echo no)"
+printf ' repo=%s' "$(cat task/repo)"
+printf ' owner=%s' "$(cat task/owner)"
+printf ' seq=%s' "$(cat task/seq 2>/dev/null)"
+printf ' rc=%s\n' "$(cat task/rc 2>/dev/null)"
 
 nums="$(gear_nums 2>/dev/null)"
 [ -n "$nums" ] || exit 0
