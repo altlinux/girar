@@ -1,0 +1,54 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+repositories_file="$GIRAR_REPOSITORIES"
+acl_dir="$GIRAR_ACL_CONF_DIR"
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <project name> <binary package repository name>"
+	exit 1
+}
+
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 2 ] ||
+	usage 'Too many arguments.'
+
+project_name="$1"; shift
+repository="$1"; shift
+
+cd "$HOME"
+
+# Fail if no non-empty repository list available.
+[ -s "$repositories_file" ] ||
+	fatal 'repository list not available'
+
+# Fail if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$repositories_file" ||
+	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+
+# Normalize binary repository name.
+repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
+
+# Fail if no acl file available for the given binary repository.
+[ -s "$acl_dir/list.packages.$repository" ] ||
+	fatal "acl file for repository \`$repository' not available"
+
+# exit 1 if package is not listed in acl file.
+acl_line="$(grep "^$project_name[[:space:]]" "$acl_dir/list.packages.$repository")" ||
+	exit 1
+
+# acl_line format: pkg_name leader [builders]
+set -- ${acl_line}
+[ $# -ge 2 ] ||
+	fatal "acl file for repository \`$repository' contains invalid acl entry: $acl_line"
+leader="$2"; shift 2
+
+if [ "$leader" = '@nobody' ]; then
+	exit 0
+else
+	exit 1
+fi
