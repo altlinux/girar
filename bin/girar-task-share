@@ -6,7 +6,7 @@ PROG='girar-task share'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task-id>]"
+	echo >&2 "usage: $PROG [<task-id>] <status|enabled|disabled>"
 	exit 1
 }
 
@@ -14,16 +14,47 @@ if [ "${1-}" = '--help' ]; then
 	usage
 fi
 
-if [ "$#" -gt 1 ]; then
+if [ "$#" -gt 2 ]; then
 	usage 'Too many arguments.'
 fi
 
-id=$(PROG="$PROG" girar-task-find-current "$@")
+if [ "$#" -lt 1 ]; then
+	usage 'Not enough arguments.'
+fi
+
+if [ "$#" -eq 1 ]; then
+	id=$(PROG="$PROG" girar-task-find-current)
+else
+	id=$(PROG="$PROG" girar-task-find-current "$1")
+	shift
+fi
 
 cd "$GB_TASKS/$id"
 enable -f /usr/lib/bash/lockf lockf
+
+op=
+case "$1" in
+	status)
+		# obtain a shared lock on the TASKS structure
+		builtin lockf -nsv . ||
+			fatal "task #$id is locked"
+		find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'enabled\n' -or -printf 'disabled\n' 2>/dev/null ||
+			echo disabled
+		;;
+	enabled)
+		op=+
+		;;
+	disabled)
+		op=-
+		;;
+	*)
+		usage 'Invalid argument.'
+		;;
+esac
+
+[ -n "$op" ] || exit 0
+
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -nv . ||
 	fatal "task #$id is locked"
-
-chmod 775 gears
+chmod g${op}w gears acl
