@@ -10,12 +10,25 @@ rc=0
 
 check_acl()
 {
-	local u="$1" src="$2"; shift 2
-	if ! out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1); then
-		echo "$out"
-		echo "pkg=$src author=$u repo=$GB_REPO_NAME: ACL check failed"
-		rc=1
-	fi >&2
+	local i="$1" src="$2"; shift 2
+	local u out st= a
+	u="$(cat gears/$i/tag_userid)"
+
+	# check author permissions
+	out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1) || st=$?
+	stamp_echo >&2 "$out"
+	[ -n "$st" ] || return 0
+
+	# check confirmer permissions
+	for a in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
+		st=
+		out=$(GIRAR_USER="$a" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1) || st=$?
+		stamp_echo >&2 "$out"
+		[ -n "$st" ] || return 0
+	done
+
+	# author is not permitted and nobody approved
+	rc=1
 }
 
 . gb-sh-tmpdir
@@ -27,17 +40,15 @@ sort -u -o $tmpdir/src2srpm{,}
 
 while read -r N F; do
 	i=$(srpm2i "$F")
-	u=$(cat gears/$i/tag_userid)
-	check_acl "$u" "$N"
+	check_acl "$i" "$N"
 done <$tmpdir/src2srpm
 
 # Deal with removed/replaced packages.
 # input: src1-N  src2-F
 while read -r N F; do
 	i=$(srpm2i "$F")
-	u=$(cat gears/$i/tag_userid)
 	echo >&2 "$N is replaced with $F"
-	check_acl "$u" "$N"
+	check_acl "$i" "$N"
 done <plan/oldsrc2newsrpm
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
