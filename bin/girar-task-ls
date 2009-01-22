@@ -10,14 +10,14 @@ enable -f /usr/lib/bash/lockf lockf
 gear_nums()
 {
 	set +f
-	cd gears &&
+	cd gears 2>/dev/null &&
 	ls [1-9]*/dir |sort -n |cut -d/ -f1 ||:
 }
 
 show_status()
 {
 	local seq
-	seq="$(cat task/seq 2>/dev/null)"
+	seq="$(cat task/seq 2>/dev/null ||:)"
 	if [ -z "$seq" ]; then
 		printf ' NEW'
 		return
@@ -45,6 +45,7 @@ ls1()
 	if ! (builtin lockf -n . ); then
 		printf ' [locked]'
 	fi
+	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
 	printf ' %s' "$(cat task/repo)"
 	local i dir tag_name
 	for i in $(gear_nums); do
