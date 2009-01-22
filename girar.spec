@@ -16,6 +16,7 @@ Requires: bash-builtin-lockf >= 0:0.2
 Requires: git-core >= 0:1.5.1
 
 %define girar_group girar
+%define gb_group girar-builder
 %define girar_user girar
 
 %description
@@ -31,9 +32,11 @@ support and config files.
 
 %install
 %make_install install DESTDIR=%buildroot
+echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 
 %pre
 /usr/sbin/groupadd -r -f %girar_group
+/usr/sbin/groupadd -r -f %gb_group
 /usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
 
 %files
@@ -46,8 +49,9 @@ support and config files.
 %dir %_spooldir/%name
 %dir %_spooldir/%name/people
 %dir %attr(770,root,%girar_group) %_spooldir/%name/people/.timestamp
-%dir %attr(1770,%girar_user,%girar_group) %_spooldir/%name/tasks
 %_localstatedir/%name
+%defattr(660,%girar_user,%gb_group,3775)
+%config(noreplace) %_spooldir/%name/tasks
 
 %changelog
 * Thu Dec 11 2008 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1
