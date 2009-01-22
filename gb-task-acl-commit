@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-conf
+
+[ -z "${PATH##/usr/libexec/girar:*}" -o -z "${PATH%%*:/usr/libexec/girar}" ] ||
+	PATH="$PATH:/usr/libexec/girar"
+
+while read -r N EVR F; do
+	i="$(srpm2i "$F")"
+	u="$(cat gears/$i/tag_userid)"
+	girar-check-orphaned "$N" "$GB_GEAR_BRANCH" ||
+		continue
+	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" add "$u" ||
+		continue
+	stamp_echo >&2 "ACL for orphaned project $N assigned to $u"
+done <plan/add-src
+
+. gb-sh-tmpdir
+
+sort -k1,1 <plan/add-src >"$tmpdir"/add-src
+sort -k1,1 <plan/rm-src >"$tmpdir"/rm-src
+join -v1 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/add
+join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
+
+while read -r N EVR F; do
+	i="$(srpm2i "$F")"
+	u="$(cat gears/$i/tag_userid)"
+	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" create "$u" ||
+		continue
+	stamp_echo >&2 "ACL for new project $N assigned to $u"
+done <"$tmpdir"/add
+
+while read -r N EVR F; do
+	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" delete ||
+		continue
+	stamp_echo >&2 "ACL for old project $N removed"
+done <"$tmpdir"/rm
+
