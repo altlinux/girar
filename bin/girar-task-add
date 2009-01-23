@@ -153,7 +153,7 @@ atexit()
 {
 	local rc=$?
 	trap - EXIT
-	[ "$rc" -eq 0 ] || rm -rf gears/"$i"/
+	[ "$rc" -eq 0 ] || rm -rf gears/"$i"/ acl/"$i"/
 	exit $rc
 }
 
