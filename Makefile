@@ -23,6 +23,7 @@ girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_acl_state_dir = ${girar_statedir}/acl
 
 EMAIL_DOMAIN = altlinux.org
+GB_GROUP = girar-builder
 GB_TASKS = ${girar_spooldir}/tasks
 GIRAR_ARCHIVE = /archive
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
@@ -93,6 +94,8 @@ sbin_TARGETS = \
 	sbin/girar-del \
 	sbin/girar-auth-add \
 	sbin/girar-auth-zero \
+	sbin/girar-build-disable \
+	sbin/girar-build-enable \
 	sbin/girar-disable \
 	sbin/girar-enable \
 	sbin/girar-make-template-repos \
@@ -177,6 +180,7 @@ bin/girar-sh: bin/girar-sh.c
 %: %.in
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
+	    -e 's,@GB_GROUP@,${GB_GROUP},g' \
 	    -e 's,@GB_TASKS@,${GB_TASKS},g' \
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \

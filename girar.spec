@@ -28,7 +28,7 @@ support and config files.
 %setup -q
 
 %build
-%make_build
+%make_build "GB_GROUP=%gb_group"
 
 %install
 %make_install install DESTDIR=%buildroot

@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+export IFS=' 	
+'
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+. "@CMDDIR@/girar-sh-functions"
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <NAME>"
+	exit 1
+}
+
+set_name "$1"
+shift
+
+IT_NAME="@USER_PREFIX@$NAME"
+
+gpasswd -d "$IT_NAME" "@GB_GROUP@" ||
+	fatal "error disabling girar build permissions for user $IT_NAME"
