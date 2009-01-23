@@ -14,7 +14,14 @@ gear_nums()
 {
 	set +f
 	cd gears &&
-	ls -1 [1-9]*/dir |sort -n |cut -d/ -f1
+	ls [1-9]*/dir 2>/dev/null |cut -d/ -f1 |sort -n
+}
+
+build_nums()
+{
+	cd build 2>/dev/null || return 0
+	set +f
+	ls -d [1-9]*/*/rpms 2>/dev/null |cut -d/ -f1 |sort -nu
 }
 
 srpm2i()

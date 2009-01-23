@@ -78,13 +78,14 @@ commit
 sign()
 {
 	local out
-	if ! out=$(find "$@" --type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
+	if ! out=$(find "$@" -type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
 		printf '%s\n' "$out"
-		fatal 'rpmsign FAILED'
+		stamp_echo >&2 'rpmsign FAILED'
+		exit 1
 	fi
 }
 
-for i in $(gear_nums); do
+for i in $(build_nums); do
 	for arch in i586 x86_64; do
 		sign build/$i/$arch/
 	done
