@@ -14,8 +14,8 @@ TASK_ID/task/log		important task events
 TASK_ID/gears/$i/dir		/people/GIRAR_USER/packages/${dir##*/}.git
 TASK_ID/gears/$i/tag_name	1.0-alt1
 TASK_ID/gears/$i/tag_id		SHA1 hex
-TASK_ID/gears/$i/tag_userid	joe
 TASK_ID/gears/$i/tag_author	Joe Hacker <joe@altlinux.org>
+TASK_ID/gears/$i/userid		joe
 
 # For each gear repo, we first build pkg.tar.
 TASK_ID/gears/$i/pkg.tar

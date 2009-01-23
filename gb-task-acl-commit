@@ -8,7 +8,7 @@
 
 while read -r N EVR F; do
 	i="$(srpm2i "$F")"
-	u="$(cat gears/$i/tag_userid)"
+	u="$(cat gears/$i/userid)"
 	girar-check-orphaned "$N" "$GB_GEAR_BRANCH" ||
 		continue
 	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" add "$u" ||
@@ -25,7 +25,7 @@ join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 
 while read -r N EVR F; do
 	i="$(srpm2i "$F")"
-	u="$(cat gears/$i/tag_userid)"
+	u="$(cat gears/$i/userid)"
 	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" create "$u" ||
 		continue
 	stamp_echo >&2 "ACL for new project $N assigned to $u"
