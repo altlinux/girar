@@ -77,21 +77,19 @@ commit
 
 sign()
 {
-	expect - "$@" <<'EOF'
-	spawn -noecho rpmsign --addsign {*}$argv
-	expect -exact "Enter pass phrase: "
-	send -- "\r"
-	expect eof
-	set rc [lindex [wait] 3]
-	exit $rc
-EOF
+	local out
+	if ! out=$(find "$@" --type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
+		printf '%s\n' "$out"
+		fatal 'rpmsign FAILED'
+	fi
 }
 
-if ! out=$(cd build && set +f && sign [1-9]*/*/*/*.rpm); then
-	echo "$out"
-	echo 'cannot sign rpm packages'
-	exit 1
-fi >&2
+for i in $(gear_nums); do
+	for arch in i586 x86_64; do
+		sign build/$i/$arch/
+	done
+done
+
 stamp_echo >&2 'rpmsign OK'
 
 RM()

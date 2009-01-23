@@ -1,0 +1,10 @@
+#!/bin/sh -efu
+
+expect - "$@" <<'EOF'
+spawn -noecho rpmsign --addsign {*}$argv
+expect -exact "Enter pass phrase: "
+send -- "\r"
+expect eof
+set rc [lindex [wait] 3]
+exit $rc
+EOF
