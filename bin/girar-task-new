@@ -24,6 +24,9 @@ fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
 
 cd "$GB_TASKS"
 
+[ -w .max-task-id ] ||
+	fatal 'Permission denied'
+
 # dumb protection against frequent runs
 sleep 1
 

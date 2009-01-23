@@ -50,7 +50,7 @@ echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 %dir %_spooldir/%name/people
 %dir %attr(770,root,%girar_group) %_spooldir/%name/people/.timestamp
 %_localstatedir/%name
-%defattr(660,%girar_user,%gb_group,3775)
+%defattr(664,%girar_user,%gb_group,3775)
 %config(noreplace) %_spooldir/%name/tasks
 
 %changelog
