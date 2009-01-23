@@ -5,10 +5,10 @@ arch="$1"; shift
 . gb-sh-functions
 . gb-sh-tmpdir
 
-cd build
-set +f
-rpmquery --qf '%{name}\n' -p [1-9]*/$arch/rpms/*.rpm >"$tmpdir"/names
-set -f
+for i in $(gear_nums); do
+	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
+		rpmquery --qf '%{name}\n' -p -- '{}' '+'
+done >"$tmpdir"/names
 
 cd "$tmpdir"
 sort -o names{,}
