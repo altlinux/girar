@@ -249,7 +249,7 @@ atexit()
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
 mkdir -pm755 gears acl
-mkdir -m3775 gears/"$i" acl/"$i"
+mkdir -m2775 gears/"$i" acl/"$i"
 trap atexit EXIT
 
 case "$action" in
