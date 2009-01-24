@@ -11,8 +11,8 @@ dir=$(cat gears/$i/dir)
 tag_name=$(cat gears/$i/tag_name)
 tag_author=$(cat gears/$i/tag_author)
 
-I="[$arch] ${dir##*/} $tag_name: build"
-stamp_echo >&2 "$I start"
+I="[$arch] ${dir##*/} $tag_name:"
+stamp_echo >&2 "$I build start"
 
 rm -f build/$i/$arch/REBUILD
 # rebuild is certainly needed if previous packages have been rebuilt
@@ -37,7 +37,7 @@ ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "${dir##*/}")\"" \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" ||
-		{ stamp_echo >&2 "$I FAILED";
+		{ stamp_echo >&2 "$I build FAILED";
 		  rsync -q -- "$remote_host:build/*log" "build/$i/$arch/";
 		  exit 1; }
 
@@ -46,4 +46,10 @@ rsync -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
 find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 
-stamp_echo >&2 "$I OK"
+if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
+	printf '%s\n' "$out"
+	stamp_echo >&2 "$I rpmsign FAILED"
+	exit 1
+fi
+
+stamp_echo >&2 "$I build OK"

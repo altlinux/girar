@@ -75,24 +75,6 @@ LN()
 # test commit
 commit
 
-sign()
-{
-	local out
-	if ! out=$(find "$@" -type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
-		printf '%s\n' "$out"
-		stamp_echo >&2 'rpmsign FAILED'
-		exit 1
-	fi
-}
-
-for i in $(build_nums); do
-	for arch in i586 x86_64; do
-		sign build/$i/$arch/
-	done
-done
-
-stamp_echo >&2 'rpmsign OK'
-
 RM()
 {
 	rm -v "$1"
