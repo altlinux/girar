@@ -59,13 +59,13 @@ sort -u -o del.pkg{,}
 sort -k1,1 -o old.src{,}
 join -v1 del.pkg old.src >del.missing
 if [ -s del.missing ]; then
-	stamp_echo >&2 'request to delete non-existent packages: $(cat del.missing)'
+	stamp_echo >&2 "request to delete non-existent packages: $(cat del.missing)"
 	exit 1
 fi
 sort -k1,1 -o new.src{,}
 join -o 1.1 del.pkg new.src >del.new
 if [ -s del.new ]; then
-	stamp_echo >&2 'request to delete just built packages: $(cat del.new)'
+	stamp_echo >&2 "request to delete just built packages: $(cat del.new)"
 	exit 1
 fi
 
