@@ -56,6 +56,6 @@ mkdir -pm3775 build plan
 (umask 002; touch task/log task/rc task/seq) || false
 
 trap '' HUP INT QUIT PIPE TERM
-echo "$seq" >task/seq
+printf '%s\n' "$seq" >task/seq
 
 echo >&2 "task $id seq=$seq"

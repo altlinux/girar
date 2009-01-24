@@ -21,4 +21,4 @@ fi
 [ -s "$id"/task/owner ] ||
 	fatal "invalid task: $id"
 
-echo "$id"
+printf %s "$id"

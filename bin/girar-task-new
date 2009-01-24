@@ -38,7 +38,7 @@ id=$(cat .max-task-id)
 id=$(($id+1))
 
 trap '' HUP INT QUIT PIPE TERM
-echo "$id" >.max-task-id
+printf '%s\n' "$id" >.max-task-id
 
 atexit()
 {
@@ -53,9 +53,9 @@ mkdir "$id"
 builtin lockf -v "$id"
 trap atexit EXIT
 mkdir "$id"/task
-echo "$id" >"$id"/task/id
-echo "$GIRAR_USER" >"$id"/task/owner
-echo "$repo" >"$id"/task/repo
+printf '%s\n' "$id" >"$id"/task/id
+printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
+printf '%s\n' "$repo" >"$id"/task/repo
 
 echo >&2 "new task id=$id owner=$GIRAR_USER repo=$repo"
-echo "$id"
+printf '%s\n' "$id"

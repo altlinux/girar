@@ -230,7 +230,7 @@ check_add_nth()
 if [ -n "$nums" ]; then
 	check_add_nth
 	check_already_added
-	i=$(echo "$nums" |tail -n1)
+	i=$(printf %s "$nums" |tail -n1)
 else
 	check_add_first
 	i=0
@@ -254,25 +254,25 @@ trap atexit EXIT
 
 case "$action" in
 	del)
-	echo "$package" >gears/$i/package
-	echo "$GIRAR_USER" >gears/$i/userid
+	printf '%s\n' "$package" >gears/$i/package
+	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	echo >&2 "task #$id: added #$i: delete package $package from $repo"
 	exit 0
 	;;
 	copy)
-	echo "$copy_repo" >gears/$i/copy_repo
-	echo "$package" >gears/$i/package
-	echo "$GIRAR_USER" >gears/$i/userid
+	printf '%s\n' "$copy_repo" >gears/$i/copy_repo
+	printf '%s\n' "$package" >gears/$i/package
+	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
 	exit 0
 	;;
 esac
 
-echo "$dir" >gears/$i/dir
-echo "$tag_name" >gears/$i/tag_name
-echo "$tag_id" >gears/$i/tag_id
-echo "$tag_author" >gears/$i/tag_author
-echo "$userid" >gears/$i/userid
+printf '%s\n' "$dir" >gears/$i/dir
+printf '%s\n' "$tag_name" >gears/$i/tag_name
+printf '%s\n' "$tag_id" >gears/$i/tag_id
+printf '%s\n' "$tag_author" >gears/$i/tag_author
+printf '%s\n' "$userid" >gears/$i/userid
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git git init -q --template=/var/empty
