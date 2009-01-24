@@ -69,3 +69,7 @@ while read -r rpm; do
 	(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
 		Fatal 'noarch packages mismatch'
 done <$tmpdir/i586.noarch
+
+for arch in i586 x86_64; do
+	sisyphus_check $arch/srpm $arch/rpms
+done
