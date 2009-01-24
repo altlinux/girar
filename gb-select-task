@@ -2,7 +2,7 @@
 
 . gb-sh-conf
 
-cd "$GB_TASKS"
+cd "$GB_TASKS_DIR"
 
 repo_tasks()
 {

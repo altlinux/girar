@@ -124,7 +124,7 @@ for arch in i586 x86_64 noarch; do
 		--architectures="i586 x86_64 noarch" \
 		--architecture="$arch" \
 		--archive="ALT Linux $GB_REPO_NAME" \
-		--codename="$GB_CODENAME" \
+		--codename="$GB_REPO_CODENAME" \
 		--description="ALT Linux $GB_REPO_NAME" \
 		--label="$GB_REPO_NAME" \
 		--origin="ALT Linux Team" \

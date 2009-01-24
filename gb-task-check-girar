@@ -8,7 +8,7 @@ rc=0
 set_GIT_DIR()
 {
 	local sym="$(printf %s "$N" |cut -c1)"
-	GIT_DIR="$GB_REAL_GEARS/$sym/$N.git"
+	GIT_DIR="$GB_GEARS_DIR/$sym/$N.git"
 	export GIT_DIR
 }
 
@@ -20,7 +20,7 @@ girar_check()
 	set_GIT_DIR
 	mkdir -p -- "$GIT_DIR"
 
-	if old_id=$(git rev-parse --verify "$GB_GEAR_BRANCH^{commit}" 2>/dev/null); then
+	if old_id=$(git rev-parse --verify "$GB_REPO_NAME^{commit}" 2>/dev/null); then
 		# real gear
 		local new_id dir tag_name old_tag_id
 		new_id="$(cat "gears/$i/tag_id")"
@@ -36,10 +36,10 @@ girar_check()
 
 		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
 		if [ "$old_id" = "$new_id" ]; then
-			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_GEAR_BRANCH"
+			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_REPO_NAME"
 			rc=1
 		elif [ -n "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="gears/$i/git/objects" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
-			echo >&2 "error: ${dir##*/} $tag_name is not inherited from $GIT_DIR $GB_GEAR_BRANCH"
+			echo >&2 "error: ${dir##*/} $tag_name is not inherited from $GIT_DIR $GB_REPO_NAME"
 			rc=1
 		fi
 	else

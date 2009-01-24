@@ -6,7 +6,7 @@
 set_GIT_DIR()
 {
 	local sym="$(printf %s "$N" |cut -c1)"
-	GIT_DIR="$GB_REAL_GEARS/$sym/$N.git"
+	GIT_DIR="$GB_GEARS_DIR/$sym/$N.git"
 	export GIT_DIR
 }
 
@@ -16,15 +16,15 @@ girar_commit()
 	local GIT_DIR tag_name
 	set_GIT_DIR
 	tag_name="$(cat "gears/$i/tag_name")"
-	if git rev-parse --verify "$GB_GEAR_BRANCH" >/dev/null 2>&1; then
+	if git rev-parse --verify "$GB_REPO_NAME" >/dev/null 2>&1; then
 		# real gear
 		git fetch -q -n gears/$i/git tag "$tag_name"
-		git branch -f "$GB_GEAR_BRANCH" "tags/$tag_name"
+		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
 	else
 		# first time push
 		git init -q --template=/var/empty
 		git fetch -q -n gears/$i/git tag "$tag_name"
-		git branch "$GB_GEAR_BRANCH" "tags/$tag_name"
+		git branch "$GB_REPO_NAME" "tags/$tag_name"
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 	fi
 }
@@ -35,9 +35,9 @@ girar_obsolete()
 	local GIT_DIR
 	set_GIT_DIR
 	[ -d "$GIT_DIR" ] || return 0
-	if git rev-parse --verify "$GB_GEAR_BRANCH" >/dev/null 2>&1; then
-		git branch -f "old/$GB_GEAR_BRANCH" "$GB_GEAR_BRANCH"
-		git branch -D "$GB_GEAR_BRANCH"
+	if git rev-parse --verify "$GB_REPO_NAME" >/dev/null 2>&1; then
+		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
+		git branch -D "$GB_REPO_NAME"
 	fi
 }
 

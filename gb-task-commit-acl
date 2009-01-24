@@ -9,9 +9,9 @@
 while read -r N EVR F; do
 	i="$(srpm2i "$F")"
 	u="$(cat gears/$i/userid)"
-	girar-check-orphaned "$N" "$GB_GEAR_BRANCH" ||
+	girar-check-orphaned "$N" "$GB_REPO_NAME" ||
 		continue
-	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" add "$u" ||
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" ||
 		continue
 	stamp_echo >&2 "ACL for orphaned project $N assigned to $u"
 done <plan/add-src
@@ -26,13 +26,13 @@ join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 while read -r N EVR F; do
 	i="$(srpm2i "$F")"
 	u="$(cat gears/$i/userid)"
-	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" create "$u" ||
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" ||
 		continue
 	stamp_echo >&2 "ACL for new project $N assigned to $u"
 done <"$tmpdir"/add
 
 while read -r N EVR F; do
-	GIRAR_USER=root girar-acl "$GB_GEAR_BRANCH" "$N" delete ||
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" delete ||
 		continue
 	stamp_echo >&2 "ACL for old project $N removed"
 done <"$tmpdir"/rm

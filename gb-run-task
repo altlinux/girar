@@ -5,7 +5,7 @@
 
 id="$1"; shift
 
-cd "$GB_TASKS/$id"
+cd "$GB_TASKS_DIR/$id"
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
@@ -30,10 +30,10 @@ seq=$(cat task/seq)
 	gb-task-repo-vercheck
 	gb-task-repo-unmets
 	gb-task-check-acl
-	# Obtain an exclusive lock on the $GB_REAL_GEARS.
+	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v "$GB_REAL_GEARS"
+	builtin lockf -v "$GB_GEARS_DIR"
 	gb-task-check-girar
 	gb-task-commit-repo
 	gb-task-commit-girar
@@ -49,7 +49,7 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-mutt -x -c "$GB_EMAIL" -s "[$(cat task/repo)] task=$id seq=$seq rc=$rc" -a task/log "git_$(cat task/owner)" </dev/null
+mutt -x -c "$GB_REPO_EMAIL" -s "[$(cat task/repo)] task=$id seq=$seq rc=$rc" -a task/log "git_$(cat task/owner)" </dev/null
 
 # for girar-builder
 echo >&2 rc=$rc
