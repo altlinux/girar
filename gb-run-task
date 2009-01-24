@@ -25,6 +25,7 @@ seq=$(cat task/seq)
 	# but an exclusive lock is required later for commit.
 	builtin lockf -v "$GB_REPO_DIR"
 	gb-task-build
+	gb-task-copy-packages
 	gb-task-check-build
 	gb-task-repo-plan
 	gb-task-repo-vercheck

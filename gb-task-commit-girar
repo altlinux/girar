@@ -13,11 +13,23 @@ set_GIT_DIR()
 girar_commit()
 {
 	local N="$1" i="$2"; shift 2
-	local GIT_DIR tag_name
+	local GIT_DIR
 	set_GIT_DIR
+
+	if [ -s gears/$i/copy_repo ]; then
+		# copy from another branch
+		local copy_repo
+		copy_repo="$(cat "gears/$i/copy_repo")"
+		if git rev-parse --verify "heads/$copy_repo" >/dev/null 2>&1; then
+			git branch -f "$GB_REPO_NAME" "heads/$copy_repo"
+		fi
+		return
+	fi
+
+	local tag_name
 	tag_name="$(cat "gears/$i/tag_name")"
-	if git rev-parse --verify "$GB_REPO_NAME" >/dev/null 2>&1; then
-		# real gear
+	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
+		# update gear
 		git fetch -q -n gears/$i/git tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
 	else
@@ -35,7 +47,7 @@ girar_obsolete()
 	local GIT_DIR
 	set_GIT_DIR
 	[ -d "$GIT_DIR" ] || return 0
-	if git rev-parse --verify "$GB_REPO_NAME" >/dev/null 2>&1; then
+	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
 		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
 		git branch -D "$GB_REPO_NAME"
 	fi

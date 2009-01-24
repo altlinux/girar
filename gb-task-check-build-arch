@@ -5,7 +5,7 @@ arch="$1"; shift
 . gb-sh-functions
 . gb-sh-tmpdir
 
-for i in $(gear_nums); do
+for i in $(build_nums); do
 	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
 		rpmquery --qf '%{name}\n' -p -- '{}' '+'
 done >"$tmpdir"/names

@@ -12,40 +12,63 @@ set_GIT_DIR()
 	export GIT_DIR
 }
 
+fail()
+{
+	stamp_echo >&2 "error: $*"
+	rc=1
+}
+
+check_inheritance()
+{
+	local new_id="$1"; shift
+	local old_id="$1"; shift
+
+	[ -z "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]
+}
+
 girar_check()
 {
 	local N="$1" i="$2"; shift 2
-	local GIT_DIR old_id
+	local GIT_DIR old_commit_id
 
 	set_GIT_DIR
 	mkdir -p -- "$GIT_DIR"
 
-	if old_id=$(git rev-parse --verify "$GB_REPO_NAME^{commit}" 2>/dev/null); then
-		# real gear
-		local new_id dir tag_name old_tag_id
-		new_id="$(cat "gears/$i/tag_id")"
-		dir="$(cat "gears/$i/dir")"
-		tag_name="$(cat "gears/$i/tag_name")"
-
-		if old_tag_id=$(git rev-parse --verify "$tag_name" 2>/dev/null); then
-			if [ "$old_tag_id" != "$new_id" ]; then
-				echo >&2 "error: $GIT_DIR already contains different tag $tag_name"
-				rc=1
-			fi
-		fi
-
-		new_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$tag_name^{commit}")"
-		if [ "$old_id" = "$new_id" ]; then
-			echo >&2 "error: ${dir##*/} $tag_name is the same commit as $GIT_DIR $GB_REPO_NAME"
-			rc=1
-		elif [ -n "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="gears/$i/git/objects" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
-			echo >&2 "error: ${dir##*/} $tag_name is not inherited from $GIT_DIR $GB_REPO_NAME"
-			rc=1
-		fi
-	else
-		# first time push
-		:
+	if ! old_commit_id="$(git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" 2>/dev/null)"; then
+		# first time push to this branch
+		stamp_echo >&2 "$GIT_DIR branch \"$GB_REPO_NAME\" does not exists yet"
+		return 0
 	fi
+
+	# update of existing commit, check inheritance
+
+	if [ -s gears/$i/copy_repo ]; then
+		# copy from another branch
+		local copy_repo copy_commit_id
+		copy_repo="$(cat gears/$i/copy_repo)"
+		copy_commit_id="$(git rev-parse --verify "heads/$copy_repo^{commit}" 2>/dev/null)" ||
+			{ fail "$GIT_DIR contains \"$GB_REPO_NAME\" branch, but does not contain \"$copy_repo\" branch"; return; }
+		check_inheritance "$copy_commit_id" "$old_commit_id" ||
+			fail "$GIT_DIR branch \"$copy_repo\" is not inherited from branch \"$GB_REPO_NAME\""
+		return 0
+	fi
+
+	# build from gear
+	local new_tag_id tag_name old_tag_id
+	new_tag_id="$(cat "gears/$i/tag_id")"
+	tag_name="$(cat "gears/$i/tag_name")"
+	if old_tag_id=$(git rev-parse --verify "tags/$tag_name" 2>/dev/null); then
+		[ "$old_tag_id" = "$new_tag_id" ] ||
+			{ fail "$GIT_DIR already contains different tag \"$tag_name\""; return; }
+	fi
+
+	local dir new_commit_id
+	dir="$(cat "gears/$i/dir")"
+	new_commit_id="$(git --git-dir="gears/$i/git" rev-parse --verify "tags/$tag_name^{commit}")"
+	[ "$old_commit_id" != "$new_commit_id" ] ||
+		{ fail "${dir##*/} tag \"$tag_name\" refers to the same commit as $GIT_DIR branch \"$GB_REPO_NAME\""; return; }
+	check_inheritance "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
+		fail "${dir##*/} tag \"$tag_name\" is not inherited from $GIT_DIR branch \"$GB_REPO_NAME\""
 }
 
 while read -r N EVR F; do

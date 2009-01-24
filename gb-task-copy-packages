@@ -1,0 +1,99 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-conf
+
+N="%{NAME}"
+VR="%{VERSION}-%{RELEASE}"
+EVR="%|EPOCH?{%{EPOCH}:}|$VR"
+NVR="%{NAME}-$VR"
+A="%{ARCH}"
+
+qsrc()
+{
+	# src-N  src-EVR  src-F
+	find "$@" -name '*.src.rpm' -execdir \
+		rpmquery --qf "$N\t$EVR\t$NVR.src.rpm\n" -p -- '{}' '+'
+}
+
+qbin()
+{
+	# bin-N  bin-EVR  bin-A  bin-F  src-F
+	find "$@" -name '*.rpm' -not -name '*.src.rpm' -execdir \
+		rpmquery --qf "$N\t$EVR\t$A\t$NVR.$A.rpm\t%{SOURCERPM}\n" -p -- '{}' '+'
+}
+
+# Now what's the plan?  I guess we don't just move some files around.
+# We deal with "tuples" (src,bin+).  Therefore, the consistent plan is
+# to group files into such tuples, and decide how new tuples replace
+# the existing tuples.
+#
+# Thus we have to assume that the repo is consistent: both src->bin+
+# and bin->src mappings must exist for every package in the repo.  Stale
+# packages cannot be handled by the plan consistently, and removing them
+# is someone else's job.
+#
+# Tuples are represented with the following table:
+#
+# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
+# -----  -------  -----  -----  -------  -----  -----
+#
+# Note: the fact that both mappings mentioned above exist roughly means
+# that we can join src+bin on %{SOURCERPM}.  This is how we do the table.
+
+mktable()
+{
+	local x="$1"; shift
+	# sort by src-F field
+	sort -k3 -o $x.src{,}
+	sort -k5 -o $x.bin{,}
+	# join by src-F field
+	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' -- $x.{src,bin} >$x
+	sort -u -o $x{,}
+	sort -k1,1 -o $x{,}
+}
+
+query_packages()
+{
+	local repo="$1"; shift
+	local repo_dir="$1"; shift
+
+	if [ -f "$tmpdir/$repo.src" -a -f "$tmpdir/$repo.bin" ]; then
+		return 0
+	fi
+
+	qsrc $repo_dir/{i586,x86_64,noarch}/SRPMS.classic/ >"$tmpdir/$repo.src"
+	sort -u -o "$tmpdir/$repo.src"{,}
+	qbin $repo_dir/{i586,x86_64,noarch}/RPMS.classic/ >"$tmpdir/$repo.bin"
+	sort -u -o "$tmpdir/$repo.bin"{,}
+
+	mktable "$tmpdir/$repo"
+}
+
+. gb-sh-tmpdir
+
+for i in $(copy_nums); do
+	repo="$(cat gears/$i/copy_repo)"
+	repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
+	query_packages "$repo" "$repo_dir"
+	join -t$'\t' -o "1.3 1.6 1.7" -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
+	sort -u -o "$tmpdir/copy"{,}
+	if [ ! -s "$tmpdir/copy" ]; then
+		stamp_echo >&2 "FAILED to copy a non-existent package $(cat "gears/$i/package") from $repo"
+		exit 1
+	fi
+	while read -r S A B; do
+		a="$A"
+		if [ "$A" = 'noarch' ]; then
+			a='i586 x86_64'
+		fi
+		for arch in $a; do
+			(umask 002; mkdir -p "build/$i/$arch/"{srpm,rpms}) || false
+			install -v -pm644 "$repo_dir/$A/SRPMS.classic/$S" "build/$i/$arch/srpm/" >>"build/$i/$arch/log"
+			install -v -pm644 "$repo_dir/$A/RPMS.classic/$B" "build/$i/$arch/rpms/" >>"build/$i/$arch/log"
+		done
+	done <"$tmpdir/copy"
+	stamp_echo >&2 "package \"$(cat "gears/$i/package")\" copied from $repo"
+done
+
+stamp_echo >&2 'copy OK'

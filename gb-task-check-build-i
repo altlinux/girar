@@ -4,9 +4,12 @@
 
 i="$1"; shift
 
-dir=$(cat gears/$i/dir)
-tag_name=$(cat gears/$i/tag_name)
-I="${dir##*/} $tag_name"
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	I="${dir##*/} $(cat "gears/$i/tag_name")"
+else
+	I="$(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
+fi
 
 Fatal()
 {
