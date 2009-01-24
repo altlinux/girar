@@ -14,7 +14,14 @@ gear_nums()
 {
 	set +f
 	cd gears &&
-	ls [1-9]*/dir 2>/dev/null |cut -d/ -f1 |sort -n
+	ls -d [1-9]*/dir 2>/dev/null |cut -d/ -f1 |sort -n
+}
+
+package_nums()
+{
+	set +f
+	cd gears &&
+	ls -d [1-9]*/package 2>/dev/null |cut -d/ -f1 |sort -n
 }
 
 build_nums()

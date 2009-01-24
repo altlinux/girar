@@ -46,9 +46,15 @@ while read -r N EVR F; do
 	girar_commit "$N" "$i"
 done <plan/add-src
 
-# handle obsoleted packages
-while read -r N F; do
+. gb-sh-tmpdir
+
+sort -k1,1 <plan/add-src >"$tmpdir"/add-src
+sort -k1,1 <plan/rm-src >"$tmpdir"/rm-src
+join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
+
+while read -r N EVR F; do
 	girar_obsolete "$N"
-done <plan/oldsrc2newsrpm
+	stamp_echo >&2 "gear for old project $N obsoleted"
+done <"$tmpdir"/rm
 
 stamp_echo >&2 'gears update OK'
