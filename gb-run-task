@@ -34,10 +34,10 @@ seq=$(cat task/seq)
 	# Actually, only shared lock is required for check,
 	# but an exclusive lock is required later for commit.
 	builtin lockf -v "$GB_REAL_GEARS"
-	gb-task-girar-check
-	gb-task-repo-commit
-	gb-task-girar-commit
-	gb-task-acl-commit
+	gb-task-check-girar
+	gb-task-commit-repo
+	gb-task-commit-girar
+	gb-task-commit-acl
 )
 
 rc=$?
