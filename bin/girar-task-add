@@ -7,7 +7,11 @@ PROG='girar-task add'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task_id>] <gear_repo> <gear_tag>"
+	cat >&2 <<EOF
+Usage: $PROG [<task_id>] repo <gear_repo> <gear_tag>
+   or: $PROG [<task_id>] del <package>
+   or: $PROG [<task_id>] copy <package> [<binary_repository_name>]
+EOF
 	exit 1
 }
 
@@ -15,74 +19,115 @@ if [ "${1-}" = '--help' ]; then
 	usage
 fi
 
-if [ "$#" -gt 3 ]; then
-	usage 'Too many arguments.'
-fi
-if [ "$#" -lt 2 ]; then
-	usage 'Not enough arguments.'
-fi
+[ "$#" -le 4 ] || usage 'Too many arguments.'
+[ "$#" -ge 2 ] || usage 'Not enough arguments.'
 
 id=
-if [ "$#" -eq 3 ]; then
-	id=$(PROG="$PROG" girar-task-find-current "$1")
-	shift
-else
-	id=$(PROG="$PROG" girar-task-find-current)
-fi
+case "$1" in
+	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift ;;
+	*)	id=$(PROG="$PROG" girar-task-find-current) ;;
+esac
 
-cd "$HOME"
-
-dir0="$1"; shift
-dir="${dir0#$PWD/}"
-[ "${dir#/}" = "$dir" ] ||
-	fatal "$dir0: path to git repository does not belong to allowed directory tree"
-
-dir="$(validate_packages_dir "$dir")"
-dir="$(add_git_suffix "$dir")"
-[ -d "$dir" ] ||
-	fatal "$dir0: directory not available"
-
-[ -z "${dir%%packages/*}" ] ||
-	fatal "$dir0: directory should belong to packages/ directory tree"
+action="$1"; shift
 
 enable -f /usr/lib/bash/lockf lockf
 
-cd "$dir"
-# obtain a shared lock on the source git repository.
-builtin lockf -s -v .
-dir=$PWD
+validate_repo_dir()
+{
+	local dir0="$dir"
 
-tag_name="$1"; shift
-git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
-	fatal "$tag_name: invalid tag name"
-tag_id="$(git rev-parse --verify "$tag_name")"
-if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)"; then
-	printf >&2 '%s\n' "$sig_text"
-	fatal "$tag_name: invalid tag"
-fi
+	cd "$HOME"
+	dir="${dir0#$PWD/}"
+	[ "${dir#/}" = "$dir" ] ||
+		fatal "$dir0: path to git repository does not belong to allowed directory tree"
 
-fpr="$(printf %s "$sig_text" |
-	sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
-[ -n "$fpr" ] ||
-	fatal "$tag_name: gpg fingerprint not found"
+	dir="$(validate_packages_dir "$dir")"
+	dir="$(add_git_suffix "$dir")"
+	[ -d "$dir" ] ||
+		fatal "$dir0: directory not available"
 
-tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
-	sed '/^uid[[:space:]]\+/!d;s///;q')"
-[ -n "$tag_author" ] ||
-	fatal "$tag_name: gpg uid not found"
-tag_author="$(printf %s "$tag_author" |
-	LANG=C sed 's/@'"$(quote_sed_regexp "${EMAIL_DOMAIN%.*}")"'\.[a-z]\+>/@'"$(quote_sed_regexp "$EMAIL_DOMAIN")"'>/')"
+	[ -z "${dir%%packages/*}" ] ||
+		fatal "$dir0: directory should belong to packages/ directory tree"
 
-tag_userid="$(printf %s "$tag_author" |
-	LANG=C sed -n 's/^[^<]\+<\([^@>]\+\)@[^@>]\+>[^>]*$/\1/p' |
-	tr '[:upper:]' '[:lower:]' |tr - _)"
-[ "$tag_userid" = "$GIRAR_USER" ] ||
-	fatal "$tag_name: unacceptable signature: $(printf %s "$tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$EMAIL_DOMAIN)"
+	cd "$dir"
+	# obtain a shared lock on the source git repository.
+	builtin lockf -s -v .
+	dir="$PWD"
+}
+
+validate_tag_name()
+{
+	git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
+		fatal "$tag_name: invalid tag name"
+	tag_id="$(git rev-parse --verify "$tag_name")"
+	if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)"; then
+		printf >&2 '%s\n' "$sig_text"
+		fatal "$tag_name: invalid tag"
+	fi
+
+	fpr="$(printf %s "$sig_text" |
+		sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
+	[ -n "$fpr" ] ||
+		fatal "$tag_name: gpg fingerprint not found"
+
+	tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
+		sed '/^uid[[:space:]]\+/!d;s///;q')"
+	[ -n "$tag_author" ] ||
+		fatal "$tag_name: gpg uid not found"
+	tag_author="$(printf %s "$tag_author" |
+		LANG=C sed 's/@'"$(quote_sed_regexp "${EMAIL_DOMAIN%.*}")"'\.[a-z]\+>/@'"$(quote_sed_regexp "$EMAIL_DOMAIN")"'>/')"
+
+	userid="$(printf %s "$tag_author" |
+		LANG=C sed -n 's/^[^<]\+<\([^@>]\+\)@[^@>]\+>[^>]*$/\1/p' |
+		tr '[:upper:]' '[:lower:]' |tr - _)"
+	[ "$userid" = "$GIRAR_USER" ] ||
+		fatal "$tag_name: unacceptable signature: $(printf %s "$tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$EMAIL_DOMAIN)"
+}
+
+case "$action" in
+	repo)
+	[ "$#" -eq 2 ] || usage 'Not enough arguments.'
+	dir="$1"; shift
+	validate_repo_dir
+	tag_name="$1"; shift
+	validate_tag_name
+	;;
+	del)
+	[ "$#" -le 1 ] || usage 'Too many arguments.'
+	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	package="$1"; shift
+	;;
+	copy)
+	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	package="$1"; shift
+	copy_repo=
+	if [ $# -ge 1 ]; then
+		copy_repo="$1"; shift
+	fi
+	[ -n "$copy_repo" ] || copy_repo=sisyphus
+	;;
+	*) usage "Invalid action: $action" ;;
+esac
 
 cd "$GB_TASKS/$id"
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -nv . ||
 	fatal "task #$id is locked"
+
+case "$action" in
+	del)
+	repo="$(cat task/repo)"
+	girar-check-perms "$package" "$repo"
+	;;
+	copy)
+	repo="$(cat task/repo)"
+	[ "$repo" != "$copy_repo" ] ||
+		fatal "Invalid request to copy package from $copy_repo to $repo"
+	fgrep -ixqse "$copy_repo" "$GIRAR_REPOSITORIES" ||
+		fatal "invalid repository \`$copy_repo', valid repositories are: $(fgrep -vixse "$repo" "$GIRAR_REPOSITORIES" |tr -s '[:space:]' ' ')"
+	girar-check-perms "$package" "$repo"
+	;;
+esac
 
 seq=
 if [ -f task/seq ]; then
@@ -102,10 +147,12 @@ fi
 
 nums=$(gear_nums)
 
-check_already_added()
+check_already_added_repo()
 {
-	local i a_dir a_tag_name a_tag_id
+	local i
 	for i in $nums; do
+		[ -s gears/$i/dir ] || return 0
+		local a_dir a_tag_name a_tag_id
 		a_dir=$(cat gears/$i/dir)
 		a_tag_name=$(cat gears/$i/tag_name)
 		a_tag_id=$(cat gears/$i/tag_id)
@@ -124,12 +171,54 @@ check_already_added()
 	done
 }
 
+check_already_added_package()
+{
+	local i
+	for i in $nums; do
+		[ -s gears/$i/package ] || return 0
+		local a_name a_copy
+		a_name=$(cat gears/$i/package)
+		[ "$a_name" = "$package" ] || return 0
+		a_copy="$(cat gears/$i/copy_repo 2>/dev/null ||:)"
+		case "$action" in
+			del)
+			if [ -s gears/$i/copy_repo ]; then
+				fatal "package $package was already queued by $(cat gears/$i/userid) for copy from $a_copy"
+			else
+				message "package $package was already queued by $(cat gears/$i/userid) for deletion"
+				exit 0
+			fi
+			;;
+			copy)
+			if [ -s gears/$i/copy_repo ]; then
+				message "package $package was already queued by $(cat gears/$i/userid) for copy from $a_copy"
+				[ "$copy_repo" = "$a_copy" ] && exit 0
+			else
+				fatal "package $package was already queued by $(cat gears/$i/userid) for deletion"
+			fi
+			;;
+		esac
+	done
+}
+
+check_already_added()
+{
+	case "$action" in
+		repo)
+		check_already_added_repo
+		;;
+		del|copy)
+		check_already_added_package
+		;;
+	esac
+}
+
 check_add_first()
 {
 	local task_owner
 	task_owner=$(cat task/owner)
 	[ "$GIRAR_USER" = "$task_owner" ] ||
-		fatal "only $task_owner can add 1st gear repository"
+		fatal "only $task_owner can add 1st subtask"
 }
 
 check_add_nth()
@@ -162,11 +251,28 @@ trap '' HUP INT QUIT PIPE TERM
 mkdir -pm755 gears acl
 mkdir -m3775 gears/"$i" acl/"$i"
 trap atexit EXIT
+
+case "$action" in
+	del)
+	echo "$package" >gears/$i/package
+	echo "$GIRAR_USER" >gears/$i/userid
+	echo >&2 "task #$id: added #$i: delete package $package from $repo"
+	exit 0
+	;;
+	copy)
+	echo "$copy_repo" >gears/$i/copy_repo
+	echo "$package" >gears/$i/package
+	echo "$GIRAR_USER" >gears/$i/userid
+	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
+	exit 0
+	;;
+esac
+
 echo "$dir" >gears/$i/dir
 echo "$tag_name" >gears/$i/tag_name
 echo "$tag_id" >gears/$i/tag_id
 echo "$tag_author" >gears/$i/tag_author
-echo "$tag_userid" >gears/$i/tag_userid
+echo "$userid" >gears/$i/userid
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git git init -q --template=/var/empty
@@ -176,4 +282,4 @@ GIT_DIR=gears/$i/git git fetch -q -n "$dir" tag "$tag_name"
 [ -O gears ] ||
 	find "gears/$i" -type d -execdir chmod g+w -- '{}' '+'
 
-echo >&2 "task $id added gear-repo #$i $dir $tag_name"
+echo >&2 "task #$id: added #$i: build tag $tag_name from $dir"

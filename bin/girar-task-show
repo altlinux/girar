@@ -34,8 +34,19 @@ nums="$(gear_nums)"
 [ -n "$nums" ] || exit 0
 
 for i in $nums; do
-	printf ' %s:dir=%s\n' "$i" "$(cat gears/"$i"/dir)"
-	printf ' %s:tag_name=%s\n' "$i" "$(cat gears/"$i"/tag_name)"
-	printf ' %s:tag_id=%s\n' "$i" "$(cat gears/"$i"/tag_id)"
-	printf ' %s:tag_author=%s\n' "$i" "$(cat gears/"$i"/tag_author)"
+	if [ -s "gears/$i/dir" ]; then
+		printf ' %s:dir=%s\n' "$i" "$(cat "gears/$i/dir")"
+		printf ' %s:tag_name=%s\n' "$i" "$(cat "gears/$i/tag_name")"
+		printf ' %s:tag_id=%s\n' "$i" "$(cat "gears/$i/tag_id")"
+		printf ' %s:tag_author=%s\n' "$i" "$(cat "gears/$i/tag_author")"
+	fi
+	if [ -s "gears/$i/package" ]; then
+		if [ -s "gears/$i/copy_repo" ]; then
+			printf ' %s:copy_repo=%s\n' "$i" "$(cat "gears/$i/copy_repo")"
+		else
+			printf ' %s:delete\n' "$i"
+		fi
+		printf ' %s:package=%s\n' "$i" "$(cat "gears/$i/package")"
+	fi
+	printf ' %s:userid=%s\n' "$i" "$(cat "gears/$i/userid")"
 done

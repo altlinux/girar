@@ -104,7 +104,7 @@ gear_nums()
 {
 	set +f
 	cd gears 2>/dev/null &&
-	ls [1-9]*/dir 2>/dev/null |sort -n |cut -d/ -f1 ||:
+	ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n ||:
 }
 
 fi #__included_girar_sh_functions

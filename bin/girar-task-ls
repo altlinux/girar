@@ -40,11 +40,21 @@ ls1()
 	fi
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
 	printf ' %s' "$(cat task/repo)"
-	local i dir tag_name
+	local i
 	for i in $(gear_nums); do
-		dir=$(cat gears/$i/dir)
-		tag_name=$(cat gears/$i/tag_name)
-		printf ' %s=%s' "${dir##*/}" "$tag_name"
+		if [ -s "gears/$i/dir" ]; then
+			local dir tag_name
+			dir=$(cat gears/$i/dir)
+			tag_name=$(cat gears/$i/tag_name)
+			printf ' %s=%s' "${dir##*/}" "$tag_name"
+		elif [ -s "gears/$i/package" ]; then
+			local action package
+			[ -s "gears/$i/copy_repo" ] &&
+				action=copy ||
+				action=del
+			package=$(cat gears/$i/package)
+			printf ' %s=%s' "$action" "$package"
+		fi
 	done
 	printf '\n'
 }

@@ -49,7 +49,7 @@ trap atexit EXIT
 while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
 	shift 2
-	girar-task add "$id" "$dir" "$tag"
+	girar-task add "$id" repo "$dir" "$tag"
 done
 
 girar-task run "$id"
