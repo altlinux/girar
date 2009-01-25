@@ -36,7 +36,7 @@ girar_check()
 
 	if ! old_commit_id="$(git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" 2>/dev/null)"; then
 		# first time push to this branch
-		stamp_echo >&2 "$GIT_DIR branch \"$GB_REPO_NAME\" does not exists yet"
+		stamp_echo >&2 "$GIT_DIR branch \"$GB_REPO_NAME\" does not exist yet"
 		return 0
 	fi
 
