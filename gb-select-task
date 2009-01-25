@@ -8,7 +8,7 @@ repo_tasks()
 {
 	set +f
 	fgrep -l -i -x "$GB_REPO_NAME" [1-9]*/task/repo |
-	sort -n |cut -d/ -f1
+	cut -d/ -f1 |sort -n
 }
 
 enable -f /usr/lib/bash/lockf lockf
@@ -20,11 +20,16 @@ select_task()
 	# obtain an exclusive lock on the TASKS structure
 	# if the lock cannot be immediately acquired, fail
 	builtin lockf -n .
+
+	# if task sequence number is not set, fail
 	[ -s task/seq ]
+
 	local seq
 	seq=$(cat task/seq)
+	# if the task is not ready to run, fail
 	[ -n "$seq" ]
 	[ "$(($seq%3))" -eq 0 ]
+
 	seq=$(($seq+1))
 	echo "$seq" >task/seq
 }
