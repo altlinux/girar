@@ -3,6 +3,21 @@
 . girar-sh-functions
 PROG='girar-task ls'
 
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG [--all]"
+	exit 1
+}
+
+ls_all=
+case "${1-}" in
+	--help) usage ;;
+	--all) ls_all=1; shift ;;
+esac
+
+[ "$#" -eq 0 ] || usage 'Too many arguments.'
+
 cd "$GB_TASKS"
 
 enable -f /usr/lib/bash/lockf lockf
@@ -40,6 +55,8 @@ ls1()
 	fi
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
 	printf ' %s' "$(cat task/repo)"
+	[ -z "$ls_all" ] ||
+		printf '/%s' "$(cat task/owner)"
 	local i
 	for i in $(gear_nums); do
 		if [ -s "gears/$i/dir" ]; then
@@ -59,13 +76,18 @@ ls1()
 	printf '\n'
 }
 
-ids=$(set +f; fgrep -lx "$GIRAR_USER" [1-9]*/task/owner 2>/dev/null |
-       sort -rn |cut -d/ -f1)
+ids="$(	set +f
+	if [ -z "$ls_all" ]; then
+		fgrep -lx "$GIRAR_USER" [1-9]*/task/owner
+	else
+		ls -d [1-9]*/task/owner
+	fi 2>/dev/null |cut -d/ -f1 |sort -rn)"
 
 if [ -z "$ids" ]; then
-	message "no tasks for $GIRAR_USER"
-else
-	for id in $ids; do
-		(ls1 "$id")
-	done
+	message "no tasks${ids:- for $GIRAR_USER}"
+	exit
 fi
+
+for id in $ids; do
+	(ls1 "$id")
+done
