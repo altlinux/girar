@@ -50,7 +50,7 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-mutt -x -c "$GB_REPO_EMAIL" -s "[$(cat task/repo)] task=$id seq=$seq $text" -a task/log "git_$(cat task/owner)" </dev/null
+mutt -x -c "$GB_REPO_EMAIL" -s "[girar-builder] repo=$(cat task/repo) task=$id try=$((1+$seq/3)) $text" -a task/log "git_$(cat task/owner)" </dev/null
 
 # for girar-builder
 echo >&2 rc=$rc
