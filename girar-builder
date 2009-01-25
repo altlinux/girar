@@ -1,27 +1,30 @@
 #!/bin/sh -efu
 
-# Toplevel select-task/run-task loop.
+# Toplevel cron select-task/run-task runner.
 
-signal=
-trap 'signal=1' HUP INT QUIT PIPE TERM
+GB_REPO_NAME="$1"; shift
+export GB_REPO_NAME
 
-(
-	# Task sequence number must be updated consistently.
-	trap '' HUP INT QUIT PIPE TERM
-	id=$(gb-select-task)
-	if [ -n "$id" ]; then
-		echo >&2 -n "Running task $id ... "
-		exec gb-run-task "$id"
-	fi
-)
+# Ensure that only one instance is running for the given repo.
+lockdir="$HOME/.lockdir/$GB_REPO_NAME"
+mkdir -p "$lockdir"
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -n "$lockdir" || exit 0
 
-trap - HUP INT QUIT PIPE TERM
+# Set cwd to directory with scripts and configs.
+dir="${0%/*}"
+[ "$dir" != "$0" ]
+cd "$dir"
+PATH="$PWD:$PATH"
 
-if [ -n "$signal" ]; then
-	echo >&2 'exiting due to pending signals'
-	exit
+# Task sequence number must be updated consistently.
+trap '' HUP INT QUIT PIPE TERM
+
+rc=
+id="$(gb-select-task)"
+if [ -n "$id" ]; then
+	gb-run-task "$id" || rc=$?
 fi
 
-sleep 9
-
-exec "$0"
+trap - HUP INT QUIT PIPE TERM
+exit $rc
