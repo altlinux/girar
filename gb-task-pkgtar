@@ -10,9 +10,9 @@ for i in $(gear_nums); do
 	tag_name=$(cat gears/$i/tag_name)
 	if GIT_DIR=gears/$i/git gear -t "$tag_name" -- gears/$i/pkg.tar &&
 	   [ -s gears/$i/pkg.tar ]; then
-		stamp_echo >&2 "created pkg.tar for ${dir##*/} $tag_name"
+		stamp_echo >&2 "created pkg.tar for ${dir##*/} tag $tag_name"
 	else
-		stamp_echo >&2 "cannot create pkg.tar for ${dir##*/} $tag_name"
+		stamp_echo >&2 "cannot create pkg.tar for ${dir##*/} tag $tag_name"
 		rm -f gears/$i/pkg.tar
 		exit 1
 	fi

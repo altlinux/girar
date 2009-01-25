@@ -79,7 +79,7 @@ for i in $(copy_nums); do
 	join -t$'\t' -o "1.3 1.6 1.7" -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
 	sort -u -o "$tmpdir/copy"{,}
 	if [ ! -s "$tmpdir/copy" ]; then
-		stamp_echo >&2 "FAILED to copy a non-existent package $(cat "gears/$i/package") from $repo"
+		stamp_echo >&2 "FAILED to copy a non-existent package \"$(cat "gears/$i/package")\" from \"$repo\""
 		exit 1
 	fi
 	while read -r S A B; do
@@ -93,7 +93,7 @@ for i in $(copy_nums); do
 			install -v -pm644 "$repo_dir/$A/RPMS.classic/$B" "build/$i/$arch/rpms/" >>"build/$i/$arch/log"
 		done
 	done <"$tmpdir/copy"
-	stamp_echo >&2 "package \"$(cat "gears/$i/package")\" copied from $repo"
+	stamp_echo >&2 "package \"$(cat "gears/$i/package")\" copied from \"$repo\""
 done
 
 stamp_echo >&2 'copy OK'

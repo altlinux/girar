@@ -66,7 +66,7 @@ join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 
 while read -r N EVR F; do
 	girar_obsolete "$N"
-	stamp_echo >&2 "gear for old project $N obsoleted"
+	stamp_echo >&2 "gear for old project \"$N\" obsoleted"
 done <"$tmpdir"/rm
 
 stamp_echo >&2 'gears update OK'
