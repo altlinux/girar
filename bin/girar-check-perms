@@ -86,7 +86,7 @@ builders="$*"
 # Separate people and groups.
 groups=
 people=
-for o in ${builders}; do
+for o in ${leader} ${builders}; do
 	[ -z "${o%%@*}" ] &&
 		groups="$groups|$o" ||
 		people="$people $o"
