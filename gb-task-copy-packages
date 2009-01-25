@@ -93,7 +93,7 @@ for i in $(copy_nums); do
 			install -v -pm644 "$repo_dir/$A/RPMS.classic/$B" "build/$i/$arch/rpms/" >>"build/$i/$arch/log"
 		done
 	done <"$tmpdir/copy"
-	stamp_echo >&2 "package \"$(cat "gears/$i/package")\" copied from \"$repo\""
+	stamp_echo >&2 "copy from \"$repo\": $(cat "gears/$i/package")"
 done
 
 stamp_echo >&2 'copy OK'
