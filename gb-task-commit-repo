@@ -24,7 +24,9 @@ commit()
 			arch_all="$A"
 		fi
 		for arch in $arch_all; do
-			RM "$GB_REPO_DIR/$arch/SRPMS.all/$F"
+			if [ -e "$GB_REPO_DIR/$arch/SRPMS.all/$F" ]; then
+				RM "$GB_REPO_DIR/$arch/SRPMS.all/$F"
+			fi
 		done
 	done <plan/rm-srpm2arch
 	while read -r N EVR F; do
@@ -43,7 +45,8 @@ commit()
 			arch_all="$A"
 		fi
 		for arch in $arch_all; do
-			LN "../../files/SRPMS/$F" "$GB_REPO_DIR/$arch/SRPMS.all/$F"
+			[ -e "$GB_REPO_DIR/$arch/SRPMS.all/$F" ] ||
+				LN "../../files/SRPMS/$F" "$GB_REPO_DIR/$arch/SRPMS.all/$F"
 		done
 	done <plan/add-srpm2arch
 }
