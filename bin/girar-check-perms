@@ -5,9 +5,6 @@
 [ -n "${GIRAR_USER-}" ] ||
 	fatal 'GIRAR_USER undefined'
 
-repositories_file="$GIRAR_REPOSITORIES"
-acl_dir="$GIRAR_ACL_CONF_DIR"
-
 usage()
 {
 	echo >&2 "$PROG: $*"
@@ -42,22 +39,22 @@ cd "$HOME"
 # 1 - otherwise.
 
 # Denied if no non-empty repository list available.
-[ -s "$repositories_file" ] ||
+[ -s "$GIRAR_REPOSITORIES" ] ||
 	deny 'repository list not available'
 
 # Denied if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$repositories_file" ||
-	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
+	deny "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
 
 # Normalize binary repository name.
 repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
 
 # Denied if no acl file available for the given binary repository.
-[ -s "$acl_dir/list.packages.$repository" ] ||
+[ -s "$GIRAR_ACL_CONF_DIR/list.packages.$repository" ] ||
 	deny "acl file for repository \`$repository' not available"
 
 # Allowed if package is not listed in acl file.
-acl_line="$(grep "^$project_name[[:space:]]" "$acl_dir/list.packages.$repository")" ||
+acl_line="$(grep "^$project_name[[:space:]]" "$GIRAR_ACL_CONF_DIR/list.packages.$repository")" ||
 	allow "project \`$project_name' is not listed in acl file for repository \`$repository'"
 
 # acl_line format: pkg_name leader [builders]
@@ -99,8 +96,8 @@ if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
 fi
 
 # Expand groups if any.
-if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
-	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$acl_dir/list.groups.$repository")"
+if [ -n "$groups" -a -s "$GIRAR_ACL_CONF_DIR/list.groups.$repository" ]; then
+	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$GIRAR_ACL_CONF_DIR/list.groups.$repository")"
 	gpeople="$(printf %s "$gpeople" |tr -s '[:space:]' ' ')"
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.
@@ -109,7 +106,7 @@ if [ -n "$groups" -a -s "$acl_dir/list.groups.$repository" ]; then
 	fi
 fi
 
-if [ -s "$acl_dir/list.nmu.$repository" ]; then
+if [ -s "$GIRAR_ACL_CONF_DIR/list.nmu.$repository" ]; then
 	cur_time="$(date +'%s')"
 	while read proj builder start_time end_time; do
 		[ "$project_name" = "$proj" ] &&
@@ -118,7 +115,7 @@ if [ -s "$acl_dir/list.nmu.$repository" ]; then
 			[ $end_time -eq 0 -o $cur_time -lt $end_time ] ||
 			continue
 		allow 'approved NMU builder'
-	done < "$acl_dir/list.nmu.$repository"
+	done < "$GIRAR_ACL_CONF_DIR/list.nmu.$repository"
 fi
 
 deny "does not belong to approved builders list: $leader $builders"

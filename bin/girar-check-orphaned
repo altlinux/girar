@@ -2,9 +2,6 @@
 
 . girar-sh-functions
 
-repositories_file="$GIRAR_REPOSITORIES"
-acl_dir="$GIRAR_ACL_CONF_DIR"
-
 usage()
 {
 	echo >&2 "$PROG: $*"
@@ -23,22 +20,22 @@ repository="$1"; shift
 cd "$HOME"
 
 # Fail if no non-empty repository list available.
-[ -s "$repositories_file" ] ||
+[ -s "$GIRAR_REPOSITORIES" ] ||
 	fatal 'repository list not available'
 
 # Fail if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$repositories_file" ||
-	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$repositories_file")"
+fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
+	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
 
 # Normalize binary repository name.
 repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
 
 # Fail if no acl file available for the given binary repository.
-[ -s "$acl_dir/list.packages.$repository" ] ||
+[ -s "$GIRAR_ACL_CONF_DIR/list.packages.$repository" ] ||
 	fatal "acl file for repository \`$repository' not available"
 
 # exit 1 if package is not listed in acl file.
-acl_line="$(grep "^$project_name[[:space:]]" "$acl_dir/list.packages.$repository")" ||
+acl_line="$(grep "^$project_name[[:space:]]" "$GIRAR_ACL_CONF_DIR/list.packages.$repository")" ||
 	exit 1
 
 # acl_line format: pkg_name leader [builders]
