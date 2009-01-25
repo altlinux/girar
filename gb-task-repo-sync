@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-conf
+
+rc=
+for host in $GB_REPO_MIRRORS; do
+	if ! rsync -rlt --delete-after "$@" "$GB_REPO_DIR/" "$host:$GB_REPO_DIR/"; then
+		stamp_echo >&2 "mirror to $host failed"
+		rc=$?
+	fi
+done
+exit $rc

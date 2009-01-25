@@ -41,6 +41,7 @@ seq=$(cat task/seq)
 	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
+	gb-task-repo-sync
 )
 
 rc=$?
