@@ -69,4 +69,6 @@ while read -r N EVR F; do
 	stamp_echo >&2 "gear for old project \"$N\" obsoleted"
 done <"$tmpdir"/rm
 
+gb-make-gears-index
+
 stamp_echo >&2 'gears update OK'

@@ -1,0 +1,4 @@
+<tr>
+<td><a class="link" href="@DIR@/@NAME@.git">@NAME@</a></td>
+<td>@DATE@</td>
+</tr>

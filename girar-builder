@@ -12,9 +12,10 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -n "$lockdir" || exit 0
 
 # Set cwd to directory with scripts and configs.
-dir="${0%/*}"
-[ "$dir" != "$0" ]
-cd "$dir"
+GB_HOME="${0%/*}"
+[ "$GB_HOME" != "$0" ]
+cd "$GB_HOME"
+export GB_HOME
 PATH="$PWD:$PATH"
 
 # Task sequence number must be updated consistently.
