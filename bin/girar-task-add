@@ -275,8 +275,11 @@ printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$userid" >gears/$i/userid
 
 mkdir gears/$i/git
-GIT_DIR=gears/$i/git git init -q --template=/var/empty
-GIT_DIR=gears/$i/git git fetch -q "$dir" tag "$tag_name"
+GIT_DIR=gears/$i/git
+export GIT_DIR
+git init -q --template=/var/empty
+git fetch -q "$dir" tag "$tag_name"
+git branch master "tags/$tag_name"
 touch gears/$i/git/git-daemon-export-ok
 
 # directories added to alien task should be writable by task owner
