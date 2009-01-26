@@ -10,6 +10,15 @@ set_GIT_DIR()
 	export GIT_DIR
 }
 
+update_git_timestamp()
+{
+	local s
+	s="$(git for-each-ref "--format=%(tagger)" --sort=-taggerdate --count=1 refs/tags |
+		sed -n 's/.* \([1-9][0-9]\{9,\}\) [+-][0-9]\+$/\1/p')"
+	[ -n "$s" ] || return 0
+	touch --date="1970-01-01 $s seconds UTC" "$GIT_DIR"
+}
+
 girar_commit()
 {
 	local N="$1" i="$2"; shift 2
@@ -22,6 +31,7 @@ girar_commit()
 		copy_repo="$(cat "gears/$i/copy_repo")"
 		if git rev-parse --verify "heads/$copy_repo" >/dev/null 2>&1; then
 			git branch -f "$GB_REPO_NAME" "heads/$copy_repo"
+			update_git_timestamp
 			stamp_echo >&2 "updated $GIT_DIR"
 		fi
 		return 0
@@ -33,6 +43,7 @@ girar_commit()
 		# update gear
 		git fetch -q gears/$i/git tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
+		update_git_timestamp
 		stamp_echo >&2 "updated $GIT_DIR"
 	else
 		# first time push
@@ -41,6 +52,7 @@ girar_commit()
 		git fetch -q gears/$i/git tag "$tag_name"
 		git branch "$GB_REPO_NAME" "tags/$tag_name"
 		touch -- "$GIT_DIR/git-daemon-export-ok"
+		update_git_timestamp
 		stamp_echo >&2 "created $GIT_DIR"
 	fi
 }
@@ -54,6 +66,7 @@ girar_obsolete()
 	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
 		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
 		git branch -D "$GB_REPO_NAME"
+		update_git_timestamp
 		stamp_echo >&2 "removed $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
 }
