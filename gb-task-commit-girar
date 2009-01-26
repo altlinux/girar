@@ -22,8 +22,9 @@ girar_commit()
 		copy_repo="$(cat "gears/$i/copy_repo")"
 		if git rev-parse --verify "heads/$copy_repo" >/dev/null 2>&1; then
 			git branch -f "$GB_REPO_NAME" "heads/$copy_repo"
+			stamp_echo >&2 "updated $GIT_DIR"
 		fi
-		return
+		return 0
 	fi
 
 	local tag_name
@@ -32,12 +33,15 @@ girar_commit()
 		# update gear
 		git fetch -q gears/$i/git tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
+		stamp_echo >&2 "updated $GIT_DIR"
 	else
 		# first time push
+		mkdir -p -- "$GIT_DIR"
 		git init -q --template=/var/empty
 		git fetch -q gears/$i/git tag "$tag_name"
 		git branch "$GB_REPO_NAME" "tags/$tag_name"
 		touch -- "$GIT_DIR/git-daemon-export-ok"
+		stamp_echo >&2 "created $GIT_DIR"
 	fi
 }
 
@@ -50,6 +54,7 @@ girar_obsolete()
 	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
 		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
 		git branch -D "$GB_REPO_NAME"
+		stamp_echo >&2 "removed $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
 }
 
@@ -66,7 +71,6 @@ join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 
 while read -r N EVR F; do
 	girar_obsolete "$N"
-	stamp_echo >&2 "gear for old project \"$N\" obsoleted"
 done <"$tmpdir"/rm
 
 gb-make-gears-index
