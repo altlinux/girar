@@ -175,10 +175,10 @@ check_already_added_package()
 {
 	local i
 	for i in $nums; do
-		[ -s gears/$i/package ] || return 0
+		[ -s gears/$i/package ] || continue
 		local a_name a_copy
 		a_name=$(cat gears/$i/package)
-		[ "$a_name" = "$package" ] || return 0
+		[ "$a_name" = "$package" ] || continue
 		a_copy="$(cat gears/$i/copy_repo 2>/dev/null ||:)"
 		case "$action" in
 			del)
