@@ -30,12 +30,12 @@ girar_commit()
 	tag_name="$(cat "gears/$i/tag_name")"
 	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
 		# update gear
-		git fetch -q -n gears/$i/git tag "$tag_name"
+		git fetch -q gears/$i/git tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
 	else
 		# first time push
 		git init -q --template=/var/empty
-		git fetch -q -n gears/$i/git tag "$tag_name"
+		git fetch -q gears/$i/git tag "$tag_name"
 		git branch "$GB_REPO_NAME" "tags/$tag_name"
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 	fi
