@@ -6,7 +6,10 @@ PROG='girar-task new'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<binary_repository_name>]"
+	cat >&2 <<EOF
+usage: $PROG [<binary_repository_name>]
+Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
+EOF
 	exit 1
 }
 
