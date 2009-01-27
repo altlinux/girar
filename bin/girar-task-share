@@ -36,7 +36,7 @@ op=
 case "$1" in
 	status)
 		# obtain a shared lock on the TASKS structure
-		builtin lockf -nsv . ||
+		builtin lockf -ns . ||
 			fatal "task #$id is locked"
 		find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'enabled\n' -or -printf 'disabled\n' 2>/dev/null ||
 			echo disabled
@@ -55,6 +55,6 @@ esac
 [ -n "$op" ] || exit 0
 
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -nv . ||
+builtin lockf -n . ||
 	fatal "task #$id is locked"
 chmod g${op}w gears acl

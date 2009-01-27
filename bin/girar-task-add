@@ -111,7 +111,7 @@ esac
 
 cd "$GB_TASKS/$id"
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -nv . ||
+builtin lockf -n . ||
 	fatal "task #$id is locked"
 
 case "$action" in
