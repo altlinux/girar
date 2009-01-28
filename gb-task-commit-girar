@@ -32,7 +32,7 @@ girar_commit()
 		if git rev-parse --verify "heads/$copy_repo" >/dev/null 2>&1; then
 			git branch -f "$GB_REPO_NAME" "heads/$copy_repo"
 			update_git_timestamp
-			stamp_echo >&2 "updated $GIT_DIR"
+			stamp_echo >&2 "updated $GIT_DIR branch \"$GB_REPO_NAME\""
 		fi
 		return 0
 	fi
@@ -44,7 +44,7 @@ girar_commit()
 		git fetch -q gears/$i/git tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "tags/$tag_name"
 		update_git_timestamp
-		stamp_echo >&2 "updated $GIT_DIR"
+		stamp_echo >&2 "updated $GIT_DIR branch \"$GB_REPO_NAME\""
 	else
 		# first time push
 		mkdir -p -- "$GIT_DIR"
@@ -53,7 +53,7 @@ girar_commit()
 		git branch "$GB_REPO_NAME" "tags/$tag_name"
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		update_git_timestamp
-		stamp_echo >&2 "created $GIT_DIR"
+		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
 }
 
