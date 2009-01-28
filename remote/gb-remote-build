@@ -1,16 +1,22 @@
 #!/bin/sh -efu
 
 arch="$1"; shift
-dir="$1"; shift
+from="$1"; shift
 tag_name="$1"; shift
 tag_author="$1"; shift
+
+if [ -z "${from##*.src.rpm}" ]; then
+	src="$from"
+else
+	src=pkg.tar
+fi
 
 stamp_echo()
 {
 	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
 }
 
-I="[$arch] $dir $tag_name: remote"
+I="[$arch] $from${tag_name:+ $tag_name}: remote"
 
 Fatal()
 {
@@ -42,8 +48,8 @@ trap signal_handler HUP INT QUIT PIPE TERM
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 
 # Step 1: initialize and query hasher chroot.
-setarch "$arch" -- hsh --init --packager="$tag_author" >"$tmpdir"/out 2>&1 ||
-	{ cat "$tmpdir"/out; Fatal "initroot failed"; } >&2
+setarch "$arch" -- hsh --init ${tag_author:+--packager="$tag_author"} >"$tmpdir"/out 2>&1 ||
+	{ cat "$tmpdir"/out; Fatal 'initroot failed'; } >&2
 
 q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
 setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
@@ -52,16 +58,16 @@ setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
 # This will also install all BuildRequires packages.
 cat >"$tmpdir"/save_srpm <<'EOF'
 mkdir ~/SRPMS
-cp -p --target-directory ~/SRPMS/ -- "$@"
+ln --target-directory ~/SRPMS/ -- "$@"
 EOF
 
-setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/pkg.tar \
+setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/"$src" \
 	>build/srpm.log 2>&1 ||
-		{ cat build/srpm.log; Fatal "cannot build src.rpm"; } >&2
+		{ cat build/srpm.log; Fatal 'cannot build src.rpm'; } >&2
 
 srpm=$(set +f; echo hasher/chroot/usr/src/SRPMS/*.src.rpm) &&
 	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
-		Fatal "cannot build valid src.rpm"
+		Fatal 'cannot build valid src.rpm'
 
 # Step 3: examine BuildRequires.
 setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
@@ -103,9 +109,9 @@ find hasher/repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 6: build.
-setarch "$arch" -- hsh-rebuild tmp/pkg.tar >build/log 2>&1 ||
+setarch "$arch" -- hsh-rebuild tmp/"$src" >build/log 2>&1 ||
 	{ . gb-remote-log; buildlog_errors build/log;
-		  Fatal "build failed"; } >&2
+		  Fatal 'build failed'; } >&2
 setarch "$arch" -- hsh-rmchroot
 
 # Step 5: examine repo/ contents after build.
@@ -120,28 +126,28 @@ sort -o "$tmpdir"/rpms2{,}
 comm -23 "$tmpdir"/rpms{1,2} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
 	cat "$tmpdir"/out
-	Fatal "attempt to replace binary packages"
+	Fatal 'attempt to replace binary packages'
 fi >&2
 comm -23 "$tmpdir"/srpm{1,2} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
 	cat "$tmpdir"/out
-	Fatal "attempt to replace source packages"
+	Fatal 'attempt to replace source packages'
 fi >&2
 
 # Step 8: save results.
 comm -23 "$tmpdir"/rpms{2,1} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal "no binary packages"
+[ -s "$tmpdir"/out ] || Fatal 'no binary packages'
 cut -f1 "$tmpdir"/out >"$tmpdir"/add-bin
 
 comm -23 "$tmpdir"/srpm{2,1} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal "no source package"
+[ -s "$tmpdir"/out ] || Fatal 'no source package'
 cut -f1 "$tmpdir"/out >"$tmpdir"/add-src
 
 # Check that we've got (src,bin+) tuple.
 n=$(wc -l <"$tmpdir"/add-src)
 if [ "$n" -ne 1 ]; then
 	cat "$tmpdir"/add-src
-	Fatal "multpile source packages"
+	Fatal 'multpile source packages'
 fi >&2
 
 (cd hasher/repo/$arch/RPMS.hasher

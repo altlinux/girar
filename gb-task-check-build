@@ -9,8 +9,8 @@ fail()
 }
 
 # check each built package separately
-for i in $(gear_nums) $(copy_nums); do
-	$0-i "$i" || fail "$i"
+for i in $(src_nums) $(copy_nums); do
+	$0-i "$i" || fail "#$i"
 done
 
 # check all $arch packages in whole

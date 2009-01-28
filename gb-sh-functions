@@ -17,6 +17,13 @@ gear_nums()
 	ls -d [1-9]*/dir 2>/dev/null |cut -d/ -f1 |sort -n
 }
 
+src_nums()
+{
+	set +f
+	cd gears &&
+	ls -d [1-9]*/dir [1-9]*/srpm 2>/dev/null |cut -d/ -f1 |sort -n
+}
+
 package_nums()
 {
 	set +f
@@ -127,4 +134,13 @@ mktable()
 	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' -- $x.{src,bin} >$x
 	sort -u -o $x{,}
 	sort -k1,1 -o $x{,}
+}
+
+set_GIT_DIR()
+{
+	local prefix="$1"; shift
+	local project="$1"; shift
+	local sym="$(printf %s "$project" |cut -c1)"
+	GIT_DIR="$prefix/$sym/$project.git"
+	export GIT_DIR
 }

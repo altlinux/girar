@@ -12,6 +12,6 @@ ssh "$remote_host" ./gb-remote-plant \
 
 . gb-sh-functions
 
-for i in $(gear_nums); do
+for i in $(src_nums); do
 	$0-i "$arch" "$i"
 done

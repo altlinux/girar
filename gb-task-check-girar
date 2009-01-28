@@ -5,13 +5,6 @@
 
 rc=0
 
-set_GIT_DIR()
-{
-	local sym="$(printf %s "$N" |cut -c1)"
-	GIT_DIR="$GB_GEARS_DIR/$sym/$N.git"
-	export GIT_DIR
-}
-
 fail()
 {
 	stamp_echo >&2 "error: $*"
@@ -26,32 +19,8 @@ check_inheritance()
 	[ -z "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]
 }
 
-girar_check()
+girar_check_git()
 {
-	local N="$1" i="$2"; shift 2
-	local GIT_DIR old_commit_id
-
-	set_GIT_DIR
-
-	if ! old_commit_id="$(git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" 2>/dev/null)"; then
-		# first time push to this branch
-		return 0
-	fi
-
-	# update of existing commit, check inheritance
-
-	if [ -s gears/$i/copy_repo ]; then
-		# copy from another branch
-		local copy_repo copy_commit_id
-		copy_repo="$(cat gears/$i/copy_repo)"
-		copy_commit_id="$(git rev-parse --verify "heads/$copy_repo^{commit}" 2>/dev/null)" ||
-			{ fail "$GIT_DIR contains \"$GB_REPO_NAME\" branch, but does not contain \"$copy_repo\" branch"; return; }
-		check_inheritance "$copy_commit_id" "$old_commit_id" ||
-			fail "$GIT_DIR branch \"$copy_repo\" is not inherited from branch \"$GB_REPO_NAME\""
-		return 0
-	fi
-
-	# build from gear
 	local new_tag_id tag_name old_tag_id
 	new_tag_id="$(cat "gears/$i/tag_id")"
 	tag_name="$(cat "gears/$i/tag_name")"
@@ -67,6 +36,51 @@ girar_check()
 		{ fail "${dir##*/} tag \"$tag_name\" refers to the same commit as $GIT_DIR branch \"$GB_REPO_NAME\""; return; }
 	check_inheritance "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
 		fail "${dir##*/} tag \"$tag_name\" is not inherited from $GIT_DIR branch \"$GB_REPO_NAME\""
+}
+
+girar_check_srpm()
+{
+	fail "$GIT_DIR already contains \"$GB_REPO_NAME\" branch"
+}
+
+girar_check_copy()
+{
+	local copy_repo copy_commit_id
+	copy_repo="$(cat gears/$i/copy_repo)"
+	if ! copy_commit_id="$(git rev-parse --verify "heads/$copy_repo^{commit}" 2>/dev/null)"; then
+		fail "$GIT_DIR already contains \"$GB_REPO_NAME\" branch, but does not contain \"$copy_repo\" branch"
+		return
+	fi
+	check_inheritance "$copy_commit_id" "$old_commit_id" ||
+		fail "$GIT_DIR branch \"$copy_repo\" is not inherited from branch \"$GB_REPO_NAME\""
+}
+
+girar_check()
+{
+	local N="$1" i="$2"; shift 2
+	local GIT_DIR old_commit_id
+
+	set_GIT_DIR "$GB_GEARS_DIR" "$N"
+
+	if ! old_commit_id="$(git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" 2>/dev/null)"; then
+		# first time push to this branch
+		return 0
+	fi
+
+	# update of existing commit, check inheritance
+
+	if [ -s "gears/$i/dir" ]; then
+		# build from gear
+		girar_check_git
+	elif [ -s "gears/$i/srpm" ]; then
+		# build from srpm
+		girar_check_srpm
+	elif [ -s "gears/$i/copy_repo" ]; then
+		# copy from another branch
+		girar_check_copy
+	else
+		fail "#$i: source not found"
+	fi
 }
 
 while read -r N EVR F; do

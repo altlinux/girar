@@ -21,13 +21,18 @@ show_task()
 	for i in $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n); do
 		printf '#%d ' "$i"
 		if [ -s "gears/$i/dir" ]; then
-			printf 'build %s from %s' "$(cat gears/$i/tag_name)" "$(cat gears/$i/dir)"
+			printf 'build %s from %s' "$(cat "gears/$i/tag_name")" "$(cat "gears/$i/dir")"
+		elif [ -s "gears/$i/srpm" ]; then
+			printf 'build %s' "$(cat "gears/$i/srpm")"
 		elif [ -s "gears/$i/package" ]; then
 			if [ -s "gears/$i/copy_repo" ]; then
 				printf 'copy %s from %s' "$(cat "gears/$i/package")" "$(cat "gears/$i/copy_repo")"
 			else
 				printf 'delete %s' "$(cat "gears/$i/package")"
 			fi
+		else
+			echo unrecognized
+			exit 1
 		fi
 		echo
 	done

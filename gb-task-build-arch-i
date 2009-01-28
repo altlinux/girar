@@ -7,11 +7,24 @@ arch="$1" i="$2"; shift 2
 . gb-sh-functions
 . gb-sh-conf
 
-dir=$(cat gears/$i/dir)
-tag_name=$(cat gears/$i/tag_name)
-tag_author=$(cat gears/$i/tag_author)
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	from="${dir##*/}"
+	src=pkg.tar
+	tag_name="$(cat "gears/$i/tag_name")"
+	tag_author="$(cat "gears/$i/tag_author")"
+	I="[$arch] $from $tag_name:"
+elif [ -s "gears/$i/srpm" ]; then
+	from="$(cat "gears/$i/srpm")"
+	src="$from"
+	tag_name=
+	tag_author=
+	I="[$arch] $src:"
+else
+	stamp_echo >&2 "#$i: source not found"
+	exit 1
+fi
 
-I="[$arch] ${dir##*/} $tag_name:"
 stamp_echo >&2 "$I build start"
 
 rm -f build/$i/$arch/REBUILD
@@ -26,7 +39,7 @@ if [ -s build/$i/$arch/chroot_base ]; then
 fi
 
 # copy source package and accompanying build data to remote side
-rsync -q -- "gears/$i/pkg.tar" "$remote_host:tmp/"
+rsync -q -- "gears/$i/$src" "$remote_host:tmp/"
 (umask 002; mkdir -p "build/$i/$arch") || false
 touch "build/$i/$arch/log"
 rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
@@ -34,7 +47,7 @@ rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 # run the build on remote side
 ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
-	"\"$(quote_shell "${dir##*/}")\"" \
+	"\"$(quote_shell "$from")\"" \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" ||
 		{ stamp_echo >&2 "$I build FAILED";
@@ -50,6 +63,10 @@ if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir rpmaddsign '{}'
 	printf '%s\n' "$out"
 	stamp_echo >&2 "$I rpmsign FAILED"
 	exit 1
+fi
+
+if [ -s "gears/$i/srpm" ]; then
+	ln -f -- "gears/$i/$src" "build/$i/$arch/srpm/"
 fi
 
 stamp_echo >&2 "$I build OK"

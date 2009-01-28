@@ -7,8 +7,13 @@ i="$1"; shift
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"
 	I="${dir##*/} $(cat "gears/$i/tag_name")"
-else
+elif [ -s "gears/$i/srpm" ]; then
+	I="$(cat "gears/$i/srpm")"
+elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
 	I="$(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
+else
+	stamp_echo >&2 "#$i: source not found"
+	exit 1
 fi
 
 Fatal()
