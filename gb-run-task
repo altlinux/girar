@@ -16,10 +16,28 @@ seq=$(cat task/seq)
 [ -n "$seq" ] && [ "$(($seq%3))" -eq 1 ] ||
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
 
+show_task()
+{
+	for i in $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n); do
+		printf '#%d ' "$i"
+		if [ -s "gears/$i/dir" ]; then
+			printf 'build %s from %s' "$(cat gears/$i/tag_name)" "$(cat gears/$i/dir)"
+		elif [ -s "gears/$i/package" ]; then
+			if [ -s "gears/$i/copy_repo" ]; then
+				printf 'copy %s from %s' "$(cat "gears/$i/package")" "$(cat "gears/$i/copy_repo")"
+			else
+				printf 'delete %s' "$(cat "gears/$i/package")"
+			fi
+		fi
+		echo
+	done
+}
+
 (
 	exec >>task/log 2>&1
 	[ -s task/log ] && text=resumed || text=started
-	stamp_echo "task #$id $text"
+	stamp_echo "task #$id $text:"
+	show_task
 	set -x
 	gb-task-pkgtar
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
