@@ -32,4 +32,4 @@ for i in $(gear_nums); do
 	touch "acl/$i/$GIRAR_USER"
 	exit
 done
-fatal "repo #$num not found in task #$id"
+fatal "task #$id: repo #$num not found"

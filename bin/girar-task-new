@@ -60,5 +60,5 @@ printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
 
-echo >&2 "new task id=$id owner=$GIRAR_USER repo=$repo"
+echo >&2 "new task #$id: owner=$GIRAR_USER repo=$repo"
 printf '%s\n' "$id"
