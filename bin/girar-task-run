@@ -27,7 +27,7 @@ enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
 
-[ -s gears/1/dir -o -s gears/1/package ] ||
+[ -s gears/1/dir -o -s gears/1/srpm -o -s gears/1/package ] ||
 	fatal "cannot run empty task #$id"
 
 seq=
