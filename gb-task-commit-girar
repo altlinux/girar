@@ -33,6 +33,7 @@ girar_commit_git()
 		git init -q --template=/var/empty
 		git_fetch "gears/$i/git" tag "$tag_name"
 		git branch "$GB_REPO_NAME" "tags/$tag_name"
+		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
@@ -71,6 +72,7 @@ girar_commit_srpm()
 		mkdir -p -- "$GIT_DIR"
 		git init -q --template=/var/empty
 		git_fetch "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
+		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
