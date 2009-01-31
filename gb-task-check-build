@@ -2,10 +2,11 @@
 
 . gb-sh-functions
 
+rc=0
 fail()
 {
 	stamp_echo >&2 "build check FAILED for $*"
-	exit 1
+	rc=1
 }
 
 # check each built package separately
@@ -18,4 +19,6 @@ for arch in i586 x86_64; do
 	$0-arch "$arch" || fail "$arch"
 done
 
-stamp_echo >&2 'build check OK'
+[ "$rc" = 0 ] && text=OK || text=FAILED
+stamp_echo >&2 "build check $text"
+exit $rc
