@@ -100,6 +100,11 @@ LN()
 
 # real commit
 commit
+
+# update lists
+install -pm644 -- plan/next.src "$GB_REPO_DIR/files/list/src.list"
+install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
+
 stamp_echo >&2 'packages update OK'
 
 . gb-sh-tmpdir

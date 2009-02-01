@@ -12,9 +12,18 @@ query_packages()
 		return 0
 	fi
 
-	qsrc $repo_dir/{i586,x86_64,noarch}/SRPMS.classic/ >"$tmpdir/$repo.src"
+	if [ -s "$repo_dir/files/list/src.list" ]; then
+		cat "$repo_dir/files/list/src.list" >"$tmpdir/$repo.src"
+	else
+		qsrc $repo_dir/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/$repo.src
+	fi
 	sort -u -o "$tmpdir/$repo.src"{,}
-	qbin $repo_dir/{i586,x86_64,noarch}/RPMS.classic/ >"$tmpdir/$repo.bin"
+
+	if [ -s "$repo_dir/files/list/bin.list" ]; then
+		cat "$repo_dir/files/list/bin.list" >"$tmpdir/$repo.bin"
+	else
+		qbin $repo_dir/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/$repo.bin
+	fi
 	sort -u -o "$tmpdir/$repo.bin"{,}
 
 	mktable "$tmpdir/$repo"

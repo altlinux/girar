@@ -25,8 +25,16 @@ done >$tmpdir/del.pkg
 
 . gb-sh-conf
 
-qsrc $GB_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/old.src
-qbin $GB_REPO_DIR/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/old.bin
+if [ -s "$GB_REPO_DIR/files/list/src.list" ]; then
+	sort -u "$GB_REPO_DIR/files/list/src.list" >"$tmpdir/old.src"
+else
+	qsrc $GB_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/old.src
+fi
+if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
+	sort -u "$GB_REPO_DIR/files/list/bin.list" >"$tmpdir/old.bin"
+else
+	qbin $GB_REPO_DIR/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/old.bin
+fi
 
 cd "$tmpdir"
 sort -u -o new.src{,}
@@ -89,6 +97,29 @@ sort -k4,4 -o rm-by-bin-only{,}
 join -t$'\t' -o '1.1 2.3' -j 4 rm-by-bin-only new |
 	sort -u >oldsrc2newsrpm
 
+# Prepare new repo lists to update old.src/old.bin
+
+# Apply add-src and rm-src changes to old.src
+# sort by src-F
+cat old.src >old+add.src
+cut -f1-3 <new |sort -u >>old+add.src
+sort -u -o old+add.src{,}
+sort -k3,3 -o old+add.src{,}
+cut -f3 <rm |sort -u >rm.src
+# join by src-F
+join -t$'\t' -o '1.1 1.2 1.3' -v1 -1 3 -2 1 old+add.src rm.src >next.src
+
+# Apply add-bin and rm-bin changes to old.bin
+cat old.bin >old+add.bin
+# reorder columns to make src-F a last one
+cut -f3-7 <new |sort -u |join -t$'\t' -o '1.2 1.3 1.4 1.5 1.1' -v1 - /dev/null >>old+add.bin
+sort -u -o old+add.bin{,}
+# sort by bin-F
+sort -k4,4 -o old+add.bin{,}
+cut -f7 <rm |sort -u >rm.bin
+# join by bin-F
+join -t$'\t' -o '1.1 1.2 1.3 1.4 1.5' -v1 -1 4 -2 1 old+add.bin rm.bin >next.bin
+
 # Guess what.  The plan is actually about moving some files around.
 cd - >/dev/null
 
@@ -106,5 +137,14 @@ cut -f1-3 <$tmpdir/rm |sort -u >plan/rm-src
 cut -f3,6 <$tmpdir/rm |sort -u >plan/rm-srpm2arch
 cut -f4-7 <$tmpdir/rm |sort -u >plan/rm-bin
 cat <$tmpdir/oldsrc2newsrpm >plan/oldsrc2newsrpm
+
+sort -u "$tmpdir/next.src" >plan/next.src
+if [ -s "$GB_REPO_DIR/files/list/src.list" ]; then
+	diff -u "$GB_REPO_DIR/files/list/src.list" plan/next.src >plan/src.list.diff ||:
+fi
+sort -u "$tmpdir/next.bin" >plan/next.bin
+if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
+	diff -u "$GB_REPO_DIR/files/list/bin.list" plan/next.bin >plan/bin.list.diff ||:
+fi
 
 stamp_echo >&2 'plan OK'
