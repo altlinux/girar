@@ -4,7 +4,7 @@
 . gb-sh-conf
 
 template="$GB_HOME/template"
-cd "$GB_GEARS_DIR"
+cd "$1"; shift
 
 mkidx()
 {

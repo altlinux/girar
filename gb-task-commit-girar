@@ -142,6 +142,6 @@ while read -r N EVR F; do
 	girar_obsolete "$N"
 done <"$tmpdir"/rm
 
-gb-make-gears-index
+gb-make-html-index "$GB_GEARS_DIR"
 
 stamp_echo >&2 'gears update OK'
