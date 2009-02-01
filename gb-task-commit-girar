@@ -3,6 +3,7 @@
 . gb-sh-functions
 . gb-sh-conf
 
+updated_dirs=
 update_git_timestamp()
 {
 	local s
@@ -10,6 +11,8 @@ update_git_timestamp()
 		sed -n 's/.* \([1-9][0-9]\{9,\}\) [+-][0-9]\+$/\1/p')"
 	[ -n "$s" ] || return 0
 	touch --date="1970-01-01 $s seconds UTC" "$GIT_DIR"
+	updated_dirs="$updated_dirs
+${GIT_DIR%/*}"
 }
 
 git_fetch()
@@ -142,6 +145,6 @@ while read -r N EVR F; do
 	girar_obsolete "$N"
 done <"$tmpdir"/rm
 
-gb-make-html-index "$GB_GEARS_DIR"
+gb-make-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
 
 stamp_echo >&2 'gears update OK'

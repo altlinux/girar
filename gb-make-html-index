@@ -4,7 +4,6 @@
 . gb-sh-conf
 
 template="$GB_HOME/template"
-cd "$1"; shift
 
 mkidx()
 {
@@ -29,7 +28,7 @@ mkidx()
 
 . gb-sh-tmpdir
 
-for d in ?; do
+for d; do
 	[ -d "$d" ] || continue
 	cd "$d"
 	mkidx name ''
