@@ -84,6 +84,20 @@ validate_tag_name()
 		fatal "$tag_name: unacceptable signature: $(printf %s "$tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$EMAIL_DOMAIN)"
 }
 
+validate_srpm()
+{
+	cd "$HOME"
+
+	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
+		fatal "$srpm: Invalid path"
+	[ -f "$srpm" ] ||
+		fatal "$srpm: File not found"
+	package="$(rpmquery -p --qf '%{name}' "$srpm")" ||
+		fatal "$srpm: rpmquery failed"
+
+	cd - >/dev/null
+}
+
 case "$action" in
 	repo)
 	[ "$#" -eq 2 ] || usage 'Not enough arguments.'
@@ -106,6 +120,12 @@ case "$action" in
 	fi
 	[ -n "$copy_repo" ] || copy_repo=sisyphus
 	;;
+	srpm)
+	[ "$#" -le 1 ] || usage 'Too many arguments.'
+	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	srpm="$1"; shift
+	validate_srpm
+	;;
 	*) usage "Invalid action: $action" ;;
 esac
 
@@ -115,7 +135,7 @@ builtin lockf -n . ||
 	fatal "task #$id is locked"
 
 case "$action" in
-	del)
+	del|srpm)
 	repo="$(cat task/repo)"
 	girar-check-perms "$package" "$repo"
 	;;
@@ -218,7 +238,7 @@ check_add_first()
 	local task_owner
 	task_owner=$(cat task/owner)
 	[ "$GIRAR_USER" = "$task_owner" ] ||
-		fatal "only $task_owner can add 1st subtask"
+		fatal "only $task_owner can add first subtask"
 }
 
 check_add_nth()
@@ -264,6 +284,13 @@ case "$action" in
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
+	exit 0
+	;;
+	srpm)
+	mv -- "$HOME/$srpm" gears/$i/
+	printf '%s\n' "$srpm" >gears/$i/srpm
+	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
+	echo >&2 "task #$id: added #$i: build srpm $srpm"
 	exit 0
 	;;
 esac
