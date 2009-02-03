@@ -14,7 +14,10 @@ check()
 	local f="$1"; shift
 	local name id
 	name="$(rpmquery -p --qf '%{changelogname}' -- "$f")"
-	id="$(printf %s "$name" |sed -n 's/^[^<]\+<\([^@> ]\+\)\(@\| at \|-at-\)[^@> ]\+>[^>]*$/\1/p')"
+	id="$(printf %s "$name" |
+		sed -n 's/^[^<]\+<\([^@> ]\+\)\(@\| at \|-at-\)[^@> ]\+>[^>]*$/\1/p' |
+		tr '[:upper:]' '[:lower:]' |
+		tr - _)"
 	if [ -z "$id" ]; then
 		fail "${f##*/}: Invalid changelog name"
 	elif [ "$id" != "$expected_id" ]; then
