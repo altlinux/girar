@@ -48,8 +48,10 @@ for i in $(copy_nums); do
 		fi
 		for arch in $a; do
 			(umask 002; mkdir -p "build/$i/$arch/"{srpm,rpms}) || false
-			install -v -pm644 "$repo_dir/$A/SRPMS.classic/$S" "build/$i/$arch/srpm/" >>"build/$i/$arch/log"
-			install -v -pm644 "$repo_dir/$A/RPMS.classic/$B" "build/$i/$arch/rpms/" >>"build/$i/$arch/log"
+			f="$(readlink -ev "$repo_dir/$A/SRPMS.classic/$S")"
+			cp -v -l "$f" "build/$i/$arch/srpm/" >>"build/$i/$arch/log" 2>&1
+			f="$(readlink -ev "$repo_dir/$A/RPMS.classic/$B")"
+			cp -v -l "$f" "build/$i/$arch/rpms/" >>"build/$i/$arch/log" 2>&1
 		done
 	done <"$tmpdir/copy"
 	stamp_echo >&2 "copy from \"$repo\": $(cat "gears/$i/package")"
