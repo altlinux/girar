@@ -59,7 +59,7 @@ girar_commit_srpm()
 		cd - >/dev/null
 
 		export GIT_DIR
-		git_fetch "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
+		git_fetch -u "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
 		stamp_echo >&2 "updated $GIT_DIR branch \"$GB_REPO_NAME\""
 	else
 		# first time push
@@ -74,7 +74,7 @@ girar_commit_srpm()
 		export GIT_DIR
 		mkdir -p -- "$GIT_DIR"
 		git init -q --template=/var/empty
-		git_fetch "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
+		git_fetch -u "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
