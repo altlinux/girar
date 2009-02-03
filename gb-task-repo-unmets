@@ -3,7 +3,7 @@
 . gb-sh-functions
 
 # Use a fixed path so that genpkglist md5cache works.
-repo=$TMPDIR/gb-repo
+repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
 rm -rf "$repo"
 mkdir "$repo"
 
