@@ -22,6 +22,9 @@ cd "$GB_TASKS"
 
 id=$(PROG="$PROG" girar-task-find-current "$@")
 
+[ -w "$id" ] ||
+	fatal "failed to remove task #$id: Permission denied"
+
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -n "$id" ||
