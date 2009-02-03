@@ -15,7 +15,7 @@ check()
 	local name id
 	name="$(rpmquery -p --qf '%{changelogname}' -- "$f")"
 	id="$(printf %s "$name" |
-		sed -n 's/^[^<]\+<\([^@> ]\+\)\(@\| at \|-at-\)[^@> ]\+>[^>]*$/\1/p' |
+		sed -n 's/^[^<]\+<\([^@> ]\+\)\(@\| at \|-at-\).*$/\1/p' |
 		tr '[:upper:]' '[:lower:]' |
 		tr - _)"
 	if [ -z "$id" ]; then
