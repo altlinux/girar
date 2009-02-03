@@ -130,12 +130,12 @@ girar_obsolete()
 	fi
 }
 
+. gb-sh-tmpdir
+
 while read -r N EVR F; do
 	i=$(srpm2i "$F")
 	girar_commit "$N" "$i"
 done <plan/add-src
-
-. gb-sh-tmpdir
 
 sort -k1,1 <plan/add-src >"$tmpdir"/add-src
 sort -k1,1 <plan/rm-src >"$tmpdir"/rm-src
