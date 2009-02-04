@@ -119,6 +119,7 @@ case "$action" in
 		copy_repo="$1"; shift
 	fi
 	[ -n "$copy_repo" ] || copy_repo=sisyphus
+	copy_repo="$(printf %s "$copy_repo" |tr '[:upper:]' '[:lower:]')"
 	;;
 	srpm)
 	[ "$#" -le 1 ] || usage 'Too many arguments.'
