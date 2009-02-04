@@ -40,6 +40,7 @@ girar_commit_git()
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
+	git repack -q -a -d
 	update_git_timestamp
 }
 
@@ -55,7 +56,6 @@ girar_commit_srpm()
 		cd "$tmp_repo"
 		git config core.bare false
 		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm"
-		git repack -a -d -q
 		cd - >/dev/null
 
 		export GIT_DIR
@@ -68,7 +68,6 @@ girar_commit_srpm()
 		cd "$tmp_repo"
 		git init -q --template=/var/empty
 		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm"
-		git repack -a -d -q
 		cd - >/dev/null
 
 		export GIT_DIR
@@ -80,6 +79,7 @@ girar_commit_srpm()
 		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
 	fi
 	rm -rf -- "$tmp_repo"
+	git repack -q -a -d
 	update_git_timestamp
 }
 
