@@ -3,39 +3,15 @@
 . gb-sh-functions
 . gb-sh-conf
 
-query_packages()
-{
-	local repo="$1"; shift
-	local repo_dir="$1"; shift
-
-	if [ -f "$tmpdir/$repo.src" -a -f "$tmpdir/$repo.bin" ]; then
-		return 0
-	fi
-
-	if [ -s "$repo_dir/files/list/src.list" ]; then
-		cat "$repo_dir/files/list/src.list" >"$tmpdir/$repo.src"
-	else
-		qsrc $repo_dir/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/$repo.src
-	fi
-	sort -u -o "$tmpdir/$repo.src"{,}
-
-	if [ -s "$repo_dir/files/list/bin.list" ]; then
-		cat "$repo_dir/files/list/bin.list" >"$tmpdir/$repo.bin"
-	else
-		qbin $repo_dir/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/$repo.bin
-	fi
-	sort -u -o "$tmpdir/$repo.bin"{,}
-
-	mktable "$tmpdir/$repo"
-}
-
 . gb-sh-tmpdir
 
 for i in $(copy_nums); do
 	repo="$(cat gears/$i/copy_repo)"
 	repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
-	query_packages "$repo" "$repo_dir"
-	join -t$'\t' -o "1.3 1.6 1.7" -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
+	cd "$tmpdir"
+	make_repo_table "$repo"
+	cd ->/dev/null
+	join -t$'\t' -o '1.3 1.6 1.7' -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
 	sort -u -o "$tmpdir/copy"{,}
 	if [ ! -s "$tmpdir/copy" ]; then
 		stamp_echo >&2 "FAILED to copy a non-existent package \"$(cat "gears/$i/package")\" from \"$repo\""
@@ -54,7 +30,7 @@ for i in $(copy_nums); do
 			cp -v -l "$f" "build/$i/$arch/rpms/" >>"build/$i/$arch/log" 2>&1
 		done
 	done <"$tmpdir/copy"
-	stamp_echo >&2 "copy from \"$repo\": $(cat "gears/$i/package")"
+	stamp_echo >&2 "copy from \"$repo\": $(join -t$'\t' -o 1.3 -- "$tmpdir/$repo" "gears/$i/package" |sort -u)"
 done
 
 stamp_echo >&2 'copy OK'

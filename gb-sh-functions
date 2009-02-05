@@ -128,12 +128,46 @@ mktable()
 {
 	local x="$1"; shift
 	# sort by src-F field
-	sort -k3 -o $x.src{,}
-	sort -k5 -o $x.bin{,}
+	sort -k3 -o "$x.src"{,}
+	sort -k5 -o "$x.bin"{,}
 	# join by src-F field
-	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' -- $x.{src,bin} >$x
-	sort -u -o $x{,}
-	sort -k1,1 -o $x{,}
+	join -t$'\t' -13 -25 -o '1.1 1.2 1.3 2.1 2.2 2.3 2.4' -- "$x".{src,bin} >"$x"
+	sort -u -o "$x"{,}
+}
+
+make_repo_table()
+{
+	local repo="${1-}"
+	[ -n "$repo" ] || repo="$GB_REPO_NAME"
+
+	local out="${2:-$repo}"
+
+	if [ -s "$out" ]; then
+		return 0
+	fi
+
+	local repo_dir
+	if [ "$repo" = "$GB_REPO_NAME" ]; then
+		repo_dir="$GB_REPO_DIR"
+	else
+		repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
+	fi
+
+	if [ -s "$repo_dir/files/list/src.list" ]; then
+		sort -u "$repo_dir/files/list/src.list" >"$out.src"
+	else
+		qsrc "$repo_dir"/{i586,x86_64,noarch}/SRPMS.classic/ >"$out.src"
+		sort -u -o "$out.src"{,}
+	fi
+
+	if [ -s "$repo_dir/files/list/bin.list" ]; then
+		sort -u "$repo_dir/files/list/bin.list" >"$out.bin"
+	else
+		qbin "$repo_dir"/{i586,x86_64,noarch}/RPMS.classic/ >"$out.bin"
+		sort -u -o "$out.bin"{,}
+	fi
+
+	mktable "$out"
 }
 
 set_GIT_DIR()

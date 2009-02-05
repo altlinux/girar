@@ -1,6 +1,7 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+. gb-sh-conf
 
 # Make a plan for upgrade: assuming that all new packages go
 # into the repo, find out the existing packages which should
@@ -13,35 +14,25 @@ for i in $(build_nums); do
 		qsrc build/$i/$arch/srpm/
 	done
 done >$tmpdir/new.src
+
 for i in $(build_nums); do
 	for arch in i586 x86_64; do
 		qbin build/$i/$arch/rpms/
 	done
 done >$tmpdir/new.bin
+
 for i in $(package_nums); do
 	[ -s gears/$i/copy_repo ] ||
 		cat gears/$i/package
 done >$tmpdir/del.pkg
 
-. gb-sh-conf
-
-if [ -s "$GB_REPO_DIR/files/list/src.list" ]; then
-	sort -u "$GB_REPO_DIR/files/list/src.list" >"$tmpdir/old.src"
-else
-	qsrc $GB_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic/ >$tmpdir/old.src
-fi
-if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
-	sort -u "$GB_REPO_DIR/files/list/bin.list" >"$tmpdir/old.bin"
-else
-	qbin $GB_REPO_DIR/{i586,x86_64,noarch}/RPMS.classic/ >$tmpdir/old.bin
-fi
-
 cd "$tmpdir"
+
 sort -u -o new.src{,}
 sort -u -o new.bin{,}
-sort -u -o old.src{,}
-sort -u -o old.bin{,}
 sort -u -o del.pkg{,}
+
+make_repo_table '' old
 
 # check del.pkg consistency
 sort -k1,1 -o old.src{,}
@@ -58,7 +49,6 @@ if [ -s del.new ]; then
 fi
 
 mktable new
-mktable old
 
 # Tuples are replaced
 # 1) by explicit delete request
