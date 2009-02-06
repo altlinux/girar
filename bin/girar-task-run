@@ -27,6 +27,12 @@ enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
 
+if [ 'root' != "$GIRAR_USER" ]; then
+	owner="$(cat task/owner)"
+	[ "$owner" = "$GIRAR_USER" ] ||
+		fatal "task #$id belongs to $owner"
+fi
+
 [ -s gears/1/dir -o -s gears/1/srpm -o -s gears/1/package ] ||
 	fatal "cannot run empty task #$id"
 
