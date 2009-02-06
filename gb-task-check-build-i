@@ -57,8 +57,8 @@ noarch()
 
 . gb-sh-tmpdir
 
-noarch i586 >"$tmpdir"/i586.noarch
-noarch x86_64 >$tmpdir/x86_64.noarch
+noarch i586 >"$tmpdir/i586.noarch"
+noarch x86_64 >"$tmpdir/x86_64.noarch"
 (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ) ||
 	Fatal 'different set of noarch packages'
 
@@ -79,12 +79,41 @@ while read -r rpm; do
 		Fatal 'noarch packages mismatch'
 done <$tmpdir/i586.noarch
 
+check_release_name()
+{
+	local r="$1"; shift
+
+	case "$GB_REPO_NAME" in
+		sisyphus)
+			[ -n "${r##*.M50*}" ] ||
+				Fatal "release name $r contains 5.0-specific suffix"
+			;;
+		5.0)
+			[ -z "${r##*.M50.*}" ] ||
+				Fatal "release name $r does not contain 5.0-specific suffix"
+			;;
+	esac
+}
+
 for arch in i586 x86_64; do
 	sisyphus_check $arch/srpm $arch/rpms ||
 		Fatal 'sisyphus_check FAILED'
 
-	# additional changelog name check for built packages
+	# additional checks for built packages
 	[ -n "$built" ] || continue
+
+	# check changelog name
 	find "$arch/" -type f -name '*.rpm' -execdir check-rpm-changelogname "$userid" '{}' '+' ||
 		Fatal 'changelog name check FAILED'
+
+	# check release name
+	qsrc "$arch/srpm/" >"$tmpdir/new.src"
+	while read N EVR F; do
+		check_release_name "${EVR##*-}"
+	done <"$tmpdir/new.src"
+
+	qbin "$arch/rpms/" >"$tmpdir/new.bin"
+	while read N EVR A F src-F; do
+		check_release_name "${EVR##*-}"
+	done <"$tmpdir/new.src"
 done
