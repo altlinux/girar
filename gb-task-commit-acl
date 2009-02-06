@@ -24,11 +24,20 @@ join -v1 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/add
 join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 
 while read -r N EVR F; do
+	s="$(findsrc "$F")"
 	i="$(srpm2i "$F")"
 	u="$(cat gears/$i/userid)"
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" ||
+	p="$(rpmquery -p --qf '%{packager}' -- "$s")"
+	o=
+	if [ -z "${p##*@packages.*>}" ]; then
+		g="${p%@packages.*>}"; g="${g##*<}"
+		if [ -n "$g" ] && [ -n "$(girar-acl-show "$GB_REPO_NAME" "@$g")" ]; then
+			o="@$g"
+		fi
+	fi
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o ||
 		continue
-	stamp_echo >&2 "ACL for new project \"$N\" assigned to user \"$u\""
+	stamp_echo >&2 "ACL for new project \"$N\" assigned to user \"$u\"${o:+ and group \"$g\"}"
 done <"$tmpdir"/add
 
 while read -r N EVR F; do
