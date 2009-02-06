@@ -5,15 +5,6 @@
 # Check that the plan is consitent with respect to package versioning:
 # when replacing packages, versions must increase.
 
-vercheck()
-{
-	local EVR1="${1:?}" EVR2="${2:?}"
-	# add zero epoch if EVRn does not have epoch
-	[ -z "${EVR1##*:*}" ] || EVR1="0:$EVR1"
-	[ -z "${EVR2##*:*}" ] || EVR2="0:$EVR2"
-	[ "$(rpmevrcmp "$EVR1" "$EVR2")" = -1 ] || return 1
-}
-
 . gb-sh-tmpdir
 
 rc=0
