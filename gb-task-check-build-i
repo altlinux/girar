@@ -4,11 +4,15 @@
 
 i="$1"; shift
 
+built=
+userid="$(cat "gears/$i/userid")"
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"
 	I="${dir##*/} $(cat "gears/$i/tag_name")"
+	built=1
 elif [ -s "gears/$i/srpm" ]; then
 	I="$(cat "gears/$i/srpm")"
+	built=1
 elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
 	I="$(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
 else
@@ -76,5 +80,11 @@ while read -r rpm; do
 done <$tmpdir/i586.noarch
 
 for arch in i586 x86_64; do
-	sisyphus_check $arch/srpm $arch/rpms
+	sisyphus_check $arch/srpm $arch/rpms ||
+		Fatal 'sisyphus_check FAILED'
+
+	# additional changelog name check for built packages
+	[ -n "$built" ] || continue
+	find "$arch/" -type f -name '*.rpm' -execdir check-rpm-changelogname "$userid" '{}' '+' ||
+		Fatal 'changelog name check FAILED'
 done
