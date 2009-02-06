@@ -10,7 +10,7 @@ for i in $(copy_nums); do
 	repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
 	cd "$tmpdir"
 	make_repo_table "$repo"
-	cd ->/dev/null
+	cd - >/dev/null
 	join -t$'\t' -o '1.3 1.6 1.7' -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
 	sort -u -o "$tmpdir/copy"{,}
 	if [ ! -s "$tmpdir/copy" ]; then
