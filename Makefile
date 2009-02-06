@@ -62,6 +62,7 @@ bin_TARGETS = \
 	${bin_auto_TARGETS} \
 	bin/find-subscribers \
 	bin/girar-acl \
+	bin/girar-acl-show \
 	bin/girar-build \
 	bin/girar-charset \
 	bin/girar-check-acl-leader \

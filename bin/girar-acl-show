@@ -1,0 +1,42 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+. shell-args
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <binary package repository name> {<package>|@<group>}"
+	exit 1
+}
+
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 2 ] ||
+	usage 'Too many arguments.'
+
+repository="$1"; shift
+item="$1"; shift
+
+cd "$HOME"
+
+# Fail if no non-empty repository list available.
+[ -s "$GIRAR_REPOSITORIES" ] ||
+	fatal 'Sorry, list of available repositories is not available'
+
+# Fail if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
+
+# Normalize binary repository name.
+repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
+
+[ "${item#@}" = "$item" ] &&
+	t=packages ||
+	t=groups
+qitem="$(quote_sed_regexp "$item")"
+
+[ -s "$GIRAR_ACL_CONF_DIR/list.$t.$repository" ] ||
+	fatal "$t file for repository \`$repository' is not available"
+sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
