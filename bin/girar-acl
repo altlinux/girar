@@ -15,7 +15,7 @@ case "${1-}" in
 	--help)
 	        cat <<EOF
 Usage: $PROG --list
-   or: $PROG <repository> [{<package>|@<group>} {check|show}
+   or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository> <package> nmu show
    or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
