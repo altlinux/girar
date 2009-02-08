@@ -107,7 +107,7 @@ girar_commit()
 		girar_commit_git
 	elif [ -s "gears/$i/srpm" ]; then
 		# build from srpm
-		set_GIT_DIR "$GB_ARCHIVE_DIR" "$N"
+		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
 		girar_commit_srpm
 	elif [ -s "gears/$i/copy_repo" ]; then
 		# copy from another branch
