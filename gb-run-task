@@ -15,20 +15,61 @@ builtin lockf -v .
 seq=$(cat task/seq)
 [ -n "$seq" ] && [ "$(($seq%3))" -eq 1 ] ||
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
+repo="$(cat task/repo)"
 
 show_task()
 {
-	for i in $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n); do
+	local mono=
+	set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
+	case $# in
+		0)
+			echo empty task
+			echo empty >task/summary
+			exit 1
+			;;
+		1)
+			echo '1 package' >task/summary
+			mono=1
+			;;
+		*)
+			echo "$# packages" >task/summary
+			;;
+	esac
+	for i; do
 		printf '#%d ' "$i"
 		if [ -s "gears/$i/dir" ]; then
-			printf 'build %s from %s' "$(cat "gears/$i/tag_name")" "$(cat "gears/$i/dir")"
+			local dir tag
+			dir="$(cat "gears/$i/dir")"
+			tag="$(cat "gears/$i/tag_name")"
+			printf 'build %s from %s' "$tag" "$dir"
+			if [ -n "$mono" ]; then
+				mono=
+				printf '%s=%s\n' "${dir##*/}" "$tag" >task/summary
+			fi
+
 		elif [ -s "gears/$i/srpm" ]; then
-			printf 'build %s' "$(cat "gears/$i/srpm")"
+			local srpm
+			srpm="$(cat "gears/$i/srpm")"
+			printf 'build %s' "$srpm"
+			if [ -n "$mono" ]; then
+				mono=
+				printf '%s\n' "$srpm" >task/summary
+			fi
 		elif [ -s "gears/$i/package" ]; then
+			local package
+			package="$(cat "gears/$i/package")"
 			if [ -s "gears/$i/copy_repo" ]; then
-				printf 'copy %s from %s' "$(cat "gears/$i/package")" "$(cat "gears/$i/copy_repo")"
+				printf 'copy %s from %s' "$package" "$(cat "gears/$i/copy_repo")"
+				if [ -n "$mono" ]; then
+					mono=
+					echo "copy=$package" >task/summary
+				fi
 			else
-				printf 'delete %s' "$(cat "gears/$i/package")"
+				printf 'delete %s' "$package"
+				if [ -n "$mono" ]; then
+					mono=
+					echo "del=$package" >task/summary
+				fi
 			fi
 		else
 			echo unrecognized
@@ -41,7 +82,7 @@ show_task()
 (
 	exec >>task/log 2>&1
 	[ -s task/log ] && text=resumed || text=started
-	stamp_echo "task #$id $text:"
+	stamp_echo "task #$id for $repo $text:"
 	show_task
 	set -x
 	gb-task-pkgtar
@@ -70,12 +111,17 @@ show_task()
 rc=$?
 echo "$rc" >task/rc
 [ "$rc" = 0 ] && text=COMPLETE || text=FAILED
-stamp_echo >>task/log "task #$id $text"
+stamp_echo >>task/log "task #$id for $repo $text"
 
 seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-mutt -x -c "$GB_REPO_EMAIL" -s "[girar-builder] repo=$(cat task/repo) task=$id try=$((1+$seq/3)) $text" -a task/log "git_$(cat task/owner)" </dev/null
+[ "$repo" != sisyphus ] ||
+	repo=
+summary="$(cat task/summary 2>/dev/null ||:)"
+try=$((1+$seq/3))
+[ $try -gt 1 ] || try=
+mutt -x -c "$GB_REPO_EMAIL" -s "[#$id]${repo:+ $repo} $summary $text${try:+ (try $try)}" -a task/log "git_$(cat task/owner)" </dev/null
 
 exit $rc
