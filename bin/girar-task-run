@@ -59,7 +59,7 @@ fi
 mkdir -pm3775 build plan
 
 # create group writable files required for build
-(umask 002; touch task/log task/rc task/seq) || false
+(umask 002; touch task/log task/rc task/seq task/summary) || false
 
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$seq" >task/seq
