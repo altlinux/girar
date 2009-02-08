@@ -17,6 +17,12 @@ seq=$(cat task/seq)
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
 repo="$(cat task/repo)"
 
+# manual completion
+manual=
+if [ -f task/manual ]; then
+	manual=-s
+fi
+
 show_task()
 {
 	local mono=
@@ -84,14 +90,18 @@ show_task()
 	[ -s task/log ] && text=resumed || text=started
 	stamp_echo "task #$id for $repo $text:"
 	show_task
+
+	# Prepare changes
 	set -x
 	gb-task-pkgtar
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	# Actually, only shared lock is required for build and checks,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v "$GB_REPO_DIR"
+	builtin lockf -v $manual "$GB_REPO_DIR"
 	gb-task-build
 	gb-task-copy-packages
+
+	# Test changes
 	gb-task-check-build
 	gb-task-repo-plan
 	gb-task-repo-vercheck
@@ -100,8 +110,13 @@ show_task()
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v "$GB_GEARS_DIR"
+	builtin lockf -v $manual "$GB_GEARS_DIR"
 	gb-task-check-girar
+
+	[ -z "$manual" ] ||
+		exit 0
+
+	# Apply changes
 	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
@@ -110,7 +125,13 @@ show_task()
 
 rc=$?
 echo "$rc" >task/rc
-[ "$rc" = 0 ] && text=COMPLETE || text=FAILED
+if [ "$rc" = 0 ]; then
+	[ -z "$manual" ] &&
+		text=COMPLETE ||
+		text=TESTED
+else
+	text=FAILED
+fi
 stamp_echo >>task/log "task #$id for $repo $text"
 
 seq=$(cat task/seq)
