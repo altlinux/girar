@@ -83,7 +83,6 @@ show_summary()
 	show_task
 
 	# Prepare changes
-	set -x
 	gb-task-pkgtar
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	# Actually, only shared lock is required for build and checks,
