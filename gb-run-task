@@ -34,7 +34,7 @@ show_task()
 	for i; do
 		printf '#%d ' "$i"
 		if [ -s "gears/$i/dir" ]; then
-			printf 'build %s from %s' "$(cat "gears/$i/dir")" "$(cat "gears/$i/tag_name")"
+			printf 'build %s from %s' "$(cat "gears/$i/tag_name")" "$(cat "gears/$i/dir")"
 
 		elif [ -s "gears/$i/srpm" ]; then
 			printf 'build %s' "$(cat "gears/$i/srpm")"
