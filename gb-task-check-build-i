@@ -90,29 +90,16 @@ done
 check_release_name()
 {
 	local r="$1"; shift
+	local s
 
-	case "$GB_REPO_NAME" in
-		sisyphus)
-			[ -n "${r##*.M50*}" ] ||
-				Fatal "release name $r contains 5.0-specific suffix"
-			[ -n "${r##*.M41*}" ] ||
-				Fatal "release name $r contains 4.1-specific suffix"
-			[ -n "${r##*.M40*}" ] ||
-				Fatal "release name $r contains 4.0-specific suffix"
-			;;
-		5.0)
-			[ -z "${r##*.M50.*}" ] ||
-				Fatal "release name $r does not contain 5.0-specific suffix"
-			;;
-		4.1)
-			[ -z "${r##*.M41.*}" ] ||
-				Fatal "release name $r does not contain 4.1-specific suffix"
-			;;
-		4.0)
-			[ -z "${r##*.M40.*}" ] ||
-				Fatal "release name $r does not contain 4.0-specific suffix"
-			;;
-	esac
+	for s in $GB_REPO_REL_SUFF_MUST_NOT; do
+		[ -n "${r##$s}" ] ||
+			Fatal "release name $r contains $s suffix"
+	done
+	for s in $GB_REPO_REL_SUFF_MUST_HAVE; do
+		[ -z "${r##$s}" ] ||
+			Fatal "release name $r does not contain $s suffix"
+	done
 }
 
 check_nevr()

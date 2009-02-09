@@ -3,7 +3,7 @@ Define task directory structure.
 # When the task is first created.
 TASK_ID/task/id			TASK_ID==id
 TASK_ID/task/owner		GIRAR_USER
-TASK_ID/task/repo		Sisyphus or 5.0
+TASK_ID/task/repo		4.0, 4.1, 5.0 or Sisyphus
 
 # Task processing files
 TASK_ID/task/seq		task status
