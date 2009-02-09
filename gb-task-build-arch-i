@@ -5,7 +5,6 @@
 arch="$1" i="$2"; shift 2
 
 . gb-sh-functions
-. gb-sh-conf
 
 userid="$(cat gears/$i/userid)"
 if [ -s "gears/$i/dir" ]; then

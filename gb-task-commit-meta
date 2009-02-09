@@ -1,7 +1,6 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
-. gb-sh-conf
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the $GB_META_DIR

@@ -3,7 +3,6 @@
 trap - HUP INT QUIT PIPE TERM
 
 . gb-sh-functions
-. gb-sh-conf
 
 id="$1"; shift
 

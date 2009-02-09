@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. gb-sh-conf
+
 oneliner()
 {
 	printf %s "$*" |tr -s '[:space:]' ' '

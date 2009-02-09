@@ -1,7 +1,6 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
-. gb-sh-conf
 
 rc=
 for host in $GB_REPO_MIRRORS; do

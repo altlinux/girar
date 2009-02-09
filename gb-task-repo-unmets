@@ -7,8 +7,6 @@ repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
 rm -rf "$repo"
 mkdir "$repo"
 
-. gb-sh-conf
-
 # symlinked repository clone
 cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 

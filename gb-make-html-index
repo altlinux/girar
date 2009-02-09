@@ -1,7 +1,6 @@
 #!/bin/sh -e
 
 . gb-sh-functions
-. gb-sh-conf
 
 template="$GB_HOME/template"
 
