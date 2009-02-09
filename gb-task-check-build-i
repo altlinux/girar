@@ -1,6 +1,7 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+. gb-sh-conf
 
 i="$1"; shift
 
@@ -79,18 +80,13 @@ while read -r rpm; do
 		Fatal 'noarch packages mismatch'
 done <$tmpdir/i586.noarch
 
-cmp_repo=
-case "$GB_REPO_NAME" in
-	sisyphus) cmp_repo=5.0 ;;
-	5.0) cmp_repo=sisyphus ;;
-esac
-if [ -n "$cmp_repo" ]; then
+for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
-	make_repo_table "$cmp_repo" repo
-	sort -k1,1 -o repo.src{,}
-	sort -k1,1 -o repo.bin{,}
+	make_repo_table $r
+	sort -k1,1 -o $r.src{,}
+	sort -k1,1 -o $r.bin{,}
 	cd - >/dev/null
-fi
+done
 
 check_release_name()
 {
@@ -100,34 +96,47 @@ check_release_name()
 		sisyphus)
 			[ -n "${r##*.M50*}" ] ||
 				Fatal "release name $r contains 5.0-specific suffix"
+			[ -n "${r##*.M41*}" ] ||
+				Fatal "release name $r contains 4.1-specific suffix"
+			[ -n "${r##*.M40*}" ] ||
+				Fatal "release name $r contains 4.0-specific suffix"
 			;;
 		5.0)
 			[ -z "${r##*.M50.*}" ] ||
 				Fatal "release name $r does not contain 5.0-specific suffix"
+			;;
+		4.1)
+			[ -z "${r##*.M41.*}" ] ||
+				Fatal "release name $r does not contain 4.1-specific suffix"
+			;;
+		4.0)
+			[ -z "${r##*.M40.*}" ] ||
+				Fatal "release name $r does not contain 4.0-specific suffix"
 			;;
 	esac
 }
 
 check_nevr()
 {
-	local f="$1"; shift
+	local t="$1"; shift
 	local n="$1"; shift
 	local evr="$1"; shift
 	local evr0
 
-	printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$f" |sort -u >"$tmpdir/evr"
-	while read evr0; do
-		case "$GB_REPO_NAME" in
-			sisyphus)
-				vercheck "$evr0" "$evr" ||
-					Fatal "package $n-$evr is not newer than \"$cmp_repo\" package $n-$evr0"
-				;;
-			5.0)
-				vercheck "$evr" "$evr0" ||
-					Fatal "package $n-$evr is not older than \"$cmp_repo\" package $n-$evr0"
-				;;
-		esac
-	done <"$tmpdir/evr"
+	if [ -n "$GB_REPO_UP_NAME" ]; then
+		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_UP_NAME.$t" |sort -u >"$tmpdir/evr"
+		while read evr0; do
+			vercheck "$evr" "$evr0" ||
+				Fatal "package $n-$evr is not older than \`$cmp_repo' package $n-$evr0"
+		done <"$tmpdir/evr"
+	fi
+	if [ -n "$GB_REPO_DOWN_NAME" ]; then
+		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_DOWN_NAME.$t" |sort -u >"$tmpdir/evr"
+		while read evr0; do
+			vercheck "$evr0" "$evr" ||
+				Fatal "package $n-$evr is not newer than \`$cmp_repo' package $n-$evr0"
+		done <"$tmpdir/evr"
+	fi
 }
 
 for arch in i586 x86_64; do
@@ -145,12 +154,12 @@ for arch in i586 x86_64; do
 	qsrc "$arch/srpm/" >"$tmpdir/new.src"
 	while read N EVR F; do
 		check_release_name "${EVR##*-}"
-		check_nevr "$tmpdir/repo.src" "$N" "$EVR"
+		check_nevr src "$N" "$EVR"
 	done <"$tmpdir/new.src"
 
 	qbin "$arch/rpms/" >"$tmpdir/new.bin"
 	while read N EVR A F src_F; do
 		check_release_name "${EVR##*-}"
-		check_nevr "$tmpdir/repo.bin" "$N" "$EVR"
+		check_nevr bin "$N" "$EVR"
 	done <"$tmpdir/new.src"
 done
