@@ -22,64 +22,11 @@ if [ -f task/manual ]; then
 	manual=-s
 fi
 
-show_task()
-{
-	set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
-	if [ $# -eq 0 ]; then
-		echo empty task
-		exit 1
-	fi
-	local i
-	for i; do
-		printf '#%d ' "$i"
-		if [ -s "gears/$i/dir" ]; then
-			printf 'build %s from %s' "$(cat "gears/$i/tag_name")" "$(cat "gears/$i/dir")"
-
-		elif [ -s "gears/$i/srpm" ]; then
-			printf 'build %s' "$(cat "gears/$i/srpm")"
-		elif [ -s "gears/$i/package" ]; then
-			local package
-			package="$(cat "gears/$i/package")"
-			if [ -s "gears/$i/copy_repo" ]; then
-				printf 'copy %s from %s' "$package" "$(cat "gears/$i/copy_repo")"
-			else
-				printf 'delete %s' "$package"
-			fi
-		else
-			printf %s removed
-		fi
-		echo
-	done
-}
-
-show_summary()
-{
-	set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
-	local i
-	for i; do
-		if [ -s "gears/$i/dir" ]; then
-			local dir tag_name
-			dir="$(cat "gears/$i/dir")"
-			tag_name="$(cat "gears/$i/tag_name")"
-			printf ' %s=%s' "${dir##*/}" "$tag_name"
-		elif [ -s "gears/$i/srpm" ]; then
-			printf ' srpm=%s' "$(cat "gears/$i/srpm")"
-		elif [ -s "gears/$i/package" ]; then
-			local action package
-			[ -s "gears/$i/copy_repo" ] &&
-				action=copy ||
-				action=del
-			package="$(cat "gears/$i/package")"
-			printf ' %s=%s' "$action" "$package"
-		fi
-	done
-}
-
 (
 	exec >>task/log 2>&1
 	[ -s task/log ] && text=resumed || text=started
 	stamp_echo "task #$id for $repo $text:"
-	show_task
+	gb-task-show
 
 	# Prepare changes
 	gb-task-pkgtar
@@ -129,12 +76,15 @@ echo "$seq" >task/seq
 
 [ "$repo" != sisyphus ] ||
 	repo=
-summary="$(show_summary)"
+gb-task-set-summary
+summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
 
 try=$((1+$seq/3))
 [ $try -gt 1 ] || try=
 
-mutt -x -c "$GB_REPO_EMAIL" -s "[#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary" -a task/log "git_$(cat task/owner)" </dev/null
+subj="[#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary"
+
+mutt -x -c "$GB_REPO_EMAIL" -s "$subj" -a task/log "git_$(cat task/owner)" </dev/null
 
 exit $rc

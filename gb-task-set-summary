@@ -1,0 +1,18 @@
+#!/bin/sh -efu
+
+set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
+for i; do
+	if [ -s "gears/$i/dir" ]; then
+		dir="$(cat "gears/$i/dir")"
+		tag_name="$(cat "gears/$i/tag_name")"
+		printf ' %s=%s' "${dir##*/}" "$tag_name"
+	elif [ -s "gears/$i/srpm" ]; then
+		printf ' srpm=%s' "$(cat "gears/$i/srpm")"
+	elif [ -s "gears/$i/package" ]; then
+		[ -s "gears/$i/copy_repo" ] &&
+			action=copy ||
+			action=del
+		package="$(cat "gears/$i/package")"
+		printf ' %s=%s' "$action" "$package"
+	fi
+done >task/summary
