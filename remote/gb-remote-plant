@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+rpmargs="$1"; shift
 dir="$1"; shift
 arch="$1"; shift
 
@@ -36,7 +37,7 @@ apt_config="\$workdir/apt.conf"
 def_target="$arch"
 nprocs=1
 known_mountpoints=/proc
-rpmargs="--define '_binary_payload w5.lzdio' --define '_source_payload w7.lzdio'"
+rpmargs="$rpmargs"
 EOF
 
 # recreate apt config files

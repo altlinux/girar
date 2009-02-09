@@ -7,8 +7,12 @@ arch="$1"; shift
 . gb-sh-functions
 
 # Prepare remote node to build $arch packages for $GB_REPO_NAME repository.
+rsync -a "$GB_HOME/remote/" "$remote_host:"
 ssh "$remote_host" ./gb-remote-plant \
-	"\"$(quote_shell "$GB_REPO_DIR")\"" "\"$(quote_shell "$arch")\""
+	"\"$(quote_shell "$GB_REPO_RPMARGS")\"" \
+	"\"$(quote_shell "$GB_REPO_DIR")\"" \
+	"\"$(quote_shell "$arch")\"" \
+	#
 
 for i in $(src_nums); do
 	$0-i "$arch" "$i"
