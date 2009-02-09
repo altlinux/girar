@@ -113,14 +113,14 @@ check_nevr()
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_UP_NAME.$t" |sort -u >"$tmpdir/evr"
 		while read evr0; do
 			vercheck "$evr" "$evr0" ||
-				Fatal "package $n-$evr is not older than \`$cmp_repo' package $n-$evr0"
+				Fatal "package $n-$evr is not older than \`$GB_REPO_UP_NAME' package $n-$evr0"
 		done <"$tmpdir/evr"
 	fi
 	if [ -n "$GB_REPO_DOWN_NAME" ]; then
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_DOWN_NAME.$t" |sort -u >"$tmpdir/evr"
 		while read evr0; do
 			vercheck "$evr0" "$evr" ||
-				Fatal "package $n-$evr is not newer than \`$cmp_repo' package $n-$evr0"
+				Fatal "package $n-$evr is not newer than \`$GB_REPO_DOWN_NAME' package $n-$evr0"
 		done <"$tmpdir/evr"
 	fi
 }
