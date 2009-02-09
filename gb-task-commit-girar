@@ -28,7 +28,7 @@ girar_commit_git()
 		# update gear
 		git_fetch "gears/$i/git" tag "$tag_name"
 		git branch -f "$GB_REPO_NAME" "refs/tags/$tag_name"
-		stamp_echo >&2 "updated $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "updated $GIT_DIR branch \`$GB_REPO_NAME'"
 	else
 		# first time push
 		mkdir -p -- "$GIT_DIR"
@@ -37,7 +37,7 @@ girar_commit_git()
 		git branch "$GB_REPO_NAME" "refs/tags/$tag_name"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
-		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
 	git repack -q -a -d
 	update_git_timestamp
@@ -59,7 +59,7 @@ girar_commit_srpm()
 
 		export GIT_DIR
 		git_fetch -u "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
-		stamp_echo >&2 "updated $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "updated $GIT_DIR branch \`$GB_REPO_NAME'"
 	else
 		# first time push
 		export -n GIT_DIR
@@ -75,7 +75,7 @@ girar_commit_srpm()
 		git_fetch -u "$tmp_repo/.git" "refs/heads/$GB_REPO_NAME:refs/heads/$GB_REPO_NAME"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
-		stamp_echo >&2 "created $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
 	rm -rf -- "$tmp_repo"
 	git repack -q -a -d
@@ -90,7 +90,7 @@ girar_commit_copy()
 		git rev-parse --verify "refs/heads/$GB_REPO_NAME" >/dev/null 2>&1 &&
 			text=updated || text=created
 		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
-		stamp_echo >&2 "$text $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
 		update_git_timestamp
 	fi
 }
@@ -127,7 +127,7 @@ girar_obsolete()
 		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
 		git branch -D "$GB_REPO_NAME"
 		update_git_timestamp
-		stamp_echo >&2 "removed $GIT_DIR branch \"$GB_REPO_NAME\""
+		stamp_echo >&2 "removed $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
 }
 

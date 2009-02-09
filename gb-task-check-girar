@@ -25,21 +25,21 @@ girar_check_git()
 	tag_name="$(cat "gears/$i/tag_name")"
 	if old_tag_id=$(git rev-parse --verify "tags/$tag_name" 2>/dev/null); then
 		[ "$old_tag_id" = "$new_tag_id" ] ||
-			{ fail "$GIT_DIR already contains different tag \"$tag_name\""; return; }
+			{ fail "$GIT_DIR already contains different tag \`$tag_name'"; return; }
 	fi
 
 	local dir new_commit_id
 	dir="$(cat "gears/$i/dir")"
 	new_commit_id="$(git --git-dir="gears/$i/git" rev-parse --verify "tags/$tag_name^{commit}")"
 	[ "$old_commit_id" != "$new_commit_id" ] ||
-		{ fail "${dir##*/} tag \"$tag_name\" refers to the same commit as $GIT_DIR branch \"$GB_REPO_NAME\""; return; }
+		{ fail "${dir##*/} tag \`$tag_name' refers to the same commit as $GIT_DIR branch \`$GB_REPO_NAME'"; return; }
 	check_inheritance "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
-		fail "${dir##*/} tag \"$tag_name\" is not inherited from $GIT_DIR branch \"$GB_REPO_NAME\""
+		fail "${dir##*/} tag \`$tag_name' is not inherited from $GIT_DIR branch \`$GB_REPO_NAME'"
 }
 
 girar_check_srpm()
 {
-	fail "$GIT_DIR already contains \"$GB_REPO_NAME\" branch"
+	fail "$GIT_DIR already contains \`$GB_REPO_NAME' branch"
 }
 
 girar_check_copy()
@@ -47,11 +47,11 @@ girar_check_copy()
 	local copy_repo copy_commit_id
 	copy_repo="$(cat gears/$i/copy_repo)"
 	if ! copy_commit_id="$(git rev-parse --verify "heads/$copy_repo^{commit}" 2>/dev/null)"; then
-		fail "$GIT_DIR already contains \"$GB_REPO_NAME\" branch, but does not contain \"$copy_repo\" branch"
+		fail "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
 		return
 	fi
 	check_inheritance "$copy_commit_id" "$old_commit_id" ||
-		fail "$GIT_DIR branch \"$copy_repo\" is not inherited from branch \"$GB_REPO_NAME\""
+		fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
 }
 
 girar_check()

@@ -13,7 +13,7 @@ for i in $(copy_nums); do
 	join -t$'\t' -o '1.3 1.6 1.7' -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
 	sort -u -o "$tmpdir/copy"{,}
 	if [ ! -s "$tmpdir/copy" ]; then
-		stamp_echo >&2 "FAILED to copy a non-existent package \"$(cat "gears/$i/package")\" from \"$repo\""
+		stamp_echo >&2 "FAILED to copy a non-existent package \`$(cat "gears/$i/package")' from \`$repo'"
 		exit 1
 	fi
 	while read -r S A B; do
@@ -29,7 +29,7 @@ for i in $(copy_nums); do
 			cp -v -l "$f" "build/$i/$arch/rpms/" >>"build/$i/$arch/log" 2>&1
 		done
 	done <"$tmpdir/copy"
-	stamp_echo >&2 "copy from \"$repo\": $(join -t$'\t' -o 1.3 -- "$tmpdir/$repo" "gears/$i/package" |sort -u)"
+	stamp_echo >&2 "copy from \`$repo': $(join -t$'\t' -o 1.3 -- "$tmpdir/$repo" "gears/$i/package" |sort -u)"
 done
 
 stamp_echo >&2 'copy OK'

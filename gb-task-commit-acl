@@ -12,7 +12,7 @@ while read -r N EVR F; do
 		continue
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" ||
 		continue
-	stamp_echo >&2 "ACL for orphaned project \"$N\" assigned to user \"$u\""
+	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
 done <plan/add-src
 
 . gb-sh-tmpdir
@@ -36,12 +36,12 @@ while read -r N EVR F; do
 	fi
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o ||
 		continue
-	stamp_echo >&2 "ACL for new project \"$N\" assigned to user \"$u\"${o:+ and group \"$g\"}"
+	stamp_echo >&2 "ACL for new project \`$N' assigned to user \`$u'${o:+ and group \`$g'}"
 done <"$tmpdir"/add
 
 while read -r N EVR F; do
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" delete ||
 		continue
-	stamp_echo >&2 "ACL for old project \"$N\" removed"
+	stamp_echo >&2 "ACL for old project \`$N' removed"
 done <"$tmpdir"/rm
 
