@@ -1,0 +1,78 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task delsub'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <task_id> <subtask_number>"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 2 ]; then
+	usage 'Too many arguments.'
+fi
+
+if [ "$#" -lt 2 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+num="$1"; shift
+
+enable -f /usr/lib/bash/lockf lockf
+cd "$GB_TASKS/$id"
+# obtain an exclusive lock on the TASKS structure
+builtin lockf -n . ||
+	fatal "task #$id is locked"
+
+[ -w gears ] ||
+	fatal 'gears: Permission denied'
+
+seq=
+if [ -f task/seq ]; then
+	seq=$(cat task/seq)
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) ;;
+		# work in progress
+		1) fatal "task #$id is a work in progress" ;;
+		# have build results
+		2)
+		if [ 0 = "$(cat task/rc)" ]; then
+			fatal "task #$id is already successfully processed"
+		fi ;;
+	esac
+fi
+
+nums()
+{
+	set +f
+	cd acl 2>/dev/null &&
+	ls -d [1-9]* 2>/dev/null |cut -d/ -f1 |sort -n ||:
+}
+
+set -- $(nums)
+for i; do
+	[ "$i" = "$num" ] || continue
+	[ $# -gt 1 ] ||
+		fatal "task #$id: cannot remove the sole subtask"
+	trap '' HUP INT QUIT PIPE TERM
+	rm -rf acl/$i build/$i
+	# del/copy
+	rm -f gears/$i/package gears/$i/copy_repo
+	# srpm
+	rm -f gears/$i/srpm
+	# gear
+	rm -f gears/$i/dir gears/$i/tag_name gears/$i/tag_id gears/$i/tag_author
+	rm -rf gears/$i/git
+	trap - HUP INT QUIT PIPE TERM
+	echo >&2 "task #$id: removed subtask #$i"
+	exit
+done
+fatal "task #$id: subtask #$num not found"

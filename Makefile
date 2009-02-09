@@ -81,6 +81,7 @@ bin_TARGETS = \
 	bin/girar-task \
 	bin/girar-task-add \
 	bin/girar-task-approve \
+	bin/girar-task-delsub \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \
 	bin/girar-task-new \
