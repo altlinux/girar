@@ -113,14 +113,14 @@ check_nevr()
 
 	for r in $GB_REPO_UP_NAME; do
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
-		while read evr0; do
+		while read -r evr0; do
 			vercheck "$evr" "$evr0" ||
 				Fatal "package $n-$evr is not older than \`$r' package $n-$evr0"
 		done <"$tmpdir/evr"
 	done
 	for r in $GB_REPO_DOWN_NAME; do
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
-		while read evr0; do
+		while read -r evr0; do
 			vercheck "$evr0" "$evr" ||
 				Fatal "package $n-$evr is not newer than \`$r' package $n-$evr0"
 		done <"$tmpdir/evr"
@@ -128,8 +128,13 @@ check_nevr()
 }
 
 for arch in i586 x86_64; do
-	sisyphus_check $arch/srpm $arch/rpms ||
-		Fatal 'sisyphus_check FAILED'
+	for d in $arch/srpm $arch/rpms; do
+		if [ ! -d "$d" -a -s "$arch/excluded" ]; then
+			continue
+		fi
+		sisyphus_check "$d" ||
+			Fatal 'sisyphus_check FAILED'
+	done
 
 	# additional checks for built packages
 	[ -n "$built" ] || continue
@@ -139,15 +144,19 @@ for arch in i586 x86_64; do
 		Fatal 'changelog name check FAILED'
 
 	# check release name
-	qsrc "$arch/srpm/" >"$tmpdir/new.src"
-	while read N EVR F; do
-		check_release_name "${EVR##*-}"
-		check_nevr src "$N" "$EVR"
-	done <"$tmpdir/new.src"
+	if [ -d "$arch/srpm" -o ! -s "$arch/excluded" ]; then
+		qsrc "$arch/srpm/" >"$tmpdir/new.src"
+		while read -r N EVR F; do
+			check_release_name "${EVR##*-}"
+			check_nevr src "$N" "$EVR"
+		done <"$tmpdir/new.src"
+	fi
 
-	qbin "$arch/rpms/" >"$tmpdir/new.bin"
-	while read N EVR A F src_F; do
-		check_release_name "${EVR##*-}"
-		check_nevr bin "$N" "$EVR"
-	done <"$tmpdir/new.src"
+	if [ -d "$arch/rpms" -o ! -s "$arch/excluded" ]; then
+		qbin "$arch/rpms/" >"$tmpdir/new.bin"
+		while read -r N EVR A F src_F; do
+			check_release_name "${EVR##*-}"
+			check_nevr bin "$N" "$EVR"
+		done <"$tmpdir/new.src"
+	fi
 done
