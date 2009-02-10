@@ -12,70 +12,67 @@ stamp_echo()
 	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $(oneliner "$*")"
 }
 
+userid_nums()
+{
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/userid' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
+}
+
 gear_nums()
 {
-	set +f
-	cd gears &&
-	ls -d [1-9]*/dir 2>/dev/null |cut -d/ -f1 |sort -n
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/dir' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
 }
 
 src_nums()
 {
-	set +f
-	cd gears &&
-	ls -d [1-9]*/dir [1-9]*/srpm 2>/dev/null |cut -d/ -f1 |sort -n
+	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-9]*/dir' -or -path 'gears/[1-9]*/srpm' \) -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
 }
 
 package_nums()
 {
-	set +f
-	cd gears &&
-	ls -d [1-9]*/package 2>/dev/null |cut -d/ -f1 |sort -n
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/package' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
 }
 
 copy_nums()
 {
-	set +f
-	cd gears &&
-	ls -d [1-9]*/copy_repo 2>/dev/null |cut -d/ -f1 |sort -n
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/copy_repo' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
 }
 
 build_nums()
 {
-	cd build 2>/dev/null || return 0
-	set +f
-	ls -d [1-9]*/*/{srpm,rpms} 2>/dev/null |cut -d/ -f1 |sort -nu
+	find build -mindepth 3 -maxdepth 3 \( -path 'build/[1-9]*/*/srpm' -or -path 'build/[1-9]*/*/rpms' \) -type d 2>/dev/null |
+		cut -d/ -f2 |sort -nu
 }
 
 srpm2i()
 {
 	local f="$1"; shift
-	cd build
-	set +f
-	set -- [1-9]*/*/srpm/"$f"
-	set -f
-	if ! [ -f "$1" ]; then
-		echo " *** cannot find $f in build/*/*/srpm/"
+	local i
+	i="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-9]*/*/srpm/$f" -type f |
+		cut -d/ -f2 |sort -nu)"
+	if [ ! -d "build/$i" ]; then
+		echo >&2 " *** cannot find $f in build/[1-9]*/*/srpm/"
 		return 1
-	fi >&2
-	local IFS=/
-	set -- $1
-	echo "$1"
+	fi
+	echo "$i"
 }
 
 findrpm()
 {
-	local dir="$1" f="$2"; shift 2
-	set +f
-	set -- build/*/*/"$dir"/"$f"
-	set -f
-	if [ -f "$1" ]; then
-		echo "$1"
-		return
-	else
-		echo >&2 " *** cannot find $f in build/*/*/$dir/"
+	local dir="$1"; shift
+	local f="$1"; shift
+	local p
+	p="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-9]*/*/$dir/$f" -type f |
+		sort -u |head -n1)"
+	if [ ! -f "$p" ]; then
+		echo >&2 " *** cannot find $f in build/[1-9]*/*/$dir/"
 		return 1
 	fi
+	echo "$p"
 }
 
 findbin()

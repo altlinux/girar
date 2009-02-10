@@ -1,6 +1,8 @@
 #!/bin/sh -efu
 
-set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
+. gb-sh-functions
+
+set -- $(userid_nums)
 if [ $# -eq 0 ]; then
 	echo empty task
 	exit 1

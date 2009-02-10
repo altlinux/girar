@@ -6,9 +6,9 @@ cd "$GB_TASKS_DIR"
 
 repo_tasks()
 {
-	set +f
-	fgrep -l -i -x "$GB_REPO_NAME" [1-9]*/task/repo |
-	cut -d/ -f1 |sort -n
+	find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/repo' -type f -print0 |
+		xargs -r0 fgrep -i -l -x -e "$GB_REPO_NAME" -- |
+		cut -d/ -f2 |sort -n
 }
 
 enable -f /usr/lib/bash/lockf lockf

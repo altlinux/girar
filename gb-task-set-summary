@@ -1,6 +1,8 @@
 #!/bin/sh -efu
 
-set -- $(set +f; cd gears 2>/dev/null && ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n)
+. gb-sh-functions
+
+set -- $(userid_nums)
 for i; do
 	if [ -s "gears/$i/dir" ]; then
 		dir="$(cat "gears/$i/dir")"
