@@ -102,9 +102,8 @@ set_name()
 
 gear_nums()
 {
-	set +f
-	cd gears 2>/dev/null &&
-	ls [1-9]*/userid 2>/dev/null |cut -d/ -f1 |sort -n ||:
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/userid' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
 }
 
 fi #__included_girar_sh_functions

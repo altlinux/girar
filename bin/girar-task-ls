@@ -78,12 +78,12 @@ ls1()
 	printf '\n'
 }
 
-ids="$(	set +f
-	if [ -z "$ls_all" ]; then
-		fgrep -lx "$GIRAR_USER" [1-9]*/task/owner
+ids="$(if [ -z "$ls_all" ]; then
+		find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f -print0 |
+			xargs -r0 fgrep -lxe "$GIRAR_USER" --
 	else
-		ls -d [1-9]*/task/owner
-	fi 2>/dev/null |cut -d/ -f1 |sort -rn)"
+		find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f
+	fi 2>/dev/null |cut -d/ -f2 |sort -nr)"
 
 if [ -z "$ids" ]; then
 	message "no tasks${ids:- for $GIRAR_USER}"
