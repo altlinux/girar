@@ -6,6 +6,7 @@ arch="$1"; shift
 . gb-sh-tmpdir
 
 for i in $(build_nums); do
+	[ ! -s "build/$i/$arch/excluded" ] || continue
 	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
 		rpmquery --qf '%{name}\n' -p -- '{}' '+'
 done >"$tmpdir"/names
