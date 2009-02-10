@@ -59,6 +59,11 @@ rsync -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
 find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 
+if [ -s "build/$i/$arch/excluded" ]; then
+	stamp_echo >&2 "$I build SKIPPED"
+	exit 0
+fi
+
 if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
 	printf '%s\n' "$out"
 	stamp_echo >&2 "$I rpmsign FAILED"
