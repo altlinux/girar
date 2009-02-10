@@ -61,9 +61,18 @@ mkdir ~/SRPMS
 ln --target-directory ~/SRPMS/ -- "$@"
 EOF
 
+rm -f build/excluded
 setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/"$src" \
 	>build/srpm.log 2>&1 ||
-		{ cat build/srpm.log; Fatal 'cannot build src.rpm'; } >&2
+	{
+		cat build/srpm.log
+		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
+			egrep '^error: Architecture is (excluded|not included): ' \
+				build/srpm.log >build/excluded
+			exit 0
+		fi
+		Fatal 'cannot build src.rpm'
+	} >&2
 
 srpm=$(set +f; echo hasher/chroot/usr/src/SRPMS/*.src.rpm) &&
 	srpm_name=$(rpmquery --qf '%{NAME}' -p "$srpm") ||
