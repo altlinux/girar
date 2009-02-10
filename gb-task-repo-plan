@@ -10,13 +10,17 @@
 
 for i in $(build_nums); do
 	for arch in i586 x86_64; do
-		qsrc build/$i/$arch/srpm/
+		if [ -d "build/$i/$arch/srpm" -o ! -s "build/$i/$arch/excluded" ]; then
+			qsrc build/$i/$arch/srpm/
+		fi
 	done
 done >$tmpdir/new.src
 
 for i in $(build_nums); do
 	for arch in i586 x86_64; do
-		qbin build/$i/$arch/rpms/
+		if [ -d "build/$i/$arch/rpms" -o ! -s "build/$i/$arch/excluded" ]; then
+			qbin build/$i/$arch/rpms/
+		fi
 	done
 done >$tmpdir/new.bin
 
