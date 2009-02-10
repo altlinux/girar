@@ -30,19 +30,23 @@ cd build/$i
 
 check_srpms()
 {
-	set +f
+	local arch f found=
 	for arch in i586 x86_64; do
-		set -- $arch/srpm/*.src.rpm
-		if [ $# -gt 1 ]; then
-			Fatal "multiple $arch source packages:" "$@"
-		fi
-		if [ -f "$1" ]; then
-			echo "${1##*/}"
+		[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
+		f="$(find "$arch/srpm/" -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f -printf '%f\n')"
+		cd "$arch/srpm"
+		if [ -z "$f" ]; then
+			Fatal "no $arch source package"
+		elif [ -f "$f" ]; then
+			printf '%s\n' "$f"
+			found=1
 		else
-			[ -s "$arch/excluded" ] ||
-				Fatal "no $arch source package"
+			Fatal "multiple $arch source packages:" "$f"
 		fi
+		cd - >/dev/null
 	done
+	[ -n "$found" ] ||
+		Fatal "no source package"
 }
 
 srpms=$(check_srpms)
@@ -51,10 +55,25 @@ n=$(echo "$srpms" |sort -u |wc -l)
 [ "$n" -eq 1 ] ||
 	Fatal 'different per-arch srpms:' $srpms
 
+check_brpms()
+{
+	local arch f found=
+	for arch in i586 x86_64; do
+		[ -d "$arch/rpms" -o ! -s "$arch/excluded" ] || continue
+		f="$(find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.rpm' -type f -printf '%f\n')"
+		[ -n "$f" ] ||
+			Fatal "no $arch binary package"
+		found=1
+	done
+	[ -n "$found" ] ||
+		Fatal 'no binary package'
+}
+check_brpms
+
 noarch()
 {
 	local arch="$1"; shift
-	find "$arch/rpms" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
+	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
 }
 
 . gb-sh-tmpdir
