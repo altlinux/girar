@@ -1,0 +1,46 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+seq="$(cat task/seq)"
+repo="$(cat task/repo)"
+rc="$(cat task/rc)"
+if [ "$rc" = 0 ]; then
+	[ -f task/manual ] &&
+		text=TESTED ||
+		text=COMPLETE
+else
+	text=FAILED
+fi
+owner="$(cat task/owner)"
+summary="$(cat task/summary)"
+[ -n "$summary" ] || summary=' empty'
+try="$((1+$seq/3))"
+
+. gb-sh-tmpdir
+
+cat >"$tmpdir/draft" <<__EOF
+To: git_$owner
+Cc: $GB_REPO_EMAIL
+Mail-Followup-To: $USER
+X-girar-task-id: $id
+X-girar-task-owner: $owner
+X-girar-task-repo: $repo
+X-girar-task-try: $try
+X-girar-task-status: $text
+X-girar-task-URL: $GB_SITE$GB_TASKS_DIR/$id/
+__EOF
+
+[ "$repo" != sisyphus ] ||
+	repo=
+
+[ $try -gt 1 ] || try=
+
+cat >>"$tmpdir/draft" <<__EOF
+Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary
+__EOF
+
+mutt -x -H "$tmpdir/draft" -a task/log </dev/null

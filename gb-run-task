@@ -14,7 +14,6 @@ builtin lockf -v .
 seq=$(cat task/seq)
 [ -n "$seq" ] && [ "$(($seq%3))" -eq 1 ] ||
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
-repo="$(cat task/repo)"
 gb-task-set-summary
 
 # manual completion
@@ -26,7 +25,7 @@ fi
 (
 	exec >>task/log 2>&1
 	[ -s task/log ] && text=resumed || text=started
-	stamp_echo "task #$id for $repo $text:"
+	stamp_echo "task #$id for $GB_REPO_NAME $text:"
 	gb-task-show
 
 	# Prepare changes
@@ -69,39 +68,12 @@ if [ "$rc" = 0 ]; then
 else
 	text=FAILED
 fi
-stamp_echo >>task/log "task #$id for $repo $text"
+stamp_echo >>task/log "task #$id for $GB_REPO_NAME $text"
 
 seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-owner="$(cat task/owner)"
-summary="$(cat task/summary)"
-[ -n "$summary" ] || summary=' empty'
-try=$((1+$seq/3))
-
-. gb-sh-tmpdir
-
-cat >"$tmpdir/draft" <<__EOF
-To: git_$owner
-Cc: $GB_REPO_EMAIL
-Mail-Followup-To: $USER
-X-girar-task-id: $id
-X-girar-task-owner: $owner
-X-girar-task-repo: $repo
-X-girar-task-try: $try
-X-girar-task-status: $text
-X-girar-task-URL: http://git.altlinux.org/tasks/$id/
-__EOF
-
-[ "$repo" != sisyphus ] ||
-	repo=
-[ $try -gt 1 ] || try=
-
-cat >>"$tmpdir/draft" <<__EOF
-Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary
-__EOF
-
-mutt -x -H "$tmpdir/draft" -a task/log </dev/null
+gb-task-send-email "$id"
 
 exit $rc
