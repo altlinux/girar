@@ -15,6 +15,7 @@ seq=$(cat task/seq)
 [ -n "$seq" ] && [ "$(($seq%3))" -eq 1 ] ||
 	{ echo >&2 "Task $id is not selected for run"; exit 1; }
 repo="$(cat task/repo)"
+gb-task-set-summary
 
 # manual completion
 manual=
@@ -76,7 +77,6 @@ echo "$seq" >task/seq
 
 [ "$repo" != sisyphus ] ||
 	repo=
-gb-task-set-summary
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
 
