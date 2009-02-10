@@ -106,22 +106,22 @@ check_nevr()
 	local t="$1"; shift
 	local n="$1"; shift
 	local evr="$1"; shift
-	local evr0
+	local r evr0
 
-	if [ -n "$GB_REPO_UP_NAME" ]; then
-		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_UP_NAME.$t" |sort -u >"$tmpdir/evr"
+	for r in $GB_REPO_UP_NAME; do
+		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
 		while read evr0; do
 			vercheck "$evr" "$evr0" ||
-				Fatal "package $n-$evr is not older than \`$GB_REPO_UP_NAME' package $n-$evr0"
+				Fatal "package $n-$evr is not older than \`$r' package $n-$evr0"
 		done <"$tmpdir/evr"
-	fi
-	if [ -n "$GB_REPO_DOWN_NAME" ]; then
-		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$GB_REPO_DOWN_NAME.$t" |sort -u >"$tmpdir/evr"
+	done
+	for r in $GB_REPO_DOWN_NAME; do
+		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
 		while read evr0; do
 			vercheck "$evr0" "$evr" ||
-				Fatal "package $n-$evr is not newer than \`$GB_REPO_DOWN_NAME' package $n-$evr0"
+				Fatal "package $n-$evr is not newer than \`$r' package $n-$evr0"
 		done <"$tmpdir/evr"
-	fi
+	done
 }
 
 for arch in i586 x86_64; do
