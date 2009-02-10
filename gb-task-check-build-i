@@ -36,9 +36,12 @@ check_srpms()
 		if [ $# -gt 1 ]; then
 			Fatal "multiple $arch source packages:" "$@"
 		fi
-		[ -f "$1" ] ||
-			Fatal "no $arch source package"
-		echo "${1##*/}"
+		if [ -f "$1" ]; then
+			echo "${1##*/}"
+		else
+			[ -s "$arch/excluded" ] ||
+				Fatal "no $arch source package"
+		fi
 	done
 }
 
