@@ -37,5 +37,5 @@ for d; do
 	cd - >/dev/null
 done
 
-stamp_echo >&2 'gears dir index update OK'
+#stamp_echo >&2 'gears dir index update OK'
 
