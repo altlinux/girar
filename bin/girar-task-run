@@ -64,4 +64,5 @@ mkdir -pm3775 build plan
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$seq" >task/seq
 
-echo >&2 "task #$id: seq=$seq queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
+try="$((1+$seq/3))"
+echo >&2 "task #$id: try=$try queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
