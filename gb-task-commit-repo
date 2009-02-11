@@ -98,7 +98,7 @@ LN()
 }
 
 # real commit
-commit
+commit >plan/commit.log
 
 # update lists
 install -pm644 -- plan/next.src "$GB_REPO_DIR/files/list/src.list"
