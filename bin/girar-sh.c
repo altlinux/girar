@@ -45,9 +45,9 @@ static cmd_t commands[] = {
 	{"mv-db", "girar-mv-db", " <path to source directory> <path to destination directory>"},
 	{"quota", "girar-quota", ""},
 	{"rm-db", "girar-rm-db", " <path to git repository>"},
-	{"task", "girar-task", " {ls|show|new|add|delsub|run|share|approve|rm} ..."},
-	{"build", "girar-build", " [-b <binary repository name>] <gear repo 1> <gear tag 1> ..."},
-	{"acl", "girar-acl", " {--help|<binary repository name> ...}"},
+	{"task", "girar-task", " {--help|ls|show|new|add|delsub|run|share|approve|rm} ..."},
+	{"build", "girar-build", " [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."},
+	{"acl", "girar-acl", " {--help|<binary_repository_name> ...}"},
 };
 
 static const char git_receive_pack[] = "git-receive-pack ";
