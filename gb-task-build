@@ -17,4 +17,4 @@ if [ -s "$tmpdir"/FAIL ]; then
 	exit 1
 fi
 
-stamp_echo >&2 'build OK'
+#stamp_echo >&2 'build OK'
