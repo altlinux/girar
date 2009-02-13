@@ -202,5 +202,5 @@ touch -- "$workdir/new"
 cat -- "$workdir/cmd" >>"$workdir/new"
 mv -f -- "$workdir/new" "$GIRAR_USER.acl"
 
-[ "$nqueued" = 0 ] ||
+[ "$nqueued" = 0 -o -n "${GB_REPO_NAME-}" ] ||
 	message "$nqueued command(s) queued"
