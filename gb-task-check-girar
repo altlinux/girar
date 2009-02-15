@@ -39,7 +39,7 @@ girar_check_git()
 
 girar_check_srpm()
 {
-	fail "$GIT_DIR already contains \`$GB_REPO_NAME' branch"
+	fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
 }
 
 girar_check_copy()
