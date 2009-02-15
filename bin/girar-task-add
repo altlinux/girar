@@ -77,11 +77,12 @@ validate_tag_name()
 	tag_author="$(printf %s "$tag_author" |
 		LANG=C sed 's/@'"$(quote_sed_regexp "${EMAIL_DOMAIN%.*}")"'\.[a-z]\+>/@'"$(quote_sed_regexp "$EMAIL_DOMAIN")"'>/')"
 
+	local userid
 	userid="$(printf %s "$tag_author" |
-		LANG=C sed -n 's/^[^<]\+<\([^@>]\+\)@[^@>]\+>[^>]*$/\1/p' |
+		LANG=C sed -n 's/^[^<]\+<[[:space:]]*\([a-z][a-z0-9_-]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\).*$/\1/p' |
 		tr '[:upper:]' '[:lower:]' |tr - _)"
-	[ "$userid" = "$GIRAR_USER" ] ||
-		fatal "$tag_name: unacceptable signature: $(printf %s "$tag_author" |tr -s '[:space:]' ' ') (expected $GIRAR_USER@$EMAIL_DOMAIN)"
+	[ -n "$userid" -a -d "$GIRAR_PEOPLE_QUEUE/$userid" ] ||
+		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
 validate_srpm()
@@ -300,7 +301,7 @@ printf '%s\n' "$dir" >gears/$i/dir
 printf '%s\n' "$tag_name" >gears/$i/tag_name
 printf '%s\n' "$tag_id" >gears/$i/tag_id
 printf '%s\n' "$tag_author" >gears/$i/tag_author
-printf '%s\n' "$userid" >gears/$i/userid
+printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 
 mkdir gears/$i/git
 GIT_DIR=gears/$i/git
