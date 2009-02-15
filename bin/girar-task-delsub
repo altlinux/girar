@@ -52,7 +52,7 @@ fi
 
 nums()
 {
-	find acl -mindepth 2 -maxdepth 2 -path 'acl/[1-9]*/userid' -type f 2>/dev/null |
+	find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
