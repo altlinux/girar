@@ -36,18 +36,18 @@ validate_repo_dir()
 {
 	local dir0="$dir"
 
-	cd "$HOME"
-	dir="${dir0#$PWD/}"
-	[ "${dir#/}" = "$dir" ] ||
+	cd
+	dir="$(printf %s "$dir" |tr -s /)"
+	dir="$(prefix_packages "$dir")"
+	dir="$(add_git_suffix "$dir")"
+	[ "${dir#/}" != "$dir" ] ||
+		dir="$GIRAR_HOME/$GIRAR_USER/$dir"
+	[ "${dir#$GIRAR_HOME/}" != "$dir" ] &&
+	printf '%s' "$dir" |egrep -qs "^$GIRAR_HOME/"'[a-z][a-z_0-9]+/packages/[A-Za-z0-9][-A-Za-z0-9_.]+[.]git$' ||
 		fatal "$dir0: path to git repository does not belong to allowed directory tree"
 
-	dir="$(validate_packages_dir "$dir")"
-	dir="$(add_git_suffix "$dir")"
 	[ -d "$dir" ] ||
 		fatal "$dir0: directory not available"
-
-	[ -z "${dir%%packages/*}" ] ||
-		fatal "$dir0: directory should belong to packages/ directory tree"
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
