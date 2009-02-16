@@ -52,14 +52,14 @@ cd "$tmpdir"
 for arch in i586 x86_64; do
 	comm -13 $arch-unmets.{old,new} >$arch-unmets.plus
 	comm -23 $arch-unmets.{old,new} >$arch-unmets.minus
-	if [ -s $arch-unmets.minus ]; then
-		echo " $arch: old unmet dependencies resolved"
-		cat $arch-unmets.minus
-	fi >&2
 	if [ -s $arch-unmets.plus ]; then
-		echo " *** $arch: new unmet dependencies detected"
-		cat $arch-unmets.plus
+		echo "	$arch: NEW unmet dependencies detected:"
+		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.plus
 		rc=1
+	fi >&2
+	if [ -s $arch-unmets.minus ]; then
+		echo "	$arch: old unmet dependencies resolved:"
+		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.minus
 	fi >&2
 done
 
