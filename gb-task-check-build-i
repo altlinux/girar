@@ -4,27 +4,51 @@
 
 i="$1"; shift
 
-built=
-userid="$(cat "gears/$i/userid")"
-if [ -s "gears/$i/dir" ]; then
-	dir="$(cat "gears/$i/dir")"
-	I="${dir##*/} $(cat "gears/$i/tag_name")"
-	built=1
-elif [ -s "gears/$i/srpm" ]; then
-	I="$(cat "gears/$i/srpm")"
-	built=1
-elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
-	I="$(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
-else
-	stamp_echo >&2 "#$i: source not found"
-	exit 1
-fi
-
+I="#$i"
 Fatal()
 {
 	stamp_echo >&2 "$I: $*"
 	exit 1
 }
+
+get_sig_uid()
+{
+	local userid
+	userid="$(printf %s "$*" |
+		sed -n 's/^[^<]\+<[[:space:]]*\([a-z][a-z0-9_-]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\).*$/\1/p' |
+		tr '[:upper:]' '[:lower:]' |tr - _)"
+	[ -n "$userid" ] ||
+		Fatal "$*: unacceptable signature"
+	printf %s "$userid"
+}
+
+built=
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	I="${dir##*/} $(cat "gears/$i/tag_name")"
+	tag_author="$(cat "gears/$i/tag_author")"
+	userid="$(get_sig_uid "$tag_author")"
+	built=1
+elif [ -s "gears/$i/srpm" ]; then
+	srpm="$(cat "gears/$i/srpm")"
+	I="$I: $srpm"
+	sig_text="$(rpmsign -Kv "gears/$i/$srpm")" ||
+		Fatal 'signature not found'
+	fpr="$(printf %s "$sig_text" |
+		sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
+	[ -n "$fpr" ] ||
+		Fatal 'gpg fingerprint not found'
+	tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
+		sed '/^uid[[:space:]]\+/!d;s///;q')"
+	[ -n "$tag_author" ] ||
+		Fatal 'gpg uid not found'
+	userid="$(get_sig_uid "$tag_author")"
+	built=1
+elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
+	I="$I: $(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
+else
+	Fatal 'source not found'
+fi
 
 cd build/$i
 
