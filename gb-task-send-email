@@ -16,8 +16,13 @@ else
 	text=FAILED
 fi
 owner="$(cat task/owner)"
+
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
+stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
+[ "$stripped_summary" = "$summary" ] ||
+	stripped_summary="$stripped_summary ..."
+
 try="$((1+$seq/3))"
 
 . gb-sh-tmpdir
@@ -39,8 +44,9 @@ __EOF
 
 [ $try -gt 1 ] || try=
 
-cat >>"$tmpdir/draft" <<__EOF
-Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary
-__EOF
+[ "$stripped_summary" = "$summary" ] ||
+	echo "X-girar-task-summary: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$summary" >>"$tmpdir/draft"
+
+echo "Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$stripped_summary" >>"$tmpdir/draft"
 
 mutt -x -H "$tmpdir/draft" -a task/log </dev/null
