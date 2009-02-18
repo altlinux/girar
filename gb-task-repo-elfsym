@@ -15,8 +15,8 @@ cd "$tmpdir"
 rc=0
 
 for arch in i586 x86_64; do
-	bad_elf_symbols.pl "$repo1"/files/$arch/RPMS >$arch-bes.old
-	bad_elf_symbols.pl "$repo2"/files/$arch/RPMS >$arch-bes.new
+	bad_elf_symbols.pl "$repo1"/$arch/RPMS.classic >$arch-bes.old
+	bad_elf_symbols.pl "$repo2"/$arch/RPMS.classic >$arch-bes.new
 	sort -u -o $arch-bes.old{,}
 	sort -u -o $arch-bes.new{,}
 	comm -13 $arch-bes.{old,new} >$arch-bes.plus
