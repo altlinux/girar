@@ -42,6 +42,7 @@ fi
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 	gb-task-repo-unmets
+	gb-task-repo-elfsym
 	gb-task-check-acl
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
