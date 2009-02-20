@@ -10,10 +10,12 @@ usage()
 	exit 1
 }
 
-ls_all=
+ls_user="-user $USER_PREFIX$GIRAR_USER"
+ls_recent='-mtime -7'
 case "${1-}" in
 	--help) usage ;;
-	--all) ls_all=1; shift ;;
+	--all) ls_user=; shift ;;
+	--old) ls_recent=; shift ;;
 esac
 
 [ "$#" -eq 0 ] || usage 'Too many arguments.'
@@ -55,7 +57,7 @@ ls1()
 	fi
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
 	printf ' %s' "$(cat task/repo)"
-	[ -z "$ls_all" ] ||
+	[ -n "$ls_user" ] ||
 		printf '/%s' "$(cat task/owner)"
 	local i
 	for i in $(gear_nums); do
@@ -78,12 +80,8 @@ ls1()
 	printf '\n'
 }
 
-ids="$(if [ -z "$ls_all" ]; then
-		find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f -print0 |
-			xargs -r0 fgrep -lxe "$GIRAR_USER" --
-	else
-		find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f
-	fi 2>/dev/null |cut -d/ -f2 |sort -nr)"
+ids="$(find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f $ls_recent $ls_user 2>/dev/null |
+	cut -d/ -f2 |sort -nr)"
 
 if [ -z "$ids" ]; then
 	message "no tasks${ids:- for $GIRAR_USER}"
