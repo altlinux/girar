@@ -27,17 +27,6 @@ fi
 
 stamp_echo >&2 "$I build start"
 
-rm -f build/$i/$arch/REBUILD
-# rebuild is certainly needed if previous packages have been rebuilt
-if [ -s build/$i/$arch/chroot_base ]; then
-	for j in `seq 1 $(($i-1))`; do
-		if [ -s build/$j/$arch/REBUILD ]; then
-			echo 1 >build/$i/$arch/REBUILD
-			break
-		fi
-	done
-fi
-
 # copy source package and accompanying build data to remote side
 rsync -q -- "gears/$i/$src" "$remote_host:tmp/"
 (umask 002; mkdir -p "build/$i/$arch") || false

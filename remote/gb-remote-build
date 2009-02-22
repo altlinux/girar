@@ -98,19 +98,8 @@ comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
 mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
 
 # Step 4: check if rebuild is needed at all.
-# The "need rebuild" flag may be already set by caller.
 if [ -s build/chroot_base ]; then
-	if ! diff -U1 build/chroot_base "$tmpdir"/chroot_base >"$tmpdir"/out; then
-		echo 1 >build/REBUILD
-		stamp_echo >>build/MERGE "$I: chroot_base changed"
-		cat >>build/MERGE <"$tmpdir"/out
-	fi
-	if ! diff -U1 build/chroot_BR "$tmpdir"/chroot_BR >"$tmpdir"/out; then
-		echo 1 >build/REBUILD
-		stamp_echo >>build/MERGE "$I: chroot_BR changed"
-		cat >>build/MERGE <"$tmpdir"/out
-	fi
-	if ! [ -s build/REBUILD ]; then
+	if cmp -s {build,"$tmpdir"}/chroot_base && cmp -s {build,"$tmpdir"}/chroot_BR; then
 		(set +f
 		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/
 		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
