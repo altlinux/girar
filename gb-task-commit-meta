@@ -6,11 +6,26 @@ enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the $GB_META_DIR
 builtin lockf -v "$GB_META_DIR"
 
+# prepare for update
+pushd "$GB_META_DIR" >/dev/null
+git symbolic-ref HEAD refs/heads/"$GB_REPO_NAME"
+git read-tree HEAD
+popd >/dev/null
+
+# remove srpms (also removes rpms)
 while read -r N EVR F; do
-	rm -rf $GB_META_DIR/$N/
+	pushd "$GB_META_DIR" >/dev/null
+	git rm -q -r -f --cached -- "$N"
+	rm -rf -- "$N"
+	popd >/dev/null
 done <plan/rm-src
 
+# add/update srpms
 while read -r N EVR F; do
+	pushd "$GB_META_DIR" >/dev/null
+	git rm -q -r -f --cached -- "$N" 2>/dev/null ||:
+	rm -rf -- "$N"
+	popd >/dev/null
 	src=$N
 	mkdir -p $GB_META_DIR/$src/srpm
 	echo "$EVR" >$GB_META_DIR/$src/srpm/EVR
@@ -29,6 +44,7 @@ while read -r N EVR F; do
 	done
 done <plan/add-src
 
+# add/update rpms
 while read -r src _ _ N EVR A F; do
 	mkdir -p $GB_META_DIR/$src/rpms/$A/$N
 	bin=$(findbin "$F")
@@ -41,3 +57,19 @@ while read -r src _ _ N EVR A F; do
 		sort -u -o $GB_META_DIR/$src/rpms/$A/$N/$Q{,}
 	done
 done <plan/add-src+bin
+
+# commit
+while read -r N EVR F; do
+	pushd "$GB_META_DIR" >/dev/null
+	git add "$N"
+	rm -rf -- "$N"
+	popd >/dev/null
+done <plan/add-src
+
+msg="A$(cat task/id)"
+author=$(cat task/owner)
+
+pushd "$GB_META_DIR" >/dev/null
+git commit -q -m "$msg" --author "$author"
+git repack -q -a -d
+popd >/dev/null
