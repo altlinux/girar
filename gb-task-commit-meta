@@ -27,20 +27,36 @@ while read -r N EVR F; do
 	rm -rf -- "$N"
 	popd >/dev/null
 	src=$N
+	srpm=$(findsrc "$F")
+	i=$(srpm2i "$F")
+	copy_repo=
+	if [ -s build/$i/copy_repo ]; then
+		copy_repo=$(cat build/$i/copy_repo)
+		err=
+		pushd "$GB_META_DIR" >/dev/null
+		git checkout -q -f "$copy_repo" -- "$N" &&
+			EVR2=$(cat $src/srpm/EVR) && [ "$EVR" = "$EVR2" ] || err=1
+		popd >/dev/null
+		[ -n "$err" ] || continue
+		echo >&2 "warning: cannot checkout $N $EVR from $copy_repo"
+		pushd "$GB_META_DIR" >/dev/null
+		git rm -q -r -f --cached -- "$N" 2>/dev/null ||:
+		rm -rf -- "$N"
+		popd >/dev/null
+	fi
 	mkdir -p $GB_META_DIR/$src/srpm
 	echo "$EVR" >$GB_META_DIR/$src/srpm/EVR
-	srpm=$(findsrc "$F")
 	gb-x-rpm-changelog $srpm >$GB_META_DIR/$src/srpm/changelog
-	i=$(srpm2i "$F")
 	for arch in i586 x86_64; do
 		mkdir -p $GB_META_DIR/$src/srpm/$arch
-		cat build/$i/$arch/log >$GB_META_DIR/$src/srpm/$arch/buildlog
-		gb-x-fixup-buildlog $GB_META_DIR/$src/srpm/$arch/buildlog
 		srpm=build/$i/$arch/srpm/$F
 		rpmquery -R -p $srpm >$GB_META_DIR/$src/srpm/$arch/BR
 		sed -i '/^rpmlib(/d' $GB_META_DIR/$src/srpm/$arch/BR
 		sed -i 's/ *$//' $GB_META_DIR/$src/srpm/$arch/BR
 		sort -u -o $GB_META_DIR/$src/srpm/$arch/BR{,}
+		[ -z "$copy_repo" ] || continue
+		cat build/$i/$arch/log >$GB_META_DIR/$src/srpm/$arch/buildlog
+		gb-x-fixup-buildlog $GB_META_DIR/$src/srpm/$arch/buildlog
 	done
 done <plan/add-src
 
