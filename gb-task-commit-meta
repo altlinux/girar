@@ -46,7 +46,7 @@ while read -r N EVR F; do
 	fi
 	mkdir -p $GB_META_DIR/$src/srpm
 	echo "$EVR" >$GB_META_DIR/$src/srpm/EVR
-	gb-x-rpm-changelog $srpm >$GB_META_DIR/$src/srpm/changelog
+	gb-x-rpm-changelog $srpm >$GB_META_DIR/$src/changelog
 	for arch in i586 x86_64; do
 		mkdir -p $GB_META_DIR/$src/srpm/$arch
 		if [ -s build/$i/$arch/excluded ]; then
