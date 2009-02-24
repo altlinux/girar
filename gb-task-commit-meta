@@ -76,6 +76,7 @@ while read -r src _ _ N EVR A F; do
 		rpmquery --$q -p $bin >$GB_META_DIR/$src/rpms/$N/$A/$Q
 		sed -i 's/ *$//' $GB_META_DIR/$src/rpms/$N/$A/$Q
 		sort -u -o $GB_META_DIR/$src/rpms/$N/$A/$Q{,}
+		[ -s $GB_META_DIR/$src/rpms/$N/$A/$Q ] || rm $GB_META_DIR/$src/rpms/$N/$A/$Q
 	done
 done <plan/add-src+bin
 
