@@ -12,14 +12,14 @@ repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
 . gb-sh-tmpdir
 cd "$tmpdir"
 
-rc=0
+rc=0 text=OK
 
 for arch in i586 x86_64; do
 	bad_elf_symbols_dircmp.pl {"$repo1","$repo2"}/$arch/RPMS.classic >$arch-bes.plus 3>$arch-bes.minus
 	if [ -s $arch-bes.plus ]; then
 		echo "	$arch: NEW bad_elf_symbols detected:"
 		cat $arch-bes.plus
-		rc=1
+		rc=1 text=FAILED
 	fi >&2
 	if [ -s $arch-bes.minus ]; then
 		echo "	$arch: old bad_elf_symbols resolved:"
@@ -27,6 +27,16 @@ for arch in i586 x86_64; do
 	fi >&2
 done
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
+if [ "$rc" = 1 ]; then
+	cat >allow-bad-p <<'EOF'
+^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<Allocate.+(Private|Index)$
+^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<miZeroLineScreenIndex$
+EOF
+	cat {i586,x86_64}-bes.plus >all-bad
+	if egrep -f allow-bad-p all-bad >allow-bad && cmp -s all-bad allow-bad; then
+		rc=0 text=COND-OK
+	fi
+fi
+
 stamp_echo >&2 "ELF symbols check $text"
 exit $rc
