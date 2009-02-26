@@ -32,10 +32,8 @@ if [ "$rc" = 1 ]; then
 ^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<Allocate.+(Private|Index)$
 ^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<miZeroLineScreenIndex$
 EOF
-	cat {i586,x86_64}-bes.plus >all-bad
-	if egrep -f allow-bad-p all-bad >allow-bad && cmp -s all-bad allow-bad; then
+	egrep -qs -v -f allow-bad-p -- {i586,x86_64}-bes.plus ||
 		rc=0 text=COND-OK
-	fi
 fi
 
 stamp_echo >&2 "ELF symbols check $text"
