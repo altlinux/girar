@@ -5,17 +5,18 @@ arch="$1"; shift
 . gb-sh-functions
 . gb-sh-tmpdir
 
+Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
 for i in $(build_nums); do
-	[ -d "build/$i/$arch/rpms" -o ! -s "build/$i/$arch/excluded" ] || continue
+	[ -d "build/$i/$arch/rpms" ] || continue
 	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
-		rpmquery --qf '%{name}\n' -p -- '{}' '+'
-done >"$tmpdir"/names
+		rpmquery --qf "$Q" -p -- '{}' '+'
+done >"$tmpdir"/packages
 
 cd "$tmpdir"
-sort -o names{,}
-uniq -d names >dups
+dups1 packages >dups
 
 if [ -s dups ]; then
-	stamp_echo >&2 "[$arch] duplicate packages: $(cat dups)"
+	echo "	$arch: duplicate packages:"
+	cat dups
 	exit 1
-fi
+fi >&2

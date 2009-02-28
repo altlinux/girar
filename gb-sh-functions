@@ -193,3 +193,19 @@ vercheck()
 	[ -z "${EVR2##*:*}" ] || EVR2="0:$EVR2"
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" = -1 ] || return 1
 }
+
+# Find dups by the first field in a tab-delimited intput.
+dups1()
+{
+	perl -aF'\t' -lne '
+	{
+		$k = shift @F;
+		push @{$V{$k}}, [ @F ];
+	}
+	END {
+		for $k (sort keys %V) {
+			next unless @{$V{$k}} > 1;
+			print join "\t", $k, @$_ for @{$V{$k}};
+		}
+	}' "$@"
+}
