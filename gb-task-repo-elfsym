@@ -28,6 +28,7 @@ for arch in i586 x86_64; do
 done
 
 if [ "$rc" = 1 ]; then
+	# This list should include only proprietry binary drivers.
 	cat >allow-bad-p <<'EOF'
 ^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<Allocate.+(Private|Index)$
 ^nvidia_glx_.+/(nvidia_drv|libwfb)\.so.+\<miZeroLineScreenIndex$
