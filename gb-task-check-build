@@ -1,5 +1,9 @@
 #!/bin/sh -efu
 
+# This should check that the build result is consistent on its own (sam
+# po sebe).  This is NOT the right place to check if the build result is
+# consistent with respect to a repo.
+
 . gb-sh-functions
 
 rc=0
