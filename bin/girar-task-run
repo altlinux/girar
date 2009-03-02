@@ -55,14 +55,16 @@ else
 	seq=0
 fi
 
+try="$((1+$seq/3))"
+[ $try -gt 1 ] || try=
+
 # create group writable directories for build results
 mkdir -pm3775 build plan
 
 # create group writable files required for build
-(umask 002; touch task/log task/rc task/seq task/summary) || false
+(umask 002; touch task/log"${try:+.$try}" task/rc task/seq task/summary) || false
 
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$seq" >task/seq
 
-try="$((1+$seq/3))"
-echo >&2 "task #$id: try=$try queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
+echo >&2 "task #$id: ${try:+try=$try }queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
