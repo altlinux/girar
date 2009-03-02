@@ -26,10 +26,10 @@ while read -r N EVR A F; do
 	rm -- $repo/$A/RPMS.classic/$F
 done <plan/rm-bin
 
-# add symlinks to new binary files
+# add new binary files
 while read -r N EVR A F; do
 	bin=$(findbin "$F")
-	ln -s -- $PWD/$bin $repo/$A/RPMS.classic/$F
+	cp -p -- $PWD/$bin $repo/$A/RPMS.classic/$F
 done <plan/add-bin
 
 # regenerate apt indices
