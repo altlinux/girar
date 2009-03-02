@@ -49,4 +49,4 @@ __EOF
 
 echo "Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$stripped_summary" >>"$tmpdir/draft"
 
-mutt -x -H "$tmpdir/draft" -a task/log </dev/null
+mutt -x -H "$tmpdir/draft" -a "task/log${try:+.$try}" </dev/null
