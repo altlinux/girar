@@ -1,0 +1,53 @@
+#!/bin/sh -efu
+
+arch="$1" N="$2" EVR="$3"
+shift 3
+
+tmpdir=
+cleanup()
+{
+	trap - EXIT
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+exit_handler()
+{
+	cleanup $?
+}
+
+signal_handler()
+{
+	cleanup 1
+}
+
+trap exit_handler EXIT
+trap signal_handler HUP INT QUIT PIPE TERM
+
+tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+
+setarch "$arch" -- \
+hsh --init >"$tmpdir"/out 2>&1 ||
+	{
+		echo "	$arch: initroot failed:"
+		cat "$tmpdir"/out
+		exit 1
+	} >&2
+
+Q='%{name}=%|serial?{%{serial}:}|%{version}-%{release}\n'
+hsh-run -- rpmquery -a --qf "$Q" >"$tmpdir"/packages
+if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
+	# The package is already installed.  Since the package is part of
+	# the base build environment, removing it might not work very well.
+	exit 0
+fi
+
+setarch "$arch" -- \
+hsh-install "$N=$EVR" >"$tmpdir"/out 2>&1 ||
+	{
+		echo "	$arch: $N=$EVR install failed:"
+		cat "$tmpdir"/out
+		exit 1
+	} >&2
+
+# TODO: remove check

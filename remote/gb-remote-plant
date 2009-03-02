@@ -29,6 +29,12 @@ mkdir -p -- "$workdir"
 ln -snf -- "$workdir"
 rm -rf -- "$workdir/repo"
 
+# support for full private repo
+gb_repo="$TMPDIR/gb-repo"
+rm -rf -- "$gb_repo"
+mkdir -p -- "$gb_repo"
+ln -snf -- "$gb_repo"
+
 # recreate hasher config file
 mkdir -p -- .hasher
 cat >.hasher/config <<EOF

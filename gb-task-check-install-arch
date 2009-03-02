@@ -1,0 +1,31 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-functions
+
+# Prepare remote node for $arch install check.
+# Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR.
+rsync -a "$GB_HOME/remote/" "$remote_host:"
+remote_home=$(ssh "$remote_host" pwd)
+. shell-quote
+ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$GB_REPO_RPMARGS")\"" \
+	"\"$(quote_shell "$remote_home/gb-repo")\"" \
+	"\"$(quote_shell "$arch")\"" \
+	#
+
+# Copy gb-repo created by gb-task-repo-unmets.
+rsync -a "$TMPDIR/gb-repo-$GB_REPO_NAME/" "$remote_host:gb-repo/"
+
+rc=0
+
+while read -r N EVR A F; do
+	[ "$A" = "$arch" ] || [ "$A" = 'noarch' ] || continue
+	ssh "$remote_host" ./gb-remote-check-install "$arch" "$N" "$EVR" || rc=1
+done <plan/add-bin
+
+# Purge temporary repo.
+rsync -a --delete /var/empty/ "$remote_host:gb-repo/"
+
+exit $rc
