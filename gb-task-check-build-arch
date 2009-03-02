@@ -6,6 +6,7 @@ arch="$1"; shift
 . gb-sh-tmpdir
 
 Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
+O='1.1 1.2 1.3 1.4'
 for i in $(build_nums); do
 	[ -d "build/$i/$arch/rpms" ] || continue
 	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
@@ -13,10 +14,11 @@ for i in $(build_nums); do
 done >"$tmpdir"/packages
 
 cd "$tmpdir"
-dups1 packages >dups
+sort -o packages{,}
+cut -f1 packages |sort |uniq -d >dups
 
 if [ -s dups ]; then
 	echo "	$arch: duplicate packages:"
-	cat dups
+	join -t$'\t' -o "$O" -j 1 packages dups
 	exit 1
 fi >&2
