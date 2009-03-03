@@ -2,6 +2,10 @@
 
 . gb-sh-functions
 
+# This check is for new binary packages only.
+[ -s plan/add-bin ] ||
+	exit 0
+
 . gb-sh-tmpdir
 
 for arch in i586 x86_64; do
