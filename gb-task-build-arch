@@ -4,11 +4,13 @@ arch="$1"; shift
 
 . gb-sh-functions
 
+. shell-quote
+qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
+
 # Prepare remote node to build $arch packages for $GB_REPO_NAME repository.
 rsync -a "$GB_HOME/remote/" "$remote_host:"
-. shell-quote
 ssh "$remote_host" ./gb-remote-plant "$GB_REPO_DIR" "$arch" \
-	rpmargs="\"$(quote_shell "$GB_REPO_RPMARGS")\""
+	"$(qvv rpmargs "$GB_REPO_RPMARGS")"
 
 for i in $(src_nums); do
 	$0-i "$arch" "$i"
