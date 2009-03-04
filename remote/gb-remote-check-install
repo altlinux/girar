@@ -26,6 +26,7 @@ trap signal_handler HUP INT QUIT PIPE TERM
 
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 
+# Initialize.
 setarch "$arch" -- \
 hsh --init >"$tmpdir"/out 2>&1 ||
 	{
@@ -34,7 +35,9 @@ hsh --init >"$tmpdir"/out 2>&1 ||
 		exit 1
 	} >&2
 
+# Check if the package is already installed.
 Q='%{name}=%|serial?{%{serial}:}|%{version}-%{release}\n'
+setarch "$arch" -- \
 hsh-run -- rpmquery -a --qf "$Q" >"$tmpdir"/packages
 if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
 	# The package is already installed.  Since the package is part of
@@ -42,12 +45,37 @@ if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
 	exit 0
 fi
 
+# Install the package AND apt.
 setarch "$arch" -- \
-hsh-install "$N=$EVR" >"$tmpdir"/out 2>&1 ||
+hsh-install -- "$N=$EVR" apt >"$tmpdir"/out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
 		cat "$tmpdir"/out
 		exit 1
 	} >&2
 
-# TODO: remove check
+# Try to remove the package.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+apt-get remove -qq -y --dry-run "$N=$EVR" >"$tmpdir"/remv 2>&1 ||
+	{
+		echo "	$arch: $N=$EVR --dry-run uninstall failed:"
+		cat "$tmpdir"/out
+		exit 1
+	}
+
+# Check if apt is to be removed along with the package.
+if grep -qs '^Remv apt ' "$tmpdir"/remv; then
+	# Removing apt with apt might not work very well.
+	exit 0
+fi
+
+# Remove the package.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+apt-get remove -qq -y "$N=$EVR" </dev/null >"$tmpdir"/out 2>&1 ||
+	{
+		echo "	$arch: $N=$EVR uninstall failed:"
+		cat "$tmpdir"/out
+		exit 1
+	} >&2
