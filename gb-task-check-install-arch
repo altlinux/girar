@@ -8,12 +8,7 @@ arch="$1"; shift
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR.
 rsync -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
-. shell-quote
-ssh "$remote_host" ./gb-remote-plant \
-	"\"$(quote_shell "$GB_REPO_RPMARGS")\"" \
-	"\"$(quote_shell "$remote_home/gb-repo")\"" \
-	"\"$(quote_shell "$arch")\"" \
-	#
+ssh "$remote_host" ./gb-remote-plant "$remote_home/gb-repo" "$arch"
 
 # Copy gb-repo created by gb-task-repo-unmets.
 rsync -a "$TMPDIR/gb-repo-$GB_REPO_NAME/" "$remote_host:gb-repo/"
