@@ -5,14 +5,15 @@ arch="$1"; shift
 . gb-sh-functions
 
 . shell-quote
-qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
 
 # Prepare remote node for $arch install check.
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR.
 rsync -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
-ssh "$remote_host" ./gb-remote-plant "$remote_home/gb-repo" "$arch" \
-	"$(qvv cache_dir '$workdir/cache.check-install')"
+ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$remote_home/gb-repo")\"" \
+	"\"$(quote_shell "$arch")\"" \
+	cache_dir=cache.check-install
 
 # Copy gb-repo created by gb-task-repo-unmets.
 rsync -a "$TMPDIR/gb-repo-$GB_REPO_NAME/" "$remote_host:gb-repo/"
