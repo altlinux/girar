@@ -33,7 +33,7 @@ if [ 'root' != "$GIRAR_USER" ]; then
 		fatal "task #$id belongs to $owner"
 fi
 
-[ -s gears/1/dir -o -s gears/1/srpm -o -s gears/1/package ] ||
+[ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
 seq=
