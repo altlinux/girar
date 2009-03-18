@@ -37,8 +37,8 @@ fi
 	# Actually, only shared lock is required for build and checks,
 	# but an exclusive lock is required later for commit.
 	builtin lockf -v $manual "$GB_REPO_DIR"
-	gb-task-build
 	gb-task-copy-packages
+	gb-task-build
 
 	# Test changes
 	gb-task-check-build
