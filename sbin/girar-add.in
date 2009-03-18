@@ -24,7 +24,7 @@ usage()
 
 set_name "$1"
 shift
-printf %s "$NAME" |egrep -qs '^[a-z][a-z][a-z_0-9]+$' ||
+printf %s "$NAME" |egrep -qs '^[a-z][a-z_0-9][a-z_0-9]+$' ||
 	fatal "$NAME: invalid NAME specified"
 
 load_identity "$1"
