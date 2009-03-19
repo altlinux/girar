@@ -1,0 +1,20 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+. gb-sh-tmpdir
+
+for arch in i586 x86_64; do
+	$0-arch "$arch" ||
+		stamp_echo "[$arch] remote setup FAILED" >>"$tmpdir"/FAIL &
+done
+
+wait
+
+# Fail if at least one remote arch failed to setup.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+#stamp_echo >&2 'remote setup OK'

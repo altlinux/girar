@@ -1,0 +1,10 @@
+#!/bin/sh -efu
+
+arch="$1" i="$2"; shift 2
+
+[ -d "build/$i/$arch/rpms/" ] || exit 0
+
+. gb-sh-functions
+
+rsync -qrlt --delete -- "build/$i/$arch/rpms/" "$remote_host:build/rpms/"
+ssh "$remote_host" ./gb-remote-copy-packages "$arch"

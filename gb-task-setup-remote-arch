@@ -1,0 +1,15 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-functions
+
+. shell-quote
+qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
+
+# Setup remote node to build $arch packages for $GB_REPO_NAME repository.
+rsync -a "$GB_HOME/remote/" "$remote_host:"
+ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$GB_REPO_DIR")\"" \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\""

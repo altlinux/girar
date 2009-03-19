@@ -33,6 +33,7 @@ fi
 
 	# Prepare changes
 	gb-task-pkgtar
+	gb-task-setup-remote
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	# Actually, only shared lock is required for build and checks,
 	# but an exclusive lock is required later for commit.

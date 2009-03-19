@@ -1,0 +1,5 @@
+#!/bin/sh -eu
+
+arch="$1"; shift
+mkdir -p hasher/repo/$arch/RPMS.hasher
+mv build/rpms/* hasher/repo/$arch/RPMS.hasher/
