@@ -24,6 +24,30 @@ Fatal()
 	exit 1
 }
 
+examine_excludearch_exclusivearch()
+{
+	local srpm exclude_arch exclusive_arch
+	srpm="$1"; shift
+
+	exclude_arch="$(rpmquery --qf '[%{excludearch}\n]' -p "$srpm")"
+	if [ -n "$exclude_arch" ] && printf '%s\n' "$exclude_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is excluded: %s\n" "${srpm##*/}" "$arch" >build/excluded
+		exit 0
+	fi
+
+	exclusive_arch="$(rpmquery --qf '[%{exclusivearch}\n]' -p "$srpm")"
+	if [ -n "$exclusive_arch" ] && ! printf '%s\n' "$exclusive_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is not included: %s\n" "${srpm##*/}" "$arch" >build/excluded
+		exit 0
+	fi
+}
+
+# If source is src.rpm, examine ExcludeArch and ExclusiveArch early.
+rm -f build/excluded
+if [ "$from" = "$src" ]; then
+	examine_excludearch_exclusivearch tmp/"$src"
+fi
+
 tmpdir=
 cleanup()
 {
@@ -61,7 +85,6 @@ mkdir ~/SRPMS
 ln --target-directory ~/SRPMS/ -- "$@"
 EOF
 
-rm -f build/excluded
 setarch "$arch" -- hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/"$src" \
 	>build/srpm.log 2>&1 ||
 	{
@@ -79,16 +102,7 @@ srpm="$(find hasher/chroot/usr/src/SRPMS -mindepth 1 -maxdepth 1 -name '*.src.rp
 		Fatal 'cannot build valid src.rpm'
 
 # Examine ExcludeArch and ExclusiveArch.
-exclude_arch="$(rpmquery --qf '[%{excludearch}\n]' -p "$srpm")"
-if [ -n "$exclude_arch" ] && printf '%s\n' "$exclude_arch" |fgrep -qx "$arch"; then
-	printf "%s: Architecture is excluded: %s\n" "${srpm##*/}" "$arch" >build/excluded
-	exit 0
-fi
-exclusive_arch="$(rpmquery --qf '[%{exclusivearch}\n]' -p "$srpm")"
-if [ -n "$exclusive_arch" ] && ! printf '%s\n' "$exclusive_arch" |fgrep -qx "$arch"; then
-	printf "%s: Architecture is not included: %s\n" "${srpm##*/}" "$arch" >build/excluded
-	exit 0
-fi
+examine_excludearch_exclusivearch "$srpm"
 
 # Step 3: examine BuildRequires.
 setarch "$arch" -- hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
