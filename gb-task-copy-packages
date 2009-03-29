@@ -37,8 +37,11 @@ for i in $(copy_nums); do
 		stamp_echo >&2 "package \`$(cat "gears/$i/package")' not found in \`$repo', copy FAILED"
 		exit 1
 	fi
-
 	cut -f1 "$tmpdir/copy" |sort -u >"$tmpdir/copy.src"
+
+	# remove previously copied packages if any
+	rm -rf "build/$i"
+
 	while read -r S; do
 		for arch in i586 x86_64; do
 			(umask 002; mkdir -p "build/$i/$arch") || false
