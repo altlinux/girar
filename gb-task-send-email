@@ -49,4 +49,14 @@ __EOF
 
 echo "Subject: [#$id]${repo:+ $repo} $text${try:+ (try $try)}$stripped_summary" >>"$tmpdir/draft"
 
-mutt -x -H "$tmpdir/draft" -a "task/log${try:+.$try}" </dev/null
+log_file="task/log${try:+.$try}"
+log_size="$(du -bk "$log_file" |cut -f1)"
+attach_file="$log_file"
+[ "$log_size" -le 256 ] || attach_file=
+
+cat >>"$tmpdir/draft" <<__EOF
+
+$GB_SITE$GB_TASKS_DIR/$id/$log_file
+__EOF
+
+mutt -x -H "$tmpdir/draft" ${attach_file:+ -a $attach_file} </dev/null
