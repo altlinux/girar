@@ -113,7 +113,7 @@ shell (char *av[])
 
 	char *cmd = av[2];
 
-	if (!strcmp("help", cmd))
+	if (!strcmp("help", cmd) || !strcmp("--help", cmd))
 		show_help(EXIT_SUCCESS);
 
 	if (!strncmp(git_receive_pack, cmd, sizeof(git_receive_pack) - 1) ||
