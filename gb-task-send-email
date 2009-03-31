@@ -16,6 +16,7 @@ else
 	text=FAILED
 fi
 owner="$(cat task/owner)"
+cc="$(set +f; sort -u gears/*/userid |join -v1 - task/owner)"
 
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
@@ -29,10 +30,11 @@ try="$((1+$seq/3))"
 
 cat >"$tmpdir/draft" <<__EOF
 To: git_$owner
-Cc: $GB_REPO_EMAIL
+Cc: $(printf %s "$cc" |sort |sed s/^/git_/ |tr -s '\n' , |sed 's/,/, /g')$GB_REPO_EMAIL
 Mail-Followup-To: $USER
 X-girar-task-id: $id
 X-girar-task-owner: $owner
+X-girar-task-cc: $(printf %s "$cc" |tr -s '\n' , |sed 's/,/, /g')
 X-girar-task-repo: $repo
 X-girar-task-try: $try
 X-girar-task-status: $text
