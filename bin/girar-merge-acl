@@ -458,9 +458,16 @@ process_user_rules()
 
 		# Check perms
 		local msg
-		msg="$(girar-check-acl-leader "$person" "$item" \
-			"list/list.packages.$repository" \
-			"list/list.groups.$repository")" ||
+		if [ del = "$action" -a "$person" = "$new_owners" ]; then
+			# $person is allowed to del self from the list (ALT#19215)
+			msg="$(girar-check-acl-item "$item" \
+				"list/list.packages.$repository" \
+				"list/list.groups.$repository")"
+		else
+			msg="$(girar-check-acl-leader "$person" "$item" \
+				"list/list.packages.$repository" \
+				"list/list.groups.$repository")"
+		fi ||
 		{
 			writelog "ERROR: $item $action: $msg"
 			return 1

@@ -65,6 +65,7 @@ bin_TARGETS = \
 	bin/girar-acl-show \
 	bin/girar-build \
 	bin/girar-charset \
+	bin/girar-check-acl-item \
 	bin/girar-check-acl-leader \
 	bin/girar-check-orphaned \
 	bin/girar-check-perms \

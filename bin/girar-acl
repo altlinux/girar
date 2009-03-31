@@ -144,16 +144,23 @@ parse_cmd()
 		*) fatal "$action: Invalid action" ;;
 	esac
 
-	girar-check-acl-leader "$GIRAR_USER" "$item" \
-		"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
-		"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
-
 	[ "${GIRAR_USER-}" = 'root' ] ||
 	[ "$#" -ge 1 ] ||
 		show_usage 'Not enough arguments.'
 
 	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
 		fatal "$item $action: $*: Invalid argument(s)"
+
+	if [ del = "$action" -a "$GIRAR_USER" = "$*" ]; then
+		# $GIRAR_USER is allowed to del self from the list (ALT#19215)
+		girar-check-acl-item "$item" \
+			"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
+			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+	else
+		girar-check-acl-leader "$GIRAR_USER" "$item" \
+			"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
+			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+	fi
 
 	if [ "$action" = 'nmu' ]; then
 		parse_cmd_nmu "$@"
