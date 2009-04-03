@@ -5,7 +5,6 @@
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
-seq="$(cat task/seq)"
 repo="$(cat task/repo)"
 rc="$(cat task/rc)"
 if [ "$rc" != 0 ]; then
