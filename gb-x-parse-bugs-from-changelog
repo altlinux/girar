@@ -1,0 +1,14 @@
+#!/usr/bin/perl -n
+
+#
+# Accepts the following strings: opening parenthesis, then "Closes" or
+# "Closes:" or "ALT", then comma-separated list of bugs with optional '#'
+# prepended, then closing parenthesis. Case-insensitive.
+#
+
+while($_ =~ s/\(\s*(?:closes\s*:?|alt)\s*(#?\s*\d+(?:\s*,\s*#?\s*\d+)*)\s*\)//i) {
+  my $bugs = $1;
+  while($bugs =~ s/.*?(\d+)//) {
+    print "$1\n";
+  }
+}

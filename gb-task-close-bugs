@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+seq="$(cat task/seq)"
+repo="$(cat task/repo)"
+rc="$(cat task/rc)"
+if [ "$rc" != 0 ]; then
+    exit
+fi
+
+q_EVR="%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\n"
+
+for builddir in $(find build -maxdepth 1 -mindepth 1 -type d | egrep 'build/[0-9]+$'); do
+    # Taking random (first) src.rpm
+    srpm=$(echo "$builddir"/*/srpm/*.src.rpm | awk '{print $1}')
+    name_version=$(rpmquery -p --qf "%{NAME}-${q_EVR}" "$srpm")
+    changelog=$(rpmquery -p --lastchange "$srpm")
+
+    mkdir -p "build/bugmail"
+    for bug_id in $(echo "$changelog" | gb-x-parse-bugs-from-changelog); do
+        cat >"build/bugmail/$bug_id" <<__EOF
+From: $GB_BUGZILLA_FROM
+To: $GB_BUGZILLA_TO
+
+@bug_id=$bug_id
+@bug_status=RESOLVED
+@resolution=FIXED
+
+$name_version -> $repo:
+
+$changelog
+__EOF
+        (echo "X-Bugzilla-Token: $GB_BUGZILLA_KEY"; cat "build/bugmail/$bug_id") | mutt -x
+    done
+done

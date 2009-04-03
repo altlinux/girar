@@ -80,6 +80,7 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
+gb-task-close-bugs "$id"
 gb-task-send-email "$id"
 
 exit $rc
