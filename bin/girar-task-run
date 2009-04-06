@@ -59,7 +59,7 @@ try="$((1+$seq/3))"
 [ $try -gt 1 ] || try=
 
 # create group writable directories for build results
-mkdir -pm3775 build plan
+mkdir -pm3775 bugmail build plan
 
 # create group writable files required for build
 (umask 002; touch task/log"${try:+.$try}" task/rc task/seq task/summary) || false
