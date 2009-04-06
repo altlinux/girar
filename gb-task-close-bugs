@@ -1,6 +1,10 @@
-#!/bin/sh -efu
+#!/bin/sh -eux
 
 . gb-sh-functions
+
+in_list() {
+    expr " $1 " : ".* $2 " > /dev/null
+}
 
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
@@ -16,23 +20,35 @@ q_EVR="%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\n"
 for builddir in $(find build -maxdepth 1 -mindepth 1 -type d | egrep 'build/[0-9]+$'); do
     # Taking random (first) src.rpm
     srpm=$(echo "$builddir"/*/srpm/*.src.rpm | awk '{print $1}')
-    name_version=$(rpmquery -p --qf "%{NAME}-${q_EVR}" "$srpm")
+    source_pkg=$(rpmquery -p --qf "%{NAME}" "$srpm")
+    version=$(rpmquery -p --qf "${q_EVR}" "$srpm")
     changelog=$(rpmquery -p --lastchange "$srpm")
+
+    binary_pkgs=
+    for rpm in "$builddir"/*/rpms/*.rpm; do
+        binary_pkg=$(rpmquery -p --qf "%{NAME}" "$rpm")
+        if ! in_list "$binary_pkgs" "$binary_pkg"; then
+            binary_pkgs="$binary_pkgs $binary_pkg"
+        fi
+    done
 
     mkdir -p "build/bugmail"
     for bug_id in $(echo "$changelog" | gb-x-parse-bugs-from-changelog); do
         cat >"build/bugmail/$bug_id" <<__EOF
-From: $GB_BUGZILLA_FROM
-To: $GB_BUGZILLA_TO
+From: ${GB_BUGZILLA_FROM}
+To: ${GB_BUGZILLA_TO}
+X-Bugzilla-In-Bug-Id: ${bug_id}
+X-Bugzilla-In-Source-Package: ${source_pkg}
+X-Bugzilla-In-Binary-Packages:${binary_pkgs}
 
-@bug_id=$bug_id
+@bug_id=${bug_id}
 @bug_status=RESOLVED
 @resolution=FIXED
 
-$name_version -> $repo:
+${source_pkg}-${version} -> ${repo}:
 
-$changelog
+${changelog}
 __EOF
-        (echo "X-Bugzilla-Token: $GB_BUGZILLA_KEY"; cat "build/bugmail/$bug_id") | mutt -x
+        (echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "build/bugmail/$bug_id") | mutt -x
     done
 done
