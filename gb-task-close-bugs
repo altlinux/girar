@@ -17,7 +17,7 @@ fi
 
 q_EVR="%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\n"
 
-for builddir in $(find build -maxdepth 1 -mindepth 1 -type d | egrep 'build/[0-9]+$'); do
+for builddir in $(find build -maxdepth 1 -mindepth 1 -type d -path 'build/[0-9]*'); do
     # Taking random (first) src.rpm
     srpm=$(echo "$builddir"/*/srpm/*.src.rpm | awk '{print $1}')
     source_pkg=$(rpmquery -p --qf "%{NAME}" "$srpm")
@@ -25,7 +25,7 @@ for builddir in $(find build -maxdepth 1 -mindepth 1 -type d | egrep 'build/[0-9
     changelog=$(rpmquery -p --lastchange "$srpm")
 
     binary_pkgs=
-    for rpm in "$builddir"/*/rpms/*.rpm; do
+    for rpm in $(find "$builddir" -type f -path "$builddir/*/rpms/*.rpm"); do
         binary_pkg=$(rpmquery -p --qf "%{NAME}" "$rpm")
         if ! in_list "$binary_pkgs" "$binary_pkg"; then
             binary_pkgs="$binary_pkgs $binary_pkg"
