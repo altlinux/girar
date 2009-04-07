@@ -32,7 +32,7 @@ TASK_ID/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
 TASK_ID/build/$i/$arch/rpms/*.rpm	1+ *.$arch.rpm or *.noarch.rpm
 
 # Email sent to bugzilla to close bugs
-TASK_ID/build/$i/bugmail/$bug_id  bugmail contents for bug $bug_id
+TASK_ID/bugmail/$bug_id  bugmail contents for bug $bug_id
 
 # After the build is successful, there is a plan to upgrade the repo.
 TASK_ID/plan/add-src+bin

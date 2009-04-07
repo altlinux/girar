@@ -2,10 +2,6 @@
 
 . gb-sh-functions
 
-in_list() {
-    expr " $1 " : ".* $2 " > /dev/null
-}
-
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
@@ -15,40 +11,30 @@ if [ "$rc" != 0 ]; then
     exit
 fi
 
-q_EVR="%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\n"
+mkdir -p bugmail
 
-for builddir in $(find build -maxdepth 1 -mindepth 1 -type d -path 'build/[0-9]*'); do
-    # Taking random (first) src.rpm
-    srpm=$(echo "$builddir"/*/srpm/*.src.rpm | awk '{print $1}')
-    source_pkg=$(rpmquery -p --qf "%{NAME}" "$srpm")
-    version=$(rpmquery -p --qf "${q_EVR}" "$srpm")
-    changelog=$(rpmquery -p --lastchange "$srpm")
+while read N EVR F; do
+	srpm=$(findsrc "$F")
+	changelog=$(rpmquery -p --lastchange "$srpm")
+	ids=$(printf '%s\n' "$changelog" |gb-x-parse-bugs-from-changelog)
+	[ -n "$ids" ] || continue
+	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
+	for id in $ids; do
+		cat >"bugmail/$id" <<-__EOF
+		From: ${GB_BUGZILLA_FROM}
+		To: ${GB_BUGZILLA_TO}
+		X-Bugzilla-In-Bug-Id: ${id}
+		X-Bugzilla-In-Source-Package: ${N}
+		X-Bugzilla-In-Binary-Packages: ${binaries}
 
-    binary_pkgs=
-    for rpm in $(find "$builddir" -type f -path "$builddir/*/rpms/*.rpm"); do
-        binary_pkg=$(rpmquery -p --qf "%{NAME}" "$rpm")
-        if ! in_list "$binary_pkgs" "$binary_pkg"; then
-            binary_pkgs="$binary_pkgs $binary_pkg"
-        fi
-    done
+		@bug_id=${id}
+		@bug_status=RESOLVED
+		@resolution=FIXED
 
-    mkdir -p "build/bugmail"
-    for bug_id in $(echo "$changelog" | gb-x-parse-bugs-from-changelog); do
-        cat >"build/bugmail/$bug_id" <<__EOF
-From: ${GB_BUGZILLA_FROM}
-To: ${GB_BUGZILLA_TO}
-X-Bugzilla-In-Bug-Id: ${bug_id}
-X-Bugzilla-In-Source-Package: ${source_pkg}
-X-Bugzilla-In-Binary-Packages:${binary_pkgs}
+		${N}-${EVR} -> ${repo}:
 
-@bug_id=${bug_id}
-@bug_status=RESOLVED
-@resolution=FIXED
-
-${source_pkg}-${version} -> ${repo}:
-
-${changelog}
-__EOF
-        (echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "build/bugmail/$bug_id") | mutt -x
-    done
-done
+		${changelog}
+		__EOF
+		(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |mutt -x
+	done
+done <plan/add-src
