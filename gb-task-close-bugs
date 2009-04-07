@@ -1,4 +1,5 @@
-#!/bin/sh -eux
+#!/bin/sh
+set -efu
 
 . gb-sh-functions
 
@@ -8,7 +9,7 @@ cd "$GB_TASKS_DIR/$id"
 repo="$(cat task/repo)"
 rc="$(cat task/rc)"
 if [ "$rc" != 0 ]; then
-    exit
+	exit
 fi
 
 mkdir -p bugmail
