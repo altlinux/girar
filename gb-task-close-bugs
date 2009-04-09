@@ -38,6 +38,6 @@ while read N EVR F; do
 
 		${changelog}
 		__EOF
-		(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |mutt -x
+		(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |/usr/sbin/sendmail -i -t
 	done
 done <plan/add-src
