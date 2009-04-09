@@ -20,6 +20,7 @@ while read N EVR F; do
 	ids=$(printf '%s\n' "$changelog" |gb-x-parse-bugs-from-changelog)
 	[ -n "$ids" ] || continue
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
+	uploader="$(cat task/owner)"
 	for id in $ids; do
 		cat >"bugmail/$id" <<-__EOF
 		From: ${GB_BUGZILLA_FROM}
@@ -27,6 +28,7 @@ while read N EVR F; do
 		X-Bugzilla-In-Bug-Id: ${id}
 		X-Bugzilla-In-Source-Package: ${N}
 		X-Bugzilla-In-Binary-Packages: ${binaries}
+		X-Bugzilla-In-Uploader: ${uploader}
 
 		@bug_id=${id}
 		@bug_status=RESOLVED
