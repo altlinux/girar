@@ -1,0 +1,4 @@
+#!/bin/sh
+
+
+../gb-x-parse-bugs-from-changelog < parse-bugs-from-changelog.test | diff -u - parse-bugs-from-changelog.out

@@ -1,0 +1,43 @@
+#!/bin/sh
+set -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+repo="$(cat task/repo)"
+rc="$(cat task/rc)"
+if [ "$rc" != 0 ]; then
+	exit
+fi
+
+mkdir -p bugmail
+
+while read N EVR F; do
+	srpm=$(findsrc "$F")
+	changelog=$(rpmquery -p --lastchange "$srpm")
+	ids=$(printf '%s\n' "$changelog" |gb-x-parse-bugs-from-changelog)
+	[ -n "$ids" ] || continue
+	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
+	uploader="$(cat task/owner)"
+	for id in $ids; do
+		cat >"bugmail/$id" <<-__EOF
+		From: ${GB_BUGZILLA_FROM}
+		To: ${GB_BUGZILLA_TO}
+		X-Bugzilla-In-Bug-Id: ${id}
+		X-Bugzilla-In-Source-Package: ${N}
+		X-Bugzilla-In-Binary-Packages: ${binaries}
+		X-Bugzilla-In-Uploader: ${uploader}
+
+		@bug_id=${id}
+		@bug_status=RESOLVED
+		@resolution=FIXED
+
+		${N}-${EVR} -> ${repo}:
+
+		${changelog}
+		__EOF
+		(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |mutt -x
+	done
+done <plan/add-src

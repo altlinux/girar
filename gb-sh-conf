@@ -13,5 +13,9 @@
 : ${GB_TASKS_DIR:?}
 : ${GB_META_DIR:?}
 
+: ${GB_BUGZILLA_FROM:?}
+: ${GB_BUGZILLA_TO:?}
+: ${GB_BUGZILLA_KEY:?}
+
 [ -z "${arch-}" ] ||
 	remote_host="build-$GB_REPO_NAME-$arch"
