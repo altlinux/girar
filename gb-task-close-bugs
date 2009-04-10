@@ -16,7 +16,9 @@ mkdir -p bugmail
 
 while read N EVR F; do
 	srpm=$(findsrc "$F")
-	changelog=$(rpmquery -p --lastchange "$srpm")
+	s='[:space:]'
+	changelog=$(rpmquery -p --lastchange "$srpm" |
+		sed -r "s/(<[$s]*[^@>$s]+([$s]*@[$s]*|[$s]+at[$s]+)(packages[$s]*[.][$s]*)?altlinux)([$s]*[.][$s]*|[$s]+dot[$s]+)[[:alpha:]]+[$s]*>/\\1>/")
 	ids=$(printf '%s\n' "$changelog" |gb-x-parse-bugs-from-changelog)
 	[ -n "$ids" ] || continue
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
