@@ -45,6 +45,11 @@ if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
 	exit 0
 fi
 
+# Make initial file list.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+find / 2>/dev/null |sort -u >"$tmpdir"/flist1
+
 # Install the package AND apt.
 setarch "$arch" -- \
 hsh-install -- "$N=$EVR" apt >"$tmpdir"/out 2>&1 ||
@@ -53,6 +58,24 @@ hsh-install -- "$N=$EVR" apt >"$tmpdir"/out 2>&1 ||
 		cat "$tmpdir"/out
 		exit 1
 	} >&2
+
+# Make post-install file list.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+find / 2>/dev/null |sort -u >"$tmpdir"/flist2
+
+# Check new files.
+comm -23 "$tmpdir"/flist{2,1} >"$tmpdir"/new-files
+
+xargs -r --delimiter='\n' <"$tmpdir"/new-files \
+setarch "$arch" -- \
+hsh-run --rooter -- \
+rpmquery -f -- >/dev/null 2>"$tmpdir"/out ||:
+
+if [ -s "$tmpdir"/out ]; then
+	echo "	$arch: $N=$EVR post-install filelist check:"
+	cat "$tmpdir"/out
+fi >&2
 
 # Try to remove the package.
 setarch "$arch" -- \
