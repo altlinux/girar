@@ -45,6 +45,11 @@ if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
 	exit 0
 fi
 
+# Workaround a problem with apt filelist.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+mkdir -p -m755 /usr/share/man/ru/man1
+
 # Make initial file list.
 setarch "$arch" -- \
 hsh-run --rooter -- \
