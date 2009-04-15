@@ -60,6 +60,7 @@ fi
 
 	# Apply changes
 	gb-task-commit-repo
+	gb-task-close-bugs
 	gb-task-commit-girar
 	gb-task-commit-acl
 	gb-task-repo-sync
@@ -80,7 +81,6 @@ seq=$(cat task/seq)
 seq=$(($seq+1))
 echo "$seq" >task/seq
 
-gb-task-close-bugs "$id"
 gb-task-send-email "$id"
 
 exit $rc
