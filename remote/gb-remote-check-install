@@ -28,7 +28,7 @@ tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 
 # Initialize.
 setarch "$arch" -- \
-hsh --init --pkg-build-list=basesystem >"$tmpdir"/out 2>&1 ||
+hsh --init --pkg-build-list=basesystem,glibc-locales >"$tmpdir"/out 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
 		cat "$tmpdir"/out
