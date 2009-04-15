@@ -5,20 +5,34 @@ arch="$1"; shift
 . gb-sh-functions
 . gb-sh-tmpdir
 
-Q='%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n'
-O='1.1 1.2 1.3 1.4'
-for i in $(build_nums); do
-	[ -d "build/$i/$arch/rpms" ] || continue
-	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -execdir \
-		rpmquery --qf "$Q" -p -- '{}' '+'
-done >"$tmpdir"/packages
+check_duplicates()
+{
+	local dir query format
+	dir="$1"; shift
+	query="$1"; shift
+	format="$1"; shift
 
-cd "$tmpdir"
-sort -o packages{,}
-cut -f1 packages |sort |uniq -d >dups
+	for i in $(build_nums); do
+		[ -d "build/$i/$arch/$dir" ] || continue
+		find "build/$i/$arch/$dir" -mindepth 1 -maxdepth 1 -type f -execdir \
+			rpmquery --qf "$query" -p -- '{}' '+'
+	done >"$tmpdir"/packages
 
-if [ -s dups ]; then
-	echo "	$arch: duplicate packages:"
-	join -t$'\t' -o "$O" -j 1 packages dups
-	exit 1
-fi >&2
+	cd "$tmpdir"
+	sort -o packages{,}
+	cut -f1 packages |sort |uniq -d >dups
+
+	if [ -s dups ]; then
+		echo "	$arch: duplicate packages:"
+		join -t$'\t' -o "$format" -j 1 packages dups
+		exit 1
+	fi >&2
+	cd - >/dev/null
+}
+
+check_duplicates rpms \
+	'%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SOURCERPM}\n' \
+	'1.1 1.2 1.3 1.4'
+check_duplicates srpm \
+	'%{NAME}\t%|EPOCH?{%{EPOCH}:}|%{VERSION}-%{RELEASE}\tsrc\n' \
+	'1.1 1.2 1.3'
