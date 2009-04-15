@@ -3,6 +3,8 @@ set -efu
 
 . gb-sh-functions
 
+repo=$(cat task/repo)
+
 mkdir -p bugmail
 
 while read N EVR F; do
