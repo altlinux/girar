@@ -1,0 +1,22 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+REPO_DIR="$1"
+shift
+
+for arch in i586 x86_64 noarch; do
+	genbasedir \
+		--architectures="i586 x86_64 noarch" \
+		--architecture="$arch" \
+		--archive="ALT Linux $GB_REPO_NAME" \
+		--codename="$GB_REPO_CODENAME" \
+		--description="ALT Linux $GB_REPO_NAME" \
+		--label="$GB_REPO_NAME" \
+		--origin="ALT Linux Team" \
+		--suite="$GB_REPO_NAME" \
+		--version="$GB_REPO_NAME" \
+		-s --default-key="$GB_REPO_SIGNER" \
+		--topdir="$REPO_DIR" \
+		--flat --no-oldhashfile --bz2only --mapi $arch classic
+done

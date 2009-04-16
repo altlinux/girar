@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+REPO_DIR="$1"
+shift
+
+. gb-sh-tmpdir
+
+for arch in i586 x86_64 noarch; do
+	sisyphus_gen_contents $REPO_DIR/$arch/RPMS.classic >$tmpdir/contents_index
+	cmp -s $tmpdir/contents_index $REPO_DIR/$arch/base/contents_index ||
+		mv -f $tmpdir/contents_index $REPO_DIR/$arch/base/contents_index
+done

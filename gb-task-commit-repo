@@ -106,26 +106,8 @@ install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 
 stamp_echo >&2 'packages update OK'
 
-. gb-sh-tmpdir
+gb-y-repo-regen-basedir "$GB_REPO_DIR"
+stamp_echo >&2 'repo update OK'
 
-for arch in i586 x86_64 noarch; do
-	genbasedir \
-		--architectures="i586 x86_64 noarch" \
-		--architecture="$arch" \
-		--archive="ALT Linux $GB_REPO_NAME" \
-		--codename="$GB_REPO_CODENAME" \
-		--description="ALT Linux $GB_REPO_NAME" \
-		--label="$GB_REPO_NAME" \
-		--origin="ALT Linux Team" \
-		--suite="$GB_REPO_NAME" \
-		--version="$GB_REPO_NAME" \
-		-s --default-key="$GB_REPO_SIGNER" \
-		--topdir="$GB_REPO_DIR" \
-		--flat --no-oldhashfile --bz2only --mapi $arch classic
-	#stamp_echo >&2 "[$arch] genbasedir OK"
-	sisyphus_gen_contents $GB_REPO_DIR/$arch/RPMS.classic >$tmpdir/contents_index
-	cmp -s $tmpdir/contents_index $GB_REPO_DIR/$arch/base/contents_index ||
-		mv -f $tmpdir/contents_index $GB_REPO_DIR/$arch/base/contents_index
-	#stamp_echo >&2 "[$arch] gencontents OK"
-done
-stamp_echo >&2 'indices update OK'
+gb-y-repo-regen-ci "$GB_REPO_DIR"
+stamp_echo >&2 'contents_index update OK'
