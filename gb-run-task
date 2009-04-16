@@ -45,6 +45,7 @@ fi
 	gb-task-check-build
 	gb-task-repo-plan
 	gb-task-repo-vercheck
+	gb-task-tmprepo
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install

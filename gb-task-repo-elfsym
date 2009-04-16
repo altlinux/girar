@@ -6,7 +6,7 @@ cut -f3 plan/{add,rm}-bin |fgrep -qs -v noarch || exit 0
 . gb-sh-functions
 repo1="$GB_REPO_DIR"
 
-# Reuse temporary repo created by gb-task-repo-unmets.
+# Reuse our temporary repo.
 repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
 
 . gb-sh-tmpdir
