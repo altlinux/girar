@@ -3,8 +3,6 @@ set -efu
 
 . gb-sh-functions
 
-repo=$(cat task/repo)
-
 mkdir -p bugmail
 
 while read N EVR F; do
@@ -30,7 +28,7 @@ while read N EVR F; do
 		@bug_status=RESOLVED
 		@resolution=FIXED
 
-		${N}-${EVR} -> ${repo}:
+		${N}-${EVR} -> $GB_REPO_NAME:
 
 		${changelog}
 		__EOF
