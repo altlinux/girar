@@ -9,7 +9,26 @@ stamp_echo >&2 'packages update OK'
 install -pm644 -- plan/next.src "$GB_REPO_DIR/files/list/src.list"
 install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 
-gb-y-repo-regen-basedir "$GB_REPO_DIR"
+# Reuse base directories from our temporary repo.
+repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
+
+regen=
+for arch in i586 x86_64 noarch; do
+	# Paranoia: handle tmpfs failures.
+	# Since packages are already committed, we must try hard.
+	f1=$GB_REPO_DIR/$arch/base/release
+	f2=$GB_REPO_DIR/$arch/base/pkglist.classic.bz2
+	rm "$f1" "$f2"
+	# NB: no --delete here, contents_index was removed.
+	rsync -a $repo/$arch/base/ $GB_REPO_DIR/$arch/base/ &&
+		[ -s "$f1" ] && [ -s "$f2" ] && continue
+	regen=1
+done
+
+if [ -n "$regen" ]; then
+	stamp_echo >&2 'tmpfs failure, recovering'
+	gb-y-repo-regen-basedir "$GB_REPO_DIR"
+fi
 stamp_echo >&2 'repo update OK'
 
 gb-y-repo-regen-ci "$GB_REPO_DIR"
