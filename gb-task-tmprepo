@@ -10,6 +10,11 @@ mkdir "$repo"
 # symlinked repository clone
 cp -prs -- $GB_REPO_DIR/{files,i586,x86_64,noarch} $repo/
 
+# Base directories must be explicitly removed, to avoid symlinks.
+# This will also remove contents_index, which is okay, since we
+# do not use our temporary repo for build.
+rm -r $repo/{i586,x86_64,noarch}/base/
+
 # apply changes
 gb-y-task-commit-packages "$repo" >/dev/null
 gb-y-repo-regen-basedir "$repo"
@@ -18,8 +23,5 @@ gb-y-repo-regen-basedir "$repo"
 rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
 rm -r $repo/{i586,x86_64}/SRPMS.all/
 rm -r $repo/files/SRPMS/
-
-# not for build, contents_index not needed
-rm $repo/{i586,x86_64,noarch}/base/contents_index
 
 stamp_echo >&2 'created temporary repo'
