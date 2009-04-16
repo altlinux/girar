@@ -19,4 +19,7 @@ rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
 rm -r $repo/{i586,x86_64}/SRPMS.all/
 rm -r $repo/files/SRPMS/
 
+# not for build, contents_index not needed
+rm $repo/{i586,x86_64,noarch}/base/contents_index
+
 stamp_echo >&2 'created temporary repo'
