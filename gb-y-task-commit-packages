@@ -1,0 +1,104 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+REPO_DIR="$1"
+shift
+
+commit()
+{
+	local arch_all
+	while read -r N EVR A F; do
+		RM $REPO_DIR/$A/RPMS.classic/$F
+		RM $REPO_DIR/files/$A/RPMS/$F
+	done <plan/rm-bin
+	while read -r N EVR A F; do
+		bin=$(findbin "$F")
+		CP "$bin" $REPO_DIR/files/$A/RPMS/$F
+		LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.classic/$F
+	done <plan/add-bin
+
+	while read -r F A; do
+		RM $REPO_DIR/$A/SRPMS.classic/$F
+		if [ "$A" = 'noarch' ]; then
+			arch_all='i586 x86_64'
+		else
+			arch_all="$A"
+		fi
+		for arch in $arch_all; do
+			if [ -e "$REPO_DIR/$arch/SRPMS.all/$F" ]; then
+				RM "$REPO_DIR/$arch/SRPMS.all/$F"
+			fi
+		done
+	done <plan/rm-srpm2arch
+	while read -r N EVR F; do
+		RM $REPO_DIR/files/SRPMS/$F
+	done <plan/rm-src
+
+	while read -r N EVR F; do
+		src=$(findsrc "$F")
+		CP "$src" $REPO_DIR/files/SRPMS/$F
+	done <plan/add-src
+	while read -r F A; do
+		LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
+		if [ "$A" = 'noarch' ]; then
+			arch_all='i586 x86_64'
+		else
+			arch_all="$A"
+		fi
+		for arch in $arch_all; do
+			[ -e "$REPO_DIR/$arch/SRPMS.all/$F" ] ||
+				LN "../../files/SRPMS/$F" "$REPO_DIR/$arch/SRPMS.all/$F"
+		done
+	done <plan/add-srpm2arch
+}
+
+RM()
+{
+	if ! [ -f "$1" ]; then
+		echo "$1: file not found"
+		return 1
+	fi >&2
+}
+
+CP()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		return 1
+	fi >&2
+}
+
+LN()
+{
+	if [ -e "$2" ] || [ -L "$2" ]; then
+		echo "$2: file already exists"
+		return 1
+	fi >&2
+}
+
+# test commit
+commit
+
+RM()
+{
+	rm -v "$1"
+}
+
+CP()
+{
+	cp -v -l "$1" "$2"
+}
+
+LN()
+{
+	ln -v -s "$1" "$2"
+	if ! [ -f "$2" ]; then
+		echo "$2: created dangling symlink"
+		rm -v "$2"
+		return 1
+	fi >&2
+}
+
+# real commit
+commit
