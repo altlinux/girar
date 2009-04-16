@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use strict;
+
+die "Usage: $0 [RPM...] [RPMDIR...]\n" unless @ARGV;
+
+my @rpms;
+for (@ARGV) {
+	if (-d) {
+		use File::Glob 'bsd_glob';
+		my @gl = bsd_glob("$_/*.rpm", 0) or die "$_: no rpms";
+		push @rpms, @gl;
+	}
+	else {
+		push @rpms, $_;
+	}
+}
+
+require RPM::Header;
+
+sub useful_files ($) {
+	my $f = shift;
+	my $rpm = RPM::Header->new($f) or die "$f: $RPM::err";
+	my %u;
+	for my $tag qw(REQUIRENAME PROVIDENAME CONFLICTNAME OBSOLETENAME) {
+		for my $dep (@{$$rpm{$tag}}) {
+			next unless "/" eq substr $dep, 0, 1;
+			next if ")" eq substr $dep, -1, 1;
+			$u{$dep} = undef;
+		}
+	}
+	return sort keys %u;
+}
+
+my %U;
+for my $rpm (@rpms) {
+	my @u = useful_files($rpm);
+	@U{@u} = ();
+}
+
+$\ = $, = "\n";
+print sort keys %U;
