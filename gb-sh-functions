@@ -188,8 +188,5 @@ set_GIT_DIR()
 vercheck()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"
-	# add zero epoch if EVRn does not have epoch
-	[ -z "${EVR1##*:*}" ] || EVR1="0:$EVR1"
-	[ -z "${EVR2##*:*}" ] || EVR2="0:$EVR2"
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" = -1 ] || return 1
 }
