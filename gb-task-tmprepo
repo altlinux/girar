@@ -8,20 +8,42 @@ rm -rf "$repo"
 mkdir "$repo"
 
 # symlinked repository clone
-cp -prs -- $GB_REPO_DIR/{files,i586,x86_64,noarch} $repo/
+cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 
 # Base directories must be explicitly removed, to avoid symlinks.
 # This will also remove contents_index, which is okay, since we
 # do not use our temporary repo for build.
 rm -r $repo/{i586,x86_64,noarch}/base/
 
-# apply changes
-gb-y-task-commit-packages "$repo" >/dev/null
+# Commit packages.  This is a light-weight reimplementation
+# of gb-y-task-commit-packages.  For tmprepo, we omit files/
+# and update only RPMS.classic components.
+while read -r N EVR A F; do
+	rm -- $repo/$A/RPMS.classic/$F
+done <plan/rm-bin
+while read -r N EVR A F; do
+       bin=$(findbin "$F")
+       # NB: copy here, so that the repo is rsyncable to remotes.
+       cp -p -- $PWD/$bin $repo/$A/RPMS.classic/$F
+done <plan/add-bin
+
+# SRPMS.classic is also updated here, since we want to reuse
+# tmprepo basedirs later in gb-task-commit-repo.  However, we omit
+# SRPMS.all update.
+while read -r F A; do
+	rm -- $repo/$A/SRPMS.classic/$F
+done <plan/rm-srpm2arch
+while read -r F A; do
+	src=$(findsrc "$F")
+	# NB: copying is not needed here.
+	ln -s -- PWD/$src $repo/$A/SRPMS.classic/$F
+done <plan/add-srpm2arch
+
+# Regen repo.
 gb-y-repo-regen-basedir "$repo"
 
 # basedir ok, SRPMS no longer needed
 rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
 rm -r $repo/{i586,x86_64}/SRPMS.all/
-rm -r $repo/files/SRPMS/
 
 stamp_echo >&2 'created temporary repo'
