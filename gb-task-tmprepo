@@ -14,6 +14,7 @@ cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
 # This will also remove contents_index, which is okay, since we
 # do not use our temporary repo for build.
 rm -r $repo/{i586,x86_64,noarch}/base/
+mkdir $repo/{i586,x86_64,noarch}/base
 
 # Commit packages.  This is a light-weight reimplementation
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
