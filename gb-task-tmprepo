@@ -37,7 +37,7 @@ done <plan/rm-srpm2arch
 while read -r F A; do
 	src=$(findsrc "$F")
 	# NB: copying is not needed here.
-	ln -s -- PWD/$src $repo/$A/SRPMS.classic/$F
+	ln -s -- $PWD/$src $repo/$A/SRPMS.classic/$F
 done <plan/add-srpm2arch
 
 # Regen repo.
