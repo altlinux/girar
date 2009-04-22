@@ -1,3 +1,0 @@
-#!/bin/sh -efu
-mkdir -p "$HOME/.cache/genpkglist"
-exec /usr/bin/genpkglist --cachedir "$HOME/.cache" "$@"

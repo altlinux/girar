@@ -1,3 +1,0 @@
-#!/bin/sh -efu
-mkdir -p "$HOME/.cache/gensrclist"
-exec /usr/bin/gensrclist --cachedir "$HOME/.cache" "$@"

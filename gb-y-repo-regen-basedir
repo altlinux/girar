@@ -7,9 +7,11 @@ shift
 
 . gb-sh-tmpdir
 gb-x-useful-files "$REPO_DIR"/{i586,x86_64,noarch}/RPMS.classic >"$tmpdir"/useful-files
+mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
 for arch in i586 x86_64 noarch; do
 	genbasedir \
+		--cachedir="$HOME"/.cache \
 		--useful-files="$tmpdir"/useful-files --no-scan \
 		--architectures="i586 x86_64 noarch" \
 		--architecture="$arch" \
