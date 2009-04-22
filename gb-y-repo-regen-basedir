@@ -5,8 +5,12 @@
 REPO_DIR="$1"
 shift
 
+. gb-sh-tmpdir
+gb-x-useful-files "$REPO_DIR"/{i586,x86_64,noarch}/RPMS.classic >"$tmpdir"/useful-files
+
 for arch in i586 x86_64 noarch; do
 	genbasedir \
+		--useful-files="$tmpdir"/useful-files --no-scan \
 		--architectures="i586 x86_64 noarch" \
 		--architecture="$arch" \
 		--archive="ALT Linux $GB_REPO_NAME" \
