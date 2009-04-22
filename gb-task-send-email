@@ -60,7 +60,7 @@ $GB_SITE$GB_TASKS_DIR/$id/$log_file
 
 __EOF
 
-if [ "$log_size" -le 256 ]; then
+if [ "$log_size" -le 128 ]; then
 	cat -- "$log_file" >>"$tmpdir/draft"
 fi
 
