@@ -78,7 +78,9 @@ if [ -s "$tmpdir"/new-files ]; then
 /etc/rc\.d/rc[0-6]\.d/[KS][0-9].*
 /etc/tcb/.*
 /usr/share/mime/.*
+/var/cache/fontconfig/.*
 /var/cache/gconf/.*
+/var/resolv/(lib|lib64)/lib.*
 EOF
 	if egrep -v -x -f "$tmpdir"/ignore-p -- \
 	   "$tmpdir"/new-files >"$tmpdir"/new-files+; then
