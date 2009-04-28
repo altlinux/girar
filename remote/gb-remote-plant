@@ -53,6 +53,8 @@ Dir::Etc::main "/dev/null";
 Dir::Etc::parts "/var/empty";
 Dir::Etc::sourceparts "/var/empty";
 Dir::Etc::sourcelist "$workdir/sources.list";
+Debug::pkgMarkInstall "true";
+Debug::pkgProblemResolver "true";
 EOF
 cat >"$workdir/sources.list" <<EOF
 rpm file:$dir $arch classic
