@@ -72,6 +72,20 @@ find / 2>/dev/null |sort -u >"$tmpdir"/flist2
 # Check new files.
 comm -23 "$tmpdir"/flist{2,1} >"$tmpdir"/new-files
 
+if [ -s "$tmpdir"/new-files ]; then
+	cat >"$tmpdir"/ignore-p <<'EOF'
+/etc/alternatives/links/.*
+/etc/rc\.d/rc[0-6]\.d/[KS][0-9].*
+/etc/tcb/.*
+/usr/share/mime/.*
+/var/cache/gconf/.*
+EOF
+	if egrep -v -x -f "$tmpdir"/ignore-p -- \
+	   "$tmpdir"/new-files >"$tmpdir"/new-files+; then
+		mv -f "$tmpdir"/new-files{+,}
+	fi
+fi
+
 xargs -r --delimiter='\n' <"$tmpdir"/new-files \
 setarch "$arch" -- \
 hsh-run --rooter -- \
