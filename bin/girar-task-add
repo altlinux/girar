@@ -180,14 +180,14 @@ check_already_added_repo()
 		a_tag_id=$(cat gears/$i/tag_id)
 		if [ "${a_dir##*/}" = "${dir##*/}" ] &&
 		   [ "$a_tag_name" = "$tag_name" ]; then
-			message "${dir##*/}: tag $tag_name was already added"
 			[ "$a_tag_id" = "$tag_id" ] ||
-				fatal "${dir##*/}: tag $tag_name has changed"
+				fatal "${dir##*/}: another tag $tag_name was already added (subtask #$i)"
+			message "${dir##*/}: tag $tag_name was already added (subtask #$i)"
 			exit 0
 		fi
 		if [ "$a_tag_id" = "$tag_id" ]; then
 			# maybe added by another guy
-			message "${dir##*/}: tag $tag_name was already added (from $a_dir $a_tag_name)"
+			message "${dir##*/}: tag $tag_name was already added (subtask #$i, from $a_dir $a_tag_name)"
 			exit 0
 		fi
 	done
