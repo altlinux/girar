@@ -61,9 +61,6 @@ parse_cmd_nmu()
 {
 	local action="$1"; shift
 	case "$action" in
-		show)
-			show_nmu >&2
-			return ;;
 		add|del) ;;
 		*) fatal "nmu $action: Invalid action" ;;
 	esac
@@ -134,6 +131,11 @@ parse_cmd()
 		show)
 			show_acl >&2
 			return ;;
+		nmu)
+			if [ "${1-}" = show ]; then
+				show_nmu >&2
+				return
+			fi ;;
 		check)
 			girar-check-perms "$item" "$repository" >&2 ||:
 			return ;;
