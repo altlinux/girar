@@ -145,6 +145,8 @@ case "$action" in
 	repo="$(cat task/repo)"
 	[ "$repo" != "$copy_repo" ] ||
 		fatal "Invalid request to copy package from $copy_repo to $repo"
+	[ "$repo" != 'sisyphus' ] ||
+		fatal "Invalid request to copy package to $repo"
 	fgrep -ixqse "$copy_repo" "$GIRAR_REPOSITORIES" ||
 		fatal "invalid repository \`$copy_repo', valid repositories are: $(fgrep -vixse "$repo" "$GIRAR_REPOSITORIES" |tr -s '[:space:]' ' ')"
 	girar-check-perms "$package" "$repo"
