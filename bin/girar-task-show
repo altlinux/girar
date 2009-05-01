@@ -52,4 +52,9 @@ for i in $nums; do
 		printf ' %s:package=%s\n' "$i" "$(cat "gears/$i/package")"
 	fi
 	printf ' %s:userid=%s\n' "$i" "$(cat "gears/$i/userid")"
+	if [ -d "acl/$i" ]; then
+		approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
+		[ -z "$approved_by" ] ||
+			printf ' %s:approved_by=%s\n' "$i" "$approved_by"
+	fi
 done
