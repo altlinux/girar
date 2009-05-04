@@ -50,6 +50,11 @@ setarch "$arch" -- \
 hsh-run --rooter -- \
 mkdir -p -m755 /usr/share/man/ru/man1
 
+# Workaround for pkg-config.
+setarch "$arch" -- \
+hsh-run --rooter -- \
+mkdir -p -m755 /etc/buildreqs/files/ignore.d /usr/share/aclocal
+
 # Make initial file list.
 setarch "$arch" -- \
 hsh-run --rooter -- \
