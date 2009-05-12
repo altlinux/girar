@@ -93,8 +93,10 @@ validate_srpm()
 		fatal "$srpm: Invalid path"
 	[ -f "$srpm" ] ||
 		fatal "$srpm: File not found"
-	package="$(rpmquery -p --qf '%{name}' "$srpm")" ||
+	package="$(rpmquery -p --qf '%{name}' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
+	sisyphus_check --files -- "$srpm" ||
+		fatal "$srpm: sisyphus_check failed"
 
 	cd - >/dev/null
 }
