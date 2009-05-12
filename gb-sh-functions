@@ -188,5 +188,5 @@ set_GIT_DIR()
 vercheck()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"
-	[ "$(rpmevrcmp "$EVR1" "$EVR2")" = -1 ] || return 1
+	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -lt 0 ] || return 1
 }
