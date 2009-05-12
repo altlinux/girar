@@ -65,20 +65,20 @@ GIRAR_HOME_MOUNT="$(df -P "$GIRAR_HOME" |awk '{dir=$6} END{print dir}')"
 setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GIRAR_HOME_MOUNT" ||
 	message "$IT_NAME: failed to set disk quota on $GIRAR_HOME_MOUNT"
 
-install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME" ||
-	fatal "$IT_NAME: failed to create $REAL_HOME"
+for d in "$REAL_HOME" "$REAL_HOME/packages" "$REAL_HOME/public"; do
+	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
+		fatal "$IT_NAME: failed to create $d"
+done
 
-install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME/packages" ||
-	fatal "$IT_NAME: failed to create $REAL_HOME/packages"
+for d in "$REAL_HOME/private"; do
+	install -d -o "$IT_NAME" -g girar -m751 "$d" ||
+		fatal "$IT_NAME: failed to create $d"
+done
 
-install -d -o "$IT_NAME" -g girar -m751 "$REAL_HOME/private" ||
-	fatal "$IT_NAME: failed to create $REAL_HOME/private"
-
-install -d -o "$IT_NAME" -g girar -m755 "$REAL_HOME/public" ||
-	fatal "$IT_NAME: failed to create $REAL_HOME/public"
-
-install -d -o "$IT_NAME" -g wheel -m750 "$REAL_HOME/etc" ||
-	fatal "$IT_NAME: failed to create $REAL_HOME/etc"
+for d in "$REAL_HOME/etc" "$REAL_HOME/incoming"; do
+	install -d -o "$IT_NAME" -g wheel -m750 "$d" ||
+		fatal "$IT_NAME: failed to create $d"
+done
 
 for n in packages private public; do
 	EMAIL_DIR="@GIRAR_EMAIL_DIR@/$n"
