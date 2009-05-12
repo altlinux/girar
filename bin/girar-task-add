@@ -87,7 +87,7 @@ validate_tag_name()
 
 validate_srpm()
 {
-	cd "$HOME"
+	cd "$HOME/incoming"
 
 	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
 		fatal "$srpm: Invalid path"
@@ -293,7 +293,7 @@ case "$action" in
 	exit 0
 	;;
 	srpm)
-	mv -- "$HOME/$srpm" gears/$i/
+	mv -- "$HOME/incoming/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
