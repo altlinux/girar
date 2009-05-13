@@ -85,20 +85,30 @@ validate_tag_name()
 		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
+srpm_tmp_locked=
 validate_srpm()
 {
-	cd "$HOME/incoming"
-
 	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
 		fatal "$srpm: Invalid path"
+	pushd "$HOME/incoming" >/dev/null
 	[ -f "$srpm" ] ||
 		fatal "$srpm: File not found"
+
+	mkdir -p tmp
+	if [ -z "$srpm_tmp_locked" ]; then
+		# obtain an exclusive lock on the srpm tmp directory.
+		builtin lockf -v tmp
+		srpm_tmp_locked=1
+	fi
+	mv -- "$srpm" tmp/
+	cd tmp
+
 	package="$(rpmquery -p --qf '%{name}' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
 	sisyphus_check --files -- "$srpm" ||
 		fatal "$srpm: sisyphus_check failed"
 
-	cd - >/dev/null
+	popd >/dev/null
 }
 
 case "$action" in
@@ -293,7 +303,7 @@ case "$action" in
 	exit 0
 	;;
 	srpm)
-	mv -- "$HOME/incoming/$srpm" gears/$i/
+	mv -- "$HOME/incoming/tmp/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
