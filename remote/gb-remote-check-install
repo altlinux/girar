@@ -3,6 +3,13 @@
 arch="$1" N="$2" EVR="$3" A="$4" F="$5"
 shift 5
 
+if rpmquery --provides -p "gb-repo/$A/RPMS.classic/$F" |
+   grep -qs '^altlinux-release '; then
+	release=$N
+else
+	release=altlinux-release-sisyphus
+fi
+
 tmpdir=
 cleanup()
 {
@@ -28,7 +35,8 @@ tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 
 # Initialize.
 setarch "$arch" -- \
-hsh --init --pkg-build-list=basesystem,glibc-locales >"$tmpdir"/out 2>&1 ||
+hsh --init --pkg-init-list="+$release" \
+    --pkg-build-list="$release,basesystem,glibc-locales" >"$tmpdir"/out 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
 		cat "$tmpdir"/out
