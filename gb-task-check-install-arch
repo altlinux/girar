@@ -21,8 +21,8 @@ rsync -a "$TMPDIR/gb-repo-$GB_REPO_NAME/" "$remote_host:gb-repo/"
 rc=0
 
 while read -r N EVR A F; do
-	[ "$A" = "$arch" ] || [ "$A" = 'noarch' ] || continue
-	ssh "$remote_host" ./gb-remote-check-install "$arch" "$N" "$EVR" </dev/null || rc=1
+	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
+	ssh "$remote_host" ./gb-remote-check-install "$arch" "$N" "$EVR" "$A" "$F" </dev/null || rc=1
 done <plan/add-bin
 
 # Purge temporary repo.
