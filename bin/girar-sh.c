@@ -50,18 +50,16 @@ static cmd_t commands[] = {
 	{"acl", "girar-acl", " {--help|<binary_repository_name> ...}"},
 };
 
-static const char git_receive_pack[] = "git-receive-pack ";
-static const char git_upload_pack[] = "git-upload-pack ";
+static const char git_receive_pack[] = "git-receive-pack";
+static const char git_upload_pack[] = "git-upload-pack";
+static const char rsync_server[] = "rsync --server";
 
 static void
 __attribute__((noreturn))
 show_help(int rc)
 {
 	FILE *fp = (EXIT_SUCCESS == rc) ? stdout : stderr;
-	fprintf(fp, "Available commands:\n"
-	       "help\n"
-	       "%s<directory>\n"
-	       "%s<directory>\n", git_receive_pack, git_upload_pack);
+	fprintf(fp, "%s", "Available commands:\nhelp\n");
 	unsigned i;
 	for (i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i)
 		fprintf(fp, "%s%s\n", commands[i].name, commands[i].usage);
@@ -70,12 +68,12 @@ show_help(int rc)
 
 static void
 __attribute__((noreturn))
-exec_cmd(cmd_t *cmd, char *str)
+exec_cmd(const char *exec, char *str)
 {
 	const char *args[strlen(str) + 2];
 	unsigned i = 0;
 
-	args[i++] = cmd->exec;
+	args[i++] = exec;
 
 	char   *p = str;
 
@@ -97,11 +95,57 @@ exec_cmd(cmd_t *cmd, char *str)
 
 	char   *path;
 
-	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, cmd->exec) < 0)
+	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, exec) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 	execv(path, (char *const *) args);
 	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
 	exit(EXIT_FAILURE);
+}
+
+static void
+__attribute__((noreturn))
+exec_rsync(char *str)
+{
+	const char *args[strlen(str) + 1];
+	unsigned i = 0;
+	char   *p = str;
+
+	while (*p && isblank(*p))
+		++p;
+	while (*p)
+	{
+		args[i++] = p++;
+		while (*p && !isblank(*p))
+			++p;
+		if (!*p)
+			break;
+		*(p++) = '\0';
+		while (isblank(*p))
+			++p;
+	}
+	args[i] = 0;
+
+	const char *old_home = getenv("HOME");
+	char   *home;
+
+	if (asprintf(&home, "%s/incoming", old_home) < 0)
+		error(EXIT_FAILURE, errno, "asprintf");
+	if (chdir(home) < 0)
+		error(EXIT_FAILURE, errno, "chdir");
+	if ((setenv("HOME", home, 1) < 0) ||
+	    (setenv("LD_PRELOAD", GIRAR_LIBDIR "/rsync.so", 1) < 0))
+		error (EXIT_FAILURE, errno, "setenv");
+
+	execv("/usr/bin/rsync", (char *const *) args);
+	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
+	exit(EXIT_FAILURE);
+}
+
+static int
+is_command_match(const char *sample, const char *cmd, size_t len)
+{
+	return !strncmp(cmd, sample, len) &&
+		(sample[len] == '\0' || isblank(sample[len]));
 }
 
 static void
@@ -116,13 +160,16 @@ shell (char *av[])
 	if (!strcmp("help", cmd) || !strcmp("--help", cmd))
 		show_help(EXIT_SUCCESS);
 
-	if (!strncmp(git_receive_pack, cmd, sizeof(git_receive_pack) - 1) ||
-	    !strncmp(git_upload_pack, cmd, sizeof(git_upload_pack) - 1))
+	if (is_command_match(cmd, git_receive_pack, sizeof(git_receive_pack) - 1) ||
+	    is_command_match(cmd, git_upload_pack, sizeof(git_upload_pack) - 1))
 	{
 		av[0] = (char *) "git-shell";
 		execv("/usr/bin/git-shell", av);
 		error(EXIT_FAILURE, errno, "execv: %s", av[0]);
 	}
+
+	if (is_command_match(cmd, rsync_server, sizeof(rsync_server) - 1))
+		exec_rsync(cmd);
 
 	if (!strncmp(cmd, "git-", 4))
 		cmd += 4;
@@ -131,9 +178,8 @@ shell (char *av[])
 	for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)
 	{
 		size_t len = strlen(commands[i].name);
-		if (!strncmp(commands[i].name, cmd, len) &&
-		    (cmd[len] == '\0' || isblank(cmd[len])))
-			exec_cmd(&commands[i], &cmd[len]);
+		if (is_command_match(cmd, commands[i].name, len))
+			exec_cmd(commands[i].exec, &cmd[len]);
 	}
 
 	error(0, 0, "%s: Invalid command", cmd);

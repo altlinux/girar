@@ -7,6 +7,7 @@ spooldir = /var/spool
 sysconfdir = /etc
 
 girar_bindir = ${libexecdir}/girar
+girar_libdir = ${libexecdir}/girar
 girar_sbindir = ${sbindir}
 girar_confdir = ${sysconfdir}/girar
 girar_datadir = ${datadir}/girar
@@ -48,6 +49,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGIRAR_ARCHIVE=\"${GIRAR_ARCHIVE}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
+	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
@@ -92,6 +94,8 @@ bin_TARGETS = \
 	bin/girar-task-show \
 	#
 
+lib_TARGETS = lib/rsync.so
+
 sbin_TARGETS = \
 	sbin/girar-add \
 	sbin/girar-del \
@@ -120,16 +124,16 @@ hooks_receive_TARGETS = \
 	hooks/post-receive.d/girar-sendmail \
 	#
 
-TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
+TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 
 .PHONY: all clean install install-bin install-conf install-data install-sbin install-var
 
 all: ${TARGETS}
 
 clean:
-	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS}
+	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS} ${lib_TARGETS}
 
-install: install-bin install-conf install-data install-sbin install-var
+install: install-bin install-conf install-data install-lib install-sbin install-var
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${girar_bindir}
@@ -138,6 +142,10 @@ install-bin: ${bin_TARGETS}
 install-sbin: ${sbin_TARGETS}
 	install -d -m755 ${DESTDIR}${girar_sbindir}
 	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
+
+install-lib: ${lib_TARGETS}
+	install -d -m750 ${DESTDIR}${girar_libdir}
+	install -pm644 $^ ${DESTDIR}${girar_libdir}/
 
 install-conf:
 	install -d -m750 \
@@ -179,6 +187,9 @@ install-perms:
 		${DESTDIR}${girar_spooldir}
 
 bin/girar-sh: bin/girar-sh.c
+
+lib/rsync.so: lib/rsync.c
+	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
 
 %: %.in
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
