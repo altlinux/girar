@@ -8,7 +8,9 @@
 usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."
+cat >&2 <<EOF
+Usage: $PROG [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ...
+EOF
 	exit 1
 }
 
@@ -49,7 +51,11 @@ trap atexit EXIT
 while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
 	shift 2
-	girar-task add "$id" repo "$dir" "$tag"
+	if [ "$dir" = srpm -a -z "${tag%%*.src.rpm}" ]; then
+		girar-task add "$id" srpm "$tag"
+	else
+		girar-task add "$id" repo "$dir" "$tag"
+	fi
 done
 
 girar-task run "$id"
