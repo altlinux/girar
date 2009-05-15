@@ -9,6 +9,7 @@ usage()
 	[ -z "$*" ] || message "$*"
 	cat >&2 <<EOF
 Usage: $PROG [<task_id>] repo <gear_repo> <gear_tag>
+   or: $PROG [<task_id>] srpm <srpm file>
    or: $PROG [<task_id>] del <package>
    or: $PROG [<task_id>] copy <package> [<binary_repository_name>]
 EOF
