@@ -22,7 +22,7 @@ rc=0
 
 while read -r N EVR A F; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
-	ssh "$remote_host" ./gb-remote-check-install "$arch" "$N" "$EVR" "$A" "$F" </dev/null || rc=1
+	ssh "$remote_host" ./gb-remote-check-install "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$F" </dev/null || rc=1
 done <plan/add-bin
 
 # Purge temporary repo.

@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+GB_REPO_NAME="$1"; shift
 arch="$1" N="$2" EVR="$3" A="$4" F="$5"
 shift 5
 
@@ -7,7 +8,7 @@ if rpmquery --provides -p "gb-repo/$A/RPMS.classic/$F" |
    grep -qs '^altlinux-release '; then
 	release=$N
 else
-	release=altlinux-release-sisyphus
+	release=altlinux-release-$GB_REPO_NAME
 fi
 
 tmpdir=
