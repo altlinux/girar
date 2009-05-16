@@ -14,6 +14,12 @@ if [ "${1-}" = '--help' ]; then
 	usage
 fi
 
+brief=
+if [ "${1-}" = '--brief' ]; then
+	brief=1
+	shift
+fi
+
 if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
@@ -35,26 +41,41 @@ nums="$(gear_nums)"
 
 for i in $nums; do
 	if [ -s "gears/$i/dir" ]; then
-		printf ' %s:dir=%s\n' "$i" "$(cat "gears/$i/dir")"
-		printf ' %s:tag_name=%s\n' "$i" "$(cat "gears/$i/tag_name")"
-		printf ' %s:tag_id=%s\n' "$i" "$(cat "gears/$i/tag_id")"
-		printf ' %s:tag_author=%s\n' "$i" "$(cat "gears/$i/tag_author")"
+		dir="$(cat "gears/$i/dir")"
+		tag_name="$(cat "gears/$i/tag_name")"
+		if [ -z "$brief" ]; then
+			printf ' %s:dir=%s\n' "$i" "$dir"
+			printf ' %s:tag_name=%s\n' "$i" "$tag_name"
+			printf ' %s:tag_id=%s\n' "$i" "$(cat "gears/$i/tag_id")"
+			printf ' %s:tag_author=%s\n' "$i" "$(cat "gears/$i/tag_author")"
+		else
+			printf ' %s:%s=%s\n' "$i" "${dir##*/}" "$tag_name"
+		fi
 	fi
 	if [ -s "gears/$i/srpm" ]; then
 		printf ' %s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
 	fi
 	if [ -s "gears/$i/package" ]; then
 		if [ -s "gears/$i/copy_repo" ]; then
-			printf ' %s:copy_repo=%s\n' "$i" "$(cat "gears/$i/copy_repo")"
+			[ -z "$brief" ] &&
+				printf ' %s:copy_repo=%s\n' "$i" "$(cat "gears/$i/copy_repo")" ||
+				action=copy
 		else
-			printf ' %s:delete\n' "$i"
+			[ -z "$brief" ] &&
+				printf ' %s:delete\n' "$i" ||
+				action=del
 		fi
-		printf ' %s:package=%s\n' "$i" "$(cat "gears/$i/package")"
+		package="$(cat "gears/$i/package")"
+		[ -z "$brief" ] &&
+			printf ' %s:package=%s\n' "$i" "$package" ||
+			printf ' %s:%s=%s\n' "$i" "$action" "$package"
 	fi
-	printf ' %s:userid=%s\n' "$i" "$(cat "gears/$i/userid")"
-	if [ -d "acl/$i" ]; then
-		approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
-		[ -z "$approved_by" ] ||
-			printf ' %s:approved_by=%s\n' "$i" "$approved_by"
+	if [ -z "$brief" ]; then
+		printf ' %s:userid=%s\n' "$i" "$(cat "gears/$i/userid")"
+		if [ -d "acl/$i" ]; then
+			approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
+			[ -z "$approved_by" ] ||
+				printf ' %s:approved_by=%s\n' "$i" "$approved_by"
+		fi
 	fi
 done
