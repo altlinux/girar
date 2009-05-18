@@ -106,7 +106,7 @@ validate_srpm()
 
 	package="$(rpmquery -p --qf '%{name}' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
-	sisyphus_check --files -- "$srpm" ||
+	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
 		fatal "$srpm: sisyphus_check failed"
 
 	popd >/dev/null
@@ -139,7 +139,6 @@ case "$action" in
 	[ "$#" -le 1 ] || usage 'Too many arguments.'
 	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
 	srpm="$1"; shift
-	validate_srpm
 	;;
 	*) usage "Invalid action: $action" ;;
 esac
@@ -149,13 +148,16 @@ cd "$GB_TASKS/$id"
 builtin lockf -n . ||
 	fatal "task #$id is locked"
 
+repo="$(cat task/repo)"
 case "$action" in
-	del|srpm)
-	repo="$(cat task/repo)"
+	del)
+	girar-check-perms "$package" "$repo"
+	;;
+	srpm)
+	validate_srpm
 	girar-check-perms "$package" "$repo"
 	;;
 	copy)
-	repo="$(cat task/repo)"
 	[ "$repo" != "$copy_repo" ] ||
 		fatal "Invalid request to copy package from $copy_repo to $repo"
 	[ "$repo" != 'sisyphus' ] ||
