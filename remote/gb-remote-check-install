@@ -33,22 +33,23 @@ trap exit_handler EXIT
 trap signal_handler HUP INT QUIT PIPE TERM
 
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+cd "$tmpdir"
 
 # Initialize.
 setarch "$arch" -- \
 hsh --init --pkg-init-list="+$release" \
-    --pkg-build-list="$release,basesystem,glibc-locales" >"$tmpdir"/out 2>&1 ||
+    --pkg-build-list="$release,basesystem,glibc-locales" >out 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
-		cat "$tmpdir"/out
+		cat out
 		exit 1
 	} >&2
 
 # Check if the package is already installed.
 Q='%{name}=%|serial?{%{serial}:}|%{version}-%{release}\n'
 setarch "$arch" -- \
-hsh-run -- rpmquery -a --qf "$Q" >"$tmpdir"/packages
-if fgrep -qs -x -e "$N=$EVR" "$tmpdir"/packages; then
+hsh-run -- rpmquery -a --qf "$Q" >packages
+if fgrep -qs -x -e "$N=$EVR" packages; then
 	# The package is already installed.  Since the package is part of
 	# basesystem, removing it might not work very well.
 	exit 0
@@ -65,29 +66,43 @@ hsh-run --rooter -- \
 mkdir -p -m755 /etc/buildreqs/files/ignore.d /usr/share/aclocal
 
 # Make initial file list.
+printf '%s\n%s\n' \
+	'#!/.host/sh -e' \
+	'/.host/find /* -not -path /dev/\*' \
+	>find.sh
 setarch "$arch" -- \
-hsh-run --rooter -- \
-find / 2>/dev/null |sort -u >"$tmpdir"/flist1
+hsh-run --rooter --execute=find.sh >flist1 2>out ||
+	{
+		echo "  $arch: $N=$EVR basesystem filelist check failed:"
+		cat out
+		exit 1
+	} >&2
+sort -u -o flist1{,}
 
 # Install the package AND apt.
 setarch "$arch" -- \
-hsh-install -- "$N=$EVR" apt >"$tmpdir"/out 2>&1 ||
+hsh-install -- "$N=$EVR" apt >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
-		cat "$tmpdir"/out
+		cat out
 		exit 1
 	} >&2
 
 # Make post-install file list.
 setarch "$arch" -- \
-hsh-run --rooter -- \
-find / 2>/dev/null |sort -u >"$tmpdir"/flist2
+hsh-run --rooter --execute=find.sh >flist2 2>out ||
+	{
+		echo "  $arch: $N=$EVR post-install filelist check failed:"
+		cat out
+		exit 1
+	} >&2
+sort -u -o flist2{,}
 
 # Check new files.
-comm -23 "$tmpdir"/flist{2,1} >"$tmpdir"/new-files
+comm -23 flist{2,1} >new-files
 
-if [ -s "$tmpdir"/new-files ]; then
-	cat >"$tmpdir"/ignore-p <<'EOF'
+if [ -s new-files ]; then
+	cat >ignore-p <<'EOF'
 /etc/alternatives/links/.*
 /etc/rc\.d/rc[0-6]\.d/[KS][0-9].*
 /etc/tcb/.*
@@ -96,35 +111,51 @@ if [ -s "$tmpdir"/new-files ]; then
 /var/cache/gconf/.*
 /var/resolv/(lib|lib64)/lib.*
 EOF
-	if egrep -v -x -f "$tmpdir"/ignore-p -- \
-	   "$tmpdir"/new-files >"$tmpdir"/new-files+; then
-		mv -f "$tmpdir"/new-files{+,}
+	if egrep -v -x -f ignore-p -- \
+	   new-files >new-files+; then
+		mv -f new-files{+,}
 	fi
 fi
 
-xargs -r --delimiter='\n' <"$tmpdir"/new-files \
-setarch "$arch" -- \
 hsh-run --rooter -- \
-rpmquery --whatprovides -- >/dev/null 2>"$tmpdir"/out ||:
+rpmquery -a --provides >instprov
+sort -u -o instprov{,}
 
-if [ -s "$tmpdir"/out ]; then
-	sed -i 's|no package provides \(/.*\)|file \1 is not owned by any package|' "$tmpdir"/out
+hsh-run --rooter -- \
+rpmquery -al >instfiles
+sort -u -o instfiles{,}
+
+sort -u instprov instfiles >instlist
+comm -23 new-files instlist >unprovided
+
+hsh-run --root -- <unprovided \
+xargs -r --delimiter='\n' realpath >frlist 2>out ||
+	{
+		echo "  $arch: $N=$EVR post-install filelist check failed:"
+		cat out
+		exit 1
+	} >&2
+sort -u -o frlist{,}
+
+comm -23 frlist instlist >out
+if [ -s out ]; then
+	sed -i 's|no package provides \(/.*\)|file \1 is not owned by any package|' out
 	echo "	$arch: $N=$EVR post-install filelist check:"
-	cat "$tmpdir"/out
+	cat out
 fi >&2
 
 # Try to remove the package.
 setarch "$arch" -- \
 hsh-run --rooter -- \
-apt-get remove -qq -y --dry-run "$N=$EVR" >"$tmpdir"/remv 2>&1 ||
+apt-get remove -qq -y --dry-run "$N=$EVR" >remv 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR --dry-run uninstall failed:"
-		cat "$tmpdir"/remv
+		cat remv
 		exit 1
 	} >&2
 
 # Check if apt is to be removed along with the package.
-if grep -qs '^Remv apt ' "$tmpdir"/remv; then
+if grep -qs '^Remv apt ' remv; then
 	# Removing apt with apt might not work very well.
 	exit 0
 fi
@@ -132,9 +163,9 @@ fi
 # Remove the package.
 setarch "$arch" -- \
 hsh-run --rooter -- \
-apt-get remove -qq -y "$N=$EVR" </dev/null >"$tmpdir"/out 2>&1 ||
+apt-get remove -qq -y "$N=$EVR" </dev/null >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR uninstall failed:"
-		cat "$tmpdir"/out
+		cat out
 		exit 1
 	} >&2
