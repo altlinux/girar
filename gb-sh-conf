@@ -17,5 +17,7 @@
 : ${GB_BUGZILLA_TO:?}
 : ${GB_BUGZILLA_KEY:?}
 
+: ${GB_EMAIL_DOMAIN:?}
+
 [ -z "${arch-}" ] ||
 	remote_host="build-$GB_REPO_NAME-$arch"

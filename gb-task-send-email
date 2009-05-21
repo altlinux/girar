@@ -31,6 +31,7 @@ try="$((1+$seq/3))"
 cat >"$tmpdir/draft" <<__EOF
 To: git_$owner
 Cc: $(printf %s "$cc" |sort |sed s/^/git_/ |tr -s '\n' , |sed 's/,/, /g')$GB_REPO_EMAIL
+Reply-To: $owner@$GB_EMAIL_DOMAIN
 Mail-Followup-To: $USER
 X-girar-task-id: $id
 X-girar-task-owner: $owner
