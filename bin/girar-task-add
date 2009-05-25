@@ -155,7 +155,6 @@ case "$action" in
 	;;
 	srpm)
 	validate_srpm
-	girar-check-perms "$package" "$repo"
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
