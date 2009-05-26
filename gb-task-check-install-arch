@@ -11,6 +11,8 @@ arch="$1"; shift
 rsync -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
 ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$(cat task/owner)")\"" \
+	"\"$(quote_shell "$GB_REPO_NAME")\"" \
 	"\"$(quote_shell "$remote_home/gb-repo")\"" \
 	"\"$(quote_shell "$arch")\"" \
 	cache_dir=cache.check-install

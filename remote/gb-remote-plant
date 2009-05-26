@@ -1,7 +1,12 @@
 #!/bin/sh -efu
 
-dir="$1" arch="$2"
-shift 2
+owner="$1"; shift
+GB_REPO_NAME="$1"; shift
+dir="$1"; shift
+arch="$1"; shift
+
+owner=$(printf %s "$owner" |tr . _)
+repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
 
 cd
 
@@ -42,6 +47,7 @@ apt_config="\$workdir/apt.conf"
 def_target="$arch"
 nprocs=1
 known_mountpoints=/proc
+USER="$owner-$repo_name"
 EOF
 for arg; do
 	printf '%s\n' "$arg"
