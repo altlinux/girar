@@ -9,7 +9,7 @@ mkidx()
 	local type="$1"; shift
 	local opts="$1"; shift
 
-	sed "s|@DIR@|$PWD|g" <"$template/git-header-$type.html.in" >"$tmpdir/file"
+	sed -e "s|@SITE@|$GB_SITE|g" -e "s|@DIR@|$PWD|g" <"$template/git-header-$type.html.in" >"$tmpdir/file"
 
 	ls $opts |while read -r f; do
 		name="${f%.git}"
