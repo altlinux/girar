@@ -125,7 +125,7 @@ girar_obsolete()
 	[ -d "$GIT_DIR" ] || return 0
 	if git rev-parse --verify "heads/$GB_REPO_NAME" >/dev/null 2>&1; then
 		git symbolic-ref HEAD refs/heads/.nowhere
-		git branch -f "old/$GB_REPO_NAME" "$GB_REPO_NAME"
+		git branch -f "old/$GB_REPO_NAME" "refs/heads/$GB_REPO_NAME"
 		git branch -D "$GB_REPO_NAME"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		update_git_timestamp
