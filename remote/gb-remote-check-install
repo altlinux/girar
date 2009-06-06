@@ -140,7 +140,7 @@ sort -u -o frlist{,}
 comm -23 frlist instlist >out
 if [ -s out ]; then
 	sed -i 's|no package provides \(/.*\)|file \1 is not owned by any package|' out
-	echo "	$arch: $N=$EVR post-install filelist check:"
+	echo "	$arch: $N=$EVR post-install unowned files:"
 	cat out
 fi >&2
 
