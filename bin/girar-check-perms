@@ -77,8 +77,10 @@ builders="$*"
 	allow 'project is orphaned'
 
 # Wildcard builders are allowed.
-[ "$builders" != '*' -a "$builders" != '@everybody' ] ||
-	allow 'project leader welcomes random builders'
+case " $builders " in
+	*' * '*|*' @everybody '*)
+		allow 'project leader welcomes random builders' ;;
+esac
 
 # Separate people and groups.
 groups=
