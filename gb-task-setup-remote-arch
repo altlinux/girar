@@ -8,10 +8,27 @@ arch="$1"; shift
 qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
 
 # Setup remote node to build $arch packages for $GB_REPO_NAME repository.
+# Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
 rsync -a "$GB_HOME/remote/" "$remote_host:"
+remote_home=$(ssh "$remote_host" pwd)
 ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
-	"\"$(quote_shell "$GB_REPO_DIR")\"" \
+	"\"$(quote_shell "$remote_home/gb-repo")\"" \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\""
+
+# Generated with gb-task-gen-buildrepo.
+repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
+
+if [ -L "$repo" ]; then
+	# Clever hack: simply change gb-repo symlink.  Note that we
+	# do not want to pass $GB_REPO_DIR to remote-plant because
+	# this is going to invalidate hasher's chroot cache.
+	ssh "$remote_host" rm gb-repo
+	ssh "$remote_host" ln -s "$GB_REPO_DIR" gb-repo
+else
+	# Need to copy.
+	rsync -a "$repo/" "$remote_host:gb-repo/"
+fi
+
