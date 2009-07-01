@@ -20,14 +20,14 @@ rm -rf "$repo"
 
 need_regen=
 
-build_nums=$(build_nums)
+src_nums=$(src_nums)
 copy_nums=$(copy_nums)
 
-if [ -n "$build_nums" ] && [ -n "$copy_nums" ]; then
+if [ -n "$src_nums" ] && [ -n "$copy_nums" ]; then
 	# Building goes after copying, and packages that's
 	# been copied might be required for build.
 	need_regen=1
-elif set -- $build_nums && [ $# -gt 1 ]; then
+elif set -- $src_nums && [ $# -gt 1 ]; then
 	# Consequent builds.
 	need_regen=1
 fi
