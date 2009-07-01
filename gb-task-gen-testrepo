@@ -47,4 +47,4 @@ gb-y-repo-regen-basedir "$repo"
 rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
 rm -r $repo/{i586,x86_64}/SRPMS.all/
 
-stamp_echo >&2 'created temporary repo'
+stamp_echo >&2 'created test repo'
