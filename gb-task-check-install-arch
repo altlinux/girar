@@ -17,8 +17,11 @@ ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$arch")\"" \
 	cache_dir=cache.check-install
 
-# Copy our temporary repo.
-rsync -a "$TMPDIR/gb-repo-$GB_REPO_NAME/" "$remote_host:gb-repo/"
+# Generated with gb-task-gen-testrepo.
+repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
+
+# Copy.
+rsync -a "$repo"/{$arch,noarch} "$remote_host:gb-repo/"
 
 rc=0
 
