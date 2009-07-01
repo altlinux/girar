@@ -6,10 +6,10 @@
 	PATH="$PATH:/usr/libexec/girar"
 
 while read -r N EVR F; do
-	i="$(srpm2i "$F")"
-	u="$(cat gears/$i/userid)"
 	girar-check-orphaned "$N" "$GB_REPO_NAME" ||
 		continue
+	i="$(srpm2i "$F")"
+	u="$(cat gears/$i/userid)"
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" ||
 		continue
 	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
