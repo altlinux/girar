@@ -1,0 +1,55 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+# Use a fixed path so that genpkglist md5cache works.
+repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
+rm -rf "$repo"
+
+# Hackaround for file-level dependencies.  Packages are getting built
+# with intermediate RPMS.hasher overlay (--with-stuff mode):
+#
+#	RPMS.hasher
+#	  |
+#	  v
+#	RPMS.classic (stripped)
+#
+# Since RPMS.classic repo is stripped, packages from RPMS.hasher overlay
+# might not be installable, which can break consequent package builds.
+# Therefore, it is required to regen the repo with --bloat option.
+
+need_regen=
+
+build_nums=$(build_nums)
+copy_nums=$(copy_nums)
+
+if [ -n "$build_nums" ] && [ -n "$copy_nums" ]; then
+	# Building goes after copying, and packages that's
+	# been copied might be required for build.
+	need_regen=1
+elif set -- $build_nums && [ $# -gt 1 ]; then
+	# Consequent builds.
+	need_regen=1
+fi
+
+if [ -z "$need_regen" ]; then
+	ln -s "$GB_REPO_DIR" "$repo"
+	# That was fast, no need to stamp.
+	exit 0
+fi
+
+# Copy.
+mkdir -p "$repo"
+cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
+
+# SRPMS not needed for build.
+rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
+rm -r $repo/{i586,x86_64}/SRPMS.all/
+
+# XXX genbasedir must not clobber symlinks.
+find $repo/{i586,x86_64,noarch}/base/ -type l -not -name 'contents_index' -delete
+
+# Regen,
+gb-y-repo-regen-basedir --bloat "$repo"
+
+stamp_echo >&2 'created build repo'
