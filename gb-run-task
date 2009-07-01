@@ -50,12 +50,12 @@ fi
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install
-	gb-task-check-acl
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
 	# but an exclusive lock is required later for commit.
 	builtin lockf -v $manual "$GB_GEARS_DIR"
 	gb-task-check-girar
+	gb-task-check-acl
 
 	[ -z "$manual" ] ||
 		exit 0
