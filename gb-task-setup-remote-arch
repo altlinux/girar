@@ -29,6 +29,6 @@ if [ -L "$repo" ]; then
 	ssh "$remote_host" ln -s "$GB_REPO_DIR" gb-repo
 else
 	# Need to copy.
-	rsync -a "$repo/" "$remote_host:gb-repo/"
+	rsync -a "$repo"/{$arch,noarch} "$remote_host:gb-repo/"
 fi
 
