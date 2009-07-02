@@ -72,6 +72,7 @@ bin_TARGETS = \
 	bin/girar-check-orphaned \
 	bin/girar-check-perms \
 	bin/girar-clone \
+	bin/girar-default-branch \
 	bin/girar-find \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \

@@ -39,6 +39,7 @@ typedef struct
 static cmd_t commands[] = {
 	{"charset", "girar-charset", " <path to git repository> [<charset>]"},
 	{"clone", "girar-clone", " <path to git repository> [<path to directory>]"},
+	{"default-branch", "girar-default-branch", " <path to git repository> [<branch>]"},
 	{"find-package", "girar-find", " <pattern>"},
 	{"init-db", "girar-init-db", " <path to directory>"},
 	{"ls", "girar-ls", " [<path to directory>]"},
