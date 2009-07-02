@@ -11,11 +11,20 @@ fi
 REPO_DIR="$1"
 shift
 
+. gb-sh-tmpdir
+
 if [ -n "$bloat" ]; then
 	set -- --bloat
 else
-	. gb-sh-tmpdir
-	gb-x-useful-files "$REPO_DIR"/{i586,x86_64,noarch}/RPMS.classic >"$tmpdir"/useful-files
+	for arch in i586 x86_64 noarch; do
+		gb-x-useful-files "$REPO_DIR"/$arch/RPMS.classic >"$tmpdir"/useful-files.$arch ||
+			echo 1 >>"$tmpdir"/FAIL &
+	done
+	wait
+	if [ -s "$tmpdir"/FAIL ]; then
+		exit 1
+	fi
+	LC_ALL=C sort -m -u -o "$tmpdir"/useful-files -- "$tmpdir"/useful-files.{i586,x86_64,noarch}
 	set -- --useful-files="$tmpdir"/useful-files --no-scan
 fi
 
@@ -35,5 +44,10 @@ for arch in i586 x86_64 noarch; do
 		--version="$GB_REPO_NAME" \
 		-s --default-key="$GB_REPO_SIGNER" \
 		--topdir="$REPO_DIR" \
-		--flat --no-oldhashfile --bz2only --mapi $arch classic
+		--flat --no-oldhashfile --bz2only --mapi $arch classic ||
+			echo 1 >>"$tmpdir"/FAIL &
 done
+wait
+if [ -s "$tmpdir"/FAIL ]; then
+	exit 1
+fi
