@@ -80,6 +80,7 @@ bin_TARGETS = \
 	bin/girar-merge-acl \
 	bin/girar-mv-db \
 	bin/girar-quota \
+	bin/girar-repack \
 	bin/girar-rm-db \
 	bin/girar-sh \
 	bin/girar-task \

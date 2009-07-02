@@ -5,10 +5,18 @@
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$GIT_DIR"
 
-echo -n 'Repacking repository... '
-git prune
-git repack -a -d
+case "$(git config girar.repack |tr '[:upper:]' '[:lower:]')" in
+	false|no|off) ;;
+	*)
+	echo -n 'Repacking repository... '
+	git prune
+	git repack -a -d
+	echo done
+	;;
+esac
+
 if [ -d "$GIT_DIR/refs/heads" ]; then
+	echo -n 'Updating committer date cache... '
 	f="$GIT_DIR/recent_committer"
 	git for-each-ref "--format=%(committer)" --sort=-committerdate --count=1 refs/heads \
 		>"$f"
@@ -18,5 +26,5 @@ if [ -d "$GIT_DIR/refs/heads" ]; then
 	else
 		rm -f -- "$f"
 	fi
+	echo done
 fi
-echo done
