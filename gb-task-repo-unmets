@@ -2,30 +2,28 @@
 
 . gb-sh-functions
 repo1="$GB_REPO_DIR"
-
-# Reuse our temporary repo.
 repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
 
 . gb-sh-tmpdir
 cd "$tmpdir"
 
-# dump old unmets
+# dump unmets
+for age in old new; do
 for arch in i586 x86_64; do
-	cat >old-$arch-sources.list <<EOF
-rpm file:$repo1 $arch classic
-rpm file:$repo1 noarch classic
+	[ $age = old ] && repo=$repo1 || repo=$repo2
+	cat >$age-$arch-sources.list <<EOF
+rpm file:$repo $arch classic
+rpm file:$repo noarch classic
 EOF
-	$arch unmets -s old-$arch-sources.list >$arch-unmets.old
+	$arch unmets -s $age-$arch-sources.list >$arch-unmets.$age ||
+		echo 1 >>FAIL &
+done
 done
 
-# dump new unmets
-for arch in i586 x86_64; do
-	cat >new-$arch-sources.list <<EOF
-rpm file:$repo2 $arch classic
-rpm file:$repo2 noarch classic
-EOF
-	$arch unmets -s new-$arch-sources.list >$arch-unmets.new
-done
+wait
+if [ -s FAIL ]; then
+	exit 1
+fi
 
 rc=0
 
