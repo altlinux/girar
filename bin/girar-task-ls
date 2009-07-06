@@ -11,11 +11,9 @@ usage()
 }
 
 ls_user="-user $USER_PREFIX$GIRAR_USER"
-ls_recent='-mtime -7'
 case "${1-}" in
 	--help) usage ;;
 	--all) ls_user=; shift ;;
-	--old) ls_recent=; shift ;;
 esac
 
 [ "$#" -eq 0 ] || usage 'Too many arguments.'
@@ -84,7 +82,7 @@ ls1()
 	printf '\n'
 }
 
-ids="$(find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f $ls_recent $ls_user 2>/dev/null |
+ids="$(find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f $ls_user 2>/dev/null |
 	cut -d/ -f2 |sort -nr)"
 
 if [ -z "$ids" ]; then
