@@ -1,12 +1,15 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+. gb-sh-tmpdir
 
-rc=
 for host in $GB_REPO_MIRRORS; do
 	if ! rsync -rlt --delete-after ${GB_REPO_RSYNC_ARGS-} "$@" "$GB_REPO_DIR/" "$host:$GB_REPO_DIR/"; then
 		stamp_echo >&2 "mirror to $host failed"
-		rc=$?
-	fi
+		echo 1 >>"$tmpdir"/FAIL
+	fi &
 done
-exit $rc
+wait
+if [ -s "$tmpdir"/FAIL ]; then
+	exit 1
+fi
