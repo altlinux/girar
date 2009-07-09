@@ -11,5 +11,5 @@ for host in $GB_REPO_MIRRORS; do
 done
 wait
 if [ -s "$tmpdir"/FAIL ]; then
-	exit 1
+	echo "${0##*/} failed in $PWD" >>"$GB_HOME/STOP"
 fi
