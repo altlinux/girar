@@ -16,6 +16,11 @@ GB_HOME="${0%/*}"
 [ "$GB_HOME" != "$0" ]
 cd "$GB_HOME"
 export GB_HOME
+
+# Check for global cutout switch.
+[ ! -f STOP ] || exit 0
+
+# Add path to scripts to $PATH.
 PATH="$PWD:$PATH"
 
 # Task sequence number must be updated consistently.
