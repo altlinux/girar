@@ -15,6 +15,7 @@ shift
 
 if [ -n "$bloat" ]; then
 	set -- --bloat
+	export BZIP2=--fast
 else
 	for arch in i586 x86_64 noarch; do
 		gb-x-useful-files "$REPO_DIR"/$arch/RPMS.classic >"$tmpdir"/useful-files.$arch ||
