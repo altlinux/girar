@@ -9,7 +9,9 @@ for arch in i586 x86_64 noarch; do
 	# Regen only if there are $arch packages.
 	cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch" ||
 		continue
-	sisyphus_gen_contents $REPO_DIR/$arch/RPMS.classic >$tmpdir/contents_index
-	cmp -s $tmpdir/contents_index $REPO_DIR/$arch/base/contents_index ||
-		mv -f $tmpdir/contents_index $REPO_DIR/$arch/base/contents_index
+	gb-x-gen-ci $REPO_DIR/$arch/RPMS.classic >$tmpdir/$arch-ci &&
+		mv -f $tmpdir/$arch-ci $REPO_DIR/$arch/base/contents_index ||
+		stamp_echo >&2 "cannot create contents_index for $arch" &
 done
+
+wait
