@@ -19,7 +19,7 @@ find -mindepth 1 -maxdepth 1 -name '*.rpm' -exec \
 	cut -f1,2 |
 	# Fold identical records.
 	sort -u |
-	# Exclude special provides with brackets.
+	# Exclude special provides with parentheses.
 	fgrep -v $')\t/' ||
 		{
 			echo "${0##*/}: $PWD: empty contents index"
