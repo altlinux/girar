@@ -14,11 +14,14 @@ repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
 
 regen=
 for arch in i586 x86_64 noarch; do
-	# Paranoia: handle tmpfs failures.
-	# Since packages are already committed, we must try hard.
 	f1=$GB_REPO_DIR/$arch/base/release
 	f2=$GB_REPO_DIR/$arch/base/pkglist.classic.bz2
-	rm "$f1" "$f2"
+	g2=$repo/$arch/base/pkglist.classic.bz2
+	# If pkglist has not changed, skip the update.
+	[ -s "$f1" ] && [ -s "$f2" ] && cmp -s "$f2" "$g2" && continue
+	# Paranoia: handle tmpfs failures.
+	# Since packages are already committed, we must try hard.
+	rm -f "$f1" "$f2"
 	# NB: no --delete here, contents_index was removed.
 	rsync -a $repo/$arch/base/ $GB_REPO_DIR/$arch/base/ &&
 		[ -s "$f1" ] && [ -s "$f2" ] && continue
