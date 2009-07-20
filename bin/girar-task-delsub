@@ -50,15 +50,11 @@ if [ -f task/seq ]; then
 	esac
 fi
 
-nums()
-{
-	find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null |
-		cut -d/ -f2 |sort -n
-}
-
-set -- $(nums)
+set -- $(gear_nums)
 for i; do
 	[ "$i" = "$num" ] || continue
+	[ -w "gears/$i" ] ||
+		fatal "gears/$i: Permission denied"
 	[ $# -gt 1 ] ||
 		fatal "task #$id: cannot remove the sole subtask"
 	trap '' HUP INT QUIT PIPE TERM
