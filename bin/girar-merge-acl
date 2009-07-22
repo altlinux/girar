@@ -130,14 +130,11 @@ pkgadd()
 
 	local o owners=
 
-	# Add #nobody means change to @nobody.
-	if [ "$new_owners" != '#nobody' ]; then
-		# Merge old and new owners, remove @nobody if any.
-		for o in $prev_owners $new_owners; do
-			[ "$o" = '@nobody' ] ||
-				owners="$owners $o "
-		done
-	fi
+	# Merge old and new owners, remove @nobody if any.
+	for o in $prev_owners $new_owners; do
+		[ "$o" = '@nobody' ] ||
+			owners="$owners $o "
+	done
 
 	change ${owners:-@nobody}
 }
@@ -149,8 +146,7 @@ pkgdel()
 
 	local o owners=
 
-	# Delete #all means change to @nobody.
-	if [ "$new_owners" != "#all" -a "$prev_owners" != "@nobody" ]; then
+	if [ "$prev_owners" != "@nobody" ]; then
 		new_owners=" $new_owners "
 		# Filter out new owners from old owners.
 		for o in $prev_owners; do
