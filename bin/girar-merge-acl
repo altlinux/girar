@@ -133,7 +133,7 @@ pkgadd()
 	# Merge old and new owners, remove @nobody if any.
 	for o in $prev_owners $new_owners; do
 		[ "$o" = '@nobody' ] ||
-			owners="$owners $o "
+			owners="$owners $o"
 	done
 
 	change ${owners:-@nobody}
@@ -156,6 +156,8 @@ pkgdel()
 		done
 	fi
 
+	[ "$owners" != ' @everybody' ] || owners=
+
 	change ${owners:-@nobody}
 }
 
@@ -177,7 +179,7 @@ grpadd()
 	# Merge old and new owners, remove @nobody if any.
 	for o in $prev_owners $new_owners; do
 		[ "$o" = '@nobody' ] ||
-			owners="$owners $o "
+			owners="$owners $o"
 	done
 
 	change $owners
@@ -196,6 +198,8 @@ grpdel()
 		[ -z "${new_owners##* $o *}" ] ||
 			owners="$owners $o"
 	done
+
+	[ "$owners" != ' @everybody' ] || owners=
 
 	if [ -z "$owners" ]; then
 		writelog "ERROR: Group list cannot be made empty"
@@ -249,10 +253,10 @@ replace()
 		case "$o" in
 			$old)
 				found=1
-				owners="$owners $new "
+				owners="$owners $new"
 				;;
 			*)
-				owners="$owners $o "
+				owners="$owners $o"
 				;;
 		esac
 	done
