@@ -15,7 +15,7 @@ rm -rf "$repo"
 #	RPMS.classic (stripped)
 #
 # Since RPMS.classic repo is stripped, packages from RPMS.hasher overlay
-# might not be installable, which can break consequent package builds.
+# might not be installable, which can break consecutive package builds.
 # Therefore, it is required to regen the repo with --bloat option.
 
 need_regen=
@@ -28,7 +28,7 @@ if [ -n "$src_nums" ] && [ -n "$copy_nums" ]; then
 	# been copied might be required for build.
 	need_regen=1
 elif set -- $src_nums && [ $# -gt 1 ]; then
-	# Consequent builds.
+	# Consecutive builds.
 	need_regen=1
 fi
 
