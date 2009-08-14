@@ -1,0 +1,7 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+for i in $(gear_nums); do
+	rm -f gears/$i/pkg.tar
+done

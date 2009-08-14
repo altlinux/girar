@@ -56,6 +56,7 @@ fi
 	builtin lockf -v $manual "$GB_GEARS_DIR"
 	gb-task-check-girar
 	gb-task-check-acl
+	gb-task-cleanup
 
 	[ -z "$manual" ] ||
 		exit 0
