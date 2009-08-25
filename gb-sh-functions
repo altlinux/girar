@@ -190,3 +190,9 @@ vercheck()
 	local EVR1="${1:?}" EVR2="${2:?}"
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -lt 0 ] || return 1
 }
+
+halt_build_queue()
+{
+	echo "${0##*/} failed in $PWD" >>"$GB_HOME/STOP"
+	stamp_echo >&2 '*** BUILD QUEUE HALTED ***'
+}

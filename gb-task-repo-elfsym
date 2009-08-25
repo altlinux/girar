@@ -19,7 +19,7 @@ done
 wait
 if [ -s FAIL ]; then
 	if fgrep -qsx 12 FAIL; then
-		echo "${0##*/} failed in $PWD" >>"$GB_HOME/STOP"
+		halt_build_queue
 	fi
 	exit 1
 fi
