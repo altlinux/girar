@@ -14,10 +14,13 @@ cd "$tmpdir"
 
 for arch in i586 x86_64; do
 	bad_elf_symbols_dircmp.pl {"$repo1","$repo2"}/$arch/RPMS.classic >$arch-bes.plus 3>$arch-bes.minus ||
-		echo 1 >>FAIL &
+		echo $? >>FAIL &
 done
 wait
 if [ -s FAIL ]; then
+	if fgrep -qsx 12 FAIL; then
+		echo "${0##*/} failed in $PWD" >>"$GB_HOME/STOP"
+	fi
 	exit 1
 fi
 
