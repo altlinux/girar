@@ -132,23 +132,23 @@ parse_cmd()
 			show_acl >&2
 			return ;;
 		nmu)
-			if [ "${1-}" = show ]; then
+			[ "$#" -ge 1 ] ||
+				show_usage 'Not enough arguments.'
+			if [ "$1" = show ]; then
 				show_nmu >&2
 				return
 			fi ;;
 		check)
 			girar-check-perms "$item" "$repository" >&2 ||:
 			return ;;
-		add|del|leader|nmu|replace) ;;
+		add|del|leader|replace)
+			[ "$#" -ge 1 ] ||
+				show_usage 'Not enough arguments.' ;;
 		create|delete)
 			[ "${GIRAR_USER-}" = 'root' ] ||
 				fatal "$item $action: Permission denied" ;;
 		*) fatal "$action: Invalid action" ;;
 	esac
-
-	[ "${GIRAR_USER-}" = 'root' ] ||
-	[ "$#" -ge 1 ] ||
-		show_usage 'Not enough arguments.'
 
 	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
 		fatal "$item $action: $*: Invalid argument(s)"
