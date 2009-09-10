@@ -46,7 +46,7 @@ workdir="\$TMPDIR/hasher"
 apt_config="\$workdir/apt.conf"
 def_target="$arch"
 nprocs=1
-known_mountpoints=/proc
+known_mountpoints=/proc,/dev/pts
 USER="$owner-$repo_name"
 EOF
 for arg; do
