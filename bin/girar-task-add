@@ -59,11 +59,12 @@ validate_repo_dir()
 validate_tag_name()
 {
 	git rev-parse --symbolic --tags |fgrep -xqse "$tag_name" ||
-		fatal "$tag_name: invalid tag name"
-	tag_id="$(git rev-parse --verify "$tag_name")"
+		fatal "$tag_name: tag name not found"
+	tag_id="$(git rev-parse --verify "$tag_name")" ||
+		fatal "$tag_name: tag verification failure"
 	if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)"; then
 		printf >&2 '%s\n' "$sig_text"
-		fatal "$tag_name: invalid tag"
+		fatal "$tag_name: tag signature verification failure"
 	fi
 
 	fpr="$(printf %s "$sig_text" |
