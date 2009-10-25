@@ -59,10 +59,33 @@ Dir::Etc::main "/dev/null";
 Dir::Etc::parts "/var/empty";
 Dir::Etc::sourceparts "/var/empty";
 Dir::Etc::sourcelist "$workdir/sources.list";
+Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
 EOF
 cat >"$workdir/sources.list" <<EOF
 rpm file:$dir $arch classic
 rpm file:$dir noarch classic
+EOF
+cat >"$workdir/pkgpriorities" <<EOF
+Important:
+  basesystem
+Required:
+  apt
+Standard:
+  kernel-doc
+  libpam0
+  libpam0-devel
+  maxima-bin-gcl
+  postfix
+  python-dev
+  python-modules-tkinter
+  altlinux-release-$GB_REPO_NAME
+  branding-altlinux-office-server-alterator
+  branding-altlinux-office-server-bootloader
+  branding-altlinux-office-server-bootsplash
+  branding-altlinux-office-server-graphics
+  branding-altlinux-office-server-indexhtml
+  branding-altlinux-office-server-notes
+  branding-altlinux-office-server-slideshow
 EOF
