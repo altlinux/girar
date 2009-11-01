@@ -129,7 +129,7 @@ sort -u -o instfiles{,}
 sort -u instprov instfiles >instlist
 comm -23 new-files instlist >unprovided
 
-hsh-run --root -- <unprovided \
+hsh-run --rooter -- <unprovided \
 xargs -r --delimiter='\n' realpath >frlist 2>out ||
 	{
 		echo "  $arch: $N=$EVR post-install filelist check failed:"
