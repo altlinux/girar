@@ -42,12 +42,29 @@ repository="$(girar-normalize-repo-name "$repo")" ||
 	deny "invalid repository \`$repository'"
 
 # Denied if no acl file available for the given binary repository.
-[ -s "$GIRAR_ACL_CONF_DIR/list.packages.$repository" ] ||
+[ -f "$GIRAR_ACL_CONF_DIR/list.packages.$repository" ] ||
 	deny "acl file for repository \`$repository' not available"
 
+# Allowed if $GIRAR_USER is superuser.
+if girar-check-superuser "$repository"; then
+	allow 'superuser'
+fi
+
+# Source per-repository config file.
+conf="$GIRAR_REPO_CONF_DIR/$repository"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
 # Allowed if package is not listed in acl file.
-acl_line="$(grep "^$project_name[[:space:]]" "$GIRAR_ACL_CONF_DIR/list.packages.$repository")" ||
-	allow "project \`$project_name' is not listed in acl file for repository \`$repository'"
+if ! acl_line="$(grep "^$project_name[[:space:]]" "$GIRAR_ACL_CONF_DIR/list.packages.$repository")"; then
+	if [ -z "${GIRAR_ACL_DENY_UNLISTED-}" ]; then
+		exit=allow
+	else
+		exit=deny
+	fi
+	$exit "project \`$project_name' is not listed in acl file for repository \`$repository'"
+fi
 
 # acl_line format: pkg_name leader [builders]
 set -- ${acl_line}
@@ -55,11 +72,6 @@ set -- ${acl_line}
 	deny "acl file for repository \`$repository' contains invalid acl entry: $acl_line"
 leader="$2"; shift 2
 builders="$*"
-
-# Allowed if $GIRAR_USER is superuser.
-if girar-check-superuser "$repository"; then
-	allow 'superuser'
-fi
 
 # Allowed if $GIRAR_USER is leader.
 [ "$GIRAR_USER" != "$leader" ] ||
