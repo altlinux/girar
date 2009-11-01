@@ -33,7 +33,7 @@ GIRAR_GEARS = /gears
 GIRAR_HOME = /people
 GIRAR_PACKAGES_LIST = ${girar_statedir}/people-packages-list
 GIRAR_PEOPLE_QUEUE = ${girar_spooldir}/people
-GIRAR_REPOSITORIES = ${girar_confdir}/repositories
+GIRAR_REPO_LIST = ${girar_confdir}/repositories
 GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
@@ -213,7 +213,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
 	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
-	    -e 's,@GIRAR_REPOSITORIES@,${GIRAR_REPOSITORIES},g' \
+	    -e 's,@GIRAR_REPO_LIST@,${GIRAR_REPO_LIST},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \

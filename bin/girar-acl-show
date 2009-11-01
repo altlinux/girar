@@ -22,12 +22,12 @@ item="$1"; shift
 cd "$HOME"
 
 # Fail if no non-empty repository list available.
-[ -s "$GIRAR_REPOSITORIES" ] ||
+[ -s "$GIRAR_REPO_LIST" ] ||
 	fatal 'Sorry, list of available repositories is not available'
 
 # Fail if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$GIRAR_REPOSITORIES" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")"
+fgrep -ixqse "$repository" "$GIRAR_REPO_LIST" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")"
 
 # Normalize binary repository name.
 repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"

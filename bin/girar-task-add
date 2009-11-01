@@ -162,8 +162,8 @@ case "$action" in
 		fatal "Invalid request to copy package from $copy_repo to $repo"
 	[ "$repo" != 'sisyphus' ] ||
 		fatal "Invalid request to copy package to $repo"
-	fgrep -ixqse "$copy_repo" "$GIRAR_REPOSITORIES" ||
-		fatal "invalid repository \`$copy_repo', valid repositories are: $(fgrep -vixse "$repo" "$GIRAR_REPOSITORIES" |tr -s '[:space:]' ' ')"
+	fgrep -ixqse "$copy_repo" "$GIRAR_REPO_LIST" ||
+		fatal "invalid repository \`$copy_repo', valid repositories are: $(fgrep -vixse "$repo" "$GIRAR_REPO_LIST" |tr -s '[:space:]' ' ')"
 	girar-check-perms "$package" "$repo"
 	;;
 esac

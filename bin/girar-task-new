@@ -8,7 +8,7 @@ usage()
 	[ -z "$*" ] || message "$*"
 	cat >&2 <<EOF
 usage: $PROG [<binary_repository_name>]
-Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPOSITORIES")
+Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")
 EOF
 	exit 1
 }
@@ -22,8 +22,8 @@ if [ "$#" -gt 1 ]; then
 fi
 
 repo="$(printf %s "${1:-sisyphus}" |tr '[:upper:]' '[:lower:]')"
-fgrep -ixqse "$repo" "$GIRAR_REPOSITORIES" ||
-	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPOSITORIES")"
+fgrep -ixqse "$repo" "$GIRAR_REPO_LIST" ||
+	fatal "invalid repository \`$repo', valid repositories are: $(tr -s '[:space:]' ' '<"$GIRAR_REPO_LIST")"
 
 cd "$GB_TASKS"
 
