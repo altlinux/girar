@@ -14,7 +14,7 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-cd "$HOME"
+cd
 
 dir="$(validate_packages_dir "$1")"; shift
 dir="$(add_git_suffix "$dir")"

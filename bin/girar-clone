@@ -23,7 +23,7 @@ usage()
 [ -n "${GIRAR_GEARS:-}" ] ||
 	fatal 'GIRAR_GEARS undefined'
 
-cd "$HOME"
+cd
 
 repo0="$1"; shift
 repo=

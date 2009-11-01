@@ -16,7 +16,7 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
-cd "$HOME"
+cd
 
 dir0="$1"; shift
 dir="$(validate_packages_dir "$dir0")"
@@ -24,5 +24,5 @@ dir="$(add_git_suffix "$dir")"
 [ -d "$dir" ] ||
 	fatal "$dir0: directory not available"
 cd "$dir"
-cd "$HOME"
+cd
 rm -rf -- "$dir"

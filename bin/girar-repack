@@ -16,7 +16,7 @@ usage()
 [ "${1-}" != '--help' ] ||
 	usage
 
-cd "$HOME"
+cd
 
 dir="$(validate_packages_dir "$1")"; shift
 dir="$(add_git_suffix "$dir")"
