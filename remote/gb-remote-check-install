@@ -48,7 +48,6 @@ hsh --init --no-contents-ind \
 
 # Check if the package is already installed.
 Q='%{name}=%|serial?{%{serial}:}|%{version}-%{release}\n'
-setarch "$arch" -- \
 hsh-run -- rpmquery -a --qf "$Q" >packages
 if fgrep -qs -x -e "$N=$EVR" packages; then
 	# The package is already installed.  Since the package is part of
@@ -57,12 +56,10 @@ if fgrep -qs -x -e "$N=$EVR" packages; then
 fi
 
 # Workaround a problem with apt filelist.
-setarch "$arch" -- \
 hsh-run --rooter -- \
 mkdir -p -m755 /usr/share/man/ru/man1
 
 # Workaround for pkg-config.
-setarch "$arch" -- \
 hsh-run --rooter -- \
 mkdir -p -m755 /etc/buildreqs/files/ignore.d /usr/share/aclocal
 
@@ -71,7 +68,6 @@ printf '%s\n%s\n' \
 	'#!/.host/sh -e' \
 	'/.host/find /* -not -path /dev/\*' \
 	>find.sh
-setarch "$arch" -- \
 hsh-run --rooter --execute=find.sh >flist1 2>out ||
 	{
 		echo "  $arch: $N=$EVR basesystem filelist check failed:"
@@ -81,7 +77,6 @@ hsh-run --rooter --execute=find.sh >flist1 2>out ||
 sort -u -o flist1{,}
 
 # Install the package AND apt.
-setarch "$arch" -- \
 hsh-install -- "$N=$EVR" apt >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
@@ -90,7 +85,6 @@ hsh-install -- "$N=$EVR" apt >out 2>&1 ||
 	} >&2
 
 # Make post-install file list.
-setarch "$arch" -- \
 hsh-run --rooter --execute=find.sh >flist2 2>out ||
 	{
 		echo "  $arch: $N=$EVR post-install filelist check failed:"
@@ -146,7 +140,6 @@ if [ -s out ]; then
 fi >&2
 
 # Try to remove the package.
-setarch "$arch" -- \
 hsh-run --rooter -- \
 apt-get remove -qq -y --dry-run "$N=$EVR" >remv 2>&1 ||
 	{
@@ -162,7 +155,6 @@ if grep -qs '^Remv apt ' remv; then
 fi
 
 # Remove the package.
-setarch "$arch" -- \
 hsh-run --rooter -- \
 apt-get remove -qq -y "$N=$EVR" </dev/null >out 2>&1 ||
 	{
