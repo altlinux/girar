@@ -22,6 +22,7 @@ girar_email_dir = ${girar_statedir}/email
 girar_acl_conf_dir = ${girar_confdir}/acl
 girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_acl_state_dir = ${girar_statedir}/acl
+girar_repo_conf_dir = ${girar_confdir}/repo
 
 EMAIL_DOMAIN = altlinux.org
 GB_GROUP = girar-builder
@@ -153,7 +154,8 @@ install-lib: ${lib_TARGETS}
 install-conf:
 	install -d -m750 \
 		${DESTDIR}${girar_confdir} \
-		${DESTDIR}${girar_acl_conf_dir}
+		${DESTDIR}${girar_acl_conf_dir} \
+		${DESTDIR}${girar_repo_conf_dir}
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \
@@ -214,6 +216,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_PEOPLE_QUEUE@,${GIRAR_PEOPLE_QUEUE},g' \
 	    -e 's,@GIRAR_PRIVATE_DIR@,${girar_confdir}/private.git,g' \
 	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
+	    -e 's,@GIRAR_REPO_CONF_DIR@,${girar_repo_conf_dir},g' \
 	    -e 's,@GIRAR_REPO_LIST@,${GIRAR_REPO_LIST},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
