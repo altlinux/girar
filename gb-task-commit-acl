@@ -2,6 +2,9 @@
 
 . gb-sh-functions
 
+[ -z "${GB_DISABLE_ACL_UPDATE-}" ] ||
+	exit 0
+
 [ -z "${PATH##/usr/libexec/girar:*}" -o -z "${PATH%%*:/usr/libexec/girar}" ] ||
 	PATH="$PATH:/usr/libexec/girar"
 
