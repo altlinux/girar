@@ -44,6 +44,7 @@ echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 %_sbindir/*
 %_usr/libexec/%name
 %dir %_sysconfdir/%name
+%dir %_sysconfdir/%name/repo
 %dir %attr(750,%girar_user,%girar_group) %_sysconfdir/%name/acl
 %_datadir/%name
 %dir %_spooldir/%name
