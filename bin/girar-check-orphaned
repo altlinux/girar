@@ -17,18 +17,9 @@ usage()
 project_name="$1"; shift
 repository="$1"; shift
 
-cd "$HOME"
+cd
 
-# Fail if no non-empty repository list available.
-[ -s "$GIRAR_REPO_LIST" ] ||
-	fatal 'repository list not available'
-
-# Fail if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$GIRAR_REPO_LIST" ||
-	fatal "invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")"
-
-# Normalize binary repository name.
-repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
+repository="$(girar-normalize-repo-name "$repository")"
 
 # Fail if no acl file available for the given binary repository.
 [ -s "$GIRAR_ACL_CONF_DIR/list.packages.$repository" ] ||

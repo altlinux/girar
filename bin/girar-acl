@@ -179,9 +179,7 @@ parse_cmd()
 repository="$1"
 shift
 
-# Abort if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$GIRAR_REPO_LIST" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")"
+repository="$(girar-normalize-repo-name "$repository")"
 
 # Abort if acl spool dir for the repository is not available.
 cd "$GIRAR_ACL_STATE_DIR/$repository"

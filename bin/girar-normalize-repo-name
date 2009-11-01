@@ -1,0 +1,30 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-error
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <binary package repository name>"
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+
+repository="$1"; shift
+
+cd
+
+# Fail if no non-empty repository list available.
+[ -s "$GIRAR_REPO_LIST" ] ||
+	fatal 'Sorry, list of available repositories is not available'
+
+# Fail if requested binary repository is not listed.
+fgrep -ixqse "$repository" "$GIRAR_REPO_LIST" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")"
+
+printf %s "$repository" |tr '[:upper:]' '[:lower:]'

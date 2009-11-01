@@ -79,6 +79,7 @@ bin_TARGETS = \
 	bin/girar-ls \
 	bin/girar-merge-acl \
 	bin/girar-mv-db \
+	bin/girar-normalize-repo-name \
 	bin/girar-quota \
 	bin/girar-repack \
 	bin/girar-rm-db \

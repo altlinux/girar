@@ -134,7 +134,7 @@ case "$action" in
 		copy_repo="$1"; shift
 	fi
 	[ -n "$copy_repo" ] || copy_repo=sisyphus
-	copy_repo="$(printf %s "$copy_repo" |tr '[:upper:]' '[:lower:]')"
+	copy_repo="$(girar-normalize-repo-name "$copy_repo")"
 	;;
 	srpm)
 	[ "$#" -le 1 ] || usage 'Too many arguments.'
@@ -162,8 +162,6 @@ case "$action" in
 		fatal "Invalid request to copy package from $copy_repo to $repo"
 	[ "$repo" != 'sisyphus' ] ||
 		fatal "Invalid request to copy package to $repo"
-	fgrep -ixqse "$copy_repo" "$GIRAR_REPO_LIST" ||
-		fatal "invalid repository \`$copy_repo', valid repositories are: $(fgrep -vixse "$repo" "$GIRAR_REPO_LIST" |tr -s '[:space:]' ' ')"
 	girar-check-perms "$package" "$repo"
 	;;
 esac

@@ -19,18 +19,9 @@ usage()
 repository="$1"; shift
 item="$1"; shift
 
-cd "$HOME"
+cd
 
-# Fail if no non-empty repository list available.
-[ -s "$GIRAR_REPO_LIST" ] ||
-	fatal 'Sorry, list of available repositories is not available'
-
-# Fail if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$GIRAR_REPO_LIST" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")"
-
-# Normalize binary repository name.
-repository="$(printf %s "$repository" |tr '[:upper:]' '[:lower:]')"
+repository="$(girar-normalize-repo-name "$repository")"
 
 [ "${item#@}" = "$item" ] &&
 	t=packages ||
