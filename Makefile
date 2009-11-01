@@ -72,6 +72,7 @@ bin_TARGETS = \
 	bin/girar-check-acl-leader \
 	bin/girar-check-orphaned \
 	bin/girar-check-perms \
+	bin/girar-check-superuser \
 	bin/girar-clone \
 	bin/girar-default-branch \
 	bin/girar-find \

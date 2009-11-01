@@ -30,7 +30,8 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -n "$id" ||
 	fatal "task #$id is locked"
 
-if [ 'root' != "$GIRAR_USER" ]; then
+repo="$(cat "$id"/task/repo)"
+if ! girar-check-superuser "$repo"; then
 	owner=$(cat "$id"/task/owner)
 	[ "$owner" = "$GIRAR_USER" ] ||
 		fatal "task #$id belongs to $owner"

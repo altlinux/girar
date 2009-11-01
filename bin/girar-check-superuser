@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <binary package repository name>"
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+
+repository="$1"; shift
+
+# Returns:
+# 0 - $GIRAR_USER is superuser for current binary repository;
+# 1 - otherwise.
+
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
+repository="$(girar-normalize-repo-name "$repository")"
+
+conf="$GIRAR_REPO_CONF_DIR/$repository"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
+for u in root ${GIRAR_REPO_SUPERUSERS-}; do
+	if [ "$GIRAR_USER" = "$u" ]; then
+		exit 0
+	fi
+done
+
+exit 1

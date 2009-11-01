@@ -145,7 +145,7 @@ parse_cmd()
 			[ "$#" -ge 1 ] ||
 				show_usage 'Not enough arguments.' ;;
 		create|delete)
-			[ "${GIRAR_USER-}" = 'root' ] ||
+			girar-check-superuser "$repository" ||
 				fatal "$item $action: Permission denied" ;;
 		*) fatal "$action: Invalid action" ;;
 	esac

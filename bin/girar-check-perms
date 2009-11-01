@@ -57,8 +57,9 @@ leader="$2"; shift 2
 builders="$*"
 
 # Allowed if $GIRAR_USER is superuser.
-[ "$GIRAR_USER" != 'root' ] ||
+if girar-check-superuser "$repository"; then
 	allow 'superuser'
+fi
 
 # Allowed if $GIRAR_USER is leader.
 [ "$GIRAR_USER" != "$leader" ] ||
