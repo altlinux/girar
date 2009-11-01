@@ -5,24 +5,28 @@
 . shell-args
 
 if [ "${1-}" = '--help' ]; then
-	echo 'Usage: $PROG person item acl_packages acl_groups'
+	echo 'Usage: $PROG person item repo dir'
 	exit 0
 fi
 [ "$#" -ge 4 ] || show_usage 'Not enough arguments.'
 [ "$#" -le 4 ] || show_usage 'Too many arguments.'
 
 person="$1"; shift
-if [ "$person" = 'root' ]; then
-	# no further checks for root
-	exit 0
-fi
 
 item="$1"; shift
 [ -n "$item" ] ||
 	fatal 'Empty item'
 
-acl_packages="$1"; shift
-acl_groups="$1"; shift
+repository="$1"; shift
+dir="$1"; shift
+
+if GIRAR_USER="$person" girar-check-superuser "$repository"; then
+	# no further checks for superuser
+	exit 0
+fi
+
+acl_packages="$dir/list.packages.$repository"
+acl_groups="$dir/list.groups.$repository"
 
 deny()
 {

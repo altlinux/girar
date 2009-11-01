@@ -5,7 +5,7 @@
 # <Target> := Package|@Group
 # <Action> := add|del|leader|replace
 #
-# Superuser(root) additional actions:
+# Superuser additional actions:
 # <Action> := create|delete
 #
 
@@ -430,7 +430,7 @@ process_user_rules()
 
 			# privileged actions
 			create|delete)
-				if [ "$person" != 'root' ]; then
+				if ! GIRAR_USER="$person" girar-check-superuser "$repository"; then
 					writelog "ERROR: $item $action: Permission denied"
 					return 1
 				fi
@@ -465,8 +465,7 @@ process_user_rules()
 				"list/list.groups.$repository")"
 		else
 			msg="$(girar-check-acl-leader "$person" "$item" \
-				"list/list.packages.$repository" \
-				"list/list.groups.$repository")"
+				"$repository" list)"
 		fi ||
 		{
 			writelog "ERROR: $item $action: $msg"

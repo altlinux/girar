@@ -160,8 +160,7 @@ parse_cmd()
 			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
 	else
 		girar-check-acl-leader "$GIRAR_USER" "$item" \
-			"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
-			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+			"$repository" "$GIRAR_ACL_CONF_DIR" >&2
 	fi
 
 	if [ "$action" = 'nmu' ]; then
