@@ -13,6 +13,11 @@ while read -r N EVR F; do
 		continue
 	i="$(srpm2i "$F")"
 	u="$(cat gears/$i/userid)"
+	for r in ${GB_ROBOT_USERS-}; do
+		if [ "$u" = "$r" ]; then
+			continue 2
+		fi
+	done
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" ||
 		continue
 	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
@@ -39,6 +44,14 @@ while read -r N EVR F; do
 	fi
 	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o ||
 		continue
+	for r in ${GB_ROBOT_USERS-}; do
+		if [ "$u" = "$r" ]; then
+			GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" del $u ||
+				continue
+			stamp_echo >&2 "ACL for new project \`$N' assigned to nobody${o:+ and group \"$g\"}"
+			continue 2
+		fi
+	done
 	stamp_echo >&2 "ACL for new project \`$N' assigned to user \`$u'${o:+ and group \"$g\"}"
 done <"$tmpdir"/add
 
