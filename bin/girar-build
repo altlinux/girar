@@ -51,11 +51,12 @@ trap atexit EXIT
 while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
 	shift 2
-	if [ "$dir" = srpm -a -z "${tag%%*.src.rpm}" ]; then
-		girar-task add "$id" srpm "$tag"
-	else
-		girar-task add "$id" repo "$dir" "$tag"
-	fi
+	case "$dir" in
+		copy|srpm) girar-task add "$id" "$dir" "$tag"
+			;;
+		*) girar-task add "$id" repo "$dir" "$tag"
+			;;
+	esac
 done
 
 girar-task run "$id"
