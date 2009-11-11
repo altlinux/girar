@@ -9,7 +9,9 @@ usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
 cat >&2 <<EOF
-Usage: $PROG [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ...
+Usage: $PROG [-b <binary_repository_name>] <build_source_1> <build_name_1> ...
+where \`<build_source> <build_name>' pair is either \`<gear_repo> <gear_tag>'
+or \`srpm <srpm_file>' or \`del <package_name>' or \`copy <package_name>'.
 EOF
 	exit 1
 }
