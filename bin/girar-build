@@ -52,7 +52,7 @@ while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
 	shift 2
 	case "$dir" in
-		copy|srpm) girar-task add "$id" "$dir" "$tag"
+		copy|del|srpm) girar-task add "$id" "$dir" "$tag"
 			;;
 		*) girar-task add "$id" repo "$dir" "$tag"
 			;;
