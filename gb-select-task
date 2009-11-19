@@ -31,7 +31,8 @@ select_task()
 	[ "$(($seq%3))" -eq 0 ]
 
 	seq=$(($seq+1))
-	echo "$seq" >task/seq
+	echo "$seq" >task/seq ||
+		halt_build_queue
 }
 
 for id in $(repo_tasks); do
