@@ -26,7 +26,8 @@ else
 		exit 1
 	fi
 	LC_ALL=C sort -m -u -o "$tmpdir"/useful-files -- "$tmpdir"/useful-files.{i586,x86_64,noarch}
-	set -- --useful-files="$tmpdir"/useful-files --no-scan
+	set -- --useful-files="$tmpdir"/useful-files --no-scan \
+		--changelog-since=2009-01-01
 fi
 
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
