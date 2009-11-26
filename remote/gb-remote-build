@@ -78,6 +78,30 @@ hsh --init ${tag_author:+--packager="$tag_author"} >"$tmpdir"/out 2>&1 ||
 
 q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
 hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
+sort -u -o "$tmpdir"/chroot_base{,}
+
+# Step 1a: check if rebuild is needed at all.
+# When earlier src.rpm is available, it is *almost* okay to reuse its BuildRequires
+# to calculate the list of packages that *would* have been installed into chroot.
+if cmp -s {build,"$tmpdir"}/chroot_base; then
+	build_deps=$(set +f; rpmquery -pR build/srpm/*.rpm)
+	build_deps=$(printf %s "$build_deps" |grep -v '^rpmlib(' |tr -d [[:blank:]])
+	(set +u
+	    . hsh-sh-functions
+	    set_workdir
+	    print_uris $build_deps 2>/dev/null ) |
+	xargs -r0 --delimiter='\n' \
+		rpmquery --qf "$q_bin" -p -- |
+		sort -u >"$tmpdir"/chroot_BR
+	if cmp -s {build,"$tmpdir"}/chroot_BR; then
+		(set +f
+		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
+		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+			Fatal 'failed to obtain packages from previous run'
+		stamp_echo >&2 "$I: no need to rebuild"
+		exit 0
+	fi
+fi
 
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.
@@ -113,10 +137,10 @@ comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
 mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
 
 # Step 4: check if rebuild is needed at all.
-if [ -s build/chroot_base ]; then
-	if cmp -s {build,"$tmpdir"}/chroot_base && cmp -s {build,"$tmpdir"}/chroot_BR; then
+if cmp -s {build,"$tmpdir"}/chroot_base; then
+	if cmp -s {build,"$tmpdir"}/chroot_BR; then
 		(set +f
-		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/
+		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
 		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
 		stamp_echo >&2 "$I: no need to rebuild"
