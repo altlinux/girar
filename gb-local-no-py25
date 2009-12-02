@@ -15,6 +15,7 @@ while read -r N EVR A F; do
 done <plan/add-bin
 
 if [ $RC -gt 0 ]; then
-	stamp_echo >&2 'python2.5 dependencies forbidden, please try again later'
+	stamp_echo >&2 'python2.5 dependencies forbidden'
+	stamp_echo >&2 'sorry for inconvenience, please try again later'
 	exit 1
 fi

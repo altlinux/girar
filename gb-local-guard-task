@@ -19,6 +19,6 @@ comm -12 "$tmpdir"/guard "$tmpdir"/change >"$tmpdir"/affected
 if [ -s "$tmpdir"/affected ]; then
 	stamp_echo >&2 "following just built binary packages affect task #$guard:"
 	echo "$(oneliner "$(cat "$tmpdir"/affected)")"
-	stamp_echo >&2 "please try again later"
+	stamp_echo >&2 "sorry for inconvenience, please try again later"
 	exit 1
 fi
