@@ -33,6 +33,10 @@ mkdir -p -- "$workdir"
 ln -snf -- "$workdir"
 rm -rf -- "$workdir/repo"
 
+# store pkglists outside of aptbox
+rm -rf -- "$workdir/lists"
+mkdir -p -- "$workdir/lists/partial"
+
 # support for full private repo
 gb_repo="$TMPDIR/gb-repo"
 rm -rf -- "$gb_repo"
@@ -59,6 +63,7 @@ Dir::Etc::main "/dev/null";
 Dir::Etc::parts "/var/empty";
 Dir::Etc::sourceparts "/var/empty";
 Dir::Etc::sourcelist "$workdir/sources.list";
+Dir::State::lists "$workdir/lists";
 Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
