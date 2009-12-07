@@ -39,7 +39,7 @@ cd "$tmpdir"
 setarch "$arch" -- \
 hsh --init --without-stuff --no-contents-ind \
     --pkg-init-list="+$release" \
-    --pkg-build-list="$release,basesystem,glibc-locales" >out 2>&1 ||
+    --pkg-build-list="$release,basesystem" >out 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
 		cat out
@@ -98,6 +98,7 @@ comm -23 flist{2,1} >new-files
 
 if [ -s new-files ]; then
 	cat >ignore-p <<'EOF'
+/usr/share/locale/.*
 /etc/alternatives/links/.*
 /etc/rc\.d/rc[0-6]\.d/[KS][0-9].*
 /etc/tcb/.*
