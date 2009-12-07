@@ -37,7 +37,7 @@ cd "$tmpdir"
 
 # Initialize.
 setarch "$arch" -- \
-hsh --init --no-contents-ind \
+hsh --init --without-stuff --no-contents-ind \
     --pkg-init-list="+$release" \
     --pkg-build-list="$release,basesystem,glibc-locales" >out 2>&1 ||
 	{
