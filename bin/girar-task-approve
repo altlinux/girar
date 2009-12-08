@@ -28,8 +28,11 @@ num="$1"; shift
 cd "$GB_TASKS/$id"
 
 for i in $(gear_nums); do
-	[ "$i" = "$num" ] || continue
+	[ -d "acl/$i" -a 'all' = "$num" -o "$i" = "$num" ] ||
+		continue
 	touch "acl/$i/$GIRAR_USER"
-	exit
+	[ 'all' = "$num" ] ||
+		exit
 done
-fatal "task #$id: subtask #$num not found"
+[ 'all' = "$num" ] ||
+	fatal "task #$id: subtask #$num not found"
