@@ -25,7 +25,8 @@ cd "$id"
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -v .
+builtin lockf -n . ||
+        fatal "task #$id is locked"
 
 repo="$(cat task/repo)"
 if ! girar-check-superuser "$repo"; then
