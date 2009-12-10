@@ -59,4 +59,7 @@ builtin lockf -n . ||
 [ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null)" ] ||
         fatal "cannot change status for empty task #$id"
 
+[ -O gears -a -O acl ] ||
+	fatal 'Permission denied'
+
 chmod g${op}w gears acl
