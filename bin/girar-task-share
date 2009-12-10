@@ -35,11 +35,9 @@ enable -f /usr/lib/bash/lockf lockf
 op=
 case "$1" in
 	status)
-		# obtain a shared lock on the TASKS structure
-		builtin lockf -ns . ||
-			fatal "task #$id is locked"
 		find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'enabled\n' -or -printf 'disabled\n' 2>/dev/null ||
 			echo disabled
+		exit 0
 		;;
 	enabled)
 		op=+
