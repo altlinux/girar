@@ -8,10 +8,14 @@ cd "$GB_TASKS_DIR/$id"
 seq="$(cat task/seq)"
 repo="$(cat task/repo)"
 rc="$(cat task/rc)"
+url="$GB_SITE$GB_TASKS_DIR/$id/"
 if [ "$rc" = 0 ]; then
-	[ -f task/manual ] &&
-		text=TESTED ||
+	if [ -f task/manual ]; then
+		text=TESTED
+	else
 		text=COMPLETE
+		url="$GB_SITE$GB_TASKS_DONE_DIR/$id/"
+	fi
 else
 	text=FAILED
 fi
@@ -39,7 +43,7 @@ X-girar-task-cc: $(printf %s "$cc" |tr -s '\n' , |sed 's/,/, /g')
 X-girar-task-repo: $repo
 X-girar-task-try: $try
 X-girar-task-status: $text
-X-girar-task-URL: $GB_SITE$GB_TASKS_DIR/$id/
+X-girar-task-URL: $url
 __EOF
 
 [ "$repo" != sisyphus ] ||
@@ -57,7 +61,7 @@ log_size="$(du -bk "$log_file" |cut -f1)"
 
 cat >>"$tmpdir/draft" <<__EOF
 
-$GB_SITE$GB_TASKS_DIR/$id/$log_file
+$url$log_file
 
 __EOF
 
