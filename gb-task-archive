@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+[ "$(cat task/rc)" = 0 -a ! -f task/manual ] ||
+	exit 0
+
+cd "$GB_TASKS_DIR"
+mv -- "$id" "$GB_TASKS_DONE_DIR"/

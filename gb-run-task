@@ -86,5 +86,6 @@ seq=$(($seq+1))
 echo "$seq" >task/seq
 
 gb-task-send-email "$id"
+gb-task-archive "$id"
 
 exit $rc
