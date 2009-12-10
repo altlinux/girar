@@ -57,6 +57,7 @@ mkdir "$id"/task
 printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
+chmod g+rws,o+t -- "$id"/task "$id"
 
 echo >&2 "new task #$id: owner=$GIRAR_USER repo=$repo"
 printf '%s\n' "$id"
