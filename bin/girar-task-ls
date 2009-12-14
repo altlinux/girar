@@ -6,19 +6,28 @@ PROG='girar-task ls'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--all]"
+	echo >&2 "usage: $PROG [--done] [--all]"
 	exit 1
 }
 
 ls_user="-user $USER_PREFIX$GIRAR_USER"
-case "${1-}" in
-	--help) usage ;;
-	--all) ls_user=; shift ;;
-esac
+ls_recent=
+done=
+topdir="$GB_TASKS"
+while [ "$#" -gt 0 ]; do
+	case "${1-}" in
+		--help) usage ;;
+		--all) ls_user=; shift ;;
+		--done) ls_recent='-mtime -3'
+			done=' done'
+			topdir="$GB_TASKS/archive/done"; shift ;;
+		*) break;;
+	esac
+done
 
 [ "$#" -eq 0 ] || usage 'Too many arguments.'
 
-cd "$GB_TASKS"
+cd "$topdir"
 
 enable -f /usr/lib/bash/lockf lockf
 
@@ -82,11 +91,11 @@ ls1()
 	printf '\n'
 }
 
-ids="$(find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f $ls_user 2>/dev/null |
-	cut -d/ -f2 |sort -nr)"
+ids="$(find . -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d $ls_recent $ls_user -printf '%f\n' |
+	sort -nr)"
 
 if [ -z "$ids" ]; then
-	message "no tasks${ids:- for $GIRAR_USER}"
+	message "no$done tasks${ids:- for $GIRAR_USER}"
 	exit
 fi
 
