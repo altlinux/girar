@@ -41,6 +41,14 @@ girar_commit_git()
 	fi
 	git repack -q -a -d ||:
 	update_git_timestamp
+	# Save space by replacing local objects store with symlink to global store.
+	if mv "gears/$i/git/objects"{,.orig}; then
+		if ln -s "$GIT_DIR/objects" "gears/$i/git/"; then
+			rm -rf "gears/$i/git/objects.orig"
+		else
+			mv "gears/$i/git/objects"{.orig,}
+		fi
+	fi
 }
 
 girar_commit_srpm()
