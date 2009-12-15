@@ -1,6 +1,8 @@
 girar-add
 girar-auth-add
 girar-auth-zero
+girar-build-disable
+girar-build-enable
 girar-del
 girar-disable
 girar-enable
