@@ -318,17 +318,20 @@ printf '%s\n' "$tag_id" >gears/$i/tag_id
 printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 
-mkdir gears/$i/git
-chmod g+w gears/$i/git
 GIT_DIR=gears/$i/git
 export GIT_DIR
+mkdir "$GIT_DIR"
 git init -q --template=/var/empty
 git fetch -q "$dir" tag "$tag_name"
 git branch master "tags/$tag_name"
-touch gears/$i/git/git-daemon-export-ok
+touch "$GIT_DIR/git-daemon-export-ok"
 
-# directories added to alien task should be writable by task owner
-[ -O gears ] ||
+if [ -O gears ]; then
+	# git directories should be writable by builder
+	find "$GIT_DIR" -type d -execdir chmod g+w -- '{}' '+'
+else
+	# directories added to alien task should be writable by task owner
 	find "gears/$i" -type d -execdir chmod g+w -- '{}' '+'
+fi
 
 echo >&2 "task #$id: added #$i: build tag $tag_name from $dir"
