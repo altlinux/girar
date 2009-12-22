@@ -14,6 +14,15 @@ if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
 	rc=1
 fi
 
+dump_rpmfile()
+{
+	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
+	[ -s $tmpdir/files ] || return 0
+	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek "$1" \
+		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] || return 1
+	paste $tmpdir/files $tmpdir/types
+}
+
 dump_deps()
 {
 	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
@@ -25,7 +34,7 @@ dump_deps()
 
 dump_noarch()
 {
-	CMDCACHE_DISABLE=1 rpmfile "$1"
+	dump_rpmfile "$1"
 	dump_deps "$1"
 }
 
@@ -59,7 +68,7 @@ join -v1 -v2 "$tmpdir"/{i586,x86_64}.arch >$tmpdir/only.arch
 
 dump_share()
 {
-	CMDCACHE_DISABLE=1 rpmfile "$1" |
+	dump_rpmfile "$1" |
 		LC_ALL=C grep '^/usr/share/' || [ $? -eq 1 ]
 }
 
