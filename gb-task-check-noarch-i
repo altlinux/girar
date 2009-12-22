@@ -20,6 +20,7 @@ dump_rpmfile()
 	[ -s $tmpdir/files ] || return 0
 	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek "$1" \
 		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] || return 1
+	perl -pi -e 's/, last modified: [^,]+//' $tmpdir/types
 	paste $tmpdir/files $tmpdir/types
 }
 
