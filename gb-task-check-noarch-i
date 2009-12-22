@@ -72,4 +72,55 @@ while read -r N f1 f2; do
 	fi
 done <$tmpdir/both.arch
 
+dump_arch()
+{
+	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
+	rpmquery --qf "$F" -p "$1" |
+		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 0 ]
+	dump_deps "$1"
+}
+
+srcN=
+realArch=
+main1=
+main2=
+
+while read -r N f1 f2; do
+	if [ -z "$srcN" ]; then
+		srcN=$(rpmquery --qf '%{SOURCERPM}' -p i586/rpms/$f1)
+		srcN=${srcN%-*}
+		srcN=${srcN%-*}
+	fi
+	if [ "$N" = "$srcN" ]; then
+		main1=$f1
+		main2=$f2
+		continue
+	fi
+	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
+	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
+	if cmp -s $tmpdir/{$f1,$f2}.arch; then
+		echo >&2 "error (#$i): $f1 should be noarch"
+		rc=1
+	else
+		realArch=1
+	fi
+done <$tmpdir/both.arch
+
+if [ -n "$main1$main2" ]; then
+	f1=$main1
+	f2=$main2
+	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
+	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
+	if cmp -s $tmpdir/{$f1,$f2}.arch; then
+		if [ -s $tmpdir/only.arch ] || [ -n "$realArch" ]; then
+			echo >&2 "warning (#$i): $f1 cannot be noarch"
+		else
+			echo >&2 "error (#$i): $f1 should be noarch"
+			rc=1
+		fi
+	else
+		realArch=1
+	fi
+fi
+
 exit $rc
