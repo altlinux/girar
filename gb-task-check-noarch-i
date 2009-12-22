@@ -38,4 +38,38 @@ while read -r rpm; do
 	fi
 done <$tmpdir/i586.noarch
 
+find_arch()
+{
+	(set +f && cd "$1" && ls *.rpm) |
+	while read -r rpm; do
+		case $rpm in
+			*.src.rpm | *.noarch.rpm) continue ;;
+		esac
+		N=$(rpmquery --qf '%{NAME}' -p $1/"$rpm")
+		printf '%s\t%s\n' "$N" "$rpm"
+	done |
+	sort -u
+}
+
+find_arch i586/rpms   >"$tmpdir"/i586.arch
+find_arch x86_64/rpms >"$tmpdir"/x86_64.arch
+
+join         "$tmpdir"/{i586,x86_64}.arch >$tmpdir/both.arch
+join -v1 -v2 "$tmpdir"/{i586,x86_64}.arch >$tmpdir/only.arch
+
+dump_share()
+{
+	CMDCACHE_DISABLE=1 rpmfile "$1" |
+		LC_ALL=C grep '^/usr/share/' || [ $? -eq 0 ]
+}
+
+while read -r N f1 f2; do
+	dump_share i586/rpms/$f1   >$tmpdir/$f1.usr-share
+	dump_share x86_64/rpms/$f2 >$tmpdir/$f2.usr-share
+	if ! (cd "$tmpdir" && diff -U1 {$f1,$f2}.usr-share ); then
+		echo >&2 "error (#$i): non-identical /usr/share part"
+		rc=1
+	fi
+done <$tmpdir/both.arch
+
 exit $rc
