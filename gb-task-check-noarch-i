@@ -7,14 +7,8 @@ cd build/$i
 
 rc=0
 
-find_noarch()
-{
-	local arch="$1"; shift
-	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
-}
-
-find_noarch i586 >"$tmpdir/i586.noarch"
-find_noarch x86_64 >"$tmpdir/x86_64.noarch"
+(set +f && cd i586/rpms   && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
+(set +f && cd x86_64/rpms && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
 if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
 	echo >&2 "error (#$i): different set of noarch packages"
 	rc=1
