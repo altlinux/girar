@@ -14,14 +14,19 @@ if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
 	rc=1
 fi
 
-dump_noarch()
+dump_deps()
 {
-	F='[%{FILENAMES}\n]'
 	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
 	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
 	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
 	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
-	rpmquery --qf "$F$R$P$O$C" -p "$1"
+	rpmquery --qf "$R$P$O$C" -p "$1"
+}
+
+dump_noarch()
+{
+	CMDCACHE_DISABLE=1 rpmfile "$1"
+	dump_deps "$1"
 }
 
 while read -r rpm; do
