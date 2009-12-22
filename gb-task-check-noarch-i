@@ -60,7 +60,7 @@ join -v1 -v2 "$tmpdir"/{i586,x86_64}.arch >$tmpdir/only.arch
 dump_share()
 {
 	CMDCACHE_DISABLE=1 rpmfile "$1" |
-		LC_ALL=C grep '^/usr/share/' || [ $? -eq 0 ]
+		LC_ALL=C grep '^/usr/share/' || [ $? -eq 1 ]
 }
 
 while read -r N f1 f2; do
@@ -76,7 +76,7 @@ dump_arch()
 {
 	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
 	rpmquery --qf "$F" -p "$1" |
-		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 0 ]
+		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 1 ]
 	dump_deps "$1"
 }
 
