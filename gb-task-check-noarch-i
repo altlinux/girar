@@ -1,0 +1,42 @@
+#!/bin/sh -efu
+
+. gb-sh-tmpdir
+
+i=$1
+cd build/$i
+
+rc=0
+
+find_noarch()
+{
+	local arch="$1"; shift
+	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
+}
+
+find_noarch i586 >"$tmpdir/i586.noarch"
+find_noarch x86_64 >"$tmpdir/x86_64.noarch"
+if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
+	echo >&2 "error (#$i): different set of noarch packages"
+	rc=1
+fi
+
+dump_noarch()
+{
+	F='[%{FILENAMES}\n]'
+	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
+	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
+	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
+	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
+	rpmquery --qf "$F$R$P$O$C" -p "$1"
+}
+
+while read -r rpm; do
+	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
+	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
+	if ! (cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ); then
+		echo >&2 "error (#$i): non-identical noarch packages"
+		rc=1
+	fi
+done <$tmpdir/i586.noarch
+
+exit $rc

@@ -94,36 +94,6 @@ check_brpms()
 }
 check_brpms
 
-noarch()
-{
-	local arch="$1"; shift
-	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
-}
-
-. gb-sh-tmpdir
-
-noarch i586 >"$tmpdir/i586.noarch"
-noarch x86_64 >"$tmpdir/x86_64.noarch"
-(cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ) ||
-	Fatal 'different set of noarch packages'
-
-dump_noarch()
-{
-	F='[%{FILENAMES}\n]'
-	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
-	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
-	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
-	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
-	rpmquery --qf "$F$R$P$O$C" -p "$1"
-}
-
-while read -r rpm; do
-	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
-	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
-	(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
-		Fatal 'noarch packages mismatch'
-done <$tmpdir/i586.noarch
-
 for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
 	make_repo_table $r

@@ -44,6 +44,7 @@ fi
 
 	# Test changes
 	gb-task-check-build
+	gb-task-check-noarch
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 	gb-task-gen-testrepo
