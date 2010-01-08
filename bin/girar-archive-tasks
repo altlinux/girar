@@ -37,7 +37,7 @@ rotate()
 	local seq
 	seq="$(task_type "$n")"
 	mkdir -p "archive/$seq"
-	mv -- "$n" "archive/$seq/"
+	mv -v -- "$n" "archive/$seq/"
 }
 
 
