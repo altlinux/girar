@@ -156,9 +156,15 @@ pkgdel()
 		done
 	fi
 
-	[ "$owners" != ' @everybody' ] || owners=
+	set -- $owners
+	while [ $# -gt 0 ]; do
+		case "${1-}" in
+			@qa|@everybody) shift ;;
+			*) break ;;
+		esac
+	done
 
-	change ${owners:-@nobody}
+	change ${*:-@nobody}
 }
 
 grpadd()
@@ -199,14 +205,20 @@ grpdel()
 			owners="$owners $o"
 	done
 
-	[ "$owners" != ' @everybody' ] || owners=
+	set -- $owners
+	while [ $# -gt 0 ]; do
+		case "${1-}" in
+			@qa|@everybody) shift ;;
+			*) break ;;
+		esac
+	done
 
-	if [ -z "$owners" ]; then
+	if [ -z "${*-}" ]; then
 		writelog "ERROR: Group list cannot be made empty"
 		return 1
 	fi
 
-	change $owners
+	change $*
 }
 
 leader()
