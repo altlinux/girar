@@ -18,7 +18,7 @@ while read -r N EVR F; do
 			continue 2
 		fi
 	done
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" ||
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" '@everybody' ||
 		continue
 	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
 done <plan/add-src
@@ -42,7 +42,7 @@ while read -r N EVR F; do
 			o="@$g"
 		fi
 	fi
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o ||
+	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o '@everybody' ||
 		continue
 	for r in ${GB_ROBOT_USERS-}; do
 		if [ "$u" = "$r" ]; then
