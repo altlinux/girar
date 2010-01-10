@@ -502,7 +502,7 @@ process_user_rules()
 make_workdir
 cd "$workdir"
 
-mkdir -- list mails
+mkdir -- list mails status
 
 # Copy all active acl files to workdir.
 find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
@@ -521,25 +521,25 @@ while read rulesfile; do
 	repository="${rulesfile%/*}"
 	repository="${repository##*/}"
 
-	logfile="mails/$person.$repository.status"
-
-	# Store information required for sending emails at the end of processing.
-	printf '%s %s %s\n' "$person" "$repository" "$logfile" >>mails/info
+	logfile="status/$person.$repository."
 
 	if process_user_rules "$rulesfile"; then
 		# Install all working acl files as active.
 		find list -type f -name 'list.*' \
 			-exec cp -at "$GIRAR_ACL_CONF_DIR" -- \{\} \+
-		printf '\nSummary: acl change transaction COMPLETE.\n' >>"$logfile"
-		acl_changed=1
+		newlogfile="${logfile}COMPLETE"
 	else
 		# Copy all active acl files to workdir.
 		find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
 			-exec cp -at list -- \{\} \+
-		printf '\nSummary: acl change transaction ABORTED.\n' >>"$logfile"
+		newlogfile="${logfile}ABORTED"
 	fi
+
+	mv "$logfile" "$newlogfile"
 	rm -f -- "$rulesfile"
 
+	# Store information required for sending emails at the end of processing.
+	printf '%s %s %s\n' "$person" "$repository" "$newlogfile" >>mails/info
 done
 
 # Update timestamp.
@@ -552,6 +552,7 @@ sleep 1
 rsync -rlt -- "$GIRAR_ACL_CONF_DIR/" "$GIRAR_ACL_PUB_DIR/"
 
 while read person repository logfile; do
+	status="${logfile##*.}"
 	realname="$(getent passwd ${USER_PREFIX}${person} |cut -d: -f5 |tr -d '"')"
 	realname="${realname:-$person}"
 	cat >mails/msg <<EOF
@@ -559,7 +560,7 @@ From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
 To: "$realname" <$person@$EMAIL_DOMAIN>
 Cc: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
 X-Incominger: acl
-Subject: [girar-acl] $repository
+Subject: [girar-acl] $status $repository
 Content-Type: text/plain; charset=us-ascii
 
 Dear $realname!
@@ -569,6 +570,8 @@ Result of your acl command(s) is listed below:
 EOF
 	cat -- "$logfile" >>mails/msg
 	cat >>mails/msg <<EOF
+
+Summary: ACL change transaction $status.
 
 
 -- 
