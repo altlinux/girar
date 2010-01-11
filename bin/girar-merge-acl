@@ -44,6 +44,26 @@ make_workdir()
 	workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 }
 
+realname()
+{
+	if [ -n "$1" -a -z "${1##@*}" ]; then
+		printf %s "${1#@} group"
+	else
+		local n
+		n="$(getent passwd ${USER_PREFIX}$1 |cut -d: -f5 |tr -d '"')"
+		printf %s "${n:-$1}"
+	fi
+}
+
+email_address()
+{
+	if [ -n "$1" -a -z "${1##@*}" ]; then
+		printf '<%s@%s>' "${1#@}" "packages.$EMAIL_DOMAIN"
+	else
+		printf '<%s@%s>' "$1" "$EMAIL_DOMAIN"
+	fi
+}
+
 writelog()
 {
 	[ "$#" -eq 1 ] || return 0
@@ -502,11 +522,14 @@ process_user_rules()
 make_workdir
 cd "$workdir"
 
-mkdir -- list mails status
+mkdir -- list mails status diff notify
 
 # Copy all active acl files to workdir.
 find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
 	-exec cp -at list -- \{\} \+
+
+# Save old acl files for later analysis.
+cp -a list list.orig
 
 # Handle new spooled acl files in ascending modification time order.
 find "$GIRAR_ACL_STATE_DIR" -mindepth 2 -maxdepth 2 -type f \
@@ -553,11 +576,10 @@ rsync -rlt -- "$GIRAR_ACL_CONF_DIR/" "$GIRAR_ACL_PUB_DIR/"
 
 while read person repository logfile; do
 	status="${logfile##*.}"
-	realname="$(getent passwd ${USER_PREFIX}${person} |cut -d: -f5 |tr -d '"')"
-	realname="${realname:-$person}"
+	realname="$(realname "$person")"
 	cat >mails/msg <<EOF
 From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
-To: "$realname" <$person@$EMAIL_DOMAIN>
+To: "$realname" $(email_address "$person")
 Cc: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
 X-Incominger: acl
 Subject: [girar-acl] $status $repository
@@ -580,3 +602,82 @@ Rgrds, your Girar ACL robot
 EOF
 	/usr/sbin/sendmail -i -t <mails/msg
 done <mails/info
+
+# Now lets have a look what have been changed.
+set +f
+for f in "$GIRAR_ACL_CONF_DIR"/list.*; do
+	t=diff/"${f##*/}"
+	cat -- list.orig/"${f##*/}" "$f" |
+		sort |
+		uniq -u >"$t"
+	[ -s "$t" ] || rm -f "$t"
+done
+
+for f in diff/list.*; do
+	[ -f "$f" ] || continue
+	repo="${f##*/}"
+	repo="${repo#list.*.}"
+	mkdir -p notify/"$repo"
+
+	list_old="list.orig/${f##*/}"
+	list_new="$GIRAR_ACL_CONF_DIR/${f##*/}"
+	engaged=$(cut -f2- "$f"|
+		tr ' ' '\n' |
+		sort -u |
+		egrep -v '@(qa|nobody|everybody)$')
+	# Find items for each engaged person.
+	for person in $engaged; do
+		qperson="$(quote_sed_regexp "$person")"
+		if [ -z "${person##@*}" ]; then
+			qperson="$qperson\\>"
+		else
+			qperson="\\<$qperson\\>"
+		fi
+		items=$(grep "^[^[:space:]]\\+[[:space:]].*$qperson" "$f" |
+			cut -f1 |sort -u)
+		for item in $items; do
+			qitem="$(quote_sed_regexp "$item")"
+			old=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$list_old")
+			new=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$list_new")
+			if [ -z "$old" ]; then
+				printf '%s: CREATED -> "%s"\n' "$item" "$new"
+			elif [ -z "$new" ]; then
+				printf '%s: "%s" -> DELETED\n' "$item" "$old"
+			else
+				printf '%s: "%s" -> "%s"\n' "$item" "$old" "$new"
+			fi
+		done >>"notify/$repo/$person"
+	done
+done
+
+for d in notify/*; do
+	[ -d "$d" ] || continue
+	repository="${d##*/}"
+	for f in "$d"/*; do
+		[ -f "$f" ] || continue
+		person="${f##*/}"
+		realname="$(realname "$person")"
+		cat >mails/msg <<EOF
+From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+To: "$realname" $(email_address "$person")
+X-Incominger: acl
+X-Incominger-Reason: acl-change-notification
+Subject: [girar-acl] $repository
+Content-Type: text/plain; charset=us-ascii
+
+Dear $realname!
+
+You have been engaged in ACL change(s) listed below:
+
+EOF
+	cat -- "$f" >>mails/msg
+	cat >>mails/msg <<EOF
+
+
+-- 
+Rgrds, your Girar ACL robot
+
+EOF
+	/usr/sbin/sendmail -i -t <mails/msg
+	done
+done
