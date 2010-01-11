@@ -607,8 +607,7 @@ done <mails/info
 set +f
 for f in "$GIRAR_ACL_CONF_DIR"/list.*; do
 	t=diff/"${f##*/}"
-	cat -- list.orig/"${f##*/}" "$f" |
-		sort |
+	sort -- list.orig/"${f##*/}" "$f" |
 		uniq -u >"$t"
 	[ -s "$t" ] || rm -f "$t"
 done
@@ -621,10 +620,9 @@ for f in diff/list.*; do
 
 	list_old="list.orig/${f##*/}"
 	list_new="$GIRAR_ACL_CONF_DIR/${f##*/}"
-	engaged=$(cut -f2- "$f"|
+	engaged="$(cut -f2- "$f"|
 		tr ' ' '\n' |
-		sort -u |
-		egrep -v '@(qa|nobody|everybody)$')
+		sort -u)"
 	# Find items for each engaged person.
 	for person in $engaged; do
 		qperson="$(quote_sed_regexp "$person")"
