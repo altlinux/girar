@@ -622,11 +622,14 @@ for f in diff/list.*; do
 	list_new="$GIRAR_ACL_CONF_DIR/${f##*/}"
 	engaged="$(cut -f2- "$f"|
 		tr ' ' '\n' |
+		sed 's/^@nobody$/@everybody/' |
 		sort -u)"
 	# Find items for each engaged person.
 	for person in $engaged; do
 		qperson="$(quote_sed_regexp "$person")"
-		if [ -z "${person##@*}" ]; then
+		if [ "$person" = '@everybody' ]; then
+			qperson="\\(@nobody\\|@everybody\\)\\>"
+		elif [ -z "${person##@*}" ]; then
 			qperson="$qperson\\>"
 		else
 			qperson="\\<$qperson\\>"
@@ -660,7 +663,7 @@ From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
 To: "$realname" $(email_address "$person")
 X-Incominger: acl
 X-Incominger-Reason: acl-change-notification
-Subject: [girar-acl] $repository
+Subject: [girar-acl] $repository changes summary
 Content-Type: text/plain; charset=us-ascii
 
 Dear $realname!
