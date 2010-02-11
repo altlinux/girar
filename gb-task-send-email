@@ -30,6 +30,8 @@ stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
 
 try="$((1+$seq/3))"
 
+logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try status=$text"
+
 . gb-sh-tmpdir
 
 cat >"$tmpdir/draft" <<__EOF
