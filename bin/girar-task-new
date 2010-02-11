@@ -38,6 +38,8 @@ builtin lockf -v .
 id=$(cat .max-task-id)
 id=$(($id+1))
 
+logger -t "$PROG" "user=$GIRAR_USER task=$id repo=$repo"
+
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$id" >.max-task-id
 

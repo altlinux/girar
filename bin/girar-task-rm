@@ -46,6 +46,8 @@ if [ -f "$id"/task/seq ]; then
 	esac
 fi
 
+logger -t "$PROG" "user=$GIRAR_USER task=$id"
+
 echo >&2 -n "removing task #$id ... "
 rm -rf -- "$id"/
 echo >&2 done

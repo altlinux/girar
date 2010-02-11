@@ -57,6 +57,7 @@ for i; do
 		fatal "gears/$i: Permission denied"
 	[ $# -gt 1 ] ||
 		fatal "task #$id: cannot remove the sole subtask"
+	logger -t "$PROG" "user=$GIRAR_USER task=$id subtask=$i"
 	trap '' HUP INT QUIT PIPE TERM
 	rm -rf acl/$i build/$i
 	# del/copy

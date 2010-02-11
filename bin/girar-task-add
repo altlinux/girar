@@ -275,6 +275,8 @@ fi
 
 i=$(($i+1))
 
+logger -t "$PROG" "user=$GIRAR_USER task=$id subtask=$i"
+
 atexit()
 {
 	local rc=$?

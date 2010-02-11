@@ -66,6 +66,8 @@ mkdir -pm3775 bugmail build plan
 # create group writable files required for build
 (umask 002; touch task/log"${try:+.$try}" task/rc task/seq task/summary) || false
 
+logger -t "$PROG" "user=$GIRAR_USER task=$id seq=$seq"
+
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$seq" >task/seq
 
