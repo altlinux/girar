@@ -10,7 +10,7 @@ repo="$(cat task/repo)"
 rc="$(cat task/rc)"
 url="$GB_SITE$GB_TASKS_DIR/$id/"
 if [ "$rc" = 0 ]; then
-	if [ -f task/manual ]; then
+	if [ -f task/test-only ]; then
 		text=TESTED
 	else
 		text=COMPLETE

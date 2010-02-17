@@ -19,10 +19,10 @@ try="$((1+$seq/3))"
 log="task/log${try:+.$try}"
 gb-task-set-summary
 
-# manual completion
-manual=
-if [ -f task/manual ]; then
-	manual=-s
+# test only mode
+test_only=
+if [ -f task/test-only ]; then
+	test_only=-s
 fi
 
 (
@@ -36,7 +36,7 @@ fi
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	# Actually, only shared lock is required for build and checks,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v $manual "$GB_REPO_DIR"
+	builtin lockf -v $test_only "$GB_REPO_DIR"
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages
@@ -54,12 +54,12 @@ fi
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v $manual "$GB_GEARS_DIR"
+	builtin lockf -v $test_only "$GB_GEARS_DIR"
 	gb-task-check-girar
 	gb-task-check-acl
 	gb-task-cleanup
 
-	[ -z "$manual" ] ||
+	[ -z "$test_only" ] ||
 		exit 0
 
 	# Apply changes
@@ -73,7 +73,7 @@ fi
 rc=$?
 echo "$rc" >task/rc
 if [ "$rc" = 0 ]; then
-	[ -z "$manual" ] &&
+	[ -z "$test_only" ] &&
 		text=COMPLETE ||
 		text=TESTED
 else

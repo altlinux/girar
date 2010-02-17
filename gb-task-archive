@@ -5,7 +5,7 @@
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
-[ "$(cat task/rc)" = 0 -a ! -f task/manual ] ||
+[ "$(cat task/rc)" = 0 -a ! -f task/test-only ] ||
 	exit 0
 
 cd "$GB_TASKS_DIR"
