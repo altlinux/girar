@@ -46,9 +46,15 @@ show_status()
 		1) printf ' BUILDING' ;;
 		# have build results
 		2)
-		[ 0 = "$(cat task/rc 2>/dev/null)" ] &&
-			printf ' DONE' ||
+		if [ 0 = "$(cat task/rc 2>/dev/null)" ]; then
+			if [ -f task/test-only ]; then
+				printf ' TESTED'
+			else
+				printf ' DONE'
+			fi
+		else
 			printf ' FAILED'
+		fi
 		;;
 	esac
 	try="$((1+$seq/3))"
@@ -67,6 +73,9 @@ ls1()
 		printf ' [locked]'
 	fi
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
+	if [ -f task/test-only ]; then
+		printf ' [test-only]'
+	fi
 	printf ' %s' "$(cat task/repo)"
 	[ -n "$ls_user" ] ||
 		printf '/%s' "$(cat task/owner)"
