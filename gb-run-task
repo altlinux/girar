@@ -36,7 +36,10 @@ fi
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	# Actually, only shared lock is required for build and checks,
 	# but an exclusive lock is required later for commit.
-	builtin lockf -v $test_only "$GB_REPO_DIR"
+	if ! builtin lockf -nv $test_only "$GB_REPO_DIR"; then
+		builtin lockf -v $test_only "$GB_REPO_DIR"
+		stamp_echo "acquired a lock on $GB_REPO_NAME repository"
+	fi
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages
