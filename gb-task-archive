@@ -8,5 +8,7 @@ cd "$GB_TASKS_DIR/$id"
 [ "$(cat task/rc)" = 0 -a ! -f task/test-only ] ||
 	exit 0
 
+find plan -type f -name 'next.*' -delete
+
 cd "$GB_TASKS_DIR"
 mv -- "$id" "$GB_TASKS_DONE_DIR"/
