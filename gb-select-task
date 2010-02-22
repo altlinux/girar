@@ -4,6 +4,10 @@
 
 cd "$GB_TASKS_DIR"
 
+enable -f /usr/lib/bash/lockf lockf
+# obtain a shared lock on the whole TASKS directory
+builtin lockf -s .
+
 repo_tasks()
 {
 	find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/repo' -type f -print0 |
@@ -11,7 +15,6 @@ repo_tasks()
 		cut -d/ -f2 |sort -n
 }
 
-enable -f /usr/lib/bash/lockf lockf
 
 select_task()
 {
