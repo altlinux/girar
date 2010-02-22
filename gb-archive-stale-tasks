@@ -1,0 +1,50 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+cd "$GB_TASKS_DIR"
+
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the whole TASKS directory
+builtin lockf .
+
+task_type()
+{
+	local n="$1"; shift
+	local seq
+	seq="$(cat -- "$n/task/seq" 2>/dev/null ||:)"
+	[ -n "$seq" ] && [ "$seq" -ge 0 ] 2>/dev/null || {
+		echo new
+		return
+	}
+
+	case "$(($seq%3))" in
+		2)
+		if [ 0 = "$(cat -- "$n/task/rc" 2>/dev/null)" ]; then
+			if [ -f "$n/task/test-only" ]; then
+				echo tested
+			else
+				echo done
+			fi
+		else
+			echo failed
+		fi
+		;;
+	esac
+}
+
+rotate()
+{
+	local n="$1"; shift
+	local seq
+	seq="$(task_type "$n")"
+	[ -n "$seq" ] || return 0
+	mkdir -p "archive/$seq"
+	mv -- "$n" "archive/$seq/"
+}
+
+
+find . -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d -mtime +5 |
+  cut -d/ -f2 |sort -rn |while read n; do
+	rotate "$n"
+done
