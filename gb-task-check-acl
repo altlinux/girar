@@ -50,6 +50,11 @@ while read -r N F; do
 	check_acl "$i" "$N"
 done <plan/oldsrc2newsrpm
 
+# Deal with explicitly copied and removed packages.
+for i in $(package_nums); do
+	check_acl "$i" "$(cat "gears/$i/package")"
+done
+
 [ "$rc" = 0 ] && text=OK || text=FAILED
 stamp_echo >&2 "acl check $text"
 exit $rc
