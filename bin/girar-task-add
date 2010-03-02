@@ -152,17 +152,19 @@ builtin lockf -n . ||
 repo="$(cat task/repo)"
 case "$action" in
 	del)
-	girar-check-perms "$package" "$repo"
+	girar-check-package-in-repo "$package" "$repo" ||
+		fatal "Invalid request to delete nonexistent package \`$package' from \`$repo'"
 	;;
 	srpm)
 	validate_srpm
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
-		fatal "Invalid request to copy package from $copy_repo to $repo"
+		fatal "Invalid request to copy package from \`$copy_repo' to \`$repo'"
 	[ "$repo" != 'sisyphus' ] ||
-		fatal "Invalid request to copy package to $repo"
-	girar-check-perms "$package" "$repo"
+		fatal "Invalid request to copy package to \`$repo'"
+	girar-check-package-in-repo "$package" "$copy_repo" ||
+		fatal "Invalid request to copy nonexistent package \`$package' from \`$copy_repo'"
 	;;
 esac
 
