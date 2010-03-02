@@ -129,17 +129,17 @@ parse_cmd()
 
 	case "$action" in
 		show)
-			show_acl >&2
+			show_acl >&3
 			return ;;
 		nmu)
 			[ "$#" -ge 1 ] ||
 				show_usage 'Not enough arguments.'
 			if [ "$1" = show ]; then
-				show_nmu >&2
+				show_nmu >&3
 				return
 			fi ;;
 		check)
-			girar-check-perms "$item" "$repository" >&2 ||:
+			girar-check-perms "$item" "$repository" >&3 ||:
 			return ;;
 		add|del|leader|replace)
 			[ "$#" -ge 1 ] ||
@@ -157,10 +157,10 @@ parse_cmd()
 		# $GIRAR_USER is allowed to del self from the list (ALT#19215)
 		girar-check-acl-item "$item" \
 			"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
-			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&2
+			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&3
 	else
 		girar-check-acl-leader "$GIRAR_USER" "$item" \
-			"$repository" "$GIRAR_ACL_CONF_DIR" >&2
+			"$repository" "$GIRAR_ACL_CONF_DIR" >&3
 	fi
 
 	if [ "$action" = 'nmu' ]; then
@@ -189,6 +189,7 @@ workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
 
 # If caller specified arguments, parse them,
 # otherwise parse stdin line by line.
+exec 3>&1
 if [ $# -eq 0 ]; then
 	message 'Go ahead and type your commands' >&2
 	while read -r line; do
