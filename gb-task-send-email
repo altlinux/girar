@@ -3,6 +3,7 @@
 . gb-sh-functions
 
 id="$1"; shift
+k="_$(($id/1024))"
 cd "$GB_TASKS_DIR/$id"
 
 seq="$(cat task/seq)"
@@ -14,7 +15,7 @@ if [ "$rc" = 0 ]; then
 		text=TESTED
 	else
 		text=COMPLETE
-		url="$GB_SITE$GB_TASKS_DONE_DIR/$id/"
+		url="$GB_SITE$GB_TASKS_DONE_DIR/$k/$id/"
 	fi
 else
 	text=FAILED

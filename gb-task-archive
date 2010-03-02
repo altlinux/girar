@@ -11,4 +11,6 @@ cd "$GB_TASKS_DIR/$id"
 find plan -type f -name 'next.*' -delete
 
 cd "$GB_TASKS_DIR"
-mv -- "$id" "$GB_TASKS_DONE_DIR"/
+k="_$(($id/1024))"
+mkdir -p "$GB_TASKS_DONE_DIR/$k"
+mv -- "$id" "$GB_TASKS_DONE_DIR/$k/"
