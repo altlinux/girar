@@ -71,6 +71,7 @@ bin_TARGETS = \
 	bin/girar-check-acl-item \
 	bin/girar-check-acl-leader \
 	bin/girar-check-orphaned \
+	bin/girar-check-package-in-repo \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
 	bin/girar-clone \
