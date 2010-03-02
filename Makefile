@@ -27,7 +27,7 @@ girar_repo_conf_dir = ${girar_confdir}/repo
 EMAIL_DOMAIN = altlinux.org
 GB_GROUP = girar-builder
 GB_TASKS = ${girar_spooldir}/tasks
-GIRAR_ARCHIVE = /archive
+GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
 GIRAR_GEARS = /gears
@@ -48,7 +48,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
-	-DGIRAR_ARCHIVE=\"${GIRAR_ARCHIVE}\" \
+	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
 	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
@@ -206,7 +206,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
-	    -e 's,@GIRAR_ARCHIVE@,${GIRAR_ARCHIVE},g' \
+	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
 	    -e 's,@GIRAR_FAKE_HOME@,${GIRAR_FAKE_HOME},g' \

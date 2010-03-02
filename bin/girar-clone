@@ -17,8 +17,8 @@ usage()
 [ -n "${GIRAR_HOME:-}" ] ||
 	fatal 'GIRAR_HOME undefined'
 
-[ -n "${GIRAR_ARCHIVE:-}" ] ||
-	fatal 'GIRAR_ARCHIVE undefined'
+[ -n "${GIRAR_SRPMS:-}" ] ||
+	fatal 'GIRAR_SRPMS undefined'
 
 [ -n "${GIRAR_GEARS:-}" ] ||
 	fatal 'GIRAR_GEARS undefined'
@@ -32,10 +32,10 @@ p_repo="$(add_git_suffix "$p_repo")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$GIRAR_HOME")"
-	archive="$(readlink -ev "$GIRAR_ARCHIVE")"
+	srpms="$(readlink -ev "$GIRAR_SRPMS")"
 	gears="$(readlink -ev "$GIRAR_GEARS")"
 	[ -z "${repo##$people/*}" -o \
-	  -z "${repo##$archive/*}" -o \
+	  -z "${repo##$srpms/*}" -o \
 	  -z "${repo##$gears/*}" ] ||
 		fatal "$repo0: directory does not belong to allowed directory tree"
 fi
