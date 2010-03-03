@@ -18,16 +18,13 @@ while [ "$#" -gt 0 ]; do
 	case "${1-}" in
 		--help) usage ;;
 		--all) ls_user=; shift ;;
-		--done) ls_recent='-mtime -3'
-			done=' done'
-			topdir="$GB_TASKS/archive/done"; shift ;;
+		--done) done=' done'
+			topdir="$GB_TASKS/archive/done/current"; shift ;;
 		*) break;;
 	esac
 done
 
 [ "$#" -eq 0 ] || usage 'Too many arguments.'
-
-cd "$topdir"
 
 enable -f /usr/lib/bash/lockf lockf
 
@@ -99,6 +96,8 @@ ls1()
 	done
 	printf '\n'
 }
+
+cd "$topdir"
 
 ids="$(find . -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d $ls_recent $ls_user -printf '%f\n' |
 	sort -nr)"
