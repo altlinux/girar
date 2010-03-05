@@ -16,13 +16,14 @@ Requires: bash-builtin-lockf >= 0:0.2
 Requires: git-core >= 0:1.5.1
 
 %define girar_group girar
-%define gb_group girar-builder
 %define girar_user girar
+%define gb_group girar-builder
+%define gb_user girar-builder
 
 %description
 This package contains server engine initially developed for git.alt,
-including administration and user utilities, git hooks, email subscription
-support and config files.
+including administration and user utilities, git hooks, email
+subscription support and config files.
 
 %prep
 %setup -q
@@ -38,6 +39,7 @@ echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 /usr/sbin/groupadd -r -f %girar_group
 /usr/sbin/groupadd -r -f %gb_group
 /usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
+/usr/sbin/useradd -r -g %gb_group -d /dev/null -s /dev/null -c 'The girar build processor' -n %gb_user >/dev/null 2>&1 ||:
 
 %files
 %defattr(-,root,%girar_group,750)
