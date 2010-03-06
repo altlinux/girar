@@ -6,12 +6,18 @@ PROG='girar-task run'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task_id>]"
+	echo >&2 "usage: $PROG [--test-only] [<task_id>]"
 	exit 1
 }
 
 if [ "${1-}" = '--help' ]; then
 	usage
+fi
+
+test_only=
+if [ "${1-}" = '--test-only' ]; then
+	test_only=1
+	shift
 fi
 
 if [ "$#" -gt 1 ]; then
@@ -49,7 +55,8 @@ if [ -f task/seq ]; then
 		# have build results
 		2)
 		if [ 0 = "$(cat task/rc)" ]; then
-			fatal "task #$id is already successfully processed"
+			[ -f task/test-only ] ||
+				fatal "task #$id is already successfully processed"
 		fi
 		seq=$(($seq+1)) ;;
 	esac
@@ -65,6 +72,15 @@ mkdir -pm3775 bugmail build plan
 
 # create group writable files required for build
 (umask 002; touch task/log"${try:+.$try}" task/rc task/seq task/summary) || false
+
+# set/remove test-only flag
+if [ -n "$test_only" ]; then
+	[ -f task/test-only ] ||
+		touch task/test-only
+else
+	[ ! -f task/test-only ] ||
+		rm task/test-only
+fi
 
 logger -t "$PROG" "user=$GIRAR_USER task=$id seq=$seq"
 

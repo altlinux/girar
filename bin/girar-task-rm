@@ -41,7 +41,8 @@ if [ -f "$id"/task/seq ]; then
 		# have build results
 		2)
 		if [ 0 = "$(cat "$id"/task/rc)" ]; then
-			fatal "task #$id is already successfully processed"
+			[ -f task/test-only ] ||
+				fatal "task #$id is already successfully processed"
 		fi ;;
 	esac
 fi

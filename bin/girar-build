@@ -9,7 +9,7 @@ usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
 cat >&2 <<EOF
-Usage: $PROG [-b <binary_repository_name>] <build_source_1> <build_name_1> ...
+Usage: $PROG [--test-only] [-b <binary_repository_name>] <build_source_1> <build_name_1> ...
 where \`<build_source> <build_name>' pair is either \`<gear_repo> <gear_tag>'
 or \`srpm <srpm_file>' or \`del <package_name>' or \`copy <package_name>'.
 EOF
@@ -18,6 +18,12 @@ EOF
 
 if [ "${1-}" = '--help' ]; then
 	usage
+fi
+
+test_only=
+if [ "${1-}" = '--test-only' ]; then
+	test_only=--test-only
+	shift
 fi
 
 if [ "$#" -lt 2 ]; then
@@ -61,4 +67,4 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-girar-task run "$id"
+girar-task run $test_only "$id"
