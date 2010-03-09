@@ -51,25 +51,13 @@ fi
 tmpdir=
 cleanup()
 {
-	trap - EXIT
 	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
 	exit "$@"
 }
 
-exit_handler()
-{
-	cleanup $?
-}
-
-signal_handler()
-{
-	cleanup 1
-}
-
-trap exit_handler EXIT
-trap signal_handler HUP INT QUIT PIPE TERM
-
-tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
 
 # Step 1: initialize and query hasher chroot.
 setarch "$arch" -- \
