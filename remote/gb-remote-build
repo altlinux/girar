@@ -94,6 +94,7 @@ fi
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.
 cat >"$tmpdir"/save_srpm <<'EOF'
+#!/bin/sh -efu
 mkdir ~/SRPMS
 ln --target-directory ~/SRPMS/ -- "$@"
 EOF
