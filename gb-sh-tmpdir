@@ -3,22 +3,10 @@
 tmpdir=
 cleanup_tmpdir()
 {
-	trap - EXIT
 	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
 	exit "$@"
 }
 
-exit_handler()
-{
-	cleanup_tmpdir $?
-}
-
-signal_handler()
-{
-	cleanup_tmpdir 1
-}
-
-trap exit_handler EXIT
-trap signal_handler HUP INT QUIT PIPE TERM
-
-tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup_tmpdir $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
