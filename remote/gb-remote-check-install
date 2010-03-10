@@ -14,25 +14,13 @@ fi
 tmpdir=
 cleanup()
 {
-	trap - EXIT
 	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
 	exit "$@"
 }
 
-exit_handler()
-{
-	cleanup $?
-}
-
-signal_handler()
-{
-	cleanup 1
-}
-
-trap exit_handler EXIT
-trap signal_handler HUP INT QUIT PIPE TERM
-
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
 cd "$tmpdir"
 
 # Initialize.
