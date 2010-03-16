@@ -1,0 +1,41 @@
+#!/bin/sh -efu
+#
+# When updating a package V1->V2, last changelog entry in V1
+# must be present among changelog entries in V2.  This is how
+# we can retain NMU and promote QA activity.
+#
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+rc=0
+
+changelog()
+{
+	rpmquery --qf '[%{CHANGELOGTIME:day}\t%{CHANGELOGNAME}\n]' -p "$1" |
+	perl -pe 's/\t.*<(\S+)(?:\@| at )([\w-]+).*>\s+/\t$1\@$2\t/'
+}
+
+
+check()
+{
+	changelog "$1" >$tmpdir/c1
+	changelog "$2" >$tmpdir/c2
+	lastchange=$(head -1 $tmpdir/c1)
+	if ! fgrep -qs -x -e "${lastchange:?}" $tmpdir/c2; then
+		echo "${2##*/}: missing last changelog entry from ${1##*/}:"
+		echo "* $lastchange"
+		rc=1
+	fi >&2
+}
+
+join -o 1.3,2.3 plan/{rm,add}-src >$tmpdir/F1+F2
+while read -r F1 F2; do
+	F1=$GB_REPO_DIR/files/SRPMS/$F1
+	F2=$(findsrc "$F2")
+	check "$F1" "$F2" </dev/null
+done <$tmpdir/F1+F2
+
+[ "$rc" = 0 ] && text=OK || text=FAILED
+stamp_echo >&2 "srpm inheritance check $text"
+exit $rc
