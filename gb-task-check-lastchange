@@ -13,7 +13,7 @@ rc=0
 changelog()
 {
 	rpmquery --qf '[%{CHANGELOGTIME:day}\t%{CHANGELOGNAME}\n]' -p "$1" |
-	perl -pe 's/\t.*<(\S+)(?:\@| at )([\w-]+).*>\s+/\t$1\@$2\t/'
+	perl -pe 's/\t.*<(\S+)(?:\@| at )([\w-]+).*>[ \t]*/\t$1\@$2\t/'
 }
 
 
