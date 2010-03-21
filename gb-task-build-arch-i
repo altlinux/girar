@@ -13,13 +13,13 @@ if [ -s "gears/$i/dir" ]; then
 	src=pkg.tar
 	tag_name="$(cat "gears/$i/tag_name")"
 	tag_author="$(cat "gears/$i/tag_author")"
-	I="[$arch] $from $tag_name:"
+	I="[$arch] #$i $from $tag_name:"
 elif [ -s "gears/$i/srpm" ]; then
 	from="$(cat "gears/$i/srpm")"
 	src="$from"
 	tag_name=
 	tag_author=
-	I="[$arch] $src:"
+	I="[$arch] #$i $src:"
 else
 	stamp_echo >&2 "#$i: source not found"
 	exit 1
