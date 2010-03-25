@@ -197,3 +197,13 @@ halt_build_queue()
 	stamp_echo >&2 '*** BUILD QUEUE HALTED ***'
 	return 1
 }
+
+is_check_failure_tolerated()
+{
+	local n
+	for n in ${GB_LIST_OF_CHECKS_ALLOWED_TO_FAIL-}; do
+		[ "${0##*/}" = "$n" ] || continue
+		return 0
+	done
+	return 1
+}
