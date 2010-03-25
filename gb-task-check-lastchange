@@ -9,6 +9,7 @@
 . gb-sh-tmpdir
 
 rc=0
+text=OK
 
 changelog()
 {
@@ -16,16 +17,15 @@ changelog()
 	perl -pe 's/\t.*<(\S+)(?:\@| at )([\w-]+).*>[ \t]*/\t$1\@$2\t/'
 }
 
+is_git_based()
+{
+	set_GIT_DIR "$GB_GEARS_DIR" "$1"
+	git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" >/dev/null 2>&1
+}
 
 check()
 {
 	N=$1; shift
-
-	# Don't check git-based packages.
-	set_GIT_DIR "$GB_GEARS_DIR" "$N"
-	if git rev-parse --verify "heads/$GB_REPO_NAME^{commit}" >/dev/null 2>&1; then
-		return
-	fi
 
 	changelog "$1" >$tmpdir/c1
 	changelog "$2" >$tmpdir/c2
@@ -42,7 +42,9 @@ check()
 	fi
 	echo >&2 "${2##*/}: missing last changelog entry from ${1##*/}:"
 	echo >&2 "* $lastchange"
-	rc=1
+
+	text=COND-OK
+	is_git_based "$N" || rc=1
 }
 
 join -o 0,1.3,2.3 plan/{rm,add}-src >$tmpdir/N+F1+F2
@@ -52,6 +54,6 @@ while read -r N F1 F2; do
 	check "$N" "$F1" "$F2" </dev/null
 done <$tmpdir/N+F1+F2
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
+[ "$rc" = 0 ] || text=FAILED
 stamp_echo >&2 "srpm inheritance check $text"
 exit $rc
