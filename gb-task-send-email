@@ -2,6 +2,9 @@
 
 . gb-sh-functions
 
+. shell-quote
+qgroups="$(quote_sed_regexp "$GB_EMAIL_DOMAIN_GROUPS")"
+
 id="$1"; shift
 k="_$(($id/1024))"
 cd "$GB_TASKS_DIR/$id"
@@ -21,7 +24,7 @@ else
 	text=FAILED
 fi
 owner="$(cat task/owner)"
-cc="$(set +f; sort -u gears/*/userid |join -v1 - task/owner)"
+cc="$(set +f; sort -u task/acl-addressees gears/*/userid | grep '^[^@]' | join -v1 - task/owner)"
 
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
@@ -37,8 +40,10 @@ logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try status=$text
 
 cat >"$tmpdir/draft" <<__EOF
 To: git_$owner
-Cc: $(printf %s "$cc" |sort |sed s/^/git_/ |tr -s '\n' , |sed 's/,/, /g')$GB_REPO_EMAIL
-Reply-To: $owner@$GB_EMAIL_DOMAIN
+Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
+	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
+	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
+Reply-To: $owner@$GB_EMAIL_DOMAIN_PEOPLE
 Mail-Followup-To: $USER
 X-girar-task-id: $id
 X-girar-task-owner: $owner
