@@ -7,13 +7,20 @@
 
 rc=0
 
+> task/acl-addressees
 check_acl()
 {
 	local i="$1" src="$2"; shift 2
 	local u out st= a
-	u="$(cat gears/$i/userid)"
+
+	girar-acl-show "$GB_REPO_NAME" "$src" |
+		cut -f2- |
+		tr ' ' '\n' |
+		egrep -vx '@(nobody|everybody|qa)' |
+		cat >> task/acl-addressees
 
 	# check author permissions
+	u="$(cat gears/$i/userid)"
 	out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1) || st=$?
 	stamp_echo >&2 "$out"
 	[ -n "$st" ] || return 0
@@ -54,6 +61,8 @@ done <plan/oldsrc2newsrpm
 for i in $(package_nums); do
 	check_acl "$i" "$(cat "gears/$i/package")"
 done
+
+sort -u -o task/acl-addressees{,}
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
 stamp_echo >&2 "acl check $text"
