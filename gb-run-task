@@ -25,6 +25,8 @@ if [ -f task/test-only ]; then
 	test_only=-s
 fi
 
+> task/acl-addressees
+
 (
 	exec >>"$log" 2>&1
 	[ -s task/log ] && text=resumed || text=started
