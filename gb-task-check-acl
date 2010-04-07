@@ -12,11 +12,7 @@ check_acl()
 	local i="$1" src="$2"; shift 2
 	local u out st= a
 
-	girar-acl-show "$GB_REPO_NAME" "$src" |
-		cut -f2- |
-		tr ' ' '\n' |
-		egrep -vx '@(nobody|everybody|qa)' |
-		cat >> task/acl-addressees
+	list_notifiable_pkg_acl_members "$src" >> task/acl-addressees
 
 	# check author permissions
 	u="$(cat gears/$i/userid)"
