@@ -24,7 +24,8 @@ else
 	text=FAILED
 fi
 owner="$(cat task/owner)"
-cc="$(set +f; sort -u task/acl-addressees gears/*/userid | grep '^[^@]' | join -v1 - task/owner)"
+cc="$(set +f; sort -u task/acl-addressees task/unmet-addressees gears/*/userid |
+	grep '^[^@]' | join -v1 - task/owner)"
 
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
