@@ -26,6 +26,7 @@ if [ -f task/test-only ]; then
 fi
 
 > task/acl-addressees
+> task/unmet-addressees
 
 (
 	exec >>"$log" 2>&1

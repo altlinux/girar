@@ -3,6 +3,7 @@
 . gb-sh-functions
 repo1="$GB_REPO_DIR"
 repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
+topdir="$PWD"
 
 . gb-sh-tmpdir
 cd "$tmpdir"
@@ -26,6 +27,7 @@ if [ -s FAIL ]; then
 fi
 
 rc=0
+> unmets.bin
 
 # compare unmets
 for arch in i586 x86_64; do
@@ -34,6 +36,7 @@ for arch in i586 x86_64; do
 	if [ -s $arch-unmets.plus ]; then
 		echo "	$arch: NEW unmet dependencies detected:"
 		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.plus
+		cut -f1 < $arch-unmets.plus | cut -d'#' -f1 >> unmets.bin
 		rc=1
 	fi >&2
 	if [ -s $arch-unmets.minus ]; then
@@ -41,6 +44,16 @@ for arch in i586 x86_64; do
 		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.minus
 	fi >&2
 done
+
+sort -u -o unmets.bin{,}
+join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
+sort -u -o unmets.srpms{,}
+sort -k3,3 "$topdir"/plan/next.src |
+	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
+while read -r src; do
+	list_notifiable_pkg_acl_members "$src"
+done < unmets.src > "$topdir"/task/unmet-addressees
+sort -u -o "$topdir"/task/unmet-addressees{,}
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
 stamp_echo >&2 "dependencies check $text"
