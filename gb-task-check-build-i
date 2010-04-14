@@ -97,7 +97,8 @@ check_brpms
 noarch()
 {
 	local arch="$1"; shift
-	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null ||:
+	find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.noarch.rpm' -type f -printf '%f\n' 2>/dev/null |
+		sort
 }
 
 . gb-sh-tmpdir
