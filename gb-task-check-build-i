@@ -101,13 +101,6 @@ noarch()
 		sort
 }
 
-. gb-sh-tmpdir
-
-noarch i586 >"$tmpdir/i586.noarch"
-noarch x86_64 >"$tmpdir/x86_64.noarch"
-(cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ) ||
-	Fatal 'different set of noarch packages'
-
 dump_noarch()
 {
 	F='[%{FILENAMES}\n]'
@@ -118,12 +111,34 @@ dump_noarch()
 	rpmquery --qf "$F$R$P$O$C" -p "$1"
 }
 
-while read -r rpm; do
-	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
-	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
-	(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
-		Fatal 'noarch packages mismatch'
-done <$tmpdir/i586.noarch
+is_excluded()
+{
+	local arch
+	for arch in i586 x86_64; do
+		if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+. gb-sh-tmpdir
+
+if is_excluded; then
+	stamp_echo >&2 "$I check for noarch mismatch SKIPPED"
+else
+	noarch i586 >"$tmpdir/i586.noarch"
+	noarch x86_64 >"$tmpdir/x86_64.noarch"
+	(cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ) ||
+		Fatal 'different set of noarch packages'
+
+	while read -r rpm; do
+		dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
+		dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
+		(cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ) ||
+			Fatal 'noarch packages mismatch'
+	done <$tmpdir/i586.noarch
+fi
 
 for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
