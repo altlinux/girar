@@ -10,11 +10,30 @@ rc=0
 #
 # 1. The same set of noarch packages must be obtained on i586 and x86_64.
 #
+is_excluded()
+{
+	local arch
+	for arch in i586 x86_64; do
+		if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 (set +f && cd i586/rpms   && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
 (set +f && cd x86_64/rpms && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
-if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
-	echo >&2 "error (#$i): different set of noarch packages"
-	rc=1
+join "$tmpdir"/{i586,x86_64}.noarch >$tmpdir/both.noarch
+
+if [ -s "$tmpdir/i586.noarch" ] || [ -s "$tmpdir/x86_64.noarch" ]; then
+	if is_excluded; then
+		echo >&2 "warning ($i): non-verifiable noarch packages, due to ExclusiveArch"
+	else
+		if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
+			echo >&2 "error (#$i): different set of noarch packages"
+			rc=1
+		fi
+	fi
 fi
 
 #
@@ -52,7 +71,7 @@ while read -r rpm; do
 		echo >&2 "error (#$i): non-identical noarch packages"
 		rc=1
 	fi
-done <$tmpdir/i586.noarch
+done <$tmpdir/both.noarch
 
 #
 # 3. /usr/share part of i586 and x86_64 packages should be indentical.
