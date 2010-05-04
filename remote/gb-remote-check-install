@@ -43,28 +43,35 @@ if fgrep -qs -x -e "$N=$EVR" packages; then
 	exit 0
 fi
 
-# Workaround a problem with apt filelist.
-hsh-run --rooter -- \
-mkdir -p -m755 /usr/share/man/ru/man1
+# Install prerequisites AND apt.
+# Installing prerequisites is tricky: pretend to install the package and then
+# immediately mark it for removal.  This should do the right thing with circular deps.
+hsh-install -- "$N=$EVR" apt "$N-" >out 2>&1 ||
+	{
+		echo "	$arch: $N=$EVR preinstall failed:"
+		cat out
+		exit 1
+	} >&2
 
 # Workaround for pkg-config.
 hsh-run --rooter -- \
 mkdir -p -m755 /etc/buildreqs/files/ignore.d /usr/share/aclocal
 
-# Make initial file list.
+# Make preinstall file list.
 printf '%s\n%s\n' \
 	'#!/.host/sh -e' \
 	'/.host/find /* -not -path /dev/\*' \
 	>find.sh
 hsh-run --rooter --execute=find.sh >flist1 2>out ||
 	{
-		echo "  $arch: $N=$EVR basesystem filelist check failed:"
+		echo "  $arch: $N=$EVR preinstall filelist check failed:"
 		cat out
 		exit 1
 	} >&2
 sort -u -o flist1{,}
 
 # Install the package AND apt.
+# Apt must be already installed, but there are corner cases...
 hsh-install -- "$N=$EVR" apt >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
