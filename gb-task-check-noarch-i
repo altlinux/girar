@@ -1,0 +1,166 @@
+#!/bin/sh -efu
+
+. gb-sh-tmpdir
+
+i=$1
+cd build/$i
+
+rc=0
+
+#
+# 1. The same set of noarch packages must be obtained on i586 and x86_64.
+#
+is_excluded()
+{
+	local arch
+	for arch in i586 x86_64; do
+		if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+(set +f && cd i586/rpms   && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
+(set +f && cd x86_64/rpms && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
+join "$tmpdir"/{i586,x86_64}.noarch >$tmpdir/both.noarch
+
+if [ -s "$tmpdir/i586.noarch" ] || [ -s "$tmpdir/x86_64.noarch" ]; then
+	if is_excluded; then
+		echo >&2 "warning ($i): non-verifiable noarch packages, due to ExclusiveArch"
+	else
+		if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
+			echo >&2 "error (#$i): different set of noarch packages"
+			rc=1
+		fi
+	fi
+fi
+
+#
+# 2. Noarch packages obtained on i586 and x86_64 must be identical.
+#
+dump_rpmfile()
+{
+	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
+	[ -s $tmpdir/files ] || return 0
+	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek "$1" \
+		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] || return 1
+	perl -pi -e 's/, last modified: [^,]+//' $tmpdir/types
+	paste $tmpdir/files $tmpdir/types
+}
+
+dump_deps()
+{
+	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
+	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
+	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
+	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
+	rpmquery --qf "$R$P$O$C" -p "$1"
+}
+
+dump_noarch()
+{
+	dump_rpmfile "$1"
+	dump_deps "$1"
+}
+
+while read -r rpm; do
+	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
+	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
+	if ! (cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ); then
+		echo >&2 "error (#$i): non-identical noarch packages"
+		rc=1
+	fi
+done <$tmpdir/both.noarch
+
+#
+# 3. /usr/share part of i586 and x86_64 packages should be indentical.
+#
+find_arch()
+{
+	(set +f && cd "$1" && ls *.rpm) |
+	while read -r rpm; do
+		case $rpm in
+			*.src.rpm | *.noarch.rpm) continue ;;
+		esac
+		N=$(rpmquery --qf '%{NAME}' -p $1/"$rpm")
+		printf '%s\t%s\n' "$N" "$rpm"
+	done |
+	sort -u
+}
+
+find_arch i586/rpms   >"$tmpdir"/i586.arch
+find_arch x86_64/rpms >"$tmpdir"/x86_64.arch
+
+join         "$tmpdir"/{i586,x86_64}.arch >$tmpdir/both.arch
+join -v1 -v2 "$tmpdir"/{i586,x86_64}.arch >$tmpdir/only.arch
+
+dump_share()
+{
+	dump_rpmfile "$1" |
+		LC_ALL=C grep '^/usr/share/' || [ $? -eq 1 ]
+}
+
+while read -r N f1 f2; do
+	dump_share i586/rpms/$f1   >$tmpdir/$f1.usr-share
+	dump_share x86_64/rpms/$f2 >$tmpdir/$f2.usr-share
+	if ! (cd "$tmpdir" && diff -U1 {$f1,$f2}.usr-share ); then
+		echo >&2 "warning (#$i): non-identical /usr/share part"
+	fi
+done <$tmpdir/both.arch
+
+#
+# 4. Identical i586 and x86_64 packages should be noarch.
+#
+dump_arch()
+{
+	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
+	rpmquery --qf "$F" -p "$1" |
+		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 1 ]
+	dump_deps "$1"
+}
+
+srcN=
+realArch=
+main1=
+main2=
+
+while read -r N f1 f2; do
+	if [ -z "$srcN" ]; then
+		srcN=$(rpmquery --qf '%{SOURCERPM}' -p i586/rpms/$f1)
+		srcN=${srcN%-*}
+		srcN=${srcN%-*}
+	fi
+	if [ "$N" = "$srcN" ]; then
+		main1=$f1
+		main2=$f2
+		# Toplevel package to be checked later.
+		continue
+	fi
+	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
+	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
+	if cmp -s $tmpdir/{$f1,$f2}.arch; then
+		echo >&2 "warning (#$i): $f1 should be .noarch.rpm"
+	else
+		realArch=1
+	fi
+done <$tmpdir/both.arch
+
+if [ -n "$main1$main2" ]; then
+	f1=$main1
+	f2=$main2
+	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
+	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
+	if cmp -s $tmpdir/{$f1,$f2}.arch; then
+		if [ -s $tmpdir/only.arch ] || [ -n "$realArch" ]; then
+			# Due to rpm limitations, toplevel package cannot be made noarch.
+			:
+		else
+			echo >&2 "warning (#$i): $f1 should be .noarch.rpm"
+		fi
+	else
+		realArch=1
+	fi
+fi
+
+exit $rc
