@@ -86,8 +86,7 @@ while read -r N f1 f2; do
 	dump_share i586/rpms/$f1   >$tmpdir/$f1.usr-share
 	dump_share x86_64/rpms/$f2 >$tmpdir/$f2.usr-share
 	if ! (cd "$tmpdir" && diff -U1 {$f1,$f2}.usr-share ); then
-		echo >&2 "error (#$i): non-identical /usr/share part"
-		rc=1
+		echo >&2 "warning (#$i): non-identical /usr/share part"
 	fi
 done <$tmpdir/both.arch
 
@@ -116,13 +115,13 @@ while read -r N f1 f2; do
 	if [ "$N" = "$srcN" ]; then
 		main1=$f1
 		main2=$f2
+		# Toplevel package to be checked later.
 		continue
 	fi
 	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
 	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
 	if cmp -s $tmpdir/{$f1,$f2}.arch; then
-		echo >&2 "error (#$i): $f1 should be noarch"
-		rc=1
+		echo >&2 "warning (#$i): $f1 should be noarch"
 	else
 		realArch=1
 	fi
@@ -135,10 +134,10 @@ if [ -n "$main1$main2" ]; then
 	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
 	if cmp -s $tmpdir/{$f1,$f2}.arch; then
 		if [ -s $tmpdir/only.arch ] || [ -n "$realArch" ]; then
-			echo >&2 "warning (#$i): $f1 cannot be noarch"
+			# Due to rpm limitations, toplevel package cannot be made noarch.
+			:
 		else
-			echo >&2 "error (#$i): $f1 should be noarch"
-			rc=1
+			echo >&2 "warning (#$i): $f1 should be noarch"
 		fi
 	else
 		realArch=1
