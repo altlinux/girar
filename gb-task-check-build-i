@@ -94,6 +94,8 @@ check_brpms()
 }
 check_brpms
 
+. gb-sh-tmpdir
+
 for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
 	make_repo_table $r
