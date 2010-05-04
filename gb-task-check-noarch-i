@@ -7,6 +7,9 @@ cd build/$i
 
 rc=0
 
+#
+# 1. The same set of noarch packages must be obtained on i586 and x86_64.
+#
 (set +f && cd i586/rpms   && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
 (set +f && cd x86_64/rpms && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
 if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
@@ -14,6 +17,9 @@ if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
 	rc=1
 fi
 
+#
+# 2. Noarch packages obtained on i586 and x86_64 must be identical.
+#
 dump_rpmfile()
 {
 	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
@@ -48,6 +54,9 @@ while read -r rpm; do
 	fi
 done <$tmpdir/i586.noarch
 
+#
+# 3. /usr/share part of i586 and x86_64 packages should be indentical.
+#
 find_arch()
 {
 	(set +f && cd "$1" && ls *.rpm) |
@@ -82,6 +91,9 @@ while read -r N f1 f2; do
 	fi
 done <$tmpdir/both.arch
 
+#
+# 4. Identical i586 and x86_64 packages should be noarch.
+#
 dump_arch()
 {
 	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
