@@ -1,13 +1,55 @@
-#!/bin/sh
-set -efu
+#!/bin/sh -efu
 
 . gb-sh-functions
 
-while read N EVR F; do
+changelog_with_time()
+{
+	local s='[:space:]'
+	local q='[* %{CHANGELOGTIME} %{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\n]'
+	rpmquery --qf "$q" -p "$1" |
+	sed -r "s/(<[$s]*[^@>$s]+([$s]*@[$s]*|[$s]+at[$s]+)(packages[$s]*[.][$s]*)?altlinux)([$s]*[.][$s]*|[$s]+dot[$s]+)[[:alpha:]]+[$s]*>/\\1>/"
+}
+
+rpm_recent_changes()
+{
+	changelog_with_time "$1" |
+	awk -v time0="$(date -d '3 months ago' +%s)" '
+		/^\* [0-9]+ / {
+			if ($2 < time0 && printed) exit
+			sub(/ [0-9]+ /, " ")
+		}
+		{ print; printed++ }
+	'
+}
+
+rpm_changes_since()
+{
+	local time0 EVR0
+	time0=$(rpmquery --qf '%{CHANGELOGTIME}' -p "$2")
+	EVR0=$(rpmquery --qf '%|epoch?{%{epoch}:}|%{version}-%{release}' -p "$2")
+	changelog_with_time "$1" |
+	awk -v time0="$time0" -v EVR0="$EVR0" '
+		/^\* [0-9]+ / {
+			if ($NF == EVR0) exit
+			if ($2 < time0 && printed) exit
+			sub(/ [0-9]+ /, " ")
+		}
+		{ print; printed++ }
+	'
+}
+
+. gb-sh-tmpdir
+join -t$'\t' -o '0 1.2 1.3 2.3' plan/{add,rm}-src >$tmpdir/src
+sort -t$'\t' -u -k1,3 -o $tmpdir/src{,} plan/add-src
+
+while F0=; read -r N EVR F F0; do
 	srpm=$(findsrc "$F")
-	s='[:space:]'
-	changelog=$(rpmquery -p --lastchange "$srpm" |
-		sed -r "s/(<[$s]*[^@>$s]+([$s]*@[$s]*|[$s]+at[$s]+)(packages[$s]*[.][$s]*)?altlinux)([$s]*[.][$s]*|[$s]+dot[$s]+)[[:alpha:]]+[$s]*>/\\1>/")
+	if [ -n "$F0" ]; then
+		srpm0=$GB_REPO_DIR/files/SRPMS/$F0
+		changelog=$(rpm_changes_since "$srpm" "$srpm0")
+	else
+		changelog=$(rpm_recent_changes "$srpm")
+	fi
 	ids=$(printf '%s\n' "$changelog" |gb-x-parse-bugs-from-changelog)
 	[ -n "$ids" ] || continue
 	stamp_echo >&2 "$N: closing bugs: $ids"
@@ -33,4 +75,4 @@ while read N EVR F; do
 		__EOF
 		(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |/usr/sbin/sendmail -i -t
 	done
-done <plan/add-src
+done <$tmpdir/src
