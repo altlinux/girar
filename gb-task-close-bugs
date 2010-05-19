@@ -3,8 +3,6 @@ set -efu
 
 . gb-sh-functions
 
-mkdir -p bugmail
-
 while read N EVR F; do
 	srpm=$(findsrc "$F")
 	s='[:space:]'
@@ -15,6 +13,7 @@ while read N EVR F; do
 	stamp_echo >&2 "$N: closing bugs: $ids"
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
 	uploader="$(cat task/owner)"
+	mkdir -p bugmail
 	for id in $ids; do
 		cat >"bugmail/$id" <<-__EOF
 		From: ${GB_BUGZILLA_FROM}
