@@ -28,6 +28,6 @@ repository="$(girar-normalize-repo-name "$repository")"
 	t=groups
 qitem="$(quote_sed_regexp "$item")"
 
-[ -s "$GIRAR_ACL_CONF_DIR/list.$t.$repository" ] ||
+[ -f "$GIRAR_ACL_CONF_DIR/list.$t.$repository" ] ||
 	fatal "$t file for repository \`$repository' is not available"
 sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
