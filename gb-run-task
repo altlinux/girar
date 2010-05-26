@@ -71,8 +71,8 @@ fi
 		exit 0
 
 	# Apply changes
-	gb-task-commit-repo
 	gb-task-close-bugs
+	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
 	gb-task-repo-sync

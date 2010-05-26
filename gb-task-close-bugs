@@ -45,6 +45,7 @@ sort -t$'\t' -u -k1,3 -o $tmpdir/src{,} plan/add-src
 while F0=; read -r N EVR F F0; do
 	srpm=$(findsrc "$F")
 	if [ -n "$F0" ]; then
+		# Must be executed before commit-repo!
 		srpm0=$GB_REPO_DIR/files/SRPMS/$F0
 		changelog=$(rpm_changes_since "$srpm" "$srpm0")
 	else
