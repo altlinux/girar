@@ -43,10 +43,10 @@ if fgrep -qs -x -e "$N=$EVR" packages0; then
 	exit 0
 fi
 
-# Install prerequisites AND apt.
+# Install prerequisites.
 # Installing prerequisites is tricky: pretend to install the package and then
 # immediately mark it for removal.  This should do the right thing with circular deps.
-hsh-install -- "$N=$EVR" apt "$N-" >out 2>&1 ||
+hsh-install -- "$N=$EVR" "$N-" >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR preinstall failed:"
 		cat out
@@ -74,9 +74,8 @@ hsh-run --rooter --execute=find.sh >flist1 2>out ||
 	} >&2
 sort -u -o flist1{,}
 
-# Install the package AND apt.
-# Apt must be already installed, but there are corner cases...
-hsh-install -- "$N=$EVR" apt >out 2>&1 ||
+# Install the package.
+hsh-install -- "$N=$EVR" >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
 		cat out
@@ -101,6 +100,7 @@ comm -23 packages{2,1} >new-packages
 n=$(wc -l <new-packages)
 if [ $n -lt 1 ]; then
 	echo "warning [$arch]: $N=$EVR: pre/post-install mess-up"
+	exit 0
 elif [ $n -gt 1 ]; then
 	what=$(fgrep -v -x -e "$N=$EVR" new-packages)
 	echo "warning [$arch]: $N=$EVR: circular dependencies on" $what
@@ -153,24 +153,10 @@ if [ -s out ]; then
 	cat out
 fi >&2
 
-# Try to remove the package.
-hsh-run --rooter -- \
-apt-get remove -qq -y --dry-run "$N=$EVR" >remv 2>&1 ||
-	{
-		echo "	$arch: $N=$EVR --dry-run uninstall failed:"
-		cat remv
-		exit 1
-	} >&2
-
-# Check if apt is to be removed along with the package.
-if grep -qs '^Remv apt ' remv; then
-	# Removing apt with apt might not work very well.
-	exit 0
-fi
-
 # Remove the package.
+what=$(perl -pe 's/=\d+:/-/ or s/=/-/' <new-packages)
 hsh-run --rooter -- \
-apt-get remove -qq -y "$N=$EVR" </dev/null >out 2>&1 ||
+rpm -ev -- ${what:?} </dev/null >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR uninstall failed:"
 		cat out
