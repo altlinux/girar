@@ -23,14 +23,10 @@ export GB_HOME
 # Add path to scripts to $PATH.
 PATH="$PWD:$PATH"
 
-# Task sequence number must be updated consistently.
-trap '' HUP INT QUIT PIPE TERM
-
 rc=
 id="$(gb-select-task)"
 if [ -n "$id" ]; then
 	gb-run-task "$id" || rc=$?
 fi
 
-trap - HUP INT QUIT PIPE TERM
 exit $rc
