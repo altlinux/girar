@@ -21,8 +21,8 @@ is_excluded()
 	return 1
 }
 
-(set +f && cd i586/rpms   && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
-(set +f && cd x86_64/rpms && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
+(set +f && cd   i586/rpms 2>/dev/null && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
+(set +f && cd x86_64/rpms 2>/dev/null && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
 join "$tmpdir"/{i586,x86_64}.noarch >$tmpdir/both.noarch
 
 if [ -s "$tmpdir/i586.noarch" ] || [ -s "$tmpdir/x86_64.noarch" ]; then
