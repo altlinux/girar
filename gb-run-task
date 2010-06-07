@@ -1,7 +1,5 @@
 #!/bin/sh -efu
 
-trap - HUP INT QUIT PIPE TERM
-
 . gb-sh-functions
 
 id="$1"; shift
