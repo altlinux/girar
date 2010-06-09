@@ -38,18 +38,16 @@ if [ -z "$need_regen" ]; then
 	exit 0
 fi
 
-# Copy.
-mkdir -p "$repo"
-cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
+# Create skeleton and make RPMS.classic symlinks.
+mkdir -p "$repo"/{i586,x86_64,noarch}/base
+ln -s $GB_REPO_DIR/i586/RPMS.classic $repo/i586/
+ln -s $GB_REPO_DIR/x86_64/RPMS.classic $repo/x86_64/
+ln -s $GB_REPO_DIR/noarch/RPMS.classic $repo/noarch/
 
 # SRPMS not needed for build.
-rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
-rm -r $repo/{i586,x86_64}/SRPMS.all/
+# contents_index not needed for build.
 
-# XXX genbasedir must not clobber symlinks.
-find $repo/{i586,x86_64,noarch}/base/ -type l -not -name 'contents_index' -delete
-
-# Regen,
+# Regen.
 gb-y-repo-regen-basedir --bloat "$repo"
 
 stamp_echo >&2 'created build repo'
