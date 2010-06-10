@@ -7,14 +7,20 @@ repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
 rm -rf "$repo"
 mkdir "$repo"
 
-# symlinked repository clone
-cp -prs -- $GB_REPO_DIR/{i586,x86_64,noarch} $repo/
-
-# Base directories must be explicitly removed, to avoid symlinks.
-# This will also remove contents_index, which is okay, since we
-# do not use our temporary repo for build.
-rm -r $repo/{i586,x86_64,noarch}/base/
-mkdir $repo/{i586,x86_64,noarch}/base
+# Prepare skeleton.
+for arch in i586 x86_64 noarch; do
+	mkdir $repo/$arch
+	# Copy base directory, except for contents_index.
+	rsync -a --exclude contents_index $GB_REPO_DIR/$arch/base $repo/$arch/
+	# Deal with RPMS and SRPMS.
+	if cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
+		# Need to copy directory structure (using symlinks).
+		cp -prs $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic $repo/$arch/
+	else
+		# Arch packages unchanged, no need to copy directory structure.
+		ln -s $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic $repo/$arch/
+	fi
+done
 
 # Commit packages.  This is a light-weight reimplementation
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
@@ -29,8 +35,8 @@ while read -r N EVR A F; do
 done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse
-# tmprepo basedirs later in gb-task-commit-repo.  However, we omit
-# SRPMS.all update.
+# test repo base directories later in gb-task-commit-repo.
+# However, we omit SRPMS.all update.
 while read -r F A; do
 	rm -- $repo/$A/SRPMS.classic/$F
 done <plan/rm-srpm2arch
@@ -44,7 +50,6 @@ done <plan/add-srpm2arch
 gb-y-repo-regen-basedir "$repo"
 
 # basedir ok, SRPMS no longer needed
-rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic/
-rm -r $repo/{i586,x86_64}/SRPMS.all/
+rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic
 
 stamp_echo >&2 'created test repo'
