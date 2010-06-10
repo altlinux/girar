@@ -79,7 +79,7 @@ done <$tmpdir/both.noarch
 #
 find_arch()
 {
-	(set +f && cd "$1" && ls *.rpm) |
+	(set +f && cd "$1" && ls *.rpm) 2>/dev/null |
 	while read -r rpm; do
 		case $rpm in
 			*.src.rpm | *.noarch.rpm) continue ;;
