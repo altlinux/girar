@@ -21,7 +21,7 @@ ssh "$remote_host" ./gb-remote-plant \
 repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
 
 # Copy.
-rsync -a "$repo"/{$arch,noarch} "$remote_host:gb-repo/"
+rsync -a --exclude '*list.classic.bz2' "$repo"/{$arch,noarch} "$remote_host:gb-repo/"
 
 rc=0
 
