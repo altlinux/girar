@@ -127,6 +127,7 @@ srcN=
 realArch=
 main1=
 main2=
+fullNoarch=
 
 while read -r N f1 f2; do
 	if [ -z "$srcN" ]; then
@@ -160,9 +161,30 @@ if [ -n "$main1$main2" ]; then
 			:
 		else
 			echo >&2 "warning (#$i): $f1 should be .noarch.rpm"
+			fullNoarch=1
 		fi
 	else
 		realArch=1
+	fi
+fi
+
+if [ -n "$fullNoarch" ]; then
+	# Recheck if the whole package is most good for noarch.
+	while read -r N f1 f2; do
+		dump_noarch i586/rpms/$f1   >$tmpdir/$f1.noarch
+		dump_noarch x86_64/rpms/$f2 >$tmpdir/$f2.noarch
+		if cmp -s $tmpdir/{$f1,$f2}.noarch; then
+			# Noarch check passed.
+			:
+		else
+			fullNoarch=
+			break
+		fi
+	done <$tmpdir/both.arch
+	# Force noarch.
+	if [ -n "$fullNoarch" ]; then
+		echo >&2 "error (#$i): the whole $srcN source package should be made noarch"
+		rc=1
 	fi
 fi
 
