@@ -339,4 +339,13 @@ else
 	find "gears/$i" -type d -execdir chmod g+w -- '{}' '+'
 fi
 
-echo >&2 "task #$id: added #$i: build tag $tag_name from $dir"
+pkg_tar="gears/$i/pkg.tar"
+if env TZ=UTC gear -t "$tag_name" -- "$pkg_tar" &&
+   [ -s "$pkg_tar" ]; then
+	message "created pkg.tar for ${dir##*/} tag \"$tag_name\""
+else
+	rm -f "$pkg_tar"
+	fatal "cannot create pkg.tar for ${dir##*/} tag \"$tag_name\""
+fi
+
+echo >&2 "task #$id: added #$i: build tag \"$tag_name\" from $dir"
