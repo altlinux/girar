@@ -77,6 +77,7 @@ bin_TARGETS = \
 	bin/girar-clone \
 	bin/girar-default-branch \
 	bin/girar-find \
+	bin/girar-get-email-address \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
 	bin/girar-ls \

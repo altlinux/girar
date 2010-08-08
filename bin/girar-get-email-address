@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <login>"
+	echo >&2 "   or: $PROG @<group>"
+	exit 1
+}
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+
+name="$1"; shift
+
+if [ "$name" != "${name#@}" ]; then
+	printf '"%s" <%s@%s>' \
+		"${name#@} group" "${name#@}" "packages.$EMAIL_DOMAIN"
+else
+	passwd="$(getent passwd ${USER_PREFIX}$name |cut -d: -f5 |tr -d '"')"
+	printf '"%s" <%s@%s>' \
+		"${passwd:-$name}" "$name" "$EMAIL_DOMAIN"
+fi
