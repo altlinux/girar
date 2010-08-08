@@ -1,0 +1,101 @@
+#!/bin/sh -efu
+
+old_acl_dir="$1"; shift
+new_acl_dir="$1"; shift
+old_acl_dir="$(readlink -ev "$old_acl_dir")"
+new_acl_dir="$(readlink -ev "$new_acl_dir")"
+
+. girar-sh-functions
+
+. shell-error
+. shell-quote
+
+workdir=
+cleanup_handler()
+{
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+[ -z "$workdir" ] || return 0
+trap 'cleanup_handler $?' EXIT
+trap 'exit 143' HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
+cd "$workdir"
+
+for f in $(cd "$new_acl_dir" && set +f && echo list.*); do
+	[ -f "$old_acl_dir/$f" -a -f "$new_acl_dir/$f" ] || continue
+	t="diff/$f"
+	sort -- "$old_acl_dir/$f" "$new_acl_dir/$f" |
+		uniq -u > "$t"
+	[ -s "$t" ] || rm -f "$t"
+done
+
+for f in $(cd diff && set +f && echo list.*); do
+	[ -f "diff/$f" ] || continue
+	old_list="$old_acl_dir/$f"
+	new_list="$new_acl_dir/$f"
+	repo="${f#list.*.}"
+	mkdir -p "notify/$repo"
+
+	engaged="$(cut -f2- "diff/$f"|
+		tr ' ' '\n' |
+		sed 's/^@nobody$/@everybody/' |
+		sort -u)"
+
+	# Find items for each engaged person.
+	for person in $engaged; do
+		quote_sed_regexp_variable qperson "$person"
+		if [ "$person" = '@everybody' ]; then
+			qperson="\\(@nobody\\|@everybody\\)\\>"
+		elif [ -z "${person##@*}" ]; then
+			qperson="$qperson\\>"
+		else
+			qperson="\\<$qperson\\>"
+		fi
+		items=$(grep "^[^[:space:]]\\+[[:space:]].*$qperson" "diff/$f" |
+			cut -f1 |sort -u)
+		for item in $items; do
+			quote_sed_regexp_variable qitem "$item"
+			old=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$old_list")
+			new=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$new_list")
+			if [ -z "$old" ]; then
+				printf '%s: CREATED -> "%s"\n' "$item" "$new"
+			elif [ -z "$new" ]; then
+				printf '%s: "%s" -> DELETED\n' "$item" "$old"
+			else
+				printf '%s: "%s" -> "%s"\n' "$item" "$old" "$new"
+			fi
+		done >> "notify/$repo/$person"
+	done
+done
+
+for repository in $(cd notify && set +f && echo *); do
+	[ -d "notify/$repository" ] || continue
+	for person in $(cd "notify/$repository" && set +f && echo *); do
+		[ -f "notify/$repository/$person" ] || continue
+		email="$(girar-get-email-address "$person")"
+		cat > msg <<EOF
+From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+To: $email
+X-Incominger: acl
+X-Incominger-Reason: acl-change-notification
+Subject: [girar-acl] $repository changes summary
+Content-Type: text/plain; charset=us-ascii
+
+Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
+
+You have been engaged in ACL change(s) listed below:
+
+EOF
+	cat -- "notify/$repository/$person" >> msg
+	cat >> msg <<EOF
+
+
+-- 
+Rgrds, your Girar ACL robot
+
+EOF
+	/usr/sbin/sendmail -i -t < msg
+	done
+done
