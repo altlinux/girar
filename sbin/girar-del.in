@@ -33,8 +33,8 @@ for d in "$REAL_HOME" "$EMAIL_DIR"; do
 		message "$IT_NAME: failed to remove $d"
 done
 
-Q_IT_NAME="$(quote_sed_regexp "$IT_NAME")"
-Q_NAME="$(quote_sed_regexp "$NAME")"
+quote_sed_regexp_variable Q_IT_NAME "$IT_NAME"
+quote_sed_regexp_variable Q_NAME "$NAME"
 
 subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@GIRAR_EMAIL_ALIASES@" &&
 	newaliases ||

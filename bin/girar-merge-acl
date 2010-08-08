@@ -94,7 +94,7 @@ change()
 	fi
 
 	local qitem
-	qitem="$(quote_sed_regexp "$item")"
+	quote_sed_regexp_variable qitem "$item"
 	sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" &&
 		writelog "OK: $item: $owners" ||
 		writelog "ERROR: $item: $owners"
@@ -134,7 +134,7 @@ check_new_members()
 				return 1
 			fi
 		elif [ "$i" != '@everybody' ]; then
-			qi="$(quote_sed_regexp "$i")"
+			quote_sed_regexp_variable qi "$i"
 			if [ -z "$(sed -n "/^$qi[[:space:]]/p" "list/list.groups.$repository")" ]; then
 				writelog "ERROR: $i: Group not found in acl file"
 				return 1
@@ -335,7 +335,7 @@ delete()
 	fi
 
 	local qitem
-	qitem="$(quote_sed_regexp "$item")"
+	quote_sed_regexp_variable qitem "$item"
 	sed -i "/^$qitem[[:space:]]/d" "$listfile" &&
 		writelog "OK: $item: Removed" ||
 		writelog "ERROR: $item: Failed to remove"
@@ -372,8 +372,8 @@ nmuadd()
 nmudel()
 {
 	local qitem qlogin
-	qitem="$(quote_sed_regexp "$item")"
-	qlogin="$(quote_sed_regexp "$login")"
+	quote_sed_regexp_variable qitem "$item"
+	quote_sed_regexp_variable qlogin "$login"
 
 	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]/p" \
 		"list/list.nmu.$repository")" ]; then
@@ -505,7 +505,7 @@ process_user_rules()
 		}
 
 		local qitem prev_owners
-		qitem="$(quote_sed_regexp "$item")"
+		quote_sed_regexp_variable qitem "$item"
 		prev_owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$listfile")"
 
 		# Get current leader
@@ -626,7 +626,7 @@ for f in diff/list.*; do
 		sort -u)"
 	# Find items for each engaged person.
 	for person in $engaged; do
-		qperson="$(quote_sed_regexp "$person")"
+		quote_sed_regexp_variable qperson "$person"
 		if [ "$person" = '@everybody' ]; then
 			qperson="\\(@nobody\\|@everybody\\)\\>"
 		elif [ -z "${person##@*}" ]; then
@@ -637,7 +637,7 @@ for f in diff/list.*; do
 		items=$(grep "^[^[:space:]]\\+[[:space:]].*$qperson" "$f" |
 			cut -f1 |sort -u)
 		for item in $items; do
-			qitem="$(quote_sed_regexp "$item")"
+			quote_sed_regexp_variable qitem "$item"
 			old=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$list_old")
 			new=$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$list_new")
 			if [ -z "$old" ]; then

@@ -76,8 +76,12 @@ validate_tag_name()
 		sed '/^uid[[:space:]]\+/!d;s///;q')"
 	[ -n "$tag_author" ] ||
 		fatal "$tag_name: gpg uid not found"
+	# normalize email domain
+	local qemail_domain qemail_fqdn
+	quote_sed_regexp_variable qemail_domain "${EMAIL_DOMAIN%.*}"
+	quote_sed_regexp_variable qemail_fqdn "$EMAIL_DOMAIN"
 	tag_author="$(printf %s "$tag_author" |
-		LANG=C sed 's/@'"$(quote_sed_regexp "${EMAIL_DOMAIN%.*}")"'\.[a-z]\+>/@'"$(quote_sed_regexp "$EMAIL_DOMAIN")"'>/')"
+		LANG=C sed 's/@'"$qemail_domain"'\.[a-z]\+>/@'"$qemail_fqdn"'>/')"
 
 	local userid
 	userid="$(printf %s "$tag_author" |

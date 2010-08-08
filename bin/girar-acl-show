@@ -26,7 +26,7 @@ repository="$(girar-normalize-repo-name "$repository")"
 [ "${item#@}" = "$item" ] &&
 	t=packages ||
 	t=groups
-qitem="$(quote_sed_regexp "$item")"
+quote_sed_regexp_variable qitem "$item"
 
 [ -f "$GIRAR_ACL_CONF_DIR/list.$t.$repository" ] ||
 	fatal "$t file for repository \`$repository' is not available"

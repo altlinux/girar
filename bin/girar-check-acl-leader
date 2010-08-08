@@ -42,7 +42,7 @@ else
 	item_acl="$acl_packages"
 fi
 
-qitem="$(quote_sed_regexp "$item")"
+quote_sed_regexp_variable qitem "$item"
 owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$item_acl")"
 [ -n "$owners" ] ||
 	deny "$item: $item_type not found in ${item_acl##*/}"
@@ -54,7 +54,7 @@ leader="${owners%% *}"
 loop=
 while [ -n "$leader" -a -z "${leader##@*}" -a "$leader" != "@nobody" ]; do
 	grp="$leader"
-	qitem="$(quote_sed_regexp "$grp")"
+	quote_sed_regexp_variable qitem "$item"
 
 	owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$acl_groups")"
 	[ -n "$owners" ] ||

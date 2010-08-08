@@ -53,7 +53,7 @@ signal_handler()
 show_nmu()
 {
 	local qitem
-	qitem="$(quote_sed_regexp "$item")"
+	quote_sed_regexp_variable qitem "$item"
 	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository"
 }
 
@@ -114,7 +114,7 @@ show_acl()
 	[ "${item#@}" = "$item" ] &&
 		t=packages ||
 		t=groups
-	qitem="$(quote_sed_regexp "$item")"
+	quote_sed_regexp_variable qitem "$item"
 	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
 }
 
