@@ -52,9 +52,11 @@ signal_handler()
 
 show_nmu()
 {
+	[ "$#" -eq 0 ] ||
+		usage 'Too many arguments.'
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository"
+	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository" >&3
 }
 
 parse_cmd_nmu()
@@ -110,12 +112,9 @@ parse_cmd_acl()
 
 show_acl()
 {
-	local t qitem
-	[ "${item#@}" = "$item" ] &&
-		t=packages ||
-		t=groups
-	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
+	[ "$#" -eq 0 ] ||
+		usage 'Too many arguments.'
+	girar-acl-show "$repository" "$item" >&3
 }
 
 nqueued=0
@@ -129,13 +128,14 @@ parse_cmd()
 
 	case "$action" in
 		show)
-			show_acl >&3
+			show_acl "$@"
 			return ;;
 		nmu)
 			[ "$#" -ge 1 ] ||
 				show_usage 'Not enough arguments.'
 			if [ "$1" = show ]; then
-				show_nmu >&3
+				shift
+				show_nmu "$@"
 				return
 			fi ;;
 		check)
