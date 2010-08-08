@@ -32,33 +32,45 @@ writelog()
 	printf '> %s\n' "$(printf %s "$1" |tr -s '[:space:]' ' ')" >>"$logfile"
 }
 
-remove_dups()
+change()
 {
-	local list=
+	# remove duplicates
+	local o list=
 	for o; do
 		[ -n "$list" -a -z "${list##* $o *}" ] ||
 			list="$list $o "
 	done
-	list="${list# }"
-	list="${list% }"
-	printf %s "$list" |tr -s '[:space:]' ' '
-}
+	set -- $list
 
-change()
-{
-	local owners
-	owners="$(remove_dups "$@")"
+	local tail=
+	while [ $# -gt 0 ]; do
+		case "${1-}" in
+			@qa|@everybody|@nobody) tail="$tail $1"; shift ;;
+			*) break ;;
+		esac
+	done
 
-	if [ "$owners" = "$prev_owners" ]; then
+	if [ -z "${*-}" ]; then
+		if [ "$action_type" = pkg ]; then
+			set -- @nobody
+		else
+			writelog "ERROR: ACL entry cannot be made empty"
+			return 1
+		fi
+	else
+		set -- $@ $tail
+	fi
+
+	if [ "$*" = "$prev_owners" ]; then
 		writelog "IGNORE: Nothing to change"
 		return
 	fi
 
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
-	sed -i "s/^\($qitem[[:space:]]\).*/\1$owners/" "$listfile" &&
-		writelog "OK: $item: $owners" ||
-		writelog "ERROR: $item: $owners"
+	sed -i "s/^\($qitem[[:space:]]\).*/\1$*/" "$listfile" &&
+		writelog "OK: $item: $*" ||
+		writelog "ERROR: $item: $*"
 }
 
 show_cmd_usage()
@@ -104,64 +116,22 @@ check_new_members()
 	done
 }
 
-pkgadd()
+do_add()
 {
 	check_usage && check_new_members $new_owners ||
 		return 1
 
 	local o owners=
 
-	# Merge old and new owners, remove @nobody if any.
-	for o in $prev_owners $new_owners; do
-		[ "$o" = '@nobody' ] ||
-			owners="$owners $o"
-	done
-
-	change ${owners:-@nobody}
-}
-
-pkgdel()
-{
-	check_usage ||
-		return 1
-
-	local o owners=
-
-	if [ "$prev_owners" != "@nobody" ]; then
-		new_owners=" $new_owners "
-		# Filter out new owners from old owners.
-		for o in $prev_owners; do
-			if [ -n "${new_owners##* $o *}" ]; then
-				owners="$owners $o"
+	if [ "$action_type" = grp ]; then
+		# Check new owners for nested groups.
+		for o in $new_owners; do
+			if [ -z "${o##@*}" ]; then
+				writelog "ERROR: Nested group \`$o' detected"
+				return 1
 			fi
 		done
 	fi
-
-	set -- $owners
-	while [ $# -gt 0 ]; do
-		case "${1-}" in
-			@qa|@everybody) shift ;;
-			*) break ;;
-		esac
-	done
-
-	change ${*:-@nobody}
-}
-
-grpadd()
-{
-	check_usage && check_new_members $new_owners ||
-		return 1
-
-	local o owners=
-
-	# Check new owners for nested groups.
-	for o in $new_owners; do
-		if [ -z "${o##@*}" ]; then
-			writelog "ERROR: Nested group \`$o' detected"
-			return 1
-		fi
-	done
 
 	# Merge old and new owners, remove @nobody if any.
 	for o in $prev_owners $new_owners; do
@@ -172,7 +142,7 @@ grpadd()
 	change $owners
 }
 
-grpdel()
+do_del()
 {
 	check_usage ||
 		return 1
@@ -186,23 +156,10 @@ grpdel()
 			owners="$owners $o"
 	done
 
-	set -- $owners
-	while [ $# -gt 0 ]; do
-		case "${1-}" in
-			@qa|@everybody) shift ;;
-			*) break ;;
-		esac
-	done
-
-	if [ -z "${*-}" ]; then
-		writelog "ERROR: Group list cannot be made empty"
-		return 1
-	fi
-
-	change $*
+	change $owners
 }
 
-leader()
+do_leader()
 {
 	set -- $new_owners
 	if [ $# -ne 1 ]; then
@@ -222,7 +179,7 @@ leader()
 	change $new_leader $prev_owners
 }
 
-replace()
+do_replace()
 {
 	set -- $new_owners
 	if [ $# -ne 2 ]; then
@@ -262,7 +219,7 @@ replace()
 	change $owners
 }
 
-create()
+do_create()
 {
 	if [ -n "$prev_owners" ]; then
 		writelog "IGNORE: $item: $item_type already exist"
@@ -277,13 +234,18 @@ create()
 	check_new_members $new_owners ||
 		return 1
 
+	if ! GIRAR_USER="$person" girar-check-superuser "$repository"; then
+		writelog "ERROR: $item $action: Permission denied"
+		return 1
+	fi
+
 	printf '%s\t%s\n' "$item" "$new_owners" >>"$listfile" &&
 		sort -u -o "$listfile" "$listfile" &&
 		writelog "OK: $item: $new_owners" ||
 		writelog "ERROR: $item: Failed to create"
 }
 
-delete()
+do_delete()
 {
 	if [ -z "$prev_owners" ]; then
 		writelog "IGNORE: $item: $item_type not found in acl file"
@@ -295,6 +257,11 @@ delete()
 		return 1
 	fi
 
+	if ! GIRAR_USER="$person" girar-check-superuser "$repository"; then
+		writelog "ERROR: $item $action: Permission denied"
+		return 1
+	fi
+
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
 	sed -i "/^$qitem[[:space:]]/d" "$listfile" &&
@@ -302,7 +269,7 @@ delete()
 		writelog "ERROR: $item: Failed to remove"
 }
 
-nmuadd()
+do_nmu_add()
 {
 	local changed= p b s e
 	while read p b s e; do
@@ -330,7 +297,7 @@ nmuadd()
 		writelog "ERROR: Failed to add NMU"
 }
 
-nmudel()
+do_nmu_del()
 {
 	local qitem qlogin
 	quote_sed_regexp_variable qitem "$item"
@@ -348,13 +315,18 @@ nmudel()
 		writelog "ERROR: Failed to remove NMU"
 }
 
-pkgnmu()
+do_nmu()
 {
+	if [ "$action_type" = grp ]; then
+		writelog "ERROR: $item $action: Invalid action for a group"
+		return 1
+	fi
+
 	set -- $new_owners
 
 	local cmd="$1"; shift
 	case "$cmd" in
-		add|del) func_name="nmu${cmd}" ;;
+		add|del) ;;
 		*)
 			writelog "ERROR: nmu $cmd: Invalid action"
 			return 1
@@ -374,13 +346,7 @@ pkgnmu()
 	fi
 	local start_time="$1"; shift
 	local end_time="$1"; shift
-	$func_name
-}
-
-grpnmu()
-{
-	writelog "ERROR: $item: Group is not allowed here"
-	return 1
+	do_nmu_$cmd
 }
 
 process_user_rules()
@@ -416,19 +382,8 @@ process_user_rules()
 		cmd_info="$item $action $new_owners"
 
 		# Check action name.
-		local func_name
 		case "$action" in
-			add|del|nmu)	func_name="${action_type}${action}" ;;
-			replace|leader)	func_name="$action" ;;
-
-			# privileged actions
-			create|delete)
-				if ! GIRAR_USER="$person" girar-check-superuser "$repository"; then
-					writelog "ERROR: $item $action: Permission denied"
-					return 1
-				fi
-				func_name="$action"
-				;;
+			add|create|del|delete|leader|nmu|replace) ;;
 			*)
 				writelog "ERROR: $item $action: Invalid action"
 				return 1
@@ -474,7 +429,7 @@ process_user_rules()
 		leader="${prev_owners%% *}"
 
 		# First failure breaks the loop
-		$func_name ||
+		do_$action ||
 			return 1
 
 	done <"$rulesfile"
