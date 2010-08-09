@@ -50,13 +50,19 @@ signal_handler()
 	cleanup 143
 }
 
+add_acl_cmd()
+{
+	printf "$@" | girar-acl-apply-changes "$repository" "$workdir"
+	printf "$@"
+}
+
 show_nmu()
 {
 	[ "$#" -eq 0 ] ||
 		usage 'Too many arguments.'
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.nmu.$repository" >&3
+	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository" >&3
 }
 
 parse_cmd_nmu()
@@ -96,7 +102,7 @@ parse_cmd_nmu()
 			fatal "End time in the past"
 	fi
 
-	printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$item" 'nmu' "$action" "$login" "$start_time" "$end_time"
+	add_acl_cmd '%s\t%s\t%s\t%s\t%s\t%s\n' "$item" 'nmu' "$action" "$login" "$start_time" "$end_time"
 }
 
 parse_cmd_acl()
@@ -107,7 +113,7 @@ parse_cmd_acl()
 			fatal "$item $action: $*: Invalid argument(s)"
 	done
 
-	printf '%s\t%s\t%s\n' "$item" "$action" "$*"
+	add_acl_cmd '%s\t%s\t%s\n' "$item" "$action" "$*"
 }
 
 show_acl()
@@ -156,11 +162,11 @@ parse_cmd()
 	if [ del = "$action" -a "$GIRAR_USER" = "$*" ]; then
 		# $GIRAR_USER is allowed to del self from the list (ALT#19215)
 		girar-check-acl-item "$item" \
-			"$GIRAR_ACL_CONF_DIR/list.packages.$repository" \
-			"$GIRAR_ACL_CONF_DIR/list.groups.$repository" >&3
+			"list.packages.$repository" \
+			"list.groups.$repository" >&3
 	else
 		girar-check-acl-leader "$GIRAR_USER" "$item" \
-			"$repository" "$GIRAR_ACL_CONF_DIR" >&3
+			"$repository" "$workdir" >&3
 	fi
 
 	if [ "$action" = 'nmu' ]; then
@@ -185,7 +191,11 @@ cd "$GIRAR_ACL_STATE_DIR/$repository"
 
 trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
-workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
+
+# Copy all current acl files to workdir.
+find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
+        -exec cp -at "$workdir" -- \{\} \+
 
 # If caller specified arguments, parse them,
 # otherwise parse stdin line by line.
@@ -197,7 +207,7 @@ if [ $# -eq 0 ]; then
 	done
 else
 	parse_cmd "$@"
-fi >"$workdir/cmd"
+fi > "$workdir/cmd"
 [ -s "$workdir/cmd" ] || exit 0
 
 enable -f /usr/lib/bash/lockf lockf
