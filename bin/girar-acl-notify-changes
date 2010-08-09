@@ -22,6 +22,7 @@ trap 'cleanup_handler $?' EXIT
 trap 'exit 143' HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
 cd "$workdir"
+mkdir -p diff notify
 
 for f in $(cd "$new_acl_dir" && set +f && echo list.*); do
 	[ -f "$old_acl_dir/$f" -a -f "$new_acl_dir/$f" ] || continue
