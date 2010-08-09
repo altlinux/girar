@@ -1,0 +1,392 @@
+#!/bin/sh -efu
+# Command format:
+# <Target> <Action> <Arguments>
+#
+# <Target> := Package|@Group
+# <Action> := add|del|leader|replace
+#
+# Superuser additional actions:
+# <Action> := create|delete
+#
+
+. girar-sh-functions
+
+. shell-error
+. shell-quote
+
+[ -n "${GIRAR_USER-}" ] ||
+        fatal 'GIRAR_USER undefined'
+
+repository="$1"; shift
+dir="$1"; shift
+cd "$dir"
+
+writelog()
+{
+	[ "$#" -eq 1 ] || return 0
+	printf >&2 '< %s\n' "$(printf %s "$cmd_info" |tr -s '[:space:]' ' ')"
+	printf >&2 '> %s\n' "$(printf %s "$1" |tr -s '[:space:]' ' ')"
+}
+
+abort()
+{
+	writelog "${*-}"
+	exit 1
+}
+
+change()
+{
+	# remove duplicates
+	local o list=
+	for o; do
+		[ -n "$list" -a -z "${list##* $o *}" ] ||
+			list="$list $o "
+	done
+	set -- $list
+
+	local tail=
+	while [ $# -gt 0 ]; do
+		case "${1-}" in
+			@qa|@everybody|@nobody) tail="$tail $1"; shift ;;
+			*) break ;;
+		esac
+	done
+
+	if [ -z "${*-}" ]; then
+		if [ "$action_type" = pkg ]; then
+			set -- @nobody
+		else
+			abort "ERROR: ACL entry cannot be made empty"
+		fi
+	else
+		set -- $@ $tail
+	fi
+
+	if [ "$*" = "$prev_owners" ]; then
+		writelog "IGNORE: Nothing to change"
+		return
+	fi
+
+	local qitem
+	quote_sed_regexp_variable qitem "$item"
+	sed -i "s/^\($qitem[[:space:]]\).*/\1$*/" "$listfile" &&
+		writelog "OK: $item: $*" ||
+		writelog "ERROR: $item: $*"
+}
+
+show_cmd_usage()
+{
+	local msg="USAGE: <package|@group> $action"
+	case "$action" in
+		create|*add|*del) msg="$msg <owners ...>" ;;
+		replace) msg="$msg <old-owner> <new-owner>" ;;
+		leader) msg="$msg <owner>" ;;
+	esac
+	abort "$msg"
+}
+
+check_usage()
+{
+	if [ -z "$prev_owners" ]; then
+		abort "ERROR: $item: $item_type not found in acl file"
+	fi
+
+	if [ -z "$new_owners" ]; then
+		show_cmd_usage
+	fi
+}
+
+check_new_members()
+{
+	local i qi
+	for i; do
+		if [ "${i#@}" = "$i" ]; then
+			if [ ! -d "$GIRAR_PEOPLE_QUEUE/${i##*/}" ]; then
+				abort "ERROR: $i: Login name not found"
+			fi
+		elif [ "$i" != '@everybody' ]; then
+			quote_sed_regexp_variable qi "$i"
+			if [ -z "$(sed -n "/^$qi[[:space:]]/p" "list.groups.$repository")" ]; then
+				abort "ERROR: $i: Group not found in acl file"
+			fi
+		fi
+	done
+}
+
+do_add()
+{
+	check_usage && check_new_members $new_owners
+
+	local o owners=
+
+	if [ "$action_type" = grp ]; then
+		# Check new owners for nested groups.
+		for o in $new_owners; do
+			if [ -z "${o##@*}" ]; then
+				abort "ERROR: Nested group \`$o' detected"
+			fi
+		done
+	fi
+
+	# Merge old and new owners, remove @nobody if any.
+	for o in $prev_owners $new_owners; do
+		[ "$o" = '@nobody' ] ||
+			owners="$owners $o"
+	done
+
+	change $owners
+}
+
+do_del()
+{
+	check_usage
+
+	local o owners=
+
+	new_owners=" $new_owners "
+	# Filter out new owners from old owners.
+	for o in $prev_owners; do
+		[ -z "${new_owners##* $o *}" ] ||
+			owners="$owners $o"
+	done
+
+	change $owners
+}
+
+do_leader()
+{
+	set -- $new_owners
+	if [ $# -ne 1 ]; then
+		show_cmd_usage
+	fi
+
+	check_usage && check_new_members $new_owners
+
+	local new_leader="$1"; shift
+	if [ "$leader" = "$new_leader" ]; then
+		writelog "IGNORE: Nothing to change"
+		return
+	fi
+
+	change $new_leader $prev_owners
+}
+
+do_replace()
+{
+	set -- $new_owners
+	if [ $# -ne 2 ]; then
+		show_cmd_usage
+	fi
+	local old new
+	old="$1"; shift
+	new="$1"; shift
+
+	check_usage && check_new_members $new
+
+	if [ "$old" = "$new" ]; then
+		writelog "IGNORE: Nothing to change"
+		return
+	fi
+
+	local o found= owners=
+	for o in $prev_owners; do
+		case "$o" in
+			$old)
+				found=1
+				owners="$owners $new"
+				;;
+			*)
+				owners="$owners $o"
+				;;
+		esac
+	done
+
+	if [ -z "$found" ]; then
+		abort "ERROR: Owner \`$old' not found"
+	fi
+
+	change $owners
+}
+
+do_create()
+{
+	if [ -n "$prev_owners" ]; then
+		writelog "IGNORE: $item: $item_type already exist"
+		return
+	fi
+
+	if [ -z "$new_owners" ]; then
+		show_cmd_usage
+	fi
+
+	check_new_members $new_owners
+
+	if ! girar-check-superuser "$repository"; then
+		abort "ERROR: $item $action: Permission denied"
+	fi
+
+	printf '%s\t%s\n' "$item" "$new_owners" >> "$listfile" &&
+		sort -u -o "$listfile" "$listfile" &&
+		writelog "OK: $item: $new_owners" ||
+		abort "ERROR: $item: Failed to create"
+}
+
+do_delete()
+{
+	if [ -z "$prev_owners" ]; then
+		writelog "IGNORE: $item: $item_type not found in acl file"
+		return
+	fi
+
+	if [ -n "$new_owners" ]; then
+		show_cmd_usage
+	fi
+
+	if ! girar-check-superuser "$repository"; then
+		abort "ERROR: $item $action: Permission denied"
+	fi
+
+	local qitem
+	quote_sed_regexp_variable qitem "$item"
+	sed -i "/^$qitem[[:space:]]/d" "$listfile" &&
+		writelog "OK: $item: Removed" ||
+		writelog "ERROR: $item: Failed to remove"
+}
+
+do_nmu_add()
+{
+	local changed= p b s e
+	while read p b s e; do
+		if [ "$item" != "$p" -o "$login" != "$b" ]; then
+			printf '%s\t%s\t%s\t%s\n' \
+				"$p" "$b" "$s" "$e"
+			continue
+		fi
+
+		[ $start_time -lt $s ] || start_time="$s"
+		[ $end_time -gt $e ]   || end_time="$e"
+
+		printf '%s\t%s\t%s\t%s\n' \
+			"$item" "$login" "$start_time" "$end_time"
+		changed=1
+
+	done <"list.nmu.$repository" > new
+
+	[ -n "$changed" ] ||
+		printf '%s\t%s\t%s\t%s\n' \
+			"$item" "$login" "$start_time" "$end_time" >> new
+
+	sort -uo "list.nmu.$repository" new &&
+		writelog "OK: $item $login $start_time $end_time" ||
+		writelog "ERROR: Failed to add NMU"
+}
+
+do_nmu_del()
+{
+	local qitem qlogin
+	quote_sed_regexp_variable qitem "$item"
+	quote_sed_regexp_variable qlogin "$login"
+
+	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]/p" \
+		"list.nmu.$repository")" ]; then
+		writelog "IGNORE: NMU not found in acl file"
+		return
+	fi
+
+	sed -i "/^$qitem[[:space:]]$qlogin[[:space:]]/d" \
+		"list.nmu.$repository" &&
+		writelog "OK: NMU removed" ||
+		writelog "ERROR: Failed to remove NMU"
+}
+
+do_nmu()
+{
+	if [ "$action_type" = grp ]; then
+		abort "ERROR: $item $action: Invalid action for a group"
+	fi
+
+	set -- $new_owners
+
+	local cmd="$1"; shift
+	case "$cmd" in
+		add|del) ;;
+		*)
+			abort "ERROR: nmu $cmd: Invalid action"
+			;;
+	esac
+
+	new_owners="$*"
+	check_usage
+
+	local login="$1"; shift
+	if [ "$login" = '_' ]; then
+		login='*'
+	else
+		check_new_members "$login"
+	fi
+	local start_time="$1"; shift
+	local end_time="$1"; shift
+	do_nmu_$cmd
+}
+
+while read item action new_owners; do
+	case "$item" in
+		''|\#*)
+			continue
+			;;
+		@*)
+			item_type='Group'
+			action_type='grp'
+			listfile="list.groups.$repository"
+			;;
+		*)
+			item_type='Package'
+			action_type='pkg'
+			listfile="list.packages.$repository"
+			;;
+	esac
+
+	# Handle command aliases.
+	case "$action" in
+		rem) action=del ;;
+	esac
+
+	cmd_info="$item $action $new_owners"
+
+	# Check action name.
+	case "$action" in
+		add|create|del|delete|leader|nmu|replace) ;;
+		*)
+			abort "ERROR: $item $action: Invalid action"
+			;;
+	esac
+
+	# Check new_owners
+	[ -z "$(printf %s "$new_owners" |LANG=C tr -d '[@a-z_0-9[:space:]]')" ] ||
+		abort "ERROR: $item $action: $new_owners: Invalid argument(s)"
+	for a in $new_owners; do
+		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+			abort "ERROR: $item $action: $new_owners: Invalid argument(s)"
+	done
+
+	# Check perms
+	if [ del = "$action" -a "$GIRAR_USER" = "$new_owners" ]; then
+		# $GIRAR_USER is allowed to del self from the list (ALT#19215)
+		msg="$(girar-check-acl-item "$item" \
+			"list.packages.$repository" \
+			"list.groups.$repository")"
+	else
+		msg="$(girar-check-acl-leader "$GIRAR_USER" "$item" \
+			"$repository" .)"
+	fi ||
+		abort "ERROR: $item $action: $msg"
+
+	quote_sed_regexp_variable qitem "$item"
+	prev_owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$listfile")"
+
+	# Get current leader
+	leader="${prev_owners%% *}"
+
+	# First failure breaks the loop
+	do_$action
+done

@@ -65,6 +65,7 @@ bin_TARGETS = \
 	${bin_auto_TARGETS} \
 	bin/find-subscribers \
 	bin/girar-acl \
+	bin/girar-acl-apply-changes \
 	bin/girar-acl-notify-changes \
 	bin/girar-acl-show \
 	bin/girar-build \
