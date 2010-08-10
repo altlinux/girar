@@ -120,6 +120,7 @@ trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
 
 # Copy all current acl files to workdir.
+flock -s "$GIRAR_ACL_CONF_DIR" \
 find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
         -exec cp -at "$workdir" -- \{\} \+
 
