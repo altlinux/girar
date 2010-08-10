@@ -407,7 +407,7 @@ while read item action new_owners; do
 		msg="$(girar-check-acl-item "$item" \
 			"list.packages.$repository" \
 			"list.groups.$repository")"
-	else
+	elif [ create != "$action" ]; then
 		msg="$(girar-check-acl-leader "$GIRAR_USER" "$item" \
 			"$repository" .)"
 	fi ||
