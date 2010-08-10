@@ -7,17 +7,18 @@
 usage()
 {
 	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <binary package repository name> {<package>|@<group>}"
+	echo >&2 "usage: $PROG <binary package repository name> {<package>|@<group>} [acl directory]"
 	exit 1
 }
 
 [ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
-[ "$#" -le 2 ] ||
+[ "$#" -le 3 ] ||
 	usage 'Too many arguments.'
 
 repository="$1"; shift
 item="$1"; shift
+dir="${1-$GIRAR_ACL_CONF_DIR}"
 
 cd
 
@@ -28,6 +29,6 @@ repository="$(girar-normalize-repo-name "$repository")"
 	t=groups
 quote_sed_regexp_variable qitem "$item"
 
-[ -f "$GIRAR_ACL_CONF_DIR/list.$t.$repository" ] ||
+[ -f "$dir/list.$t.$repository" ] ||
 	fatal "$t file for repository \`$repository' is not available"
-sed -n "/^$qitem[[:space:]]/p" "$GIRAR_ACL_CONF_DIR/list.$t.$repository"
+sed -n "/^$qitem[[:space:]]/p" "$dir/list.$t.$repository"

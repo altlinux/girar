@@ -120,7 +120,7 @@ show_acl()
 {
 	[ "$#" -eq 0 ] ||
 		usage 'Too many arguments.'
-	girar-acl-show "$repository" "$item" >&3
+	girar-acl-show "$repository" "$item" "$workdir" >&3
 }
 
 nqueued=0
