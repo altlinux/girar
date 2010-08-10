@@ -54,7 +54,7 @@ nqueued=0
 add_acl_cmd()
 {
 	printf "$@" | girar-acl-apply-changes "$repository" "$workdir"
-	printf "$@"
+	printf >&3 "$@"
 	nqueued="$(($nqueued+1))"
 }
 
@@ -64,14 +64,14 @@ show_nmu()
 		usage 'Too many arguments.'
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository" >&3
+	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository"
 }
 
 show_acl()
 {
 	[ "$#" -eq 0 ] ||
 		usage 'Too many arguments.'
-	girar-acl-show "$repository" "$item" "$workdir" >&3
+	girar-acl-show "$repository" "$item" "$workdir"
 }
 
 rc=
@@ -97,7 +97,7 @@ parse_cmd()
 				return
 			fi ;;
 		check)
-			girar-check-perms "$item" "$repository" >&3 || rc=1
+			girar-check-perms "$item" "$repository" || rc=1
 			return ;;
 	esac
 
@@ -126,7 +126,7 @@ find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
 
 # If caller specified arguments, parse them,
 # otherwise parse stdin line by line.
-exec 3>&1
+exec 3>"$workdir/cmd"
 if [ $# -eq 0 ]; then
 	message 'Go ahead and type your commands' >&2
 	while read -r line; do
@@ -134,7 +134,7 @@ if [ $# -eq 0 ]; then
 	done
 else
 	parse_cmd "$@"
-fi > "$workdir/cmd"
+fi
 [ -s "$workdir/cmd" ] || exit 0
 
 enable -f /usr/lib/bash/lockf lockf
