@@ -50,10 +50,12 @@ signal_handler()
 	cleanup 143
 }
 
+nqueued=0
 add_acl_cmd()
 {
 	printf "$@" | girar-acl-apply-changes "$repository" "$workdir"
 	printf "$@"
+	nqueued="$(($nqueued+1))"
 }
 
 show_nmu()
@@ -65,57 +67,6 @@ show_nmu()
 	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository" >&3
 }
 
-parse_cmd_nmu()
-{
-	local action="$1"; shift
-	case "$action" in
-		add|del) ;;
-		*) fatal "nmu $action: Invalid action" ;;
-	esac
-
-	local login='*' start_time=0 end_time=0
-
-	if [ "$#" -gt 0 ]; then
-		login="$1"; shift
-		[ -n "${login##@*}" ] ||
-			fatal "$login: Group is not allowed here"
-		[ "$login" = '*' -o \
-		  -z "$(printf %s "$login" |LANG=C tr -d '[a-z_0-9]')" ] ||
-			fatal "$login: Invalid login name"
-	fi
-	[ "$login" != '*' ] || login=_
-
-	if [ "$#" -gt 0 ]; then
-		start_time="$(opt_check_number 'start-time' "$1")"; shift
-	fi
-
-	if [ "$#" -gt 0 ]; then
-		end_time="$(opt_check_number 'end-time' "$1")"; shift
-	fi
-
-	if [ "$start_time" = 0 ]; then
-		start_time="$(date +'%s')"
-	fi
-
-	if [ "$end_time" != 0 ]; then
-		[ "$start_time" -lt "$end_time" ] ||
-			fatal "End time in the past"
-	fi
-
-	add_acl_cmd '%s\t%s\t%s\t%s\t%s\t%s\n' "$item" 'nmu' "$action" "$login" "$start_time" "$end_time"
-}
-
-parse_cmd_acl()
-{
-	local a
-	for a; do
-		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
-			fatal "$item $action: $*: Invalid argument(s)"
-	done
-
-	add_acl_cmd '%s\t%s\t%s\n' "$item" "$action" "$*"
-}
-
 show_acl()
 {
 	[ "$#" -eq 0 ] ||
@@ -123,7 +74,7 @@ show_acl()
 	girar-acl-show "$repository" "$item" "$workdir" >&3
 }
 
-nqueued=0
+rc=
 parse_cmd()
 {
 	[ "$#" -ge 2 ] ||
@@ -132,6 +83,7 @@ parse_cmd()
 	local item="$1"; shift
 	local action="$1"; shift
 
+	rc=
 	case "$action" in
 		show)
 			show_acl "$@"
@@ -145,37 +97,11 @@ parse_cmd()
 				return
 			fi ;;
 		check)
-			girar-check-perms "$item" "$repository" >&3 ||:
+			girar-check-perms "$item" "$repository" >&3 || rc=1
 			return ;;
-		add|del|leader|replace)
-			[ "$#" -ge 1 ] ||
-				show_usage 'Not enough arguments.' ;;
-		create|delete)
-			girar-check-superuser "$repository" ||
-				fatal "$item $action: Permission denied" ;;
-		*) fatal "$action: Invalid action" ;;
 	esac
 
-	[ -z "$(printf %s "$*" |LANG=C tr -d '[@a-z_0-9 ]')" ] ||
-		fatal "$item $action: $*: Invalid argument(s)"
-
-	if [ del = "$action" -a "$GIRAR_USER" = "$*" ]; then
-		# $GIRAR_USER is allowed to del self from the list (ALT#19215)
-		girar-check-acl-item "$item" \
-			"list.packages.$repository" \
-			"list.groups.$repository" >&3
-	else
-		girar-check-acl-leader "$GIRAR_USER" "$item" \
-			"$repository" "$workdir" >&3
-	fi
-
-	if [ "$action" = 'nmu' ]; then
-		parse_cmd_nmu "$@"
-	else
-		parse_cmd_acl "$@"
-	fi
-
-	nqueued="$(($nqueued+1))"
+	add_acl_cmd '%s\t%s\t%s\n' "$item" "$action" "$*"
 }
 
 [ "$#" -ge 1 ] ||
@@ -221,3 +147,5 @@ mv -f -- "$workdir/new" "$GIRAR_USER.acl"
 
 [ "$nqueued" = 0 -o -n "${GB_REPO_NAME-}" ] ||
 	message "$nqueued command(s) queued"
+
+exit $rc
