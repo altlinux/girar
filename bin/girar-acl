@@ -112,9 +112,6 @@ shift
 
 repository="$(girar-normalize-repo-name "$repository")"
 
-# Abort if acl spool dir for the repository is not available.
-cd "$GIRAR_ACL_STATE_DIR/$repository"
-
 trap exit_handler EXIT
 trap signal_handler HUP PIPE INT QUIT TERM
 workdir="$(mktemp -dt "$PROG.XXXXXXXX")"

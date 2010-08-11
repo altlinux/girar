@@ -21,7 +21,6 @@ girar_public_dir = ${girar_datadir}/public.git
 girar_email_dir = ${girar_statedir}/email
 girar_acl_conf_dir = ${girar_confdir}/acl
 girar_acl_pub_dir = ${girar_statedir}/acl.pub
-girar_acl_state_dir = ${girar_statedir}/acl
 girar_repo_conf_dir = ${girar_confdir}/repo
 
 EMAIL_DOMAIN = altlinux.org
@@ -180,7 +179,6 @@ install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 install-var:
 	install -d -m750 \
 		${DESTDIR}${girar_statedir} \
-		${DESTDIR}${girar_acl_state_dir} \
 		${DESTDIR}${girar_email_dir} \
 		${DESTDIR}${girar_email_dir}/packages \
 		${DESTDIR}${girar_email_dir}/private \
@@ -214,7 +212,6 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \
-	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
 	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
