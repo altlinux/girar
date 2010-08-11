@@ -77,6 +77,7 @@ bin_TARGETS = \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
 	bin/girar-clone \
+	bin/girar-connect-stdout \
 	bin/girar-default-branch \
 	bin/girar-find \
 	bin/girar-get-email-address \
@@ -197,6 +198,8 @@ install-perms:
 		${DESTDIR}${girar_spooldir}
 
 bin/girar-sh: bin/girar-sh.c
+
+bin/girar-connect-stdout: bin/girar-connect-stdout.c
 
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
