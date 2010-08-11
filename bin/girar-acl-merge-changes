@@ -8,7 +8,7 @@
 [ -n "${GIRAR_USER-}" ] ||
         fatal 'GIRAR_USER undefined'
 
-repository="$1"; shift
+read -t 1 repository
 repository="$(girar-normalize-repo-name "$repository")"
 
 enable -f /usr/lib/bash/lockf lockf

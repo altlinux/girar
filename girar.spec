@@ -42,7 +42,14 @@ mksock %buildroot%_spooldir/%name/acl/socket
 /usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
 /usr/sbin/useradd -r -g %gb_group -d /dev/null -s /dev/null -c 'The girar build processor' -n %gb_user >/dev/null 2>&1 ||:
 
+%post
+%post_service girar-acl-proxyd
+
+%preun
+%preun_service girar-acl-proxyd
+
 %files
+%_initdir/girar-acl-proxyd
 %defattr(-,root,%girar_group,750)
 %_sbindir/*
 %_usr/libexec/%name

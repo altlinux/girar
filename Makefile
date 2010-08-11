@@ -5,6 +5,7 @@ localstatedir = /var/lib
 sbindir = /usr/sbin
 spooldir = /var/spool
 sysconfdir = /etc
+initdir = ${sysconfdir}/rc.d/init.d
 
 girar_bindir = ${libexecdir}/girar
 girar_libdir = ${libexecdir}/girar
@@ -39,6 +40,9 @@ GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
+GIRAR_USER = girar
+GB_USER = girar-builder
+
 UPRAVDOM_ACCOUNT = factory
 UPRAVDOM_QUEUE = ${spooldir}/build-factory
 
@@ -48,11 +52,14 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
-	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
+	-DGIRAR_ACL_SOCKET=\"${GIRAR_ACL_SOCKET}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
-	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
+	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
+	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
+	-DGIRAR_USER=\"${GIRAR_USER}\" \
+	-DGB_USER=\"${GB_USER}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
 
@@ -68,6 +75,7 @@ bin_TARGETS = \
 	bin/girar-acl-apply-changes \
 	bin/girar-acl-merge-changes \
 	bin/girar-acl-notify-changes \
+	bin/girar-acl-proxyd \
 	bin/girar-acl-show \
 	bin/girar-build \
 	bin/girar-charset \
@@ -104,6 +112,8 @@ bin_TARGETS = \
 	bin/girar-task-show \
 	#
 
+conf_TARGETS = conf/girar-acl-proxyd
+
 lib_TARGETS = lib/rsync.so
 
 sbin_TARGETS = \
@@ -134,7 +144,8 @@ hooks_receive_TARGETS = \
 	hooks/post-receive.d/girar-sendmail \
 	#
 
-TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
+TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} ${conf_TARGETS} \
+	  ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 
 .PHONY: all clean install install-bin install-conf install-data install-sbin install-var
 
@@ -157,11 +168,13 @@ install-lib: ${lib_TARGETS}
 	install -d -m750 ${DESTDIR}${girar_libdir}
 	install -pm644 $^ ${DESTDIR}${girar_libdir}/
 
-install-conf:
+install-conf: ${conf_TARGETS}
 	install -d -m750 \
+		${DESTDIR}${initdir} \
 		${DESTDIR}${girar_confdir} \
 		${DESTDIR}${girar_acl_conf_dir} \
 		${DESTDIR}${girar_repo_conf_dir}
+	install -pm755 $^ ${DESTDIR}${initdir}/
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \
@@ -197,9 +210,11 @@ install-perms:
 		${DESTDIR}${girar_statedir} \
 		${DESTDIR}${girar_spooldir}
 
-bin/girar-sh: bin/girar-sh.c
+bin/girar-acl-proxyd: bin/girar-acl-proxyd.c
 
 bin/girar-connect-stdout: bin/girar-connect-stdout.c
+
+bin/girar-sh: bin/girar-sh.c
 
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
@@ -227,6 +242,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_REPO_CONF_DIR@,${girar_repo_conf_dir},g' \
 	    -e 's,@GIRAR_REPO_LIST@,${GIRAR_REPO_LIST},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
+	    -e 's,@GIRAR_USER@,${GIRAR_USER},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \

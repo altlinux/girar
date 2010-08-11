@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# chkconfig: - 95 05
+# description: \
+#	The girar acl proxy daemon.
+#
+# processname: girar-acl-proxyd
+
+WITHOUT_RC_COMPAT=1
+
+# Source function library.
+. /etc/init.d/functions
+
+PATH="$PATH:@CMDDIR@"
+EXE=girar-acl-proxyd
+LOCKFILE=/var/lock/subsys/"$EXE"
+RUN_AS=@GIRAR_USER@
+BIND_ADDR=
+RUN_CMD=
+RETVAL=0
+
+start()
+{
+	start_daemon --lockfile "$LOCKFILE" --expect-user "$RUN_AS" -- "$EXE"
+	RETVAL=$?
+	return $RETVAL
+}
+
+stop()
+{
+	stop_daemon --lockfile "$LOCKFILE" --expect-user "$RUN_AS" "$EXE"
+	RETVAL=$?
+	return $RETVAL
+}
+
+restart()
+{
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	reload|restart)
+		restart
+		;;
+	condstop)
+		if [ -e "$LOCKFILE" ]; then
+			stop
+		fi
+		;;
+	condrestart|condreload)
+		if [ -e "$LOCKFILE" ]; then
+			restart
+		fi
+		;;
+	status)
+		status --expect-user "$RUN_AS" "$EXE"
+		RETVAL=$?
+		;;
+	*)
+		msg_usage "${0##*/} {start|stop|restart|condstop|condrestart|status}"
+		RETVAL=1
+esac
+
+exit $RETVAL
