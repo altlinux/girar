@@ -140,7 +140,7 @@ fi
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v "$GIRAR_ACL_STATE_DIR"
 
-touch -- "$workdir/new"
+> "$workdir/new"
 [ ! -s "$GIRAR_USER.acl" ] ||
 	cat -- "$GIRAR_USER.acl" >"$workdir/new"
 cat -- "$workdir/cmd" >>"$workdir/new"
