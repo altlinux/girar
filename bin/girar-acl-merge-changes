@@ -1,0 +1,75 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+. shell-error
+. shell-quote
+
+[ -n "${GIRAR_USER-}" ] ||
+        fatal 'GIRAR_USER undefined'
+
+repository="$1"; shift
+repository="$(girar-normalize-repo-name "$repository")"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$GIRAR_ACL_CONF_DIR"
+
+workdir=
+cleanup_handler()
+{
+	[ -z "$workdir" ] || rm -rf -- "$workdir"
+	exit "$@"
+}
+
+trap 'cleanup_handler $?' EXIT
+trap 'exit 143' HUP PIPE INT QUIT TERM
+workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
+cd "$workdir"
+
+mkdir list
+
+# Copy all current acl files to workdir.
+find "$GIRAR_ACL_CONF_DIR" -type f -name 'list.*' \
+	-exec cp -at list -- \{\} \+
+
+# Save old acl files for the later analysis.
+cp -a list list.orig
+
+if girar-acl-apply-changes "$repository" list > log 2>&1 &&
+   find list -type f -name 'list.*' \
+   -exec cp -at "$GIRAR_ACL_CONF_DIR" -- \{\} \+; then
+	status=COMPLETE
+else
+	status=ABORTED
+fi
+
+rsync -rlt -- "$GIRAR_ACL_CONF_DIR/" "$GIRAR_ACL_PUB_DIR/"
+
+email="$(girar-get-email-address "$GIRAR_USER")"
+cat > msg <<EOF
+From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+To: $email
+Cc: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+X-Incominger: acl
+Subject: [girar-acl] $status $repository
+Content-Type: text/plain; charset=us-ascii
+
+Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
+
+Result of your acl command(s) is listed below:
+
+EOF
+cat log >> msg
+cat >> msg <<EOF
+
+Summary: ACL change transaction $status.
+
+
+-- 
+Rgrds, your Girar ACL robot
+
+EOF
+
+/usr/sbin/sendmail -i -t <msg
+
+girar-acl-notify-changes list.orig "$GIRAR_ACL_CONF_DIR"
