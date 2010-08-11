@@ -34,6 +34,7 @@ subscription support and config files.
 %install
 %make_install install DESTDIR=%buildroot
 echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
+mksock %buildroot%_spooldir/%name/acl/socket
 
 %pre
 /usr/sbin/groupadd -r -f %girar_group
@@ -53,6 +54,8 @@ echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 %dir %_spooldir/%name/people
 %dir %attr(770,root,%girar_group) %_spooldir/%name/people/.timestamp
 %_localstatedir/%name
+%dir %attr(750,root,%girar_group) %_spooldir/%name/acl
+%ghost %attr(666,root,root) %_spooldir/%name/acl/socket
 %dir %attr(3775,%gb_user,%gb_group) %_spooldir/%name/tasks
 %attr(664,%girar_user,%gb_group) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
 

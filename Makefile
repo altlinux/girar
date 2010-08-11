@@ -27,6 +27,7 @@ girar_repo_conf_dir = ${girar_confdir}/repo
 EMAIL_DOMAIN = altlinux.org
 GB_GROUP = girar-builder
 GB_TASKS = ${girar_spooldir}/tasks
+GIRAR_ACL_SOCKET = ${girar_spooldir}/acl/socket
 GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
@@ -185,6 +186,7 @@ install-var:
 		${DESTDIR}${girar_email_dir}/private \
 		${DESTDIR}${girar_email_dir}/public \
 		${DESTDIR}${girar_spooldir} \
+		${DESTDIR}${girar_spooldir}/acl \
 		${DESTDIR}${GB_TASKS} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE}/.timestamp
@@ -211,6 +213,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GB_TASKS@,${GB_TASKS},g' \
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
+	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \
 	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
 	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
