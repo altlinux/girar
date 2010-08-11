@@ -20,6 +20,8 @@
 
 repository="$1"; shift
 dir="$1"; shift
+
+repository="$(girar-normalize-repo-name "$repository")"
 cd "$dir"
 
 writelog()
