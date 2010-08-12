@@ -58,7 +58,7 @@ signal_handler()
 nqueued=0
 add_acl_cmd()
 {
-	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$workdir"
+	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$workdir" 3>&-
 	printf >&3 "$@"
 	nqueued="$(($nqueued+1))"
 }
@@ -69,17 +69,17 @@ show_nmu()
 		usage 'Too many arguments.'
 	local qitem
 	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository"
+	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository" 3>&-
 }
 
 show_acl()
 {
 	[ "$#" -eq 0 ] ||
 		usage 'Too many arguments.'
-	girar-acl-show "$repository" "$item" "$workdir"
+	girar-acl-show "$repository" "$item" "$workdir" 3>&-
 }
 
-rc=
+rc=0
 parse_cmd()
 {
 	[ "$#" -ge 2 ] ||
@@ -88,7 +88,7 @@ parse_cmd()
 	local item="$1"; shift
 	local action="$1"; shift
 
-	rc=
+	rc=0
 	case "$action" in
 		show)
 			show_acl "$@"
@@ -102,7 +102,7 @@ parse_cmd()
 				return
 			fi ;;
 		check)
-			girar-check-perms "$item" "$repository" || rc=1
+			girar-check-perms "$item" "$repository" 3>&- || rc=1
 			return ;;
 	esac
 
@@ -140,9 +140,12 @@ if [ $# -eq 0 ]; then
 else
 	parse_cmd "$@"
 fi
-[ $nqueued -gt 0 ] || exit 0
 
-girar-connect-stdout "$GIRAR_ACL_SOCKET" cat "$workdir/cmd"
+exec 3>&-
+
+[ $nqueued -gt 0 ] || exit $rc
+
+girar-connect-stdout "$GIRAR_ACL_SOCKET" cat < "$workdir/cmd"
 
 [ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"
