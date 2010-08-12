@@ -18,6 +18,12 @@
 [ -n "${GIRAR_USER-}" ] ||
         fatal 'GIRAR_USER undefined'
 
+quiet=
+if [ "${1-}" = '--quiet' ]; then
+	quiet="$1"
+	shift
+fi
+
 repository="$1"; shift
 dir="$1"; shift
 
@@ -39,11 +45,13 @@ abort()
 
 ignore()
 {
+	[ -z "$quiet" ] || return 0
 	writelog "IGNORE: ${*-}"
 }
 
 ok()
 {
+	[ -z "$quiet" ] || return 0
 	writelog "OK: ${*-}"
 }
 

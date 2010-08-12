@@ -11,6 +11,7 @@
 [ -s "$GIRAR_REPO_LIST" ] ||
 	fatal 'Sorry, list of available repositories is not available'
 
+quiet=
 case "${1-}" in
 	--help)
 	        cat <<EOF
@@ -29,6 +30,10 @@ EOF
 	--list)
 		cat -- "$GIRAR_REPO_LIST"
 		exit 0
+		;;
+	--quiet)
+		quiet="$1"
+		shift
 		;;
 esac
 
@@ -53,7 +58,7 @@ signal_handler()
 nqueued=0
 add_acl_cmd()
 {
-	printf "$@" | girar-acl-apply-changes "$repository" "$workdir"
+	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$workdir"
 	printf >&3 "$@"
 	nqueued="$(($nqueued+1))"
 }
@@ -139,7 +144,7 @@ fi
 
 girar-connect-stdout "$GIRAR_ACL_SOCKET" cat "$workdir/cmd"
 
-[ "$nqueued" = 0 -o -n "${GB_REPO_NAME-}" ] ||
+[ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"
 
 exit $rc
