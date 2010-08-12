@@ -71,6 +71,7 @@ for f in $(cd diff && set +f && echo list.*); do
 	done
 done
 
+author_name="$(girar-get-email-address "$GIRAR_USER" | sed -n 's/^"\([^"]\+\)".*/\1/p')"
 for repository in $(cd notify && set +f && echo *); do
 	[ -d "notify/$repository" ] || continue
 	for person in $(cd "notify/$repository" && set +f && echo *); do
@@ -86,7 +87,7 @@ Content-Type: text/plain; charset=us-ascii
 
 Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
 
-You have been engaged in ACL change(s) listed below:
+You have been engaged in ACL change(s) initiated by $author_name:
 
 EOF
 	cat -- "notify/$repository/$person" >> msg
