@@ -43,9 +43,6 @@ USER_PREFIX = git_
 GIRAR_USER = girar
 GB_USER = girar-builder
 
-UPRAVDOM_ACCOUNT = factory
-UPRAVDOM_QUEUE = ${spooldir}/build-factory
-
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
 	-Wmissing-format-attribute -Wmissing-noreturn \
@@ -245,8 +242,6 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_USER@,${GIRAR_USER},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
-	    -e 's,@UPRAVDOM_ACCOUNT@,${UPRAVDOM_ACCOUNT},g' \
-	    -e 's,@UPRAVDOM_QUEUE@,${UPRAVDOM_QUEUE},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 		<$< >$@
 	chmod --reference=$< $@
