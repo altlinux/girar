@@ -18,7 +18,7 @@ while read -r N EVR F; do
 			continue 2
 		fi
 	done
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" add "$u" '@everybody' ||
+	GIRAR_USER=root girar-acl --quiet "$GB_REPO_NAME" "$N" add "$u" '@everybody' ||
 		continue
 	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
 done <plan/add-src
@@ -42,11 +42,11 @@ while read -r N EVR F; do
 			o="@$g"
 		fi
 	fi
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" create "$u" $o '@everybody' ||
+	GIRAR_USER=root girar-acl --quiet "$GB_REPO_NAME" "$N" create "$u" $o '@everybody' ||
 		continue
 	for r in ${GB_ROBOT_USERS-}; do
 		if [ "$u" = "$r" ]; then
-			GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" del $u ||
+			GIRAR_USER=root girar-acl --quiet "$GB_REPO_NAME" "$N" del $u ||
 				continue
 			stamp_echo >&2 "ACL for new project \`$N' assigned to nobody${o:+ and group \"$g\"}"
 			continue 2
@@ -56,7 +56,7 @@ while read -r N EVR F; do
 done <"$tmpdir"/add
 
 while read -r N EVR F; do
-	GIRAR_USER=root girar-acl "$GB_REPO_NAME" "$N" delete ||
+	GIRAR_USER=root girar-acl --quiet "$GB_REPO_NAME" "$N" delete ||
 		continue
 	stamp_echo >&2 "ACL for old project \`$N' removed"
 done <"$tmpdir"/rm
