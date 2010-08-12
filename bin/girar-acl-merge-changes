@@ -46,10 +46,18 @@ fi
 rsync -rlt -- "$GIRAR_ACL_CONF_DIR/" "$GIRAR_ACL_PUB_DIR/"
 
 email="$(girar-get-email-address "$GIRAR_USER")"
+robot="Girar ACL robot <girar-acl@$EMAIL_DOMAIN>"
+if [ "$status" = COMPLETE ]; then
+	to="$robot"
+	cc=
+else
+	to="$email"
+	cc="$robot"
+fi
 cat > msg <<EOF
-From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
-To: $email
-Cc: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+From: $robot
+To: $to
+Cc: $cc
 X-Incominger: acl
 Subject: [girar-acl] $status $repository
 Content-Type: text/plain; charset=us-ascii
