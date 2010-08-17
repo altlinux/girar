@@ -174,8 +174,13 @@ if [ -n "$fullNoarch" ]; then
 		dump_noarch i586/rpms/$f1   >$tmpdir/$f1.noarch
 		dump_noarch x86_64/rpms/$f2 >$tmpdir/$f2.noarch
 		if cmp -s $tmpdir/{$f1,$f2}.noarch; then
-			# Noarch check passed.
-			:
+			# Extra check for -m32 packages like cpuburn.
+			if sed -n '/^\/usr\/share\//d;/^\//p' $tmpdir/$f2.noarch |
+			   grep 'ELF 32-bit .* Intel 80386,'; then
+				echo "warning (#$i): $f2 is biarch"
+				fullNoarch=
+				break
+			fi
 		else
 			fullNoarch=
 			break
