@@ -41,14 +41,14 @@ mkdir -p "$HOME"/.cache/gen{pkg,src}list
 for arch in i586 x86_64 noarch; do
 
 	# Arch packages haven't changed?
+	maybe_unchanged=
 	if [ -z "$bloat" ] && ! cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
 		# But the result also depends on the list of useful-files,
 		# which might have changed due to other architectures.
-		# TODO Maybe consider some possibilities for optimization.
-		:
+		maybe_unchanged='--maybe-unchanged'
 	fi
 
-	genbasedir "$@" \
+	genbasedir "$@" $maybe_unchanged \
 		--cachedir="$HOME"/.cache \
 		--architectures="i586 x86_64 noarch" \
 		--architecture="$arch" \
