@@ -2,7 +2,8 @@
 
 . gb-sh-conf-$USER
 
-for d in new failed; do
+cd "$GB_TASKS_DIR/archive"
+for d in new failed tested; do
 	cd "$GB_TASKS_DIR/archive/$d" || continue
 	find . -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d \
 	  -mtime +10 -printf '%h\n' | cut -d/ -f2 |
