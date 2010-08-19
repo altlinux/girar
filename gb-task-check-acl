@@ -16,15 +16,13 @@ check_acl()
 
 	# check author permissions
 	u="$(cat gears/$i/userid)"
-	out=$(GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1) || st=$?
-	stamp_echo >&2 "$out"
+	GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" || st=$?
 	[ -n "$st" ] || return 0
 
 	# check confirmer permissions
 	for a in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
 		st=
-		out=$(GIRAR_USER="$a" girar-check-perms "$src" "$GB_REPO_NAME" 2>&1) || st=$?
-		stamp_echo >&2 "$out"
+		GIRAR_USER="$a" girar-check-perms "$src" "$GB_REPO_NAME" || st=$?
 		[ -n "$st" ] || return 0
 	done
 
