@@ -41,7 +41,6 @@ PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
 GIRAR_USER = girar
-GB_USER = girar-builder
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
@@ -56,7 +55,6 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
 	-DGIRAR_USER=\"${GIRAR_USER}\" \
-	-DGB_USER=\"${GB_USER}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
 

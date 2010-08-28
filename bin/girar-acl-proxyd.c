@@ -93,8 +93,6 @@ bind_address(const char *address)
 	return fd;
 }
 
-static uid_t gb_uid;
-
 static void
 handle_socket(int listen_fd)
 {
@@ -152,19 +150,7 @@ handle_socket(int listen_fd)
 
 	if (strncmp(pw->pw_name, USER_PREFIX, sizeof(USER_PREFIX) - 1) ||
 	    girar_user[0] == '\0')
-	{
-		if (gb_uid == sucred.uid)
-		{
-			girar_user = "root";
-		} else
-		{
-			close(fd);
-			syslog(LOG_ERR,
-			       "request from %s (uid=%u), invalid account name rejected",
-			       pw->pw_name, sucred.uid);
-			exit(EXIT_FAILURE);
-		}
-	}
+		girar_user = "root";
 
 	if (setenv("GIRAR_USER", girar_user, 1))
 	{
@@ -173,8 +159,8 @@ handle_socket(int listen_fd)
 	}
 	dup2(fd, 0);
 	close(fd);
-	syslog(LOG_INFO, "request from %s (uid=%u) forwarded",
-	       pw->pw_name, sucred.uid);
+	syslog(LOG_INFO, "request from %s (uid=%u) forwarded via %s%s",
+	       pw->pw_name, sucred.uid, USER_PREFIX, girar_user);
 
 	const char *file = "girar-acl-merge-changes";
 	const char *const args[] = { file, NULL };
@@ -190,10 +176,6 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 		error(EXIT_FAILURE, 0, "Too many arguments");
 
 	struct passwd *pw;
-
-	if (!(pw = getpwnam(GB_USER)))
-		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_USER);
-	gb_uid = pw->pw_uid;
 
 	if (!(pw = getpwnam(GIRAR_USER)))
 		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_USER);
