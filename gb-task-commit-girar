@@ -156,6 +156,6 @@ while read -r N EVR F; do
 	girar_obsolete "$N"
 done <"$tmpdir"/rm
 
-gb-make-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
+gb-make-git-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
 
 stamp_echo >&2 'gears update OK'

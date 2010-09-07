@@ -38,4 +38,3 @@ for d; do
 done
 
 #stamp_echo >&2 'gears dir index update OK'
-
