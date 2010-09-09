@@ -1,0 +1,222 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-make-task-index-html'
+
+id="$1"; shift
+cd "$GB_TASKS/$id"
+
+owner="$(cat task/owner)"
+repo="$(cat task/repo)"
+seq="$(cat task/seq 2>/dev/null ||:)"
+if [ -n "$seq" ]; then
+	try="$((1+$seq/3))"
+	[ $try -gt 1 ] || try=
+else
+	try=
+fi
+
+log="task/log${try:+.$try}"
+
+set_GIT_DIR()
+{
+	local prefix="$1"; shift
+	local project="$1"; shift
+	local sym="$(printf %s "$project" |cut -c1)"
+	GIT_DIR="$prefix/$sym/$project.git"
+	export GIT_DIR
+}
+
+try_git_url()
+{
+	local prefix="$1"; shift
+	local project="$1"; shift
+	local repo="$1"; shift
+
+	local sym="$(printf %s "$project" |cut -c1)"
+	local dir="$prefix/$sym/$project.git"
+	if git --git-dir="$dir" rev-parse --verify "heads/$repo^{commit}" >/dev/null 2>&1; then
+		printf %s "${dir%/*}/..git?p=${dir##*/};a=shortlog;h=refs/heads/$repo"
+		return 0
+	fi
+	return 1
+}
+
+find_git_url()
+{
+	local project="$1"; shift
+	local repo="$1"; shift
+	local prefix
+
+	for prefix in "$GIRAR_GEARS" "$GIRAR_SRPMS"; do
+		try_git_url "$prefix" "$project" "$repo" || continue
+		return 0
+	done
+}
+
+show_time()
+{
+	[ -f "$log" ] || exit 0
+	local ts
+	ts="$(date -r "$log" '+%Y-%b-%d %T')"
+	printf ' at %s' "$ts"
+}
+
+show_status()
+{
+	if [ -z "$seq" ]; then
+		printf ' NEW'
+		return
+	fi
+	local status
+	case "$(($seq%3))" in
+		# awaiting for build
+		0) status=AWAITING ;;
+		# work in progress
+		1) status=BUILDING ;;
+		# have build results
+		2)
+		if [ 0 = "$(cat task/rc 2>/dev/null)" ]; then
+			if [ -f task/test-only ]; then
+				status=TESTED
+			else
+				status=DONE
+			fi
+		else
+			status=FAILED
+		fi
+		;;
+	esac
+	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' shared' 2>/dev/null ||:
+	if [ "$status" != 'TESTED' ] && [ -f task/test-only ]; then
+		printf ' test-only'
+	fi
+	printf ' <a href="%s">%s%s</a>' "$log" "${try:+try $try }" "$status"
+	show_time
+}
+
+show_iterations()
+{
+	[ -n "$try" ] || return 0
+	printf '<h3>Previous iterations: '
+	local i been
+	for i in $(seq 2 $try); do
+		[ -z "$been" ] || printf ', '
+		if [ "$i" = "$try" ]; then
+			printf '<a href="task/log">1</a>'
+		else
+			local t=$(($try-$i+1))
+			printf '<a href="%s">%s</a>' \
+				"task/log.$t" "$t"
+		fi
+		been=1
+	done
+	printf '.</h3>'
+}
+
+show_subtask()
+{
+	local i; i="$1"; shift
+	if [ -s "gears/$i/dir" ]; then
+		local dir tag_name
+		dir="$(cat "gears/$i/dir")"
+		tag_name="$(cat "gears/$i/tag_name")"
+		printf '<td>build</td><td><a href="%s">%s %s</a></td>' \
+			"gears/$i/git" "${dir##*/}" "$tag_name"
+	elif [ -s "gears/$i/srpm" ]; then
+		local srpm
+		srpm="$(cat "gears/$i/srpm")"
+		printf '<td>build</td><td><a href="%s">srpm %s</a></td>' \
+			"gears/$i/$srpm" "$srpm"
+	elif [ -s "gears/$i/package" ]; then
+		local package url_to
+		package="$(cat "gears/$i/package")"
+		url_to="$(find_git_url "$package" "$repo")"
+		if [ -n "$url_to" ]; then
+			url_to="<a href="$url_to">$package</a>"
+		else
+			url_to="$package"
+		fi
+		if [ -s "gears/$i/copy_repo" ]; then
+			local repo_from
+			repo_from="$(cat "gears/$i/copy_repo")"
+			local url_from
+			url_from="$(find_git_url "$package" "$repo_from")"
+			if [ -n "$url_from" ]; then
+				url_from="<a href="$url_from">$repo_from</a>"
+			else
+				url_from="$repo_from"
+			fi
+			printf '<td>%s</td><td>%s</td>' "copy $url_to" "from $url_from"
+		else
+			printf '<td>%s</td><td>%s</td>' del "$url_to"
+		fi
+	fi
+}
+
+show_subtasks()
+{
+	set -- $(gear_nums)
+	[ $# -ge 1 ] || return 0
+
+	local i userid print_userid= colspan=5 th_owner=
+	for i; do
+		userid="$(cat "gears/$i/userid")" || continue
+		if [ "$userid" != "$owner" ]; then
+			print_userid=1
+			colspan=6
+			th_owner='<th>Owner</th>'
+			break
+		fi
+	done
+
+	echo '<table border="1">'
+	printf '<tr><th colspan="%s"><h2>Subtasks</h2></th></tr>\n' \
+		"$colspan"
+	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="2">Build results</th></tr>\n' \
+		"$th_owner"
+
+	for i; do
+		userid="$(cat gears/$i/userid)" || continue
+		if [ -n "$print_userid" ]; then
+			userid="<td>$userid</td>"
+		else
+			userid=
+		fi
+		local data
+		data="$(show_subtask "$i")" &&
+		[ -n "$data" ] ||
+			continue
+		printf '<tr><td>%s</td>%s%s' \
+			"$i" "$userid" "$data"
+		local a
+		for a in $(set +f; echo build/$i/*); do
+			[ -d "$a" ] || continue
+			printf '<td><a href="%s">%s</a></td>' "$a/" "${a##*/}"
+		done
+		echo '</tr>'
+	done
+	echo '</table>'
+}
+
+show()
+{
+	cat <<__EOF__
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta name="robots" content="index, nofollow"/>
+<title>Task #$id for $repo by $owner</title>
+</head>
+<body>
+<h1>Task #$id for <i>$repo</i> by <a href="$GIRAR_HOME/$owner/packages/?o=age">$owner</a></h1>
+<h2>Status:$(show_status)</h2>
+$(show_iterations)
+$(show_subtasks)
+</body>
+</html>
+__EOF__
+}
+
+umask 002
+show > index.html

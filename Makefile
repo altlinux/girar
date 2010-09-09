@@ -88,6 +88,7 @@ bin_TARGETS = \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
 	bin/girar-ls \
+	bin/girar-make-task-index-html \
 	bin/girar-mv-db \
 	bin/girar-normalize-repo-name \
 	bin/girar-quota \
