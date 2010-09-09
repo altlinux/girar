@@ -86,5 +86,6 @@ logger -t "$PROG" "user=$GIRAR_USER task=$id seq=$seq"
 
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$seq" >task/seq
+girar-make-task-index-html "$id"
 
 echo >&2 "task #$id: ${try:+try=$try }queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"

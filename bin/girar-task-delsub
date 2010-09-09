@@ -69,6 +69,7 @@ for i; do
 	# girar-builder
 	rm -f gears/$i/pkg.tar
 	trap - HUP INT QUIT PIPE TERM
+	girar-make-task-index-html "$id"
 	echo >&2 "task #$id: removed subtask #$i"
 	exit
 done

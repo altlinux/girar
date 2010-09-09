@@ -63,3 +63,4 @@ builtin lockf -n . ||
 	fatal 'Permission denied'
 
 chmod g${op}w gears acl
+girar-make-task-index-html "$id"
