@@ -1,0 +1,14 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-functions
+
+rm -rf "build/repo/$arch"
+umask 002
+mkdir -p "build/repo/$arch/RPMS.task"
+for i in $(build_nums); do
+	[ -d "build/$i/$arch/rpms" ] || continue
+	find "build/$i/$arch/rpms" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -printf '%f\0' |
+		xargs -r0 -I{} ln -s -t "build/repo/$arch/RPMS.task" "../../../$i/$arch/rpms/{}"
+done
