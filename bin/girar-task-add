@@ -334,7 +334,9 @@ GIT_DIR=gears/$i/git
 export GIT_DIR
 mkdir "$GIT_DIR"
 git init -q --template=/var/empty
+printf >&2 %s "fetching tag \"$tag_name\" from $dir... "
 git fetch -q "$dir" tag "$tag_name"
+echo >&2 done
 git branch master "tags/$tag_name"
 touch "$GIT_DIR/git-daemon-export-ok"
 
@@ -347,12 +349,13 @@ else
 fi
 
 pkg_tar="gears/$i/pkg.tar"
+printf >&2 %s "generating pkg.tar for ${dir##*/} tag \"$tag_name\"... "
 if env TZ=UTC gear -t "$tag_name" -- "$pkg_tar" &&
    [ -s "$pkg_tar" ]; then
-	message "created pkg.tar for ${dir##*/} tag \"$tag_name\""
+	echo >&2 done
 else
 	rm -f "$pkg_tar"
-	fatal "cannot create pkg.tar for ${dir##*/} tag \"$tag_name\""
+	fatal "failed to create pkg.tar for ${dir##*/} tag \"$tag_name\""
 fi
 
 girar-make-task-index-html "$id"
