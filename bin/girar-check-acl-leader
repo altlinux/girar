@@ -54,11 +54,11 @@ leader="${owners%% *}"
 loop=
 while [ -n "$leader" -a -z "${leader##@*}" -a "$leader" != "@nobody" ]; do
 	grp="$leader"
-	quote_sed_regexp_variable qitem "$item"
+	quote_sed_regexp_variable qitem "$grp"
 
 	owners="$(sed -n "s/^$qitem[[:space:]]\+//p" "$acl_groups")"
 	[ -n "$owners" ] ||
-		deny "$grp: Group not found in ${item_acl##*/}"
+		deny "$grp: Group not found in ${acl_groups##*/}"
 
 	leader="${owners%% *}"
 	[ -n "$leader" ] ||
