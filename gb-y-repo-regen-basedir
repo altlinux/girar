@@ -39,6 +39,7 @@ fi
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
 for arch in i586 x86_64 noarch; do
+	[ -d "$REPO_DIR/$arch" ] || continue
 
 	# Arch packages haven't changed?
 	maybe_unchanged=
@@ -52,16 +53,17 @@ for arch in i586 x86_64 noarch; do
 		--cachedir="$HOME"/.cache \
 		--architectures="i586 x86_64 noarch" \
 		--architecture="$arch" \
-		--archive="ALT Linux $GB_REPO_NAME" \
+		--archive="${GB_REPO_ARCHIVE:-ALT Linux $GB_REPO_NAME}" \
 		--codename="$GB_REPO_CODENAME" \
-		--description="ALT Linux $GB_REPO_NAME" \
-		--label="$GB_REPO_NAME" \
-		--origin="ALT Linux Team" \
-		--suite="$GB_REPO_NAME" \
-		--version="$GB_REPO_NAME" \
+		--description="${GB_REPO_DESCRIPTION:-ALT Linux $GB_REPO_NAME}" \
+		--label="${GB_REPO_LABEL:-$GB_REPO_NAME}" \
+		--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
+		--suite="${GB_REPO_SUITE:-$GB_REPO_NAME}" \
+		--version="${GB_REPO_VERSION:-$GB_REPO_NAME}" \
 		-s --default-key="$GB_REPO_SIGNER" \
 		--topdir="$REPO_DIR" \
-		--flat --no-oldhashfile --bz2only --mapi $arch classic ||
+		--flat --no-oldhashfile --bz2only --mapi \
+		$arch ${GB_REPO_COMPONENT_NAMES:-classic} ||
 			echo 1 >>"$tmpdir"/FAIL &
 done
 wait
