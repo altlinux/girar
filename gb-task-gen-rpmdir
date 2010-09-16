@@ -1,9 +1,0 @@
-#!/bin/sh -efu
-
-. gb-sh-functions
-
-for arch in i586 x86_64; do
-	$0-arch "$arch" &
-done
-
-wait

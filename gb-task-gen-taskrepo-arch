@@ -6,6 +6,7 @@ arch="$1"; shift
 
 rm -rf "build/repo/$arch"
 umask 002
+mkdir -p "build/repo/$arch/base"
 mkdir -p "build/repo/$arch/RPMS.task"
 for i in $(build_nums); do
 	[ -d "build/$i/$arch/rpms" ] || continue

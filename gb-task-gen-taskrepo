@@ -1,0 +1,25 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+
+. gb-sh-tmpdir
+
+for arch in i586 x86_64; do
+	$0-arch "$arch" ||
+		stamp_echo "[$arch] task repo generation FAILED" >>"$tmpdir"/FAIL &
+done
+
+wait
+
+# Fail if at least one arch failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+GB_REPO_COMPONENT_NAMES=task GB_REPO_ARCHIVE="task $id" GB_REPO_DESCRIPTION="task $id" GB_REPO_LABEL="task $id" GB_REPO_SUITE="task $id" GB_REPO_VERSION="task $id" \
+	gb-y-repo-regen-basedir --bloat build/repo
+
+#stamp_echo >&2 'task repo generation OK'

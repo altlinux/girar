@@ -59,7 +59,7 @@ fi
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install
-	gb-task-gen-rpmdir
+	gb-task-gen-taskrepo "$id"
 	gb-task-local-policy
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
