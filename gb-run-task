@@ -33,7 +33,7 @@ fi
 	started_by="${started_by#git_}"
 	stamp_echo "task #$id for $GB_REPO_NAME $text by $started_by:"
 	gb-task-show
-	env PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
 	# Prepare changes
 	gb-task-pkgtar
@@ -48,7 +48,7 @@ fi
 	gb-task-setup-remote
 	gb-task-copy-packages
 	gb-task-build
-	env PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
 	# Test changes
 	gb-task-check-build
@@ -97,7 +97,7 @@ seq=$(($seq+1))
 echo "$seq" >task/seq
 
 gb-task-send-email "$id"
-env PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 gb-task-archive "$id"
 
 # hook up a general archive cleanup
