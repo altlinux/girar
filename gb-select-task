@@ -15,6 +15,11 @@ repo_tasks()
 		cut -d/ -f2 |sort -n
 }
 
+nums()
+{
+	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-9]*/dir' -or -path 'gears/[1-9]*/srpm' -or -path 'gears/[1-9]*/package' \) -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
+}
 
 select_task()
 {
@@ -32,6 +37,10 @@ select_task()
 	# if the task is not ready to run, fail
 	[ -n "$seq" ]
 	[ "$(($seq%3))" -eq 0 ]
+
+	# if no non-empty subtasks found, fail
+	set -- $(nums)
+	[ $# -ge 1 ]
 
 	seq=$(($seq+1))
 	echo "$seq" >task/seq ||
