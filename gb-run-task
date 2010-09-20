@@ -28,10 +28,11 @@ fi
 
 (
 	exec >>"$log" 2>&1
+	shared_task="$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
 	[ -s task/log ] && text=resumed || text=started
 	started_by="$(stat -c %U "$log")"
 	started_by="${started_by#git_}"
-	stamp_echo "task #$id for $GB_REPO_NAME $text by $started_by:"
+	stamp_echo "${shared_task}task #$id for $GB_REPO_NAME $text by $started_by:"
 	gb-task-show
 	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
