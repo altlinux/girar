@@ -53,6 +53,8 @@ nprocs=1
 known_mountpoints=/proc,/dev/pts
 USER="$owner-$repo_name"
 EOF
+
+# pass remaining command line arguments (if any) to .hasher/config
 for arg; do
 	printf '%s\n' "$arg"
 done >>.hasher/config
