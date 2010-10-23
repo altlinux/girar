@@ -29,6 +29,9 @@ select_task()
 	# if the lock cannot be immediately acquired, fail
 	builtin lockf -n .
 
+	# if skip flag is set, fail
+	[ ! -f task/skip ]
+
 	# if task sequence number is not set, fail
 	[ -s task/seq ]
 
