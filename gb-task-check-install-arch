@@ -27,10 +27,17 @@ rc=0
 
 while read -r N EVR A F; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
+
+	# copy install chroot identification to remote side
+	(umask 002; mkdir -p "install/$N/$arch") || false
+	rsync -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
+
 	if ssh "$remote_host" ./gb-remote-check-install \
 	       "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$F" </dev/null; then
-		stamp_echo >&2 "[$arch] $N: install check OK"
+		# copy install chroot identification from remote side
+		rsync -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
 	else
+		rm -rf "install/$N/$arch"
 		stamp_echo >&2 "[$arch] $N: install check FAILED"
 		rc=1
 	fi

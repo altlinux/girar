@@ -4,12 +4,10 @@ GB_REPO_NAME="$1"; shift
 arch="$1" N="$2" EVR="$3" A="$4" F="$5"
 shift 5
 
-if rpmquery --provides -p "gb-repo/$A/RPMS.classic/$F" |
-   grep -qs '^altlinux-release '; then
-	release=$N
-else
-	release=altlinux-release-$GB_REPO_NAME
-fi
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+}
 
 tmpdir=
 cleanup()
@@ -21,9 +19,24 @@ cleanup()
 tmpdir=$(mktemp -t -d "${0##*/}.XXXXXXXX")
 trap 'cleanup $?' EXIT
 trap 'exit 143' HUP INT QUIT PIPE TERM
+
+q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
+F_path="gb-repo/$A/RPMS.classic/$F"
+rpmquery --qf "$q_bin" -p "$F_path" > "$tmpdir/id"
+
+if rpmquery --provides -p "$F_path" |
+   grep -qs '^altlinux-release '; then
+	release=$N
+else
+	release=altlinux-release-$GB_REPO_NAME
+fi
+
+topdir="$PWD"
 cd "$tmpdir"
 
 # Initialize.
+initroot_stamp="$TMPDIR/tmp/check-install-hsh-initroot.stamp"
+[ -s "$initroot_stamp" ] ||
 setarch "$arch" -- \
 hsh --init --without-stuff --no-contents-ind \
     --pkg-init-list="+$release" \
@@ -34,14 +47,45 @@ hsh --init --without-stuff --no-contents-ind \
 		exit 1
 	} >&2
 
+# Save base chroot identification.
+hsh-run -- rpmquery -a --qf "$q_bin" > chroot_base
+sort -u -o chroot_base{,}
+date > "$initroot_stamp"
+
 # Check if the package is already installed.
 QA='%{name}=%|epoch?{%{epoch}:}|%{version}-%{release}\n'
 hsh-run -- rpmquery -a --qf "$QA" >packages0
 if fgrep -qs -x -e "$N=$EVR" packages0; then
 	# The package is already installed.  Since the package is part of
 	# basesystem, removing it might not work very well.
+	stamp_echo >&2 "[$arch] $N: part of basesystem, install check OK"
 	exit 0
 fi
+
+# Check if there was a successful install test for the package already.
+if [ -s "$topdir"/install/chroot_install ] &&
+   cmp -s {"$topdir"/install/,}id &&
+   cmp -s {"$topdir"/install/,}chroot_base; then
+	(set +u
+	 . hsh-sh-functions
+	 set_workdir
+	 print_uris "$N=$EVR" 2>/dev/null
+	) |
+	xargs -r0 --delimiter='\n' \
+		rpmquery --qf "$q_bin" -p -- |
+		sort -u > chroot_install
+	cat chroot_base >> chroot_install
+	sort -u -o chroot_install{,}
+	if cmp -s {"$topdir"/install/,}chroot_install; then
+		[ ! -s "$topdir"/install/warnings ] ||
+			cat -- "$topdir"/install/warnings
+		stamp_echo >&2 "[$arch] $N: no need to repeat, install check SKIPPED"
+		exit 0
+	fi
+fi
+
+rm -f -- "$initroot_stamp"
+> warnings
 
 # Install prerequisites.
 # Installing prerequisites is tricky: pretend to install the package and then
@@ -100,10 +144,12 @@ comm -23 packages{2,1} >new-packages
 n=$(wc -l <new-packages)
 if [ $n -lt 1 ]; then
 	echo "warning [$arch]: $N=$EVR: pre/post-install mess-up"
-	exit 0
+	exit 1
 elif [ $n -gt 1 ]; then
 	what=$(fgrep -v -x -e "$N=$EVR" new-packages)
-	echo "warning [$arch]: $N=$EVR: circular dependencies on" $what
+	echo > warnings \
+		"warning [$arch]: $N=$EVR: circular dependencies on" $what
+	cat warnings
 fi >&2
 
 # Check new files.
@@ -151,7 +197,17 @@ if [ -s out ]; then
 	sed -i 's|no package provides \(/.*\)|file \1 is not owned by any package|' out
 	echo "	$arch: $N=$EVR post-install unowned files:"
 	cat out
+	echo >> warnings \
+		"	$arch: $N=$EVR post-install unowned files:"
+	cat out >> warnings
 fi >&2
+
+# Save chroot identification.
+hsh-run -- rpmquery -a --qf "$q_bin" > chroot_install
+sort -u chroot_install > "$topdir"/install/chroot_install
+cp -p id chroot_base "$topdir"/install/
+[ ! -s warnings ] ||
+	cp -p warnings "$topdir"/install/
 
 # Remove the package.
 what=$(perl -pe 's/=\d+:/-/ or s/=/-/' <new-packages)
@@ -162,3 +218,5 @@ rpm -ev -- ${what:?} </dev/null >out 2>&1 ||
 		cat out
 		exit 1
 	} >&2
+
+stamp_echo >&2 "[$arch] $N: install check OK"

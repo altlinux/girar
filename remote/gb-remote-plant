@@ -25,6 +25,13 @@ rm -rf -- "$build"
 mkdir -p -- "$build"
 ln -snf -- "$build"
 
+# recreate $TMPDIR/install
+# recreate ~/install as symlink to $TMPDIR/install
+install="$TMPDIR/install"
+rm -rf -- "$install"
+mkdir -p -- "$install"
+ln -snf -- "$install"
+
 # create $TMPDIR/hasher if necessary
 # recreate $TMPDIR/hasher/repo
 # recreate ~/hasher as symlink to $TMPDIR/hasher
