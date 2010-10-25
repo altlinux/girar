@@ -25,7 +25,9 @@ handle_build_arch()
 
 for i in $(copy_nums); do
 	repo="$(cat gears/$i/copy_repo)"
-	repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
+	repo_dir="$(unset GB_REPO_DIR &&
+		    . gb-sh-conf-$repo &&
+		    printf %s "$GB_REPO_DIR")"
 	cd "$tmpdir"
 	make_repo_table "$repo"
 	cd - >/dev/null

@@ -155,7 +155,9 @@ make_repo_table()
 	if [ "$repo" = "$GB_REPO_NAME" ]; then
 		repo_dir="$GB_REPO_DIR"
 	else
-		repo_dir="$(. gb-sh-conf-$repo && printf %s "$GB_REPO_DIR")"
+		repo_dir="$(unset GB_REPO_DIR &&
+			    . gb-sh-conf-$repo &&
+			    printf %s "$GB_REPO_DIR")"
 	fi
 
 	if [ -s "$repo_dir/files/list/src.list" ]; then
