@@ -33,16 +33,16 @@ elif set -- $src_nums && [ $# -gt 1 ]; then
 fi
 
 if [ -z "$need_regen" ]; then
-	ln -s "$GB_REPO_DIR" "$repo"
+	ln -s -- "$GB_REPO_DIR" "$repo"
 	# That was fast, no need to stamp.
 	exit 0
 fi
 
 # Create skeleton and make RPMS.classic symlinks.
-mkdir -p "$repo"/{i586,x86_64,noarch}/base
-ln -s $GB_REPO_DIR/i586/RPMS.classic $repo/i586/
-ln -s $GB_REPO_DIR/x86_64/RPMS.classic $repo/x86_64/
-ln -s $GB_REPO_DIR/noarch/RPMS.classic $repo/noarch/
+for a in i586 x86_64 noarch; do
+	mkdir -p -- "$repo"/$a/base
+	ln -s -- "$GB_REPO_DIR"/$a/RPMS.classic "$repo"/$a/
+done
 
 # SRPMS not needed for build.
 # contents_index not needed for build.
