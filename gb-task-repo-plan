@@ -140,4 +140,5 @@ if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
 	diff -u "$GB_REPO_DIR/files/list/bin.list" plan/next.bin >plan/bin.list.diff ||:
 fi
 
-stamp_echo >&2 'plan OK'
+# This operation is quite fast, no need to stamp.
+exit 0
