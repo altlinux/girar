@@ -28,7 +28,7 @@ if [ -n "$src_nums" ] && [ -n "$copy_nums" ]; then
 	# been copied might be required for build.
 	need_regen=1
 elif set -- $src_nums && [ $# -gt 1 ]; then
-	# Consecutive builds.
+	# Consequent builds.
 	need_regen=1
 fi
 
