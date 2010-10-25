@@ -20,4 +20,5 @@ if [ -s "$tmpdir"/FAIL ]; then
 	exit 1
 fi
 
-stamp_echo >&2 'install check OK'
+# Do not stamp final OK because per-package install checks are already stamped.
+exit 0
