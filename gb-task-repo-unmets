@@ -2,7 +2,7 @@
 
 . gb-sh-functions
 repo1="$GB_REPO_DIR"
-repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
+repo2="$GB_TMP_REPO_DIR"
 topdir="$PWD"
 
 . gb-sh-tmpdir

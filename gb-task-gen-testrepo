@@ -3,22 +3,24 @@
 . gb-sh-functions
 
 # Use a fixed path so that genpkglist md5cache works.
-repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
-rm -rf "$repo"
-mkdir "$repo"
+rm -rf "$GB_TMP_REPO_DIR"
+mkdir "$GB_TMP_REPO_DIR"
 
 # Prepare skeleton.
 for arch in i586 x86_64 noarch; do
-	mkdir $repo/$arch
+	mkdir $GB_TMP_REPO_DIR/$arch
 	# Copy base directory, except for contents_index.
-	rsync -a --exclude contents_index $GB_REPO_DIR/$arch/base $repo/$arch/
+	rsync -a --exclude contents_index \
+		$GB_REPO_DIR/$arch/base $GB_TMP_REPO_DIR/$arch/
 	# Deal with RPMS and SRPMS.
 	if cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
 		# Need to copy directory structure (using symlinks).
-		cp -prs $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic $repo/$arch/
+		cp -prs $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic \
+			$GB_TMP_REPO_DIR/$arch/
 	else
 		# Arch packages unchanged, no need to copy directory structure.
-		ln -s $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic $repo/$arch/
+		ln -s $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic \
+			$GB_TMP_REPO_DIR/$arch/
 	fi
 done
 
@@ -26,31 +28,31 @@ done
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
 # and update only RPMS.classic components.
 while read -r N EVR A F; do
-	rm -- $repo/$A/RPMS.classic/$F
+	rm -- $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
 done <plan/rm-bin
 while read -r N EVR A F; do
        bin=$(findbin "$F")
        # NB: copy here, so that the repo is rsyncable to remotes.
-       cp -p -- $PWD/$bin $repo/$A/RPMS.classic/$F
+       cp -p -- $PWD/$bin $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
 done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse
 # test repo base directories later in gb-task-commit-repo.
 # However, we omit SRPMS.all update.
 while read -r F A; do
-	rm -- $repo/$A/SRPMS.classic/$F
+	rm -- $GB_TMP_REPO_DIR/$A/SRPMS.classic/$F
 done <plan/rm-srpm2arch
 while read -r F A; do
 	src=$(findsrc "$F")
 	# NB: copying is not needed here.
-	ln -s -- $PWD/$src $repo/$A/SRPMS.classic/$F
+	ln -s -- $PWD/$src $GB_TMP_REPO_DIR/$A/SRPMS.classic/$F
 done <plan/add-srpm2arch
 
 # Regen repo.
-gb-y-repo-regen-basedir "$repo"
+gb-y-repo-regen-basedir "$GB_TMP_REPO_DIR"
 
 # basedir ok, SRPMS no longer needed
-rm -r $repo/{i586,x86_64,noarch}/SRPMS.classic
+rm -r $GB_TMP_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic
 
 # Optimize even more: the whole arch component can be turned into symlink.
 for arch in i586 x86_64 noarch; do
@@ -58,9 +60,9 @@ for arch in i586 x86_64 noarch; do
 		# Arch packages changed, cannot optimize.
 		continue
 	fi
-	if cmp -s {$GB_REPO_DIR,$repo}/$arch/base/pkglist.classic.xz; then
-		rm -r $repo/$arch
-		ln -s $GB_REPO_DIR/$arch $repo/
+	if cmp -s {$GB_REPO_DIR,$GB_TMP_REPO_DIR}/$arch/base/pkglist.classic.xz; then
+		rm -r $GB_TMP_REPO_DIR/$arch
+		ln -s $GB_REPO_DIR/$arch $GB_TMP_REPO_DIR/
 	fi
 done
 

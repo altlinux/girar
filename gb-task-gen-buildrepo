@@ -3,8 +3,7 @@
 . gb-sh-functions
 
 # Use a fixed path so that genpkglist md5cache works.
-repo="$TMPDIR/gb-repo-$GB_REPO_NAME"
-rm -rf "$repo"
+rm -rf "$GB_TMP_REPO_DIR"
 
 # Hackaround for file-level dependencies.  Packages are getting built
 # with intermediate RPMS.hasher overlay (--with-stuff mode):
@@ -33,21 +32,21 @@ elif set -- $src_nums && [ $# -gt 1 ]; then
 fi
 
 if [ -z "$need_regen" ]; then
-	ln -s -- "$GB_REPO_DIR" "$repo"
+	ln -s -- "$GB_REPO_DIR" "$GB_TMP_REPO_DIR"
 	# That was fast, no need to stamp.
 	exit 0
 fi
 
 # Create skeleton and make RPMS.classic symlinks.
 for a in i586 x86_64 noarch; do
-	mkdir -p -- "$repo"/$a/base
-	ln -s -- "$GB_REPO_DIR"/$a/RPMS.classic "$repo"/$a/
+	mkdir -p -- "$GB_TMP_REPO_DIR"/$a/base
+	ln -s -- "$GB_REPO_DIR"/$a/RPMS.classic "$GB_TMP_REPO_DIR"/$a/
 done
 
 # SRPMS not needed for build.
 # contents_index not needed for build.
 
 # Regen.
-gb-y-repo-regen-basedir --bloat "$repo"
+gb-y-repo-regen-basedir --bloat "$GB_TMP_REPO_DIR"
 
 stamp_echo >&2 'created build repo'

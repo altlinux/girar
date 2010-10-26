@@ -7,7 +7,7 @@ cut -f3 plan/{add,rm}-bin |fgrep -qs -v noarch || exit 0
 repo1="$GB_REPO_DIR"
 
 # Reuse our temporary repo.
-repo2="$TMPDIR/gb-repo-$GB_REPO_NAME"
+repo2="$GB_TMP_REPO_DIR"
 
 . gb-sh-tmpdir
 cd "$tmpdir"
