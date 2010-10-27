@@ -67,7 +67,7 @@ fi
 iter=1
 
 # create group writable directories for build results
-mkdir -pm3775 bugmail build plan install
+mkdir -pm2775 bugmail build plan install
 
 # create group writable files required for build
 (umask 002; touch task/log.$try.$iter task/iter task/try task/summary) || false
