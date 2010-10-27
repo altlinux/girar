@@ -6,6 +6,10 @@ id="$1"; shift
 
 . gb-sh-tmpdir
 
+for arch in i586 x86_64 noarch; do
+	rm -rf "build/repo/$arch"
+done
+
 for arch in i586 x86_64; do
 	$0-arch "$arch" ||
 		stamp_echo "[$arch] task repo generation FAILED" >>"$tmpdir"/FAIL &

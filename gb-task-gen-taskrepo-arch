@@ -4,7 +4,6 @@ arch="$1"; shift
 
 . gb-sh-functions
 
-rm -rf "build/repo/$arch"
 umask 002
 mkdir -p "build/repo/$arch/base"
 mkdir -p "build/repo/$arch/RPMS.task"
