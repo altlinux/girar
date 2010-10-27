@@ -80,6 +80,8 @@ fi
 
 	# Apply changes
 	echo COMMITTING > task/state
+	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+
 	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
