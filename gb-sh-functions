@@ -195,7 +195,7 @@ vercheck()
 
 halt_build_queue()
 {
-	echo "${0##*/} failed in $PWD" >>"$GB_HOME/STOP"
+	echo "${0##*/} failed in $PWD" >>"$GB_STOP_FILE"
 	stamp_echo >&2 '*** BUILD QUEUE HALTED ***'
 	return 1
 }

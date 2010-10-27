@@ -21,6 +21,8 @@
 : ${GB_EMAIL_DOMAIN_PEOPLE:?}
 : ${GB_EMAIL_DOMAIN_GROUPS:?}
 
+: ${GB_STOP_FILE:?}
+
 GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$GB_REPO_NAME"
 
 [ -z "${arch-}" ] ||
