@@ -2,6 +2,9 @@
 
 . gb-sh-functions
 
+# Drop old plan if any.
+find plan -type f -delete
+
 # Make a plan for upgrade: assuming that all new packages go
 # into the repo, find out the existing packages which should
 # be replaced or removed.
