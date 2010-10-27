@@ -14,14 +14,14 @@ regen=
 for arch in i586 x86_64 noarch; do
 	f1=$GB_REPO_DIR/$arch/base/release
 	f2=$GB_REPO_DIR/$arch/base/pkglist.classic.bz2
-	g2=$GB_TMP_REPO_DIR/$arch/base/pkglist.classic.bz2
+	g2=build/repo/$arch/base.next/pkglist.classic.bz2
 	# If pkglist has not changed, skip the update.
 	[ -s "$f1" ] && [ -s "$f2" ] && cmp -s "$f2" "$g2" && continue
 	# Paranoia: handle tmpfs failures.
 	# Since packages are already committed, we must try hard.
 	rm -f "$f1" "$f2"
 	# NB: no --delete here, contents_index was removed.
-	rsync -a $GB_TMP_REPO_DIR/$arch/base/ $GB_REPO_DIR/$arch/base/ &&
+	rsync -rlt build/repo/$arch/base.next/ $GB_REPO_DIR/$arch/base/ &&
 		[ -s "$f1" ] && [ -s "$f2" ] && continue
 	regen=1
 done
