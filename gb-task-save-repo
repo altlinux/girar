@@ -1,0 +1,20 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+. gb-sh-tmpdir
+
+for arch in i586 x86_64 noarch; do
+	$0-arch "$arch" ||
+		stamp_echo "[$arch] FAILED to save apt indices" >>"$tmpdir"/FAIL &
+done
+
+wait
+
+# Fail if at least one arch failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+exit 0

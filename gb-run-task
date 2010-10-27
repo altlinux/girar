@@ -63,6 +63,7 @@ fi
 	gb-task-repo-elfsym
 	gb-task-check-install
 	gb-task-gen-taskrepo "$id"
+	gb-task-save-repo
 	gb-task-local-policy
 	# Obtain an exclusive lock on the $GB_GEARS_DIR.
 	# Actually, only shared lock is required for check,
