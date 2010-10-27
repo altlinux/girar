@@ -9,12 +9,14 @@ enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -v .
 
-seq=$(cat task/seq)
-[ -n "$seq" ] && [ "$(($seq%3))" -eq 1 ] ||
-	{ echo >&2 "Task $id is not selected for run"; exit 1; }
-try="$((1+$seq/3))"
-[ $try -gt 1 ] || try=
-log="task/log${try:+.$try}"
+if [ "$(cat task/state)" != BUILDING ]; then
+	echo >&2 "Task $id is not selected for run"
+	exit 1
+fi
+
+try=$(cat task/try)
+iter=$(cat task/iter)
+log="task/log.$try.$iter"
 gb-task-set-summary
 
 # test only mode
@@ -29,7 +31,7 @@ fi
 (
 	exec >>"$log" 2>&1
 	shared_task="$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
-	[ -s task/log ] && text=resumed || text=started
+	[ "$try" = 1 ] && text=started || text=resumed
 	started_by="$(stat -c %U "$log")"
 	started_by="${started_by#git_}"
 	stamp_echo "${shared_task}task #$id for $GB_REPO_NAME $text by $started_by:"
@@ -71,10 +73,12 @@ fi
 	gb-task-check-acl
 	gb-task-cleanup
 
+	echo TESTED > task/state
 	[ -z "$test_only" ] ||
 		exit 0
 
 	# Apply changes
+	echo COMMITTING > task/state
 	gb-task-close-bugs
 	gb-task-commit-repo
 	gb-task-commit-girar
@@ -83,19 +87,15 @@ fi
 )
 
 rc=$?
-echo "$rc" >task/rc
 if [ "$rc" = 0 ]; then
 	[ -z "$test_only" ] &&
-		text=COMPLETE ||
-		text=TESTED
+		state=DONE ||
+		state=TESTED
 else
-	text=FAILED
+	state=FAILED
 fi
-stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $text"
-
-seq=$(cat task/seq)
-seq=$(($seq+1))
-echo "$seq" >task/seq
+stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
+echo "$state" > task/state
 
 gb-task-send-email "$id"
 PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:

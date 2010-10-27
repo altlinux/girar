@@ -5,7 +5,7 @@
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
-[ "$(cat task/rc)" = 0 -a ! -f task/test-only ] ||
+[ "$(cat task/state)" = DONE ] ||
 	exit 0
 
 find plan -type f -name 'next.*' -delete

@@ -4,7 +4,6 @@
 
 guard=16528
 [ -d "$GB_TASKS_DIR/$guard/build" ] &&
-[ "$(cat $GB_TASKS_DIR/$guard/task/rc)" != 0 ] &&
 [ "$(cat task/id)" != "$guard" ] ||
 exit 0
 

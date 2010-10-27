@@ -24,7 +24,7 @@ export GB_HOME
 PATH="$PWD:$PATH"
 
 rc=
-id="$(gb-select-task)"
+id="$(gb-select-task AWAITING BUILDING)"
 if [ -n "$id" ]; then
 	gb-run-task "$id" || rc=$?
 fi

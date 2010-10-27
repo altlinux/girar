@@ -2,6 +2,9 @@
 
 . gb-sh-functions
 
+find_state="$1"; shift
+next_state="$1"; shift
+
 cd "$GB_TASKS_DIR"
 
 enable -f /usr/lib/bash/lockf lockf
@@ -24,6 +27,8 @@ nums()
 select_task()
 {
 	local id="$1"; shift
+	local find_state="$1"; shift
+	local next_state="$1"; shift
 	cd "$id" 2>/dev/null
 	# obtain an exclusive lock on the TASKS structure
 	# if the lock cannot be immediately acquired, fail
@@ -32,26 +37,19 @@ select_task()
 	# if skip flag is set, fail
 	[ ! -f task/skip ]
 
-	# if task sequence number is not set, fail
-	[ -s task/seq ]
-
-	local seq
-	seq=$(cat task/seq)
-	# if the task is not ready to run, fail
-	[ -n "$seq" ]
-	[ "$(($seq%3))" -eq 0 ]
+	# if task state doesn't match, fail
+	[ "$(cat task/state)" = "$find_state" ]
 
 	# if no non-empty subtasks found, fail
 	set -- $(nums)
 	[ $# -ge 1 ]
 
-	seq=$(($seq+1))
-	echo "$seq" >task/seq ||
+	echo "$next_state" > task/state ||
 		halt_build_queue
 }
 
 for id in $(repo_tasks); do
-	(select_task "$id")
+	(select_task "$id" "$find_state" "$next_state")
 	if [ $? -eq 0 ]; then
 		echo "$id"
 		exit
