@@ -34,8 +34,9 @@ printf ' shared=%s' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w -pr
 printf ' test_only=%s' "$(test -f task/test-only && echo yes || echo no)"
 printf ' repo=%s' "$(cat task/repo)"
 printf ' owner=%s' "$(cat task/owner)"
-printf ' seq=%s' "$(cat task/seq 2>/dev/null)"
-printf ' rc=%s\n' "$(cat task/rc 2>/dev/null)"
+printf ' state=%s' "$(cat task/state)"
+printf ' try=%s' "$(cat task/try 2>/dev/null ||:)"
+printf ' iter=%s' "$(cat task/iter 2>/dev/null ||:)"
 
 nums="$(gear_nums)"
 [ -n "$nums" ] || exit 0

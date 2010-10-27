@@ -172,22 +172,7 @@ case "$action" in
 	;;
 esac
 
-seq=
-if [ -f task/seq ]; then
-	seq=$(cat task/seq)
-	case "$(($seq%3))" in
-		# awaiting for build
-		0) ;;
-		# work in progress
-		1) fatal "task #$id is a work in progress" ;;
-		# have build results
-		2)
-		if [ 0 = "$(cat task/rc)" ]; then
-			[ -f task/test-only ] ||
-				fatal "task #$id is already successfully processed"
-		fi ;;
-	esac
-fi
+check_task_modifiable
 
 nums=$(gear_nums)
 

@@ -44,34 +44,33 @@ fi
 [ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
-seq=
-if [ -f task/seq ]; then
-	seq=$(cat task/seq)
-	case "$(($seq%3))" in
-		# awaiting for build
-		0) fatal "task #$id already scheduled for run" ;;
-		# work in progress
-		1) fatal "task #$id is a work in progress" ;;
-		# have build results
-		2)
-		if [ 0 = "$(cat task/rc)" ]; then
-			[ -f task/test-only ] ||
-				fatal "task #$id is already successfully processed"
-		fi
-		seq=$(($seq+1)) ;;
-	esac
-else
-	seq=0
-fi
+state=$(cat task/state)
+case "$state" in
+	NEW|TESTED|FAILED)
+		;;
+	AWAITING)
+		fatal "task #$id is already scheduled for run" ;;
+	BUILDING|PENDING|COMMITTING)
+		fatal "task #$id is a work in progress" ;;
+	DONE)
+		fatal "task #$id is already successfully processed" ;;
+	*)
+		fatal "task #$id is in unrecognized state \"$state\"" ;;
+esac
 
-try="$((1+$seq/3))"
-[ $try -gt 1 ] || try=
+try=$(cat task/try 2>/dev/null ||:)
+if [ -n "$try" ]; then
+	try=$(($try+1))
+else
+	try=1
+fi
+iter=1
 
 # create group writable directories for build results
 mkdir -pm3775 bugmail build plan install
 
 # create group writable files required for build
-(umask 002; touch task/log"${try:+.$try}" task/rc task/seq task/summary) || false
+(umask 002; touch task/log.$try.$iter task/iter task/try task/summary) || false
 
 # set/remove test-only flag
 if [ -n "$test_only" ]; then
@@ -82,10 +81,12 @@ else
 		rm task/test-only
 fi
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id seq=$seq"
+logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try"
 
 trap '' HUP INT QUIT PIPE TERM
-printf '%s\n' "$seq" >task/seq
+echo AWAITING > task/state
+echo $try > task/try
+echo 1 > task/iter
 girar-make-task-index-html "$id"
 
-echo >&2 "task #$id: ${try:+try=$try }queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
+echo >&2 "task #$id: try #$try queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"

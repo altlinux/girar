@@ -8,15 +8,10 @@ cd "$GB_TASKS/$id"
 
 owner="$(cat task/owner)"
 repo="$(cat task/repo)"
-seq="$(cat task/seq 2>/dev/null ||:)"
-if [ -n "$seq" ]; then
-	try="$((1+$seq/3))"
-	[ $try -gt 1 ] || try=
-else
-	try=
-fi
-
-log="task/log${try:+.$try}"
+state="$(cat task/state)"
+try="$(cat task/try 2>/dev/null ||:)"
+iter="$(cat task/iter 2>/dev/null ||:)"
+log="task/log.$try.$iter"
 
 set_GIT_DIR()
 {
@@ -64,51 +59,36 @@ show_time()
 
 show_status()
 {
-	if [ -z "$seq" ]; then
-		printf ' NEW'
-		return
-	fi
-	local status
-	case "$(($seq%3))" in
-		# awaiting for build
-		0) status=AWAITING ;;
-		# work in progress
-		1) status=BUILDING ;;
-		# have build results
-		2)
-		if [ 0 = "$(cat task/rc 2>/dev/null)" ]; then
-			if [ -f task/test-only ]; then
-				status=TESTED
-			else
-				status=DONE
-			fi
-		else
-			status=FAILED
-		fi
-		;;
-	esac
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' shared' 2>/dev/null ||:
-	if [ "$status" != 'TESTED' ] && [ -f task/test-only ]; then
+	if [ "$state" != TESTED ] && [ -f task/test-only ]; then
 		printf ' test-only'
 	fi
-	printf ' <a href="%s">%s%s</a>' "$log" "${try:+try $try }" "$status"
-	show_time
+	if [ -f "$log" ]; then
+		local stry=
+		if [ "$try.$iter" != 1.1 ]; then
+			[ "$iter" = 1 ] &&
+				stry="try $try " ||
+				stry="try $try.$iter "
+		fi
+		printf ' <a href="%s">%s%s</a>' "$log" "$stry" "$state"
+		show_time
+	else
+		printf ' %s' "$state"
+	fi
 }
 
 show_iterations()
 {
-	[ -n "$try" ] || return 0
+	[ -f "$log" ] || return 0
+	set -- $(set +f && ls task/log.*.* 2>/dev/null | sort -t. -rnk2,3 | fgrep -vx "$log")
+	[ $# -ge 1 ] || return 0
 	printf '<h3>Previous iterations: '
-	local i been
-	for i in $(seq 2 $try); do
+	local i n been
+	for i; do
 		[ -z "$been" ] || printf ', '
-		if [ "$i" = "$try" ]; then
-			printf '<a href="task/log">1</a>'
-		else
-			local t=$(($try-$i+1))
-			printf '<a href="%s">%s</a>' \
-				"task/log.$t" "$t"
-		fi
+		n="${i#task/log.}"
+		n="${n%.1}"
+		printf '<a href="%s">%s</a>' "$i" "$n"
 		been=1
 	done
 	printf '.</h3>'

@@ -106,4 +106,20 @@ gear_nums()
 		cut -d/ -f2 |sort -n
 }
 
+check_task_modifiable()
+{
+	local state
+	state=$(cat task/state)
+	case "$state" in
+		NEW|AWAITING|TESTED|FAILED)
+			;;
+		BUILDING|PENDING|COMMITTING)
+			fatal "task #$id is a work in progress" ;;
+		DONE)
+			fatal "task #$id is already successfully processed" ;;
+		*)
+			fatal "task #$id is in unrecognized state \"$state\"" ;;
+	esac
+}
+
 fi #__included_girar_sh_functions

@@ -59,6 +59,8 @@ mkdir "$id"/task
 printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
+echo NEW >"$id"/task/state
+chmod g+w -- "$id"/task/state
 chmod g+rws,o+t -- "$id"/task "$id"
 girar-make-task-index-html "$id"
 

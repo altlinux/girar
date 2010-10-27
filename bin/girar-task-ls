@@ -30,34 +30,16 @@ enable -f /usr/lib/bash/lockf lockf
 
 show_status()
 {
-	local seq try
-	seq="$(cat task/seq 2>/dev/null ||:)"
-	if [ -z "$seq" ]; then
-		printf ' NEW'
-		return
-	fi
-	case "$(($seq%3))" in
-		# awaiting for build
-		0) printf ' AWAITING' ;;
-		# work in progress
-		1) printf ' BUILDING' ;;
-		# have build results
-		2)
-		if [ 0 = "$(cat task/rc 2>/dev/null)" ]; then
-			if [ -f task/test-only ]; then
-				printf ' TESTED'
-			else
-				printf ' DONE'
-			fi
-		else
-			printf ' FAILED'
-		fi
-		;;
-	esac
-	try="$((1+$seq/3))"
-	if [ $try -gt 1 ]; then
-		printf ' #%s' "$try"
-	fi
+	local state try iter
+	state="$(cat task/state)"
+	printf ' %s' "$state"
+	try="$(cat task/try 2>/dev/null ||:)"
+	iter="$(cat task/iter 2>/dev/null ||:)"
+	[ -z "$try$iter" ] ||
+	[ "$try.$iter" = 1.1 ] ||
+		[ "$iter" = 1 ] &&
+			printf ' #%s' "$try" ||
+			printf ' #%s' "$try.$iter"
 }
 
 ls1()
