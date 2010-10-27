@@ -7,9 +7,9 @@ TASK_ID/task/repo		4.0, 4.1, 5.0 or Sisyphus
 
 # Task processing files
 TASK_ID/task/state		task state
-TASK_ID/task/try		task try
-TASK_ID/task/iter		task iteration
-TASK_ID/task/log.$try.$iter	important task events
+TASK_ID/task/try		task try number
+TASK_ID/task/iter		task iteration number
+TASK_ID/task/log.$try.$iter	log of important task events
 
 # Task "has-a" list of gear repositories for build.
 TASK_ID/gears/$i/dir		/people/GIRAR_USER/packages/${dir##*/}.git
@@ -31,6 +31,9 @@ TASK_ID/build/$i/$arch/chroot_BR	BuildRequires packages
 # Packages built with hasher.
 TASK_ID/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
 TASK_ID/build/$i/$arch/rpms/*.rpm	1+ *.$arch.rpm or *.noarch.rpm
+
+# Task repository generated when basic tests passed.
+TASK_ID/build/repo	http://git.altlinux.org/repo/TASK_ID $arch task
 
 # Email sent to bugzilla to close bugs
 TASK_ID/bugmail/$bug_id  bugmail contents for bug $bug_id
