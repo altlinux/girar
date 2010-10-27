@@ -2,6 +2,10 @@
 
 . gb-sh-functions
 
+enable -f /usr/lib/bash/lockf lockf
+# Obtain a shared lock on the $GB_GEARS_DIR.
+builtin lockf -v -s "$GB_GEARS_DIR"
+
 rc=0
 
 fail()

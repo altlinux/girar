@@ -1,0 +1,71 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+
+cd "$GB_TASKS_DIR/$id"
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
+builtin lockf -v .
+
+if [ "$(cat task/state)" != COMMITTING ]; then
+	echo >&2 "Task $id is not selected for commit"
+	exit 1
+fi
+
+try=$(cat task/try)
+iter=$(cat task/iter)
+log="task/log.$try.$iter"
+
+(
+	exec >>"$log" 2>&1
+
+	# Obtain an exclusive lock on the $GB_REPO_DIR.
+	if ! builtin lockf -nv "$GB_REPO_DIR"; then
+		builtin lockf -v "$GB_REPO_DIR"
+		stamp_echo "acquired an exclusive lock on $GB_REPO_NAME repository"
+	fi
+
+	if ! gb-task-validate-pending; then
+		iter=$(($iter+1))
+		echo $iter > task/iter
+		echo AWAITING > task/state
+		stamp_echo "task rebuild is necessary, iteration #$iter scheduled"
+		exit 0
+	fi
+
+	stamp_echo 'task is ready for commit'
+	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+
+	gb-task-commit-repo
+	gb-task-commit-girar
+	gb-task-commit-acl
+	gb-task-repo-sync
+)
+
+rc=$?
+if [ "$(cat task/state)" != COMMITTING ]; then
+	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+	exit $rc
+fi
+
+if [ "$rc" = 0 ]; then
+	state=DONE
+else
+	state=FAILURE
+	halt_build_queue ||:
+fi
+stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
+echo "$state" > task/state
+
+gb-task-close-bugs ||:
+gb-task-cleanup ||:
+gb-task-send-email "$id"
+PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
+gb-task-archive "$id"
+
+# hook up a general archive cleanup
+gb-archive-stale-tasks ||:
+
+exit $rc

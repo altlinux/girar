@@ -10,7 +10,7 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
 if [ "$(cat task/state)" != BUILDING ]; then
-	echo >&2 "Task $id is not selected for run"
+	echo >&2 "Task $id is not selected for build"
 	exit 1
 fi
 
@@ -19,12 +19,6 @@ iter=$(cat task/iter)
 log="task/log.$try.$iter"
 gb-task-set-summary
 
-# test only mode
-test_only=
-if [ -f task/test-only ]; then
-	test_only=-s
-fi
-
 > task/acl-addressees
 > task/unmet-addressees
 
@@ -32,7 +26,7 @@ fi
 	exec >>"$log" 2>&1
 	shared_task="$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
 	[ "$try" = 1 ] && text=started || text=resumed
-	started_by="$(stat -c %U "$log")"
+	started_by="$(stat -c %U "${log%.*}.1")"
 	started_by="${started_by#git_}"
 	stamp_echo "${shared_task}task #$id for $GB_REPO_NAME $text by $started_by:"
 	gb-task-show
@@ -40,20 +34,13 @@ fi
 
 	# Prepare changes
 	gb-task-pkgtar
-	# Obtain an exclusive lock on the $GB_REPO_DIR.
-	# Actually, only shared lock is required for build and checks,
-	# but an exclusive lock is required later for commit.
-	if ! builtin lockf -nv $test_only "$GB_REPO_DIR"; then
-		builtin lockf -v $test_only "$GB_REPO_DIR"
-		stamp_echo "acquired a lock on $GB_REPO_NAME repository"
-	fi
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages
 	gb-task-build
 	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
-	# Test changes
+	# Run basic tests
 	gb-task-check-build
 	gb-task-check-noarch
 	gb-task-repo-plan
@@ -62,50 +49,34 @@ fi
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install
+
 	gb-task-gen-taskrepo "$id"
 	gb-task-save-repo
+
+	# Run surmountable tests
 	gb-task-local-policy
-	# Obtain an exclusive lock on the $GB_GEARS_DIR.
-	# Actually, only shared lock is required for check,
-	# but an exclusive lock is required later for commit.
-	builtin lockf -v $test_only "$GB_GEARS_DIR"
 	gb-task-check-girar
 	gb-task-check-lastchange
 	gb-task-check-acl
+
 	gb-task-find-closed-bugs
-	gb-task-cleanup
-
-	echo TESTED > task/state
-	[ -z "$test_only" ] ||
-		exit 0
-
-	# Apply changes
-	echo COMMITTING > task/state
-	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
-
-	gb-task-commit-repo
-	gb-task-commit-girar
-	gb-task-commit-acl
-	gb-task-repo-sync
-	gb-task-close-bugs
 )
 
 rc=$?
-if [ "$rc" = 0 ]; then
-	[ -z "$test_only" ] &&
-		state=DONE ||
-		state=TESTED
-else
+[ "$rc" = 0 ] &&
+	state=TESTED ||
 	state=FAILED
-fi
+
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 echo "$state" > task/state
 
-gb-task-send-email "$id"
-PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
-gb-task-archive "$id"
+if [ "$rc" != 0 -o -f task/test-only ]; then
+	gb-task-send-email "$id"
+else
+	state=PENDING
+	echo "$state" > task/state
+fi
 
-# hook up a general archive cleanup
-gb-archive-stale-tasks ||:
+PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
 exit $rc

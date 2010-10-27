@@ -1,0 +1,15 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+mismatch=
+for arch in i586 x86_64 noarch; do
+	cmp -s "$GB_REPO_DIR/$arch/base/release" \
+	       "build/repo/$arch/base.prev/release" ||
+	{
+		mismatch=1
+		break
+	}
+done
+
+exit $mismatch

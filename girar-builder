@@ -23,10 +23,12 @@ export GB_HOME
 # Add path to scripts to $PATH.
 PATH="$PWD:$PATH"
 
-rc=
 id="$(gb-select-task AWAITING BUILDING)"
 if [ -n "$id" ]; then
-	gb-run-task "$id" || rc=$?
+	gb-build-task "$id"
 fi
 
-exit $rc
+id="$(gb-select-task PENDING COMMITTING)"
+if [ -n "$id" ]; then
+	gb-commit-task "$id"
+fi

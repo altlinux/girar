@@ -2,6 +2,10 @@
 
 . gb-sh-functions
 
+enable -f /usr/lib/bash/lockf lockf
+# Obtain an exclusive lock on the $GB_GEARS_DIR.
+builtin lockf -v "$GB_GEARS_DIR"
+
 updated_dirs=
 update_git_timestamp()
 {
