@@ -71,6 +71,7 @@ fi
 	gb-task-check-girar
 	gb-task-check-lastchange
 	gb-task-check-acl
+	gb-task-find-closed-bugs
 	gb-task-cleanup
 
 	echo TESTED > task/state
@@ -79,11 +80,11 @@ fi
 
 	# Apply changes
 	echo COMMITTING > task/state
-	gb-task-close-bugs
 	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
 	gb-task-repo-sync
+	gb-task-close-bugs
 )
 
 rc=$?
