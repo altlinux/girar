@@ -1,0 +1,30 @@
+#!/bin/sh -efu
+
+# Toplevel cron select-task/run-task runner.
+
+GB_REPO_NAME="$1"; shift
+export GB_REPO_NAME
+
+# Ensure that only one instance is running for the given repo.
+lockdir="$HOME/.lockdir/$GB_REPO_NAME"
+mkdir -p "$lockdir"
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -n "$lockdir" || exit 0
+
+# Set cwd to directory with scripts and configs.
+GB_HOME="${0%/*}"
+[ "$GB_HOME" != "$0" ]
+cd "$GB_HOME"
+export GB_HOME
+
+# Add path to scripts to $PATH.
+PATH="$PWD:$PATH"
+
+# Check for global cutout switches.
+[ ! -f STOP ] || exit 0
+(. gb-sh-conf && [ ! -f "$GB_STOP_FILE" ] || exit 1) || exit 0
+
+id="$(gb-select-task AWAITING BUILDING)"
+if [ -n "$id" ]; then
+	gb-build-task "$id"
+fi

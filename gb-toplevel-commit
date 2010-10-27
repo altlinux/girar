@@ -24,11 +24,6 @@ PATH="$PWD:$PATH"
 [ ! -f STOP ] || exit 0
 (. gb-sh-conf && [ ! -f "$GB_STOP_FILE" ] || exit 1) || exit 0
 
-id="$(gb-select-task AWAITING BUILDING)"
-if [ -n "$id" ]; then
-	gb-build-task "$id"
-fi
-
 id="$(gb-select-task PENDING COMMITTING)"
 if [ -n "$id" ]; then
 	gb-commit-task "$id"
