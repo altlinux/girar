@@ -22,7 +22,8 @@ log="task/log.$try.$iter"
 	exec >>"$log" 2>&1
 
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
-	if ! builtin lockf -nv "$GB_REPO_DIR"; then
+	if ! builtin lockf -n "$GB_REPO_DIR"; then
+		stamp_echo "waiting for an exclusive lock on $GB_REPO_NAME repository"
 		builtin lockf -v "$GB_REPO_DIR"
 		stamp_echo "acquired an exclusive lock on $GB_REPO_NAME repository"
 	fi
