@@ -32,7 +32,7 @@ log="task/log.$try.$iter"
 		iter=$(($iter+1))
 		echo $iter > task/iter
 		echo AWAITING > task/state
-		stamp_echo "task rebuild is necessary, iteration #$iter scheduled"
+		stamp_echo "rebuild is necessary before commit, iteration #$try.$iter scheduled"
 		umask 002
 		touch "task/log.$try.$iter"
 		exit 0
