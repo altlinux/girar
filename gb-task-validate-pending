@@ -12,4 +12,14 @@ for arch in i586 x86_64 noarch; do
 	}
 done
 
-exit $mismatch
+[ -n "$mismatch" ] || exit 0
+
+try=$(cat task/try)
+iter0=$(cat task/iter)
+
+iter=$(($iter0+1))
+(umask 002 && touch "task/log.$try.$iter")
+echo $iter > task/iter
+echo AWAITING > task/state
+echo "rebuild is necessary before commit, iteration #$try.$iter queued" >> "task/log.$try.$iter0"
+exit 1

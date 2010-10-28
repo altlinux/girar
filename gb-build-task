@@ -73,8 +73,8 @@ echo "$state" > task/state
 if [ "$rc" != 0 -o -f task/test-only ]; then
 	gb-task-send-email "$id"
 else
-	state=PENDING
-	echo "$state" > task/state
+	echo PENDING > task/state
+	gb-task-validate-pending ||:
 fi
 
 PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
