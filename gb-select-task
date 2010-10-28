@@ -40,6 +40,16 @@ select_task()
 	# if task state doesn't match, fail
 	[ "$(cat task/state)" = "$find_state" ]
 
+	# find out who is the real owner of the task
+	owner="$(stat -c %U .)"
+
+	# create the per-owner-and-state file
+	(umask 002 && touch "$GB_SPOOL_PEOPLE_DIR/$owner.$next_state") || exit
+
+	# obtain an exclusive lock on the per-owner-and-state file,
+	# if the lock cannot be immediately acquired, fail
+	builtin lockf -n "$GB_SPOOL_PEOPLE_DIR/$owner.$next_state"
+
 	# if no non-empty subtasks found, fail
 	set -- $(nums)
 	[ $# -ge 1 ]
