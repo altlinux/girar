@@ -14,6 +14,16 @@ if [ "$(cat task/state)" != BUILDING ]; then
 	exit 1
 fi
 
+# find out who is the filesystem owner of the task
+fsowner="$(stat -c %U .)"
+
+# obtain an exclusive lock on the per-fsowner-and-state file,
+# if the lock cannot be immediately acquired, requeue the tast.
+if ! builtin lockf -n "$GB_SPOOL_PEOPLE_DIR/$fsowner.BUILDING"; then
+	echo AWAITING > task/state
+	exit 1
+fi
+
 try=$(cat task/try)
 iter=$(cat task/iter)
 log="task/log.$try.$iter"
