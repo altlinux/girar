@@ -25,9 +25,9 @@ log="task/log.$try.$iter"
 
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	if ! builtin lockf -n "$GB_REPO_DIR"; then
-		stamp_echo "waiting for an exclusive lock on $GB_REPO_NAME repository"
+		stamp_echo "waiting for an exclusive lock on ${GB_REPO_DIR##*/}"
 		builtin lockf -v "$GB_REPO_DIR"
-		stamp_echo "acquired an exclusive lock on $GB_REPO_NAME repository"
+		stamp_echo "acquired an exclusive lock on ${GB_REPO_DIR##*/}"
 	fi
 
 	stamp_echo 'task is ready for commit'

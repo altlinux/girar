@@ -2,15 +2,15 @@
 
 . gb-sh-functions
 
+repo="${GB_REPO_DIR##*/}"
+
 enable -f /usr/lib/bash/lockf lockf
 # Obtain a shared lock on the $GB_REPO_DIR.
 if ! builtin lockf -sn "$GB_REPO_DIR"; then
-	stamp_echo "waiting for a shared lock on $GB_REPO_NAME repository"
+	stamp_echo "waiting for a shared lock on $repo"
 	builtin lockf -sv "$GB_REPO_DIR"
-	stamp_echo "acquired a shared lock on $GB_REPO_NAME repository"
+	stamp_echo "acquired a shared lock on $repo"
 fi
-
-repo="${GB_REPO_DIR##*/}"
 
 . gb-sh-tmpdir
 
