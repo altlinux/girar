@@ -1,0 +1,58 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-tmpdir
+cd "$tmpdir"
+
+src="$GB_REPO_DIR"
+dst="$GB_CLONED_REPO_DIR"
+mkdir -p -- "$dst"
+
+sync_dir_files()
+{
+	local dir="$1"; shift
+	mkdir -p -- "$dst/$dir"
+
+	rsync -rlt -- "$src/$dir/" "$dst/$dir/"
+}
+
+sync_dir_soft()
+{
+	local mode="$1"; shift
+	local dir="$1"; shift
+	mkdir -p -- "$dst/$dir"
+
+	ls -- "$src/$dir" > src
+	ls -- "$dst/$dir" > dst
+	comm -13 src dst > rm
+	comm -23 src dst > cp
+
+	cd "$dst/$dir"
+	cat "$tmpdir/rm" |
+		xargs -r rm -f --
+
+	cd "$src/$dir"
+	cat "$tmpdir/cp" |
+		xargs -r cp "$mode" -t "$dst/$dir" --
+
+	cd "$tmpdir"
+}
+
+sync_dir_rpms()
+{
+	sync_dir_soft -l "$1"
+}
+
+sync_dir_links()
+{
+	sync_dir_soft -a "$1"
+}
+
+sync_dir_files files/list
+sync_dir_rpms files/SRPMS
+for a in i586 x86_64 noarch; do
+	sync_dir_files $a/base
+	sync_dir_rpms files/$a/RPMS
+	sync_dir_links $a/RPMS.classic
+	sync_dir_links $a/SRPMS.classic
+done

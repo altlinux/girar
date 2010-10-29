@@ -15,17 +15,12 @@ repo="${GB_REPO_DIR##*/}"
 . gb-sh-tmpdir
 
 for host in $GB_REPO_CLONES; do
-	ssh "$host" "$repo" ||
+	ssh "$host" clone-repo "$USER" "$repo" ||
 		stamp_echo "FAILED to clone $repo on $host" >> "$tmpdir"/FAIL &
 done
 
-(
-	mkdir -p -- "$GB_CLONED_REPO_DIR"
-	[ ! -d "$GB_CLONED_REPO_DIR" ] ||
-		chmod u+w -- "$GB_CLONED_REPO_DIR"
-	rm -rf -- "$GB_CLONED_REPO_DIR"
-	cp -al "$GB_REPO_DIR" "$GB_CLONED_REPO_DIR"
-) || stamp_echo "FAILED to clone $repo" >> "$tmpdir"/FAIL
+gb-clone-repo-dir-local ||
+	stamp_echo "FAILED to clone $repo" >> "$tmpdir"/FAIL
 
 wait
 
