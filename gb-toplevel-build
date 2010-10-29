@@ -6,7 +6,7 @@ GB_REPO_NAME="$1"; shift
 export GB_REPO_NAME
 
 # Ensure that only one instance is running for the given repo.
-lockdir="$HOME/.lockdir/$GB_REPO_NAME"
+lockdir="$HOME/.lockdir/$USER-$GB_REPO_NAME"
 mkdir -p "$lockdir"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -n "$lockdir" || exit 0
