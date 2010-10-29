@@ -14,7 +14,7 @@ repo="${GB_REPO_DIR##*/}"
 
 . gb-sh-tmpdir
 
-for host in $GB_REPO_MIRRORS; do
+for host in $GB_REPO_CLONES; do
 	ssh "$host" "$repo" ||
 		stamp_echo "FAILED to clone $repo on $host" >> "$tmpdir"/FAIL &
 done
