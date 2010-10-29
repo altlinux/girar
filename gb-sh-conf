@@ -25,7 +25,7 @@
 : ${GB_STOP_FILE:?}
 : ${GB_SPOOL_PEOPLE_DIR:?}
 
-GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$GB_REPO_NAME"
+GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$USER-$GB_REPO_NAME"
 
 [ -z "${arch-}" ] ||
 	remote_host="build-$GB_REPO_NAME-$arch"
