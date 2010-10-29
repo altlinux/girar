@@ -28,4 +28,4 @@
 GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$USER-$GB_REPO_NAME"
 
 [ -z "${arch-}" ] ||
-	remote_host="build-$GB_REPO_NAME-$arch"
+	remote_host="build-$USER-$GB_REPO_NAME-$arch"
