@@ -16,10 +16,10 @@ fi
 
 for host in $GB_REPO_CLONES; do
 	ssh "$host" clone-repo "$USER" "$repo" ||
-		stamp_echo "FAILED to clone $repo on $host" >> "$tmpdir"/FAIL &
+		stamp_echo "FAILED to remote clone $repo on $host" >> "$tmpdir"/FAIL &
 done
 
-gb-clone-repo-dir-local ||
+$0-local ||
 	stamp_echo "FAILED to clone $repo" >> "$tmpdir"/FAIL
 
 wait
