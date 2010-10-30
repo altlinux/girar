@@ -36,7 +36,7 @@ printf ' repo=%s' "$(cat task/repo)"
 printf ' owner=%s' "$(cat task/owner)"
 printf ' state=%s' "$(cat task/state)"
 printf ' try=%s' "$(cat task/try 2>/dev/null ||:)"
-printf ' iter=%s' "$(cat task/iter 2>/dev/null ||:)"
+printf ' iter=%s\n' "$(cat task/iter 2>/dev/null ||:)"
 
 nums="$(gear_nums)"
 [ -n "$nums" ] || exit 0
