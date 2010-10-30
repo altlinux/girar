@@ -14,12 +14,6 @@ done
 
 [ -n "$mismatch" ] || exit 0
 
-try=$(cat task/try)
-iter0=$(cat task/iter)
+gb-task-queue-rebuild
 
-iter=$(($iter0+1))
-(umask 002 && touch "task/log.$try.$iter")
-echo $iter > task/iter
-echo AWAITING > task/state
-echo "rebuild is necessary before commit, iteration #$try.$iter queued" >> "task/log.$try.$iter0"
 exit 1
