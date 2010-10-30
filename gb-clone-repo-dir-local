@@ -13,7 +13,21 @@ sync_dir_files()
 	local dir="$1"; shift
 	mkdir -p -- "$dst/$dir"
 
-	rsync -rlt -- "$src/$dir/" "$dst/$dir/"
+	ls -- "$src/$dir" > src
+	ls -- "$dst/$dir" > dst
+	comm -13 src dst > rm
+	comm -23 src dst > cp
+	comm -12 src dst >> cp
+
+	cd "$dst/$dir"
+	cat "$tmpdir/rm" |
+		xargs -r rm -f --
+
+	cd "$src/$dir"
+	cat "$tmpdir/cp" |
+		xargs -r cp -f -l -t "$dst/$dir" --
+
+	cd "$tmpdir"
 }
 
 sync_dir_soft()
