@@ -18,7 +18,7 @@ fi
 fsowner="$(stat -c %U .)"
 
 # obtain an exclusive lock on the per-fsowner-and-state file,
-# if the lock cannot be immediately acquired, requeue the tast.
+# if the lock cannot be immediately acquired, requeue the test
 if ! builtin lockf -n "$GB_SPOOL_PEOPLE_DIR/$fsowner.BUILDING"; then
 	echo AWAITING > task/state
 	exit 1
@@ -41,7 +41,7 @@ gb-task-set-summary
 	gb-task-show
 	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
-	# Prepare changes
+	# prepare changes
 	gb-task-pkgtar
 	gb-clone-repo-dir; export GB_REPO_DIR="$GB_CLONED_REPO_DIR"
 	gb-task-gen-buildrepo
@@ -50,20 +50,23 @@ gb-task-set-summary
 	gb-task-build
 	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
-	# Run basic tests
+	# run basic tests
 	gb-task-check-build
 	gb-task-check-noarch
 	gb-task-repo-plan
 	gb-task-repo-vercheck
+
+	# generate task and test repos
+	gb-task-gen-taskrepo "$id"
 	gb-task-gen-testrepo
+	gb-task-save-repo
+
+	# run expensive tests
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install
 
-	gb-task-gen-taskrepo "$id"
-	gb-task-save-repo
-
-	# Run surmountable tests
+	# run surmountable tests
 	gb-task-local-policy
 	gb-task-check-girar
 	gb-task-check-lastchange
