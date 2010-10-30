@@ -343,5 +343,6 @@ else
 	fatal "failed to create pkg.tar for ${dir##*/} tag \"$tag_name\""
 fi
 
+echo NEW > "$GB_TASKS/$id/task/state
 girar-make-task-index-html "$id"
 echo >&2 "task #$id: added #$i: build tag \"$tag_name\" from $dir"
