@@ -36,7 +36,7 @@ cd "$tmpdir"
 
 # Initialize.
 initroot_stamp="$TMPDIR/tmp/check-install-hsh-initroot.stamp"
-[ -s "$initroot_stamp" ] ||
+[ "$(cat "$initroot_stamp" 2>/dev/null)" = "$release" ] ||
 setarch "$arch" -- \
 hsh --init --without-stuff --no-contents-ind \
     --pkg-init-list="+$release" \
@@ -50,7 +50,7 @@ hsh --init --without-stuff --no-contents-ind \
 # Save base chroot identification.
 hsh-run -- rpmquery -a --qf "$q_bin" > chroot_base
 sort -u -o chroot_base{,}
-date > "$initroot_stamp"
+echo "$release" > "$initroot_stamp"
 
 # Check if the package is already installed.
 QA='%{name}=%|epoch?{%{epoch}:}|%{version}-%{release}\n'
