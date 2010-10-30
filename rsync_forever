@@ -1,0 +1,3 @@
+#!/bin/sh -efu
+
+while ! rsync "$@"; do sleep 1s; done
