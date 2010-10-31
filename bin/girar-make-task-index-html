@@ -60,7 +60,7 @@ show_time()
 show_status()
 {
 	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' shared' 2>/dev/null ||:
-	if [ "$state" != TESTED ] && [ -f task/test-only ]; then
+	if [ -f task/test-only ]; then
 		printf ' test-only'
 	fi
 	if [ -f "$log" ]; then
