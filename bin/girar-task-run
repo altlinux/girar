@@ -85,7 +85,11 @@ fi
 logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try"
 
 trap '' HUP INT QUIT PIPE TERM
-echo AWAITING > task/state
+if [ "$state" = TESTED ]; then
+	echo PENDING > task/state
+else
+	echo AWAITING > task/state
+fi
 echo $try > task/try
 echo 1 > task/iter
 girar-make-task-index-html "$id"
