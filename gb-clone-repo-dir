@@ -26,7 +26,7 @@ wait
 
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
-	halt_build_queue
+	exit 1
 fi
 
 stamp_echo >&2 "cloned $repo"
