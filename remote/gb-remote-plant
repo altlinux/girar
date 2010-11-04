@@ -76,6 +76,7 @@ Dir::State::lists "$workdir/lists";
 Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
+APT::Cache-Limit "33554432";
 EOF
 cat >"$workdir/sources.list" <<EOF
 rpm file:$dir $arch classic
