@@ -265,7 +265,7 @@ else
 	i=0
 fi
 
-i=$(($i+1))
+i=$(printf %o $((0$i+0100)))
 
 logger -t "$PROG" "user=$GIRAR_USER task=$id subtask=$i"
 
