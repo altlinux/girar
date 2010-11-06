@@ -10,7 +10,12 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v .
 
 if [ "$(cat task/state)" != COMMITTING ]; then
-	echo >&2 "Task $id is not selected for commit"
+	echo >&2 "Task #$id is not selected for commit"
+	exit 1
+fi
+
+if [ -f task/test-only ]; then
+	echo >&2 "Task #$id is a test only task"
 	exit 1
 fi
 
