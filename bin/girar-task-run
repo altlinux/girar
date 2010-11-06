@@ -85,7 +85,7 @@ fi
 logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try"
 
 trap '' HUP INT QUIT PIPE TERM
-if [ "$state" = TESTED ]; then
+if [ "$state" = TESTED -a -z "$test_only" ]; then
 	echo PENDING > task/state
 else
 	echo AWAITING > task/state
