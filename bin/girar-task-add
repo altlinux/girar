@@ -8,10 +8,10 @@ usage()
 {
 	[ -z "$*" ] || message "$*"
 	cat >&2 <<EOF
-Usage: $PROG [<task_id>] repo <gear_repo> <gear_tag>
-   or: $PROG [<task_id>] srpm <srpm file>
-   or: $PROG [<task_id>] del <package>
-   or: $PROG [<task_id>] copy <package> [<binary_repository_name>]
+Usage: $PROG [<task_id> [<before_subtask_id>]] repo <gear_repo> <gear_tag>
+   or: $PROG [<task_id> [<before_subtask_id>]] srpm <srpm file>
+   or: $PROG [<task_id> [<before_subtask_id>]] del <package>
+   or: $PROG [<task_id> [<before_subtask_id>]] copy <package> [<binary_repository_name>]
 EOF
 	exit 1
 }
@@ -20,14 +20,21 @@ if [ "${1-}" = '--help' ]; then
 	usage
 fi
 
-[ "$#" -le 4 ] || usage 'Too many arguments.'
+[ "$#" -le 5 ] || usage 'Too many arguments.'
 [ "$#" -ge 2 ] || usage 'Not enough arguments.'
 
 id=
+subtask_id=
 case "$1" in
-	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift ;;
+	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+		case "$1" in
+			[1-7]*) subtask_id="$1"; shift ;;
+		esac ;;
 	*)	id=$(PROG="$PROG" girar-task-find-current) ;;
 esac
+
+[ "$#" -le 3 ] || usage 'Too many arguments.'
+[ "$#" -ge 2 ] || usage 'Not enough arguments.'
 
 action="$1"; shift
 
@@ -244,6 +251,8 @@ check_already_added()
 
 check_add_first()
 {
+	[ -z "$subtask_id" ] ||
+		fatal "subtask #$subtask_id not found"
 	local task_owner
 	task_owner=$(cat task/owner)
 	[ "$GIRAR_USER" = "$task_owner" ] ||
@@ -252,20 +261,50 @@ check_add_first()
 
 check_add_nth()
 {
+	if [ -n "$subtask_id" ]; then
+		local i
+		for i in $nums; do
+			[ "$i" != "$subtask_id" ] || break
+		done
+		[ "$i" = "$subtask_id" ] ||
+			fatal "subtask #$subtask_id not found"
+	fi
 	[ -w gears ] ||
 		fatal 'gears: Permission denied'
+}
+
+find_new_subtask_id()
+{
+	local i
+	if [ -z "$subtask_id" ]; then
+		i=$(printf %s "$nums" |tail -n1)
+		printf %o $((0$i+0100))
+		return
+	fi
+	local prev=
+	for i in $nums; do
+		[ "$i" != "$subtask_id" ] || break
+		prev="$i"
+	done
+	[ "$i" = "$subtask_id" ] ||
+		fatal "subtask #$subtask_id not found"
+	[ -n "$prev" ] || prev=0
+	i=$(((0$prev+0$subtask_id)/2))
+	i=$(printf %o "$i")
+	[ "$i" -gt "$prev" -a "$i" -lt "$subtask_id" ] ||
+		fatal "no room left before subtask #$subtask_id"
+	printf %s $i
 }
 
 if [ -n "$nums" ]; then
 	check_add_nth
 	check_already_added
-	i=$(printf %s "$nums" |tail -n1)
+	i=$(find_new_subtask_id)
 else
 	check_add_first
-	i=0
+	i=100
 fi
 
-i=$(printf %o $((0$i+0100)))
 
 logger -t "$PROG" "user=$GIRAR_USER task=$id subtask=$i"
 
