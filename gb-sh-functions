@@ -14,37 +14,37 @@ stamp_echo()
 
 userid_nums()
 {
-	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/userid' -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-7]*/userid' -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
 gear_nums()
 {
-	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/dir' -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-7]*/dir' -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
 src_nums()
 {
-	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-9]*/dir' -or -path 'gears/[1-9]*/srpm' \) -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-7]*/dir' -or -path 'gears/[1-7]*/srpm' \) -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
 package_nums()
 {
-	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/package' -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-7]*/package' -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
 copy_nums()
 {
-	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-9]*/copy_repo' -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-7]*/copy_repo' -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
 build_nums()
 {
-	find build -mindepth 3 -maxdepth 3 \( -path 'build/[1-9]*/*/srpm' -or -path 'build/[1-9]*/*/rpms' \) -type d 2>/dev/null |
+	find build -mindepth 3 -maxdepth 3 \( -path 'build/[1-7]*/*/srpm' -or -path 'build/[1-7]*/*/rpms' \) -type d 2>/dev/null |
 		cut -d/ -f2 |sort -nu
 }
 
@@ -52,10 +52,10 @@ srpm2i()
 {
 	local f="$1"; shift
 	local i
-	i="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-9]*/*/srpm/$f" -type f |
+	i="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-7]*/*/srpm/$f" -type f |
 		cut -d/ -f2 |sort -nu)"
 	if [ ! -d "build/$i" ]; then
-		echo >&2 " *** cannot find $f in build/[1-9]*/*/srpm/"
+		echo >&2 " *** cannot find $f in build/[1-7]*/*/srpm/"
 		return 1
 	fi
 	echo "$i"
@@ -66,10 +66,10 @@ findrpm()
 	local dir="$1"; shift
 	local f="$1"; shift
 	local p
-	p="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-9]*/*/$dir/$f" -type f |
+	p="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-7]*/*/$dir/$f" -type f |
 		sort -u |head -n1)"
 	if [ ! -f "$p" ]; then
-		echo >&2 " *** cannot find $f in build/[1-9]*/*/$dir/"
+		echo >&2 " *** cannot find $f in build/[1-7]*/*/$dir/"
 		return 1
 	fi
 	echo "$p"

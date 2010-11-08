@@ -20,7 +20,7 @@ repo_tasks()
 
 nums()
 {
-	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-9]*/dir' -or -path 'gears/[1-9]*/srpm' -or -path 'gears/[1-9]*/package' \) -type f 2>/dev/null |
+	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-7]*/dir' -or -path 'gears/[1-7]*/srpm' -or -path 'gears/[1-7]*/package' \) -type f 2>/dev/null |
 		cut -d/ -f2 |sort -n
 }
 
