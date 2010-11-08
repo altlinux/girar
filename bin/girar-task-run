@@ -41,7 +41,7 @@ if ! girar-check-superuser "$repo"; then
 		fatal "task #$id belongs to $owner"
 fi
 
-[ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-9]*' -type d 2>/dev/null)" ] ||
+[ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
 state=$(cat task/state)
