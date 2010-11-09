@@ -28,10 +28,10 @@ fi
 stamp_echo >&2 "$I build start"
 
 # copy source package and accompanying build data to remote side
-rsync -q -- "gears/$i/$src" "$remote_host:tmp/"
+rsync_forever -q -- "gears/$i/$src" "$remote_host:tmp/"
 (umask 002; mkdir -p "build/$i/$arch") || false
 touch "build/$i/$arch/log"
-rsync -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
+rsync_forever -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
 # run the build on remote side
 ssh "$remote_host" ./gb-remote-build \
@@ -40,11 +40,11 @@ ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" ||
 		{ stamp_echo >&2 "$I build FAILED";
-		  rsync -q -- "$remote_host:build/*log" "build/$i/$arch/";
+		  rsync_forever -q -- "$remote_host:build/*log" "build/$i/$arch/";
 		  exit 1; }
 
 # copy build result from remote side
-rsync -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
+rsync_forever -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
 find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 

@@ -9,7 +9,7 @@ qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
 
 # Setup remote node to build $arch packages for $GB_REPO_NAME repository.
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
-rsync -a "$GB_HOME/remote/" "$remote_host:"
+rsync_forever -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
 ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
@@ -27,6 +27,6 @@ if [ -L "$GB_TMP_REPO_DIR" ]; then
 	ssh "$remote_host" ln -s "$GB_REPO_DIR" gb-repo
 else
 	# Need to copy.
-	rsync -a "$GB_TMP_REPO_DIR"/{$arch,noarch} "$remote_host:gb-repo/"
+	rsync_forever -a "$GB_TMP_REPO_DIR"/{$arch,noarch} "$remote_host:gb-repo/"
 fi
 
