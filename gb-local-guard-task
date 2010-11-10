@@ -2,7 +2,7 @@
 
 . gb-sh-functions
 
-guard=16528
+guard="$1"; shift
 [ -d "$GB_TASKS_DIR/$guard/build" ] &&
 [ "$(cat task/id)" != "$guard" ] ||
 exit 0
