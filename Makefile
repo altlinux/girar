@@ -107,6 +107,7 @@ bin_TARGETS = \
 	bin/girar-task-run \
 	bin/girar-task-share \
 	bin/girar-task-show \
+	bin/girar-task-update-queues \
 	#
 
 conf_TARGETS = conf/girar-acl-proxyd

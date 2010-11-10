@@ -14,6 +14,7 @@ builtin lockf -v task/state
 old_state=$(cat task/state)
 if [ "$old_state" != "$new_state" ]; then
 	echo "$new_state" > task/state
+	girar-task-update-queues  "$id" "$old_state" "$new_state"
 fi
 
 girar-task-make-index-html "$id" ||:

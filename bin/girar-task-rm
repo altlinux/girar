@@ -42,8 +42,9 @@ case "$state" in
 		fatal "task #$id is in unrecognized state \"$state\"" ;;
 esac
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id"
+logger -t "$PROG" "user=$GIRAR_USER task=$id state=$state"
 
 echo >&2 -n "removing task #$id ... "
+girar-task-update-queues  "$id" "$state" ''
 rm -rf -- "$id"/
 echo >&2 done

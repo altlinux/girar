@@ -1,0 +1,40 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task-update-queues'
+
+cd "$GB_TASKS"
+
+id="$1"; shift
+old_state="$1"; shift
+new_state="$1"; shift
+
+[ -n "$id" ]
+[ -z "$(printf %s "$id" | LANG=C tr -d '[:digit:]')" ]
+
+repo="$(cat -- "$id/task/repo")"
+[ -n "$repo" ]
+repo="$(girar-normalize-repo-name "$repo")"
+
+canon_state()
+{
+	local s="$1"; shift
+	[ -z "$(printf %s "$s" |LANG=C tr -d '[:alpha:]')" ] ||
+		return 0
+	printf %s "$s" |
+		LANG=C tr '[:upper:]' '[:lower:]'
+}
+
+old_state="$(canon_state "$old_state")"
+new_state="$(canon_state "$new_state")"
+
+logger -t "$PROG" "user=${GIRAR_USER-} task=$id repo=$repo $old_state -> $new_state"
+
+[ -z "$old_state" ] ||
+	rm -f index/"$repo/$old_state/$id"
+
+if [ -n "$new_state" ]; then
+	umask 002
+	mkdir -p index/"$repo/$new_state"
+	ln -snf ../../../"$id" index/"$repo/$new_state"/
+fi
