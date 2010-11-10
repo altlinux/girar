@@ -85,13 +85,12 @@ fi
 logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try"
 
 trap '' HUP INT QUIT PIPE TERM
-if [ "$state" = TESTED -a -z "$test_only" ]; then
-	echo PENDING > task/state
-else
-	echo AWAITING > task/state
-fi
 echo $try > task/try
 echo 1 > task/iter
-girar-make-task-index-html "$id"
+next_state=AWAITING
+if [ "$state" = TESTED -a -z "$test_only" ]; then
+	next_state=PENDING
+fi
+girar-task-change-state "$id" "$next_state"
 
 echo >&2 "task #$id: try #$try queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"

@@ -88,7 +88,6 @@ bin_TARGETS = \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
 	bin/girar-ls \
-	bin/girar-make-task-index-html \
 	bin/girar-mv-db \
 	bin/girar-normalize-repo-name \
 	bin/girar-quota \
@@ -98,9 +97,11 @@ bin_TARGETS = \
 	bin/girar-task \
 	bin/girar-task-add \
 	bin/girar-task-approve \
+	bin/girar-task-change-state \
 	bin/girar-task-delsub \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \
+	bin/girar-task-make-index-html \
 	bin/girar-task-new \
 	bin/girar-task-rm \
 	bin/girar-task-run \

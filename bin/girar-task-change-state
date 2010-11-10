@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task-change-state'
+
+id="$1"; shift
+new_state="$1"; shift
+cd "$GB_TASKS/$id"
+
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the tasks state file
+builtin lockf -v task/state
+
+old_state=$(cat task/state)
+if [ "$old_state" != "$new_state" ]; then
+	echo "$new_state" > task/state
+fi
+
+girar-task-make-index-html "$id" ||:

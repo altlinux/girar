@@ -59,10 +59,10 @@ mkdir "$id"/task
 printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
-echo NEW >"$id"/task/state
+touch "$id"/task/state
+girar-task-change-state "$id" NEW
 chmod g+w -- "$id"/task/state
 chmod g+rws,o+t -- "$id"/task "$id"
-girar-make-task-index-html "$id"
 
 echo >&2 "new task #$id: owner=$GIRAR_USER repo=$repo"
 printf '%s\n' "$id"

@@ -326,7 +326,7 @@ case "$action" in
 	del)
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-	girar-make-task-index-html "$id"
+	girar-task-change-state "$id" NEW
 	echo >&2 "task #$id: added #$i: delete package $package from $repo"
 	exit 0
 	;;
@@ -334,7 +334,7 @@ case "$action" in
 	printf '%s\n' "$copy_repo" >gears/$i/copy_repo
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-	girar-make-task-index-html "$id"
+	girar-task-change-state "$id" NEW
 	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
 	exit 0
 	;;
@@ -342,7 +342,7 @@ case "$action" in
 	mv -- "$HOME/incoming/tmp/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-	girar-make-task-index-html "$id"
+	girar-task-change-state "$id" NEW
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
 	exit 0
 	;;
@@ -382,6 +382,5 @@ else
 	fatal "failed to create pkg.tar for ${dir##*/} tag \"$tag_name\""
 fi
 
-echo NEW > "$GB_TASKS/$id/task/state"
-girar-make-task-index-html "$id"
+girar-task-change-state "$id" NEW
 echo >&2 "task #$id: added #$i: build tag \"$tag_name\" from $dir"
