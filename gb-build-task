@@ -70,12 +70,14 @@ gb-task-set-summary
 	gb-task-check-install
 
 	# run surmountable tests
-	gb-task-local-policy
 	gb-task-check-girar
 	gb-task-check-lastchange
 	gb-task-check-acl
 
 	gb-task-find-closed-bugs
+
+	# apply local policy enforcement
+	gb-task-local-policy
 )
 
 rc=$?
