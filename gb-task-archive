@@ -24,3 +24,4 @@ if [ ! -d "$destdir" ]; then
 
 fi
 mv -- "$id" "$destdir/"
+ln -snf ../.."${GB_TASKS_DONE_DIR#$GB_TASKS_DIR}/$k/$id" index/done/
