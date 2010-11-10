@@ -54,7 +54,7 @@ select_task()
 	set -- $(nums)
 	[ $# -ge 1 ]
 
-	echo "$next_state" > task/state ||
+	gb-girar task-change-state "$id" "$next_state" ||
 		halt_build_queue
 }
 

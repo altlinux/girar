@@ -213,12 +213,8 @@ is_check_failure_tolerated()
 list_notifiable_pkg_acl_members()
 {
 	local n="$1"; shift
-	local PATH="$PATH"
-	[ -z "${PATH##/usr/libexec/girar:*}" -o \
-	  -z "${PATH%%*:/usr/libexec/girar}" ] ||
-	        PATH="$PATH:/usr/libexec/girar"
 
-	girar-acl-show "$GB_REPO_NAME" "$n" |
+	gb-girar acl-show "$GB_REPO_NAME" "$n" |
 		cut -f2- |
 		tr ' ' '\n' |
 		egrep -vx '@(nobody|everybody|qa)' |

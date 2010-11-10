@@ -36,7 +36,6 @@ log="task/log.$try.$iter"
 	fi
 
 	stamp_echo 'task is ready for commit'
-	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 
 	gb-task-commit-repo
 	gb-task-commit-girar
@@ -46,7 +45,6 @@ log="task/log.$try.$iter"
 
 rc=$?
 if [ "$(cat task/state)" != COMMITTING ]; then
-	PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 	exit $rc
 fi
 
@@ -57,12 +55,11 @@ else
 	halt_build_queue ||:
 fi
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
-echo "$state" > task/state
+gb-girar task-change-state "$id" "$state"
 
 gb-task-close-bugs ||:
 gb-task-cleanup ||:
 gb-task-send-email "$id"
-PATH="$PATH:/usr/libexec/girar" girar-make-task-index-html "$id" ||:
 gb-task-archive "$id"
 
 # hook up a general archive cleanup

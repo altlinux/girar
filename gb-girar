@@ -1,0 +1,5 @@
+#!/bin/sh -efu
+
+prog="$1"; shift
+PATH="$PATH:/usr/libexec/girar"
+exec girar-"$prog" "$@"

@@ -2,9 +2,6 @@
 
 . gb-sh-functions
 
-[ -z "${PATH##/usr/libexec/girar:*}" -o -z "${PATH%%*:/usr/libexec/girar}" ] ||
-	PATH="$PATH:/usr/libexec/girar"
-
 rc=0
 
 check_acl()
@@ -16,13 +13,13 @@ check_acl()
 
 	# check author permissions
 	u="$(cat gears/$i/userid)"
-	GIRAR_USER="$u" girar-check-perms "$src" "$GB_REPO_NAME" || st=$?
+	GIRAR_USER="$u" gb-girar check-perms "$src" "$GB_REPO_NAME" || st=$?
 	[ -n "$st" ] || return 0
 
 	# check confirmer permissions
 	for a in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
 		st=
-		GIRAR_USER="$a" girar-check-perms "$src" "$GB_REPO_NAME" || st=$?
+		GIRAR_USER="$a" gb-girar check-perms "$src" "$GB_REPO_NAME" || st=$?
 		[ -n "$st" ] || return 0
 	done
 
