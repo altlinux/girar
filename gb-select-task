@@ -5,15 +5,16 @@
 find_state="$1"; shift
 next_state="$1"; shift
 
-cd "$GB_TASKS_DIR"
+canon_state="$(printf %s "$find_state" |tr '[:upper:]' '[:lower:]')"
+[ -n "$canon_state" ]
 
+cd "$GB_TASKS_DIR"
 enable -f /usr/lib/bash/lockf lockf
-# obtain a shared lock on the whole TASKS directory
-builtin lockf -s .
 
 repo_tasks()
 {
-	find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/repo' -type f -print0 |
+	cd index/"$canon_state"
+	find -L . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/repo' -type f -print0 |
 		xargs -r0 fgrep -i -l -x -e "$GB_REPO_NAME" -- |
 		cut -d/ -f2 |sort -n
 }
