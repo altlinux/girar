@@ -13,10 +13,8 @@ enable -f /usr/lib/bash/lockf lockf
 
 repo_tasks()
 {
-	cd index/"$canon_state"
-	find -L . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/repo' -type f -print0 |
-		xargs -r0 fgrep -i -l -x -e "$GB_REPO_NAME" -- |
-		cut -d/ -f2 |sort -n
+	cd index/"$GB_REPO_NAME/$canon_state"
+	ls | sort -n
 }
 
 nums()
