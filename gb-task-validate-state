@@ -1,5 +1,8 @@
 #!/bin/sh -efu
 
+state="$1"; shift
+[ "$state" = pending ] || exit 0
+
 . gb-sh-functions
 
 mismatch=

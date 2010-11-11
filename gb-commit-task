@@ -26,7 +26,7 @@ log="task/log.$try.$iter"
 (
 	exec >>"$log" 2>&1
 
-	gb-task-validate-pending || exit 0
+	gb-task-validate-state pending || exit 0
 
 	# Obtain an exclusive lock on the $GB_REPO_DIR.
 	if ! builtin lockf -n "$GB_REPO_DIR"; then

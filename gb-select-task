@@ -59,6 +59,8 @@ select_task()
 	set -- $(nums)
 	[ $# -ge 1 ]
 
+	gb-task-validate-state "$canon_state"
+
 	gb-girar task-change-state "$id" "$next_state" ||
 		halt_build_queue
 }

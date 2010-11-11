@@ -92,7 +92,7 @@ if [ "$rc" != 0 -o -f task/test-only ]; then
 	gb-task-send-email "$id"
 else
 	gb-girar task-change-state "$id" PENDING
-	gb-task-validate-pending ||:
+	gb-task-validate-state pending ||:
 fi
 
 exit $rc
