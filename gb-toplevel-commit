@@ -10,6 +10,7 @@ lockdir="$HOME/.lockdir/$GB_REPO_NAME"
 mkdir -p "$lockdir"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -n "$lockdir" || exit 0
+exec >> "$lockdir/log" 2>&1
 
 # Set cwd to directory with scripts and configs.
 GB_HOME="${0%/*}"
@@ -20,12 +21,30 @@ export GB_HOME
 # Add path to scripts to $PATH.
 PATH="$PWD:$PATH"
 
-# Check for global cutout switches.
-[ ! -f STOP ] || exit 0
-(. gb-sh-conf && [ ! -f "$GB_STOP_FILE" ] || exit 1) || exit 0
+. gb-sh-functions
 
-min_iter="$(gb-calc-max-iter AWAITING BUILDING PENDING)"
-id="$(gb-select-task PENDING COMMITTING "$min_iter")"
-if [ -n "$id" ]; then
-	gb-commit-task "$id"
-fi
+pid=
+while :; do
+	# Check for global cutout switches.
+	[ ! -f STOP ] || exit 0
+	[ ! -f "$GB_STOP_FILE" ] || exit 0
+
+	if [ -z "$pid" ]; then
+		inotifywait -q -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending" &
+		pid=$!
+		stamp_echo "forked $pid"
+	fi
+	stamp_echo selecting
+	min_iter="$(gb-calc-max-iter AWAITING BUILDING PENDING)" ||
+		min_iter=0
+	id="$(gb-select-task PENDING COMMITTING "$min_iter")" ||
+		id=
+	if [ -n "$id" ]; then
+		stamp_echo "task $id"
+		gb-commit-task "$id"
+		continue
+	fi
+	stamp_echo waiting
+	wait $pid
+	pid=
+done
