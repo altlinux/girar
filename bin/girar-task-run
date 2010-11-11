@@ -82,7 +82,7 @@ else
 		rm task/test-only
 fi
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try"
+logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try repo=$repo"
 
 trap '' HUP INT QUIT PIPE TERM
 echo $try > task/try
