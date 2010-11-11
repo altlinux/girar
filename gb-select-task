@@ -40,6 +40,8 @@ select_task()
 	# if task state doesn't match, fail
 	[ "$(cat task/state)" = "$find_state" ] || exit
 
+	gb-task-validate-state "$canon_state" || exit
+
 	# if task iteration number is less than required minimum, fail
 	local iter
 	iter="$(grep -h '^[1-9][0-9]*$' task/iter)" || exit
@@ -58,8 +60,6 @@ select_task()
 	# if no non-empty subtasks found, fail
 	set -- $(nums)
 	[ $# -ge 1 ] || exit
-
-	gb-task-validate-state "$canon_state" || exit
 
 	gb-girar task-change-state "$id" "$next_state" ||
 		halt_build_queue
