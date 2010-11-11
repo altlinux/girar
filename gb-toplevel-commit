@@ -24,7 +24,8 @@ PATH="$PWD:$PATH"
 [ ! -f STOP ] || exit 0
 (. gb-sh-conf && [ ! -f "$GB_STOP_FILE" ] || exit 1) || exit 0
 
-id="$(gb-select-task PENDING COMMITTING)"
+min_iter="$(gb-calc-max-iter AWAITING BUILDING PENDING)"
+id="$(gb-select-task PENDING COMMITTING "$min_iter")"
 if [ -n "$id" ]; then
 	gb-commit-task "$id"
 fi

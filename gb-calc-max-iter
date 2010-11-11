@@ -1,0 +1,30 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+cd "$GB_TASKS_DIR"
+
+max_iter()
+{
+	state="$1"; shift
+	state="$(printf %s "$state" |tr '[:upper:]' '[:lower:]')" &&
+	[ -n "$state" ] &&
+	cd "$GB_TASKS_DIR/index/$GB_REPO_NAME/$state" ||
+		return
+
+	local n
+	n="$(find -L . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/iter' -print0 |
+		xargs -r0 grep -h '^[1-9][0-9]*$' -- | sort -rn | head -1)"
+	[ -n "$n" ] && [ "$n" -gt 0 ] 2>/dev/null && echo "$n" ||
+		return
+}
+
+max=0
+for state; do
+	n="$(max_iter "$state")" || n=0
+	if [ "$n" -gt "$max" ]; then
+		max="$n"
+	fi
+done
+
+echo "$max"

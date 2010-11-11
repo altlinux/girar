@@ -4,6 +4,7 @@
 
 find_state="$1"; shift
 next_state="$1"; shift
+min_iter="$1"; shift
 
 canon_state="$(printf %s "$find_state" |tr '[:upper:]' '[:lower:]')"
 [ -n "$canon_state" ]
@@ -34,10 +35,15 @@ select_task()
 	builtin lockf -n .
 
 	# if skip flag is set, fail
-	[ ! -f task/skip ]
+	[ ! -f task/skip ] || exit
 
 	# if task state doesn't match, fail
-	[ "$(cat task/state)" = "$find_state" ]
+	[ "$(cat task/state)" = "$find_state" ] || exit
+
+	# if task iteration number is less than required minimum, fail
+	local iter
+	iter="$(grep -h '^[1-9][0-9]*$' task/iter)"
+	[ "$iter" -ge "$min_iter" ] || exit
 
 	# find out who is the real owner of the task
 	owner="$(stat -c %U .)"
@@ -58,9 +64,8 @@ select_task()
 }
 
 for id in $(repo_tasks); do
-	(select_task "$id" "$find_state" "$next_state")
-	if [ $? -eq 0 ]; then
-		echo "$id"
-		exit
-	fi
+	(select_task "$id" "$find_state" "$next_state") ||
+		continue
+	echo "$id"
+	break
 done
