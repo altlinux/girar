@@ -12,9 +12,8 @@ enable -f /usr/lib/bash/lockf lockf
 builtin lockf -v task/state
 
 old_state=$(cat task/state)
-if [ "$old_state" != "$new_state" ]; then
+[ "$old_state" = "$new_state" ] ||
 	echo "$new_state" > task/state
-	girar-task-update-queues  "$id" "$old_state" "$new_state"
-fi
-
 girar-task-make-index-html "$id" ||:
+[ "$old_state" = "$new_state" ] ||
+	girar-task-update-queues  "$id" "$old_state" "$new_state"
