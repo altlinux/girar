@@ -40,6 +40,8 @@ while :; do
 	if [ -n "$id" ]; then
 		stamp_echo "task $id"
 		gb-build-task "$id" ||:
+		# give gb-toplevel-commit a chance to win the race
+		sleep 1
 		continue
 	fi
 	stamp_echo waiting
