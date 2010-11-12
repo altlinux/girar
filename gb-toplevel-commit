@@ -30,7 +30,7 @@ while :; do
 	[ ! -f "$GB_STOP_FILE" ] || exit 0
 
 	if [ -z "$pid" ]; then
-		inotifywait -q -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending" &
+		inotifywait -q -t 60 -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending" &
 		pid=$!
 		stamp_echo "forked $pid"
 	fi
@@ -45,6 +45,10 @@ while :; do
 		continue
 	fi
 	stamp_echo waiting
-	wait $pid
+	wait $pid ||
+	{
+		[ $? -eq 2 ] || exit
+		stamp_echo timeout
+	}
 	pid=
 done
