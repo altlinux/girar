@@ -1,0 +1,21 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+RC=0
+
+while read -r N EVR A F; do
+	bin=$(findbin "$F")
+	if perl58_deps=$(rpmquery --requires --provides -p "$bin" |
+		grep 'libperl\.so\.5\.8\|/usr/lib/perl5/vendor_perl/\(i386-linux\|x86_64-linux\)' )
+	then
+		echo >&2 $F: $perl58_deps
+		RC=1
+	fi
+done <plan/add-bin
+
+if [ $RC -gt 0 ]; then
+	stamp_echo >&2 'perl-5.8 dependencies forbidden'
+	stamp_echo >&2 'sorry for inconvenience, please try again later'
+	exit 1
+fi
