@@ -25,6 +25,7 @@ check_acl()
 
 	# author is not permitted and nobody approved
 	rc=1
+	echo >&2 "$src: Operation not permitted"
 }
 
 . gb-sh-tmpdir
