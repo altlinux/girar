@@ -39,7 +39,7 @@ while :; do
 		id=
 	if [ -n "$id" ]; then
 		stamp_echo "task $id"
-		gb-build-task "$id"
+		gb-build-task "$id" ||:
 		continue
 	fi
 	stamp_echo waiting
