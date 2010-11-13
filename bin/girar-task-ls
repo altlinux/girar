@@ -1,30 +1,127 @@
 #!/bin/sh -efu
 
+. shell-args
 . girar-sh-functions
-PROG='girar-task ls'
+PROG='task ls'
 
-usage()
+valid_repo_list="$(tr -s '\n' ' '<"$GIRAR_REPO_LIST" | sed 's/ $//')"
+valid_state_list='awaiting building committing done failed new pending tested'
+notdone_state_list='awaiting building committing failed new pending tested'
+queue_state_list='awaiting building committing pending'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--done] [--all]"
-	exit 1
+	cat <<EOF
+$PROG - list tasks
+
+Usage: $PROG [options]
+
+Options:
+  --repo=LIST   comma-separated list of repositories to display;
+  --state=LIST  comma-separated list of task states to display;
+  --user=NAME   user name whose tasks to display;
+  -h, --help    show this text and exit.
+
+Valid repository names are:
+  $valid_repo_list, or ALL.
+Default list of repositories is ALL.
+
+Valid task state names are:
+  $valid_state_list, or ALL.
+Default list of task states is:
+  for single user: $notdone_state_list;
+  for --user=ALL: $queue_state_list.
+
+Valid user name is
+  any ${USER_PREFIX}* account name with "$USER_PREFIX" prefix stripped, or ALL.
+Default user name is $GIRAR_USER.
+
+EOF
+	exit
 }
 
-ls_user="-user $USER_PREFIX$GIRAR_USER"
-ls_recent=
-done=
-topdir="$GB_TASKS"
-while [ "$#" -gt 0 ]; do
-	case "${1-}" in
-		--help) usage ;;
-		--all) ls_user=; shift ;;
-		--done) done=' done'
-			topdir="$GB_TASKS/archive/done/current"; shift ;;
-		*) break;;
+TEMP="$(getopt -n "$PROG" -o h -l all,done,repo:,state:,user:,help -- "$@")" ||
+	show_usage
+eval set -- "$TEMP"
+
+repo=
+state=
+user=
+while :; do
+	case "$1" in
+		--) shift; break ;;
+		--all) user=all ;;
+		--done) state=done ;;
+		--repo) shift; repo="$1" ;;
+		--state) shift; state="$1" ;;
+		--user) shift; user="$1" ;;
+		-h|--help) show_help ;;
+		*) fatal "unrecognized option: $1" ;;
 	esac
+	shift
 done
 
-[ "$#" -eq 0 ] || usage 'Too many arguments.'
+[ "$#" -eq 0 ] || show_usage 'too many arguments.'
+
+user="$(printf %s "$user" |tr '[:upper:]' '[:lower:]')"
+
+repo="$(printf %s "$repo" |tr -s , ' ' |tr '[:upper:]' '[:lower:]')"
+[ -z "$(printf %s "$repo" |tr -d '[:alnum:]. ')" ] ||
+	show_usage 'invalid repository name'
+
+case "$repo" in
+	''|all) repo="$valid_repo_list"
+		;;
+	*)	for r in $repo; do
+			for v in $valid_repo_list; do
+				[ "$v" = "$r" ] && break || continue
+			done
+			[ "$v" = "$r" ] ||
+				show_usage 'invalid repository name'
+		done
+		;;
+esac
+
+state="$(printf %s "$state" |tr -s , ' ' |tr '[:upper:]' '[:lower:]')"
+[ -z "$(printf %s "$state" |tr -d '[:alpha:] ')" ] ||
+	show_usage 'invalid task state name'
+
+case "$state" in
+	'')	if [ "$user" = all ]; then
+			state="$queue_state_list"
+		else
+			state="$notdone_state_list"
+		fi
+		;;
+	all)	if [ "$user" = all ]; then
+			state="$notdone_state_list"
+		else
+			state="$valid_state_list"
+		fi
+		;;
+	*)	for s in $state; do
+			for v in $valid_state_list; do
+				[ "$v" = "$s" ] && break || continue
+			done
+			[ "$v" = "$s" ] ||
+				show_usage 'invalid task state name'
+		done
+		;;
+esac
+
+[ -n "$user" ] ||
+	user="$GIRAR_USER"
+printf %s "$user" |grep -qs '^[a-z][a-z_0-9]\+$' ||
+	show_usage 'invalid user name'
+
+case "$user" in
+	all)	ls_user=
+		;;
+	*)	[ -d "$GIRAR_PEOPLE_QUEUE/$user" ] ||
+			fatal "user \"$user\" not found"
+		ls_user="-user $USER_PREFIX$user"
+		;;
+esac
 
 enable -f /usr/lib/bash/lockf lockf
 
@@ -46,6 +143,7 @@ ls1()
 {
 	local id="$1"; shift
 	cd "$id" || return
+	id="${id##*/}"
 	printf '#%d' "$id"
 	show_status
 	if ! (builtin lockf -n . ); then
@@ -79,13 +177,18 @@ ls1()
 	printf '\n'
 }
 
-cd "$topdir"
+cd "$GB_TASKS"
 
-ids="$(find . -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d $ls_recent $ls_user -printf '%f\n' |
-	sort -nr)"
+ids="$(
+	for r in $repo; do
+		for s in $state; do
+			find -L index/$r/$s -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d $ls_user
+		done
+	done |
+		sort -t/ -nr -k4,4)"
 
 if [ -z "$ids" ]; then
-	message "no$done tasks${ids:- for $GIRAR_USER}"
+	message 'no tasks found for the given criteria'
 	exit
 fi
 
