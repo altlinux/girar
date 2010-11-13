@@ -20,7 +20,11 @@ check_acl()
 	for a in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
 		st=
 		GIRAR_USER="$a" gb-girar check-perms "$src" "$GB_REPO_NAME" || st=$?
-		[ -n "$st" ] || return 0
+		[ -n "$st" ] ||
+		{
+			echo >&2 "$src: Update approved by $a"
+			return 0
+		}
 	done
 
 	# author is not permitted and nobody approved
