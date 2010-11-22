@@ -6,16 +6,23 @@ find_state="$1"; shift
 next_state="$1"; shift
 min_iter="$1"; shift
 
-canon_state="$(printf %s "$find_state" |tr '[:upper:]' '[:lower:]')"
-[ -n "$canon_state" ]
+canon_find="$(printf %s "$find_state" |tr '[:upper:]' '[:lower:]')"
+[ -n "$canon_find" ]
+canon_next="$(printf %s "$next_state" |tr '[:upper:]' '[:lower:]')"
+[ -n "$canon_next" ]
 
 cd "$GB_TASKS_DIR"
 enable -f /usr/lib/bash/lockf lockf
 
 repo_tasks()
 {
-	cd index/"$GB_REPO_NAME/$canon_state"
-	ls | sort -n
+	local not
+	not="$(find -L index/"$GB_REPO_NAME/$canon_next" -mindepth 1 -maxdepth 1 \
+		-type d -name '[1-9]*' -printf '-not -user %u\n' |sort -u)"
+
+	cd index/"$GB_REPO_NAME/$canon_find"
+	find -L -mindepth 1 -maxdepth 1 -type d -name '[1-9]*' $not -printf '%f\n' |
+		sort -n
 }
 
 nums()
@@ -40,7 +47,7 @@ select_task()
 	# if task state doesn't match, fail
 	[ "$(cat task/state)" = "$find_state" ] || exit
 
-	gb-task-validate-state "$canon_state" || exit
+	gb-task-validate-state "$canon_find" || exit
 
 	# if task iteration number is less than required minimum, fail
 	local iter
