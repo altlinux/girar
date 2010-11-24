@@ -5,3 +5,7 @@
 for i in $(gear_nums); do
 	rm -f gears/$i/pkg.tar
 done
+
+for arch in i586 x86_64 noarch; do
+	rm -rf -- build/repo/$arch/base.{prev,next}
+done
