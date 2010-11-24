@@ -35,6 +35,8 @@ log="task/log.$try.$iter"
 		stamp_echo "acquired an exclusive lock on ${GB_REPO_DIR##*/}"
 	fi
 
+	gb-task-validate-state pending || exit 0
+
 	stamp_echo 'task is ready for commit'
 
 	gb-task-commit-repo
