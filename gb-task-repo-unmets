@@ -28,6 +28,7 @@ fi
 
 rc=0
 > unmets.bin
+> unmets.acl
 
 # compare unmets
 for arch in i586 x86_64; do
@@ -50,10 +51,17 @@ join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
 sort -u -o unmets.srpms{,}
 sort -k3,3 "$topdir"/plan/next.src |
 	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
+
 while read -r src; do
+	gb-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
 	list_notifiable_pkg_acl_members "$src"
 done < unmets.src > "$topdir"/task/unmet-addressees
 sort -u -o "$topdir"/task/unmet-addressees{,}
+
+if [ -s unmets.acl ]; then
+	echo '	ACLs of affected packages:'
+	cat unmets.acl
+fi
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
 stamp_echo >&2 "dependencies check $text"
