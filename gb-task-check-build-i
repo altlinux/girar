@@ -172,6 +172,6 @@ for arch in i586 x86_64; do
 		while read -r N EVR A F src_F; do
 			check_release_name "${EVR##*-}"
 			check_nevr bin "$N" "$EVR"
-		done <"$tmpdir/new.src"
+		done <"$tmpdir/new.bin"
 	fi
 done
