@@ -130,14 +130,14 @@ check_nevr()
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
 		while read -r evr0; do
 			vercheck "$evr" "$evr0" ||
-				Fatal "package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
+				Fatal "$t package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
 		done <"$tmpdir/evr"
 	done
 	for r in $GB_REPO_DOWN_NAME; do
 		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
 		while read -r evr0; do
 			vercheck "$evr0" "$evr" ||
-				Fatal "package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
+				Fatal "$t package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
 		done <"$tmpdir/evr"
 	done
 }
