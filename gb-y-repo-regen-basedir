@@ -32,8 +32,7 @@ else
 	set -- --useful-files="$tmpdir"/useful-files --no-scan \
 		--changelog-since=2009-01-01 \
 		--xz --bz2
-	# Extreme mode provides about 2.5% better size.
-	export XZ_OPT='--extreme'
+	export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
 fi
 
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
