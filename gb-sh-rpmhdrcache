@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case ${LD_PRELOAD-} in
+	*rpmhdrcache.so*) ;;
+	'') LD_PRELOAD=rpmhdrcache.so ;;
+	*) LD_PRELOAD=rpmhdrcache.so:$LD_PRELOAD ;;
+esac
+
+export LD_PRELOAD
+export RPMHDRCACHE_DIR=/tmp/.gb-rpmhdrcache
+export RPMHDRCACHE_NOATIME=1
+
+mkdir -p -m775 "$RPMHDRCACHE_DIR"
