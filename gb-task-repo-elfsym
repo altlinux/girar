@@ -43,6 +43,7 @@ if [ "$rc" = 1 ]; then
 	cat >allow-bad-p <<'EOF'
 ^fglrx_glx-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(fglrx/lib(dri|glx)|modules/(drivers/fglrx_drv|glesx))\.so[[:space:]]
 ^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
+^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
 EOF
 	egrep -qs -v -f allow-bad-p -- {i586,x86_64}-bes.plus ||
 		rc=0 text=COND-OK
