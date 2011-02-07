@@ -44,7 +44,8 @@ dump_rpmfile()
 	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
 	[ -s $tmpdir/files ] || return 0
 	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek "$1" \
-		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] || return 1
+		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] ||
+		{ echo >&2 "${1##*/}: unpack failed"; return 1; }
 	sed -i 's/, last modified: [^,]\+//' $tmpdir/types
 	sed -i 's/\(PNG image\), [1-9][^,]\+/\1/' $tmpdir/types
 	sed -i 's/\(TeX DVI file \)(TeX output .*/\1/' $tmpdir/types
