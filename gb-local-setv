@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
 find build -type f -name log -exec \
-	fgrep 'not yet set-versioned' '{}' '+' &&
+	egrep 'is not yet (set-versioned|debuginfo-enabled)' '{}' '+' &&
 	exit 1 ||
 	exit 0
