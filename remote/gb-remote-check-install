@@ -108,7 +108,7 @@ sort -u -o packages1{,}
 # Make preinstall file list.
 printf '%s\n%s\n' \
 	'#!/.host/sh -e' \
-	'/.host/find /* -not -path /dev/\*' \
+	'/.host/find /* \( -path /dev -o -path /usr/src/tmp \) -prune -o -print' \
 	>find.sh
 hsh-run --rooter --execute=find.sh >flist1 2>out ||
 	{
