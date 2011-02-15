@@ -205,9 +205,7 @@ fi >&2
 # Save chroot identification.
 hsh-run -- rpmquery -a --qf "$q_bin" > chroot_install
 sort -u chroot_install > "$topdir"/install/chroot_install
-cp -p id chroot_base "$topdir"/install/
-[ ! -s warnings ] ||
-	cp -p warnings "$topdir"/install/
+cp -p id chroot_base warnings "$topdir"/install/
 
 # Remove the package.
 what=$(perl -pe 's/=\d+:/-/ or s/=/-/' <new-packages)
