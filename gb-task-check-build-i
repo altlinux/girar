@@ -124,21 +124,28 @@ check_nevr()
 	local t="$1"; shift
 	local n="$1"; shift
 	local evr="$1"; shift
-	local r evr0
+	local a="$1"; shift
+	local r evr0 a0
 
 	for r in $GB_REPO_UP_NAME; do
-		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
-		while read -r evr0; do
+		printf '%s\t%s\n' "$n" "$evr" |
+			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
+			sort -u > "$tmpdir/evra"
+		while read -r evr0 a0; do
+			[ -z "$a" -o "$a" = "$a0" ] || continue
 			vercheck "$evr" "$evr0" ||
-				Fatal "$t package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
-		done <"$tmpdir/evr"
+				Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
+		done < "$tmpdir/evra"
 	done
 	for r in $GB_REPO_DOWN_NAME; do
-		printf '%s\t%s\n' "$n" "$evr" |join -t$'\t' -o '2.2' - "$tmpdir/$r.$t" |sort -u >"$tmpdir/evr"
-		while read -r evr0; do
+		printf '%s\t%s\n' "$n" "$evr" |
+			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
+			sort -u > "$tmpdir/evra"
+		while read -r evr0 a0; do
+			[ -z "$a" -o "$a" = "$a0" ] || continue
 			vercheck "$evr0" "$evr" ||
-				Fatal "$t package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
-		done <"$tmpdir/evr"
+				Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
+		done < "$tmpdir/evra"
 	done
 }
 
@@ -163,7 +170,7 @@ for arch in i586 x86_64; do
 		qsrc "$arch/srpm/" >"$tmpdir/new.src"
 		while read -r N EVR F; do
 			check_release_name "${EVR##*-}"
-			check_nevr src "$N" "$EVR"
+			check_nevr src "$N" "$EVR" ''
 		done <"$tmpdir/new.src"
 	fi
 
@@ -171,7 +178,7 @@ for arch in i586 x86_64; do
 		qbin "$arch/rpms/" >"$tmpdir/new.bin"
 		while read -r N EVR A F src_F; do
 			check_release_name "${EVR##*-}"
-			check_nevr bin "$N" "$EVR"
+			check_nevr bin "$N" "$EVR" "$arch"
 		done <"$tmpdir/new.bin"
 	fi
 done
