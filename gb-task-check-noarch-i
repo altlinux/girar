@@ -12,29 +12,43 @@ rc=0
 #
 is_excluded()
 {
-	local arch
-	for arch in $GB_ARCH; do
-		if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
-			return 0
-		fi
-	done
+	local arch="$1"
+	if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
+		return 0
+	fi
 	return 1
 }
 
-(set +f && cd   i586/rpms 2>/dev/null && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/i586.noarch"
-(set +f && cd x86_64/rpms 2>/dev/null && ls *.noarch.rpm 2>/dev/null) >"$tmpdir/x86_64.noarch"
-join "$tmpdir"/{i586,x86_64}.noarch >$tmpdir/both.noarch
+has_noarch=
+for arch in $GB_ARCH; do
+	(set +f && cd $arch/rpms && ls *.noarch.rpm) >$tmpdir/$arch.noarch 2>/dev/null
+	if [ -s $tmpdir/$arch.noarch ]; then
+		has_noarch=1
+	fi
+done
 
-if [ -s "$tmpdir/i586.noarch" ] || [ -s "$tmpdir/x86_64.noarch" ]; then
-	if is_excluded; then
-		echo >&2 "warning ($i): non-verifiable noarch packages, due to ExclusiveArch"
-	else
-		if ! (cd "$tmpdir" && diff -U1 {i586,x86_64}.noarch ); then
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	# only check against architectures that follow arch1
+	shift
+	if [ -z "$has_noarch" ]; then
+		continue
+	fi
+	if is_excluded "$arch1"; then
+		echo >&2 "warning ($i): $arch1: non-verifiable noarch packages, due to ExclusiveArch"
+		continue
+	fi
+	for arch2 in "$@"; do
+		if is_excluded "$arch2"; then
+			# warning already issued
+			continue
+		fi
+		if ! (cd "$tmpdir" && diff -U1 {$arch1,$arch2}.noarch ); then
 			echo >&2 "error (#$i): different set of noarch packages"
 			rc=1
 		fi
-	fi
-fi
+	done
+done
 
 #
 # 2. Noarch packages obtained on i586 and x86_64 must be identical.
@@ -68,14 +82,25 @@ dump_noarch()
 	dump_deps "$1"
 }
 
-while read -r rpm; do
-	dump_noarch i586/rpms/"$rpm" >$tmpdir/$rpm.i586
-	dump_noarch x86_64/rpms/"$rpm" >$tmpdir/$rpm.x86_64
-	if ! (cd "$tmpdir" && diff -U1 $rpm.{i586,x86_64} ); then
-		echo >&2 "error (#$i): non-identical noarch packages"
-		rc=1
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	shift
+	if [ -z "$has_noarch" ]; then
+		continue
 	fi
-done <$tmpdir/both.noarch
+	for arch2 in "$@"; do
+		join         $tmpdir/{$arch1,$arch2}.noarch  >$tmpdir/both.noarch
+		join -v1 -v2 $tmpdir/{$arch1,$arch2}.noarch >>$tmpdir/only.noarch
+		while read -r rpm; do
+			dump_noarch $arch1/rpms/"$rpm" >$tmpdir/$rpm.$arch1 </dev/null
+			dump_noarch $arch2/rpms/"$rpm" >$tmpdir/$rpm.$arch2 </dev/null
+			if ! (cd "$tmpdir" && diff -U1 $rpm.{$arch1,$arch2} ); then
+				echo >&2 "error (#$i): non-identical noarch packages"
+				rc=1
+			fi
+		done <$tmpdir/both.noarch
+	done
+done
 
 #
 # 3. /usr/share part of i586 and x86_64 packages should be indentical.
@@ -93,11 +118,13 @@ find_arch()
 	sort -u
 }
 
-find_arch i586/rpms   >"$tmpdir"/i586.arch
-find_arch x86_64/rpms >"$tmpdir"/x86_64.arch
-
-join         "$tmpdir"/{i586,x86_64}.arch >$tmpdir/both.arch
-join -v1 -v2 "$tmpdir"/{i586,x86_64}.arch >$tmpdir/only.arch
+has_arch=
+for arch in $GB_ARCH; do
+	find_arch $arch/rpms >$tmpdir/$arch.arch
+	if [ -s $tmpdir/$arch.arch ]; then
+		has_arch=1
+	fi
+done
 
 dump_share()
 {
@@ -105,13 +132,24 @@ dump_share()
 		LC_ALL=C grep '^/usr/share/' || [ $? -eq 1 ]
 }
 
-while read -r N f1 f2; do
-	dump_share i586/rpms/$f1   >$tmpdir/$f1.usr-share
-	dump_share x86_64/rpms/$f2 >$tmpdir/$f2.usr-share
-	if ! (cd "$tmpdir" && diff -U1 {$f1,$f2}.usr-share ); then
-		echo >&2 "warning (#$i): non-identical /usr/share part"
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	shift
+	if [ -z "$has_arch" ]; then
+		continue
 	fi
-done <$tmpdir/both.arch
+	for arch2 in "$@"; do
+		join         $tmpdir/{$arch1,$arch2}.arch  >$tmpdir/both.arch
+		join -v1 -v2 $tmpdir/{$arch1,$arch2}.arch >>$tmpdir/only.arch
+		while read -r N rpm1 rpm2; do
+			dump_share $arch1/rpms/"$rpm1" >$tmpdir/$rpm1.share </dev/null
+			dump_share $arch2/rpms/"$rpm2" >$tmpdir/$rpm2.share </dev/null
+			if ! (cd "$tmpdir" && diff -U1 {$rpm1,$rpm2}.share ); then
+				echo >&2 "warning (#$i): non-identical /usr/share part"
+			fi
+		done <$tmpdir/both.arch
+	done
+done
 
 #
 # 4. Identical i586 and x86_64 packages should be noarch.
