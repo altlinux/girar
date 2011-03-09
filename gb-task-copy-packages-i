@@ -58,7 +58,7 @@ done <"$tmpdir/copy.src"
 while read -r S A B; do
 	a="$A"
 	if [ "$A" = 'noarch' ]; then
-		a='i586 x86_64'
+		a="$GB_ARCH"
 	fi
 	for arch in $a; do
 		cd "build/$i/$arch"
