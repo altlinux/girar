@@ -11,7 +11,7 @@ install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 
 # Reuse base directories from our temporary repo.
 regen=
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	f1=$GB_REPO_DIR/$arch/base/release
 	f2=$GB_REPO_DIR/$arch/base/pkglist.classic.bz2
 	g2=build/repo/$arch/base.next/pkglist.classic.bz2

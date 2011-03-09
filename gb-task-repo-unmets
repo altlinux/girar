@@ -10,7 +10,7 @@ cd "$tmpdir"
 
 # dump unmets
 for age in old new; do
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	[ $age = old ] && repo=$repo1 || repo=$repo2
 	cat >$age-$arch-sources.list <<EOF
 rpm file:$repo $arch classic
@@ -31,7 +31,7 @@ rc=0
 > unmets.acl
 
 # compare unmets
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	comm -13 $arch-unmets.{old,new} >$arch-unmets.plus
 	comm -23 $arch-unmets.{old,new} >$arch-unmets.minus
 	if [ -s $arch-unmets.plus ]; then

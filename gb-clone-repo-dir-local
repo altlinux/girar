@@ -64,7 +64,7 @@ sync_dir_links()
 
 sync_dir_files files/list
 sync_dir_rpms files/SRPMS
-for a in i586 x86_64 noarch; do
+for a in $GB_ARCH noarch; do
 	sync_dir_files $a/base
 	sync_dir_rpms files/$a/RPMS
 	sync_dir_links $a/RPMS.classic

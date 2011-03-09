@@ -19,7 +19,7 @@ if [ -n "$bloat" ]; then
 	export XZ_OPT='--fast'
 else
 	# Final repo: need to scan for useful files.
-	for arch in i586 x86_64 noarch; do
+	for arch in $GB_ARCH noarch; do
 		gb-x-useful-files "$REPO_DIR"/$arch/RPMS.classic >"$tmpdir"/useful-files.$arch ||
 			echo 1 >>"$tmpdir"/FAIL &
 	done
@@ -37,7 +37,7 @@ fi
 
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	[ -d "$REPO_DIR/$arch" ] || continue
 
 	# Arch packages haven't changed?

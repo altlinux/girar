@@ -5,7 +5,7 @@ shift
 
 . gb-sh-tmpdir
 
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	# Regen only if there are $arch packages.
 	cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch" ||
 		continue

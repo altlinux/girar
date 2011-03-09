@@ -19,7 +19,7 @@ for i in $(src_nums) $(copy_nums); do
 done
 
 # check all $arch packages in whole
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	$0-arch "$arch" || fail "$arch"
 done
 

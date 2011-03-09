@@ -13,7 +13,7 @@ rc=0
 is_excluded()
 {
 	local arch
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
 			return 0
 		fi

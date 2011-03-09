@@ -12,7 +12,7 @@ repo2="$GB_TMP_REPO_DIR"
 . gb-sh-tmpdir
 cd "$tmpdir"
 
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	bad_elf_symbols_dircmp.pl {"$repo1","$repo2"}/$arch/RPMS.classic >$arch-bes.plus 3>$arch-bes.minus ||
 		echo $? >>FAIL &
 done
@@ -26,7 +26,7 @@ fi
 
 rc=0 text=OK
 
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	if [ -s $arch-bes.plus ]; then
 		echo "	$arch: NEW bad_elf_symbols detected:"
 		cat $arch-bes.plus

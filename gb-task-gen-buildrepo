@@ -38,7 +38,7 @@ if [ -z "$need_regen" ]; then
 fi
 
 # Create skeleton and make RPMS.classic symlinks.
-for a in i586 x86_64 noarch; do
+for a in $GB_ARCH noarch; do
 	mkdir -p -- "$GB_TMP_REPO_DIR"/$a/base
 	ln -s -- "$GB_REPO_DIR"/$a/RPMS.classic "$GB_TMP_REPO_DIR"/$a/
 done

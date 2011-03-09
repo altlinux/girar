@@ -46,7 +46,7 @@ cut -f1 "$tmpdir/copy" |sort -u >"$tmpdir/copy.src"
 rm -rf "build/$i"
 
 while read -r S; do
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		(umask 002; mkdir -p "build/$i/$arch") || false
 		cd "build/$i/$arch"
 		rm -f excluded
@@ -73,7 +73,7 @@ while read -r S A B; do
 	done
 done <"$tmpdir/copy"
 
-for a in i586 x86_64; do
+for a in $GB_ARCH; do
 	gb-task-copy-remote-arch-i $a $i
 done
 

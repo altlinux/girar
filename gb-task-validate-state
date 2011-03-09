@@ -6,7 +6,7 @@ state="$1"; shift
 . gb-sh-functions
 
 mismatch=
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	cmp -s "$GB_REPO_DIR/$arch/base/release" \
 	       "build/repo/$arch/base.prev/release" ||
 	{

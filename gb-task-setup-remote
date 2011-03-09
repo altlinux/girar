@@ -4,7 +4,7 @@
 
 . gb-sh-tmpdir
 
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	$0-arch "$arch" ||
 		stamp_echo "[$arch] remote setup FAILED" >>"$tmpdir"/FAIL &
 done

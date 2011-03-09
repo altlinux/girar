@@ -55,7 +55,7 @@ cd build/$i
 check_srpms()
 {
 	local arch f found=
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
 		f="$(find "$arch/srpm/" -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f -printf '%f\n')"
 		cd "$arch/srpm"
@@ -82,7 +82,7 @@ n=$(echo "$srpms" |sort -u |wc -l)
 check_brpms()
 {
 	local arch f found=
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		[ -d "$arch/rpms" -o ! -s "$arch/excluded" ] || continue
 		f="$(find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.rpm' -type f -printf '%f\n')"
 		[ -n "$f" ] ||
@@ -149,7 +149,7 @@ check_nevr()
 	done
 }
 
-for arch in i586 x86_64; do
+for arch in $GB_ARCH; do
 	for d in $arch/srpm $arch/rpms; do
 		if [ ! -d "$d" -a -s "$arch/excluded" ]; then
 			continue

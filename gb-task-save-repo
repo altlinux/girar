@@ -4,7 +4,7 @@
 
 . gb-sh-tmpdir
 
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	$0-arch "$arch" ||
 		stamp_echo "[$arch] FAILED to save apt indices" >>"$tmpdir"/FAIL &
 done

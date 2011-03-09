@@ -12,7 +12,7 @@ find plan -type f -delete
 . gb-sh-tmpdir
 
 for i in $(build_nums); do
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		if [ -d "build/$i/$arch/srpm" -o ! -s "build/$i/$arch/excluded" ]; then
 			qsrc build/$i/$arch/srpm/
 		fi
@@ -20,7 +20,7 @@ for i in $(build_nums); do
 done >$tmpdir/new.src
 
 for i in $(build_nums); do
-	for arch in i586 x86_64; do
+	for arch in $GB_ARCH; do
 		if [ -d "build/$i/$arch/rpms" -o ! -s "build/$i/$arch/excluded" ]; then
 			qbin build/$i/$arch/rpms/
 		fi

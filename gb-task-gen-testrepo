@@ -7,7 +7,7 @@ rm -rf "$GB_TMP_REPO_DIR"
 mkdir "$GB_TMP_REPO_DIR"
 
 # Prepare skeleton.
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	mkdir $GB_TMP_REPO_DIR/$arch
 	# Copy base directory, except for contents_index.
 	rsync -a --exclude contents_index \
@@ -55,7 +55,7 @@ gb-y-repo-regen-basedir "$GB_TMP_REPO_DIR"
 rm -r $GB_TMP_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic
 
 # Optimize even more: the whole arch component can be turned into symlink.
-for arch in i586 x86_64 noarch; do
+for arch in $GB_ARCH noarch; do
 	if cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
 		# Arch packages changed, cannot optimize.
 		continue
