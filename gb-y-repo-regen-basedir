@@ -27,7 +27,11 @@ else
 	if [ -s "$tmpdir"/FAIL ]; then
 		exit 1
 	fi
-	LC_ALL=C sort -m -u -o "$tmpdir"/useful-files -- "$tmpdir"/useful-files.{i586,x86_64,noarch}
+	set --
+	for arch in $GB_ARCH noarch; do
+		set -- "$@" "$tmpdir"/useful-files.$arch
+	done
+	LC_ALL=C sort -m -u -o "$tmpdir"/useful-files -- "$@"
 	# Both bzip2 and xz should be enabled.
 	set -- --useful-files="$tmpdir"/useful-files --no-scan \
 		--changelog-since=2009-01-01 \
@@ -50,7 +54,7 @@ for arch in $GB_ARCH noarch; do
 
 	genbasedir "$@" $maybe_unchanged \
 		--cachedir="$HOME"/.cache \
-		--architectures="i586 x86_64 noarch" \
+		--architectures="$GB_ARCH noarch" \
 		--architecture="$arch" \
 		--archive="${GB_REPO_ARCHIVE:-ALT Linux $GB_REPO_NAME}" \
 		--codename="$GB_REPO_CODENAME" \
