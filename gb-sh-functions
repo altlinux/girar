@@ -160,17 +160,22 @@ make_repo_table()
 			    printf %s "$GB_REPO_DIR")"
 	fi
 
+	local arch
 	if [ -s "$repo_dir/files/list/src.list" ]; then
 		sort -u "$repo_dir/files/list/src.list" >"$out.src"
 	else
-		qsrc "$repo_dir"/{i586,x86_64,noarch}/SRPMS.classic/ >"$out.src"
+		for arch in $GB_ARCH noarch; do
+			qsrc "$repo_dir"/$arch/SRPMS.classic/
+		done >"$out.src"
 		sort -u -o "$out.src"{,}
 	fi
 
 	if [ -s "$repo_dir/files/list/bin.list" ]; then
 		sort -u "$repo_dir/files/list/bin.list" >"$out.bin"
 	else
-		qbin "$repo_dir"/{i586,x86_64,noarch}/RPMS.classic/ >"$out.bin"
+		for arch in $GB_ARCH noarch; do
+			qbin "$repo_dir"/$arch/RPMS.classic/
+		done >"$out.bin"
 		sort -u -o "$out.bin"{,}
 	fi
 
