@@ -27,5 +27,8 @@
 
 GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$USER-$GB_REPO_NAME"
 
+[ -n "${GB_ARCH-}" ] ||
+	GB_ARCH='i586 x86_64'
+
 [ -z "${arch-}" ] ||
 	remote_host="build-$USER-$GB_REPO_NAME-$arch"
