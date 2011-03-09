@@ -21,7 +21,7 @@ commit()
 	while read -r F A; do
 		RM $REPO_DIR/$A/SRPMS.classic/$F
 		if [ "$A" = 'noarch' ]; then
-			arch_all='i586 x86_64'
+			arch_all="$GB_ARCH"
 		else
 			arch_all="$A"
 		fi
@@ -42,7 +42,7 @@ commit()
 	while read -r F A; do
 		LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
 		if [ "$A" = 'noarch' ]; then
-			arch_all='i586 x86_64'
+			arch_all="$GB_ARCH"
 		else
 			arch_all="$A"
 		fi
