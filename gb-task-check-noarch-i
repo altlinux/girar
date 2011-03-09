@@ -154,6 +154,19 @@ done
 #
 # 4. Identical i586 and x86_64 packages should be noarch.
 #
+f1= f2=
+>$tmpdir/all.arch
+for arch in $GB_ARCH; do
+	if [ -z "$f1" ]; then
+		f1=$tmpdir/$arch.arch
+		continue
+	fi
+	f2=$tmpdir/$arch.arch
+	join "$f1" "$f2" >$tmpdir/$$
+	f1=$tmpdir/all.arch
+	mv -f $tmpdir/$$ "$f1"
+done
+
 dump_arch()
 {
 	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
@@ -162,69 +175,102 @@ dump_arch()
 	dump_deps "$1"
 }
 
+suffix_arch()
+{
+	local IFS=.
+	set -- $1
+	shift $(($#-2))
+	echo $1
+}
+
 srcN=
 realArch=
-main1=
-main2=
-fullNoarch=
-
-while read -r N f1 f2; do
+while read -r N rpms; do
+	set -- $rpms
+	rpm1=$1; shift
+	arch1=$(suffix_arch "$rpm1")
 	if [ -z "$srcN" ]; then
-		srcN=$(rpmquery --qf '%{SOURCERPM}' -p i586/rpms/$f1)
+		arch=$(suffix_arch "$1")
+		srcN=$(rpmquery --qf '%{SOURCERPM}' -p $arch1/rpms/$rpm1)
 		srcN=${srcN%-*}
 		srcN=${srcN%-*}
 	fi
 	if [ "$N" = "$srcN" ]; then
-		main1=$f1
-		main2=$f2
 		# Toplevel package to be checked later.
 		continue
 	fi
-	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
-	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
-	if cmp -s $tmpdir/{$f1,$f2}.arch; then
-		echo >&2 "warning (#$i): $f1 should be .noarch.rpm"
+	diff=
+	dump_arch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.arch
+	for rpm2 in $rpms; do
+		arch2=$(suffix_arch "$rpm2")
+		dump_arch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.arch
+		if ! cmp -s $tmpdir/{$rpm1,$rpm2}.arch; then
+			diff=1
+			break
+		fi
+	done
+	if [ -z "$diff" ]; then
+		echo >&2 "warning (#$i): $rpm1 should be .noarch.rpm"
 	else
 		realArch=1
 	fi
-done <$tmpdir/both.arch
+done <$tmpdir/all.arch
 
-if [ -n "$main1$main2" ]; then
-	f1=$main1
-	f2=$main2
-	dump_arch i586/rpms/$f1   >$tmpdir/$f1.arch
-	dump_arch x86_64/rpms/$f2 >$tmpdir/$f2.arch
-	if cmp -s $tmpdir/{$f1,$f2}.arch; then
-		if [ -s $tmpdir/only.arch ] || [ -n "$realArch" ]; then
+fullNoarch=
+while read -r N rpms; do
+	# Check toplevel package.
+	[ "$N" = "$srcN" ] || continue
+	set -- $rpms
+	rpm1=$1; shift
+	arch1=$(suffix_arch "$rpm1")
+	diff=
+	dump_arch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.arch
+	for rpm2 in $rpms; do
+		arch2=$(suffix_arch "$rpm2")
+		dump_arch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.arch
+		if ! cmp -s $tmpdir/{$rpm1,$rpm2}.arch; then
+			diff=1
+			break
+		fi
+	done
+	if [ -z "$diff" ]; then
+		if [ -n "$realArch" ] || [ -s $tmpdir/only.arch ]; then
+			# We have either real-arch or per-arch subpackages.
 			# Due to rpm limitations, toplevel package cannot be made noarch.
 			:
 		else
-			echo >&2 "warning (#$i): $f1 should be .noarch.rpm"
+			echo >&2 "warning (#$i): $rpm1 should be .noarch.rpm"
 			fullNoarch=1
 		fi
 	else
 		realArch=1
 	fi
-fi
+done <$tmpdir/all.arch
 
 if [ -n "$fullNoarch" ]; then
-	# Recheck if the whole package is most good for noarch.
-	while read -r N f1 f2; do
-		dump_noarch i586/rpms/$f1   >$tmpdir/$f1.noarch
-		dump_noarch x86_64/rpms/$f2 >$tmpdir/$f2.noarch
-		if cmp -s $tmpdir/{$f1,$f2}.noarch; then
-			# Extra check for -m32 packages like cpuburn.
-			if sed -n '/^\/usr\/share\//d;/^\//p' $tmpdir/$f2.noarch |
-			   grep 'ELF 32-bit .* Intel 80386,'; then
-				echo "warning (#$i): $f2 is biarch"
+	# Recheck if the whole package can be made noarch by our own standards.
+	while read -r N rpms; do
+		set -- $rpms
+		rpm1=$1; shift
+		arch1=$(suffix_arch "$rpm1")
+		dump_noarch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.noarch
+		for rpm2 in $rpms; do
+			arch2=$(suffix_arch "$rpm2")
+			dump_noarch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.noarch
+			if cmp -s $tmpdir/{$rpm1,$rpm2}.noarch; then
+				# Extra check for -m32 packages like cpuburn.
+				if sed -n '/^\/usr\/share\//d;/^\//p' $tmpdir/$rpm2.noarch |
+				   grep 'ELF 32-bit .* Intel 80386,'; then
+					echo "warning (#$i): $rpm2 is biarch"
+					fullNoarch=
+					break
+				fi
+			else
 				fullNoarch=
 				break
 			fi
-		else
-			fullNoarch=
-			break
-		fi
-	done <$tmpdir/both.arch
+		done
+	done <$tmpdir/all.arch
 	# Force noarch.
 	if [ -n "$fullNoarch" ]; then
 		echo >&2 "error (#$i): the whole $srcN source package should be made noarch"
