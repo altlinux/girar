@@ -52,7 +52,9 @@ done <plan/add-srpm2arch
 gb-y-repo-regen-basedir "$GB_TMP_REPO_DIR"
 
 # basedir ok, SRPMS no longer needed
-rm -r $GB_TMP_REPO_DIR/{i586,x86_64,noarch}/SRPMS.classic
+for arch in $GB_ARCH noarch; do
+	rm -r $GB_TMP_REPO_DIR/$arch/SRPMS.classic
+done
 
 # Optimize even more: the whole arch component can be turned into symlink.
 for arch in $GB_ARCH noarch; do
