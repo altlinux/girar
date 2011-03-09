@@ -3,6 +3,7 @@
 REPO_DIR="$1"
 shift
 
+. gb-sh-conf
 . gb-sh-tmpdir
 
 for arch in $GB_ARCH noarch; do
@@ -11,7 +12,7 @@ for arch in $GB_ARCH noarch; do
 		continue
 	gb-x-gen-ci $REPO_DIR/$arch/RPMS.classic >$tmpdir/$arch-ci &&
 		mv -f $tmpdir/$arch-ci $REPO_DIR/$arch/base/contents_index ||
-		stamp_echo >&2 "cannot create contents_index for $arch" &
+		echo >&2 "cannot create contents_index for $arch" &
 done
 
 wait
