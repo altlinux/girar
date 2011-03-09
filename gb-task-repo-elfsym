@@ -45,8 +45,18 @@ if [ "$rc" = 1 ]; then
 ^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
 ^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
 EOF
-	egrep -qs -v -f allow-bad-p -- {i586,x86_64}-bes.plus ||
+	too_bad=
+	for arch in $GB_ARCH; do
+		# Bad symbols which are not part of allow-bad-p?
+		if egrep -qs -v -f allow-bad-p -- $arch-bes.plus; then
+			too_bad=1
+			break
+		fi
+	done
+	if [ -z "$too_bad" ]; then
+		# Only bad symbols which are part of allow-bad-p.
 		rc=0 text=COND-OK
+	fi
 fi
 
 stamp_echo >&2 "ELF symbols check $text"
