@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+. gb-sh-conf
 . gb-sh-tmpdir
 
 i=$1
