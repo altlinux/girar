@@ -10,7 +10,7 @@ commit()
 	local arch_all
 	while read -r N EVR A F; do
 		RM $REPO_DIR/$A/RPMS.classic/$F
-		RM $REPO_DIR/files/$A/RPMS/$F
+		RM $REPO_DIR/files/$(suffix_arch $F)/RPMS/$F
 	done <plan/rm-bin
 	while read -r N EVR A F; do
 		bin=$(findbin "$F")
