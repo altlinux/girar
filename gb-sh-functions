@@ -225,3 +225,11 @@ list_notifiable_pkg_acl_members()
 		egrep -vx '@(nobody|everybody|qa)' |
 		cat
 }
+
+suffix_arch()
+{
+	local IFS=.
+	set -- $1
+	shift $(($#-2))
+	echo $1
+}

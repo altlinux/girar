@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. gb-sh-conf
+. gb-sh-functions
 . gb-sh-tmpdir
 
 i=$1
@@ -174,14 +174,6 @@ dump_arch()
 	rpmquery --qf "$F" -p "$1" |
 		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 1 ]
 	dump_deps "$1"
-}
-
-suffix_arch()
-{
-	local IFS=.
-	set -- $1
-	shift $(($#-2))
-	echo $1
 }
 
 srcN=
