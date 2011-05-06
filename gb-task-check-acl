@@ -52,9 +52,10 @@ while read -r N F; do
 	check_acl "$i" "$N"
 done <plan/oldsrc2newsrpm
 
-# Deal with explicitly copied and removed packages.
+# Deal with explicitly removed packages.
 for i in $(package_nums); do
-	check_acl "$i" "$(cat "gears/$i/package")"
+	[ -s gears/$i/copy_repo ] ||
+		check_acl "$i" "$(cat "gears/$i/package")"
 done
 
 sort -u -o task/acl-addressees{,}
