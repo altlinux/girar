@@ -36,14 +36,8 @@ builtin lockf -n . ||
 
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"
-[ "$owner" = "$GIRAR_USER" ] ||
-	girar-check-superuser "$repo" ||
-		fatal "task #$id belongs to $owner"
+state="$(cat task/state)"
 
-[ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
-	fatal "cannot run empty task #$id"
-
-state=$(cat task/state)
 case "$state" in
 	NEW|TESTED|EPERM|FAILED)
 		;;
@@ -56,6 +50,13 @@ case "$state" in
 	*)
 		fatal "task #$id is in unrecognized state \"$state\"" ;;
 esac
+
+[ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
+	fatal "cannot run empty task #$id"
+
+[ "$owner" = "$GIRAR_USER" ] ||
+	girar-check-superuser "$repo" ||
+		fatal "task #$id belongs to $owner"
 
 try=$(cat task/try 2>/dev/null ||:)
 if [ -n "$try" ]; then
