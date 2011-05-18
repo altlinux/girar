@@ -28,7 +28,7 @@ check_acl()
 	done
 
 	# author is not permitted and nobody approved
-	rc=1
+	rc=7
 	echo >&2 "$src: Operation not permitted"
 }
 
