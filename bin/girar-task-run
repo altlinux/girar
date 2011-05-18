@@ -36,10 +36,9 @@ builtin lockf -n . ||
 
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"
-if ! girar-check-superuser "$repo"; then
-	[ "$owner" = "$GIRAR_USER" ] ||
+[ "$owner" = "$GIRAR_USER" ] ||
+	girar-check-superuser "$repo" ||
 		fatal "task #$id belongs to $owner"
-fi
 
 [ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
