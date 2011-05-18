@@ -32,7 +32,7 @@ builtin lockf -n "$id" ||
 
 state=$(cat "$id"/task/state)
 case "$state" in
-	NEW|AWAITING|TESTED|PENDING|FAILED)
+	NEW|AWAITING|EPERM|TESTED|PENDING|FAILED)
 		;;
 	BUILDING|COMMITTING)
 		fatal "task #$id is a work in progress" ;;

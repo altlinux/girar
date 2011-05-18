@@ -46,7 +46,7 @@ fi
 
 state=$(cat task/state)
 case "$state" in
-	NEW|TESTED|FAILED)
+	NEW|TESTED|EPERM|FAILED)
 		;;
 	AWAITING)
 		fatal "task #$id is already scheduled for run" ;;

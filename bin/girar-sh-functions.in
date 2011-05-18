@@ -111,7 +111,7 @@ check_task_modifiable()
 	local state
 	state=$(cat task/state)
 	case "$state" in
-		AWAITING|FAILED|NEW|PENDING|TESTED)
+		AWAITING|EPERM|FAILED|NEW|PENDING|TESTED)
 			;;
 		BUILDING|COMMITTING)
 			fatal "task #$id is a work in progress" ;;
