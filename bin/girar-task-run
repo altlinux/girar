@@ -54,9 +54,39 @@ esac
 [ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
+check_acl_i_src()
+{
+	local i="$1" src="$2"; shift 2
+	local u a
+
+	# check author permissions
+	u="$(cat gears/$i/userid)"
+	env GIRAR_USER="$u" girar-check-perms "$src" "$repo" && return ||:
+
+	# check confirmer permissions
+	for a in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
+		env GIRAR_USER="$a" girar-check-perms "$src" "$repo" && return ||:
+	done
+
+	# author is not permitted and nobody approved
+	message "$src: Operation not permitted"
+	return 1
+}
+
+check_acl()
+{
+	[ "$state" = EPERM -a -s plan/check_acl ] || return
+	local i src rc=0
+	while read -r i src; do
+		check_acl_i_src "$i" "$src" || rc=$?
+	done < plan/check_acl
+	return $rc
+}
+
 [ "$owner" = "$GIRAR_USER" ] ||
 	girar-check-superuser "$repo" ||
-		fatal "task #$id belongs to $owner"
+		check_acl ||
+			fatal "task #$id belongs to $owner"
 
 try=$(cat task/try 2>/dev/null ||:)
 if [ -n "$try" ]; then
