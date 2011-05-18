@@ -39,27 +39,40 @@ check_acl()
 cut -f1,3 plan/add-src >$tmpdir/src2srpm
 sort -u -o $tmpdir/src2srpm{,}
 
+> $tmpdir/check_acl
+
 while read -r N F; do
 	i=$(srpm2i "$F")
-	check_acl "$i" "$N"
-done <$tmpdir/src2srpm
+	printf '%s\t%s\n' "$i" "$N" >> $tmpdir/check_acl
+done < $tmpdir/src2srpm
 
 # Deal with removed/replaced packages.
 # input: src1-N  src2-F
 while read -r N F; do
 	i=$(srpm2i "$F")
 	echo >&2 "$N is replaced with $F"
-	check_acl "$i" "$N"
-done <plan/oldsrc2newsrpm
+	printf '%s\t%s\n' "$i" "$N" >> $tmpdir/check_acl
+done < plan/oldsrc2newsrpm
 
 # Deal with explicitly removed packages.
 for i in $(package_nums); do
 	[ -s gears/$i/copy_repo ] ||
-		check_acl "$i" "$(cat "gears/$i/package")"
+		printf '%s\t%s\n' "$i" "$(cat "gears/$i/package")" >> $tmpdir/check_acl
 done
+
+sort -nu < $tmpdir/check_acl > plan/check_acl
+while read -r i N; do
+	check_acl "$i" "$N"
+done < plan/check_acl
 
 sort -u -o task/acl-addressees{,}
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
+if [ "$rc" = 0 ]; then
+	rm plan/check_acl
+	text=OK
+else
+	text=FAILED
+fi
+
 stamp_echo >&2 "acl check $text"
 exit $rc
