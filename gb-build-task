@@ -82,9 +82,11 @@ gb-task-set-summary
 )
 
 rc=$?
-[ "$rc" = 0 ] &&
-	state=TESTED ||
-	state=FAILED
+case "$rc" in
+	0) state=TESTED ;;
+	7) state=EPERM ;;
+	*) state=FAILED ;;
+esac
 
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 
