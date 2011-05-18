@@ -5,8 +5,8 @@
 PROG='task ls'
 
 valid_repo_list="$(tr -s '\n' ' '<"$GIRAR_REPO_LIST" | sed 's/ $//')"
-valid_state_list='awaiting building committing done failed new pending tested'
-notdone_state_list='awaiting building committing failed new pending tested'
+valid_state_list='awaiting building committing done eperm failed new pending tested'
+notdone_state_list='awaiting building committing eperm failed new pending tested'
 queue_state_list='awaiting building committing pending'
 
 show_help()
