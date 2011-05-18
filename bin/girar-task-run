@@ -35,8 +35,8 @@ builtin lockf -n . ||
         fatal "task #$id is locked"
 
 repo="$(cat task/repo)"
+owner="$(cat task/owner)"
 if ! girar-check-superuser "$repo"; then
-	owner="$(cat task/owner)"
 	[ "$owner" = "$GIRAR_USER" ] ||
 		fatal "task #$id belongs to $owner"
 fi
@@ -93,4 +93,4 @@ if [ "$state" = TESTED -a -z "$test_only" ]; then
 fi
 girar-task-change-state "$id" "$next_state"
 
-echo >&2 "task #$id: try #$try queued, result will be emailed to $(cat task/owner)@$EMAIL_DOMAIN"
+echo >&2 "task #$id: try #$try queued, result will be emailed to $owner@$EMAIL_DOMAIN"
