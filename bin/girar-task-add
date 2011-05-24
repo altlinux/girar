@@ -362,6 +362,8 @@ printf >&2 %s "fetching tag \"$tag_name\" from $dir... "
 git fetch -q "$dir" tag "$tag_name"
 echo >&2 done
 git branch master "tags/$tag_name"
+git pack-refs --all --prune
+find "$GIT_DIR/refs" -mindepth 1 -type d -delete ||:
 touch "$GIT_DIR/git-daemon-export-ok"
 
 if [ -O gears ]; then
