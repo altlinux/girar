@@ -14,6 +14,15 @@ fail()
 	rc=1
 }
 
+cond_fail()
+{
+	if is_check_failure_tolerated; then
+		stamp_echo >&2 "warning: $*"
+	else
+		fail "$@"
+	fi
+}
+
 check_inheritance()
 {
 	local new_id="$1"; shift
@@ -55,7 +64,7 @@ girar_check_copy()
 		return
 	fi
 	check_inheritance "$copy_commit_id" "$old_commit_id" ||
-		fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
+		cond_fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
 }
 
 girar_check()
