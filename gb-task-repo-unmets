@@ -51,11 +51,15 @@ join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
 sort -u -o unmets.srpms{,}
 sort -k3,3 "$topdir"/plan/next.src |
 	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
+sort -u -o unmets.src{,}
+cut -f1 < "$topdir"/plan/add-src > add.src
+sort -u -o add.src{,}
+join -v1 unmets.src add.src > unmets-new.src
 
 while read -r src; do
 	gb-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
 	list_notifiable_pkg_acl_members "$src"
-done < unmets.src > "$topdir"/task/unmet-addressees
+done < unmets-new.src > "$topdir"/task/unmet-addressees
 sort -u -o "$topdir"/task/unmet-addressees{,}
 
 if [ -s unmets.acl ]; then
