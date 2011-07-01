@@ -20,7 +20,7 @@ else
 	url="$GB_SITE$GB_TASKS_DIR/$id/"
 fi
 cc="$(set +f; sort -u task/acl-addressees task/unmet-addressees gears/*/userid |
-	grep '^[^@]' | join -v1 - task/owner)"
+	grep ^. | join -v1 - task/owner)"
 
 summary="$(cat task/summary)"
 [ -n "$summary" ] || summary=' empty'
