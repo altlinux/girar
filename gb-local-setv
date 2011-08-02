@@ -1,6 +1,0 @@
-#!/bin/sh -efu
-
-find build -type f -name log -exec \
-	egrep 'is not yet (set-versioned|debuginfo-enabled)' '{}' '+' &&
-	exit 1 ||
-	exit 0
