@@ -15,7 +15,7 @@ mkidx()
 	ls $opts |while read -r f; do
 		name="${f%.git}"
 		[ "$name" != "$f" ] || continue
-		date="$(LANG=C date +%d-%b-%Y -r "$f")"
+		date="$(LANG=C date +%F -r "$f")"
 		sed -e "s|@DIR@|$PWD|g" -e "s|@NAME@|$name|g" -e "s|@DATE@|$date|g" -e "s|@DARKLIGHT@|$darklight|g" \
 			<"$template/git-entry.html.in"
 		if [ "$darklight" = dark ]; then
