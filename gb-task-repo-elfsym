@@ -21,6 +21,7 @@ if [ -s FAIL ]; then
 	if fgrep -qsx 12 FAIL; then
 		halt_build_queue
 	fi
+	stamp_echo >&2 "ELF symbols check FAILED"
 	exit 1
 fi
 
