@@ -8,6 +8,7 @@ mkidx()
 {
 	local type="$1"; shift
 	local opts="$1"; shift
+	local darklight=dark
 
 	sed -e "s|@SITE@|$GB_SITE|g" -e "s|@DIR@|$PWD|g" <"$template/git-header-$type.html.in" >"$tmpdir/file"
 
@@ -15,8 +16,13 @@ mkidx()
 		name="${f%.git}"
 		[ "$name" != "$f" ] || continue
 		date="$(LANG=C date +%d-%b-%Y -r "$f")"
-		sed -e "s|@DIR@|$PWD|g" -e "s|@NAME@|$name|g" -e "s|@DATE@|$date|g" \
+		sed -e "s|@DIR@|$PWD|g" -e "s|@NAME@|$name|g" -e "s|@DATE@|$date|g" -e "s|@DARKLIGHT@|$darklight|g" \
 			<"$template/git-entry.html.in"
+		if [ "$darklight" = dark ]; then
+			darklight=light
+		else
+			darklight=dark
+		fi
 	done >>"$tmpdir/file"
 
 	cat <"$template/git-footer.html" >>"$tmpdir/file"
