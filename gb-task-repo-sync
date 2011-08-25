@@ -4,7 +4,7 @@
 . gb-sh-tmpdir
 
 for host in $GB_REPO_MIRRORS; do
-	if ! rsync_forever -rlt --delete-after ${GB_REPO_RSYNC_ARGS-} "$@" "$GB_REPO_DIR/" "$host:$GB_REPO_DIR/"; then
+	if ! gb-x-rsync-loop -rlt --delete-after ${GB_REPO_RSYNC_ARGS-} "$@" "$GB_REPO_DIR/" "$host:$GB_REPO_DIR/"; then
 		stamp_echo >&2 "mirror to $host failed"
 		echo 1 >>"$tmpdir"/FAIL
 	fi &
