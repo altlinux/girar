@@ -47,7 +47,7 @@ gb-task-set-summary
 
 	# prepare changes
 	gb-task-pkgtar
-	gb-clone-repo-dir; export GB_REPO_DIR="$GB_CLONED_REPO_DIR"
+	gb-task-clone-repo-dir; export GB_REPO_DIR="$GB_CLONED_REPO_DIR"
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages
