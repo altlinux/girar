@@ -7,5 +7,5 @@ iter0=$(cat task/iter)
 iter=$(($iter0+1))
 (umask 002 && touch "task/log.$try.$iter")
 echo $iter > task/iter
-gb-girar task-change-state "$id" AWAITING
+gb-x-girar task-change-state "$id" AWAITING
 echo "task rebuild is necessary before commit, iteration #$try.$iter queued" >> "task/log.$try.$iter0"

@@ -58,7 +58,7 @@ else
 	halt_build_queue ||:
 fi
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
-gb-girar task-change-state "$id" "$state"
+gb-x-girar task-change-state "$id" "$state"
 
 gb-task-close-bugs ||:
 gb-task-cleanup ||:

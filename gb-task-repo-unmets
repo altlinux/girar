@@ -57,7 +57,7 @@ sort -u -o add.src{,}
 join -v1 unmets.src add.src > unmets-new.src
 
 while read -r src; do
-	gb-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
+	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
 	list_notifiable_pkg_acl_members "$src"
 done < unmets-new.src > "$topdir"/task/unmet-addressees
 sort -u -o "$topdir"/task/unmet-addressees{,}

@@ -68,7 +68,7 @@ select_task()
 	set -- $(nums)
 	[ $# -ge 1 ] || exit
 
-	gb-girar task-change-state "$id" "$next_state" ||
+	gb-x-girar task-change-state "$id" "$next_state" ||
 		halt_build_queue
 }
 

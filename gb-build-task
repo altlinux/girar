@@ -21,7 +21,7 @@ fsowner="$(stat -c %U .)"
 # obtain an exclusive lock on the per-fsowner-and-state file,
 # if the lock cannot be immediately acquired, requeue the test
 if ! builtin lockf -n "$GB_SPOOL_PEOPLE_DIR/$fsowner.BUILDING"; then
-	gb-girar task-change-state "$id" AWAITING
+	gb-x-girar task-change-state "$id" AWAITING
 	exit 1
 fi
 
@@ -52,7 +52,7 @@ gb-task-set-summary
 	gb-task-setup-remote
 	gb-task-copy-packages
 	gb-task-build
-	gb-girar task-make-index-html "$id" ||:
+	gb-x-girar task-make-index-html "$id" ||:
 
 	# run basic tests
 	gb-task-check-build
@@ -91,10 +91,10 @@ esac
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 
 if [ "$rc" != 0 -o -f task/test-only ]; then
-	gb-girar task-change-state "$id" "$state"
+	gb-x-girar task-change-state "$id" "$state"
 	gb-task-send-email "$id"
 else
-	gb-girar task-change-state "$id" PENDING
+	gb-x-girar task-change-state "$id" PENDING
 fi
 
 exit $rc

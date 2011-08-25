@@ -19,7 +19,7 @@ rotate()
 	local state
 	state="$(task_state "$n")"
 	[ -n "$state" ] || return 0
-	gb-girar task-update-queues "$n" "$state" ''
+	gb-x-girar task-update-queues "$n" "$state" ''
 	mkdir -p "archive/$state"
 	mv -- "$n" "archive/$state/"
 }
