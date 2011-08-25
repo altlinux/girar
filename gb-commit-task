@@ -66,6 +66,6 @@ gb-task-send-email "$id"
 gb-task-archive "$id"
 
 # hook up a general archive cleanup
-gb-archive-stale-tasks ||:
+gb-y-archive-stale-tasks ||:
 
 exit $rc
