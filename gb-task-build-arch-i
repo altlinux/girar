@@ -56,7 +56,7 @@ fi
 # copy some build warnings from the build log to the task log
 grep -EHs 'WARNING: [^ ]+ is not yet (set-versioned|debuginfo-enabled)' "build/$i/$arch/log" ||:
 
-if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir rpmaddsign '{}' '+'); then
+if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
 	printf '%s\n' "$out"
 	stamp_echo >&2 "$I rpmsign FAILED"
 	exit 1
