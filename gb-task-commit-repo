@@ -23,6 +23,3 @@ for arch in $GB_ARCH noarch; do
 done
 
 stamp_echo >&2 'repo update OK'
-
-gb-y-repo-regen-ci "$GB_REPO_DIR"
-stamp_echo >&2 'contents_index update OK'
