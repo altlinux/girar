@@ -69,3 +69,7 @@ for arch in $GB_ARCH noarch; do
 done
 
 stamp_echo >&2 'created test repo'
+
+# Generate new contents_index files.
+gb-y-repo-regen-ci "$GB_TMP_REPO_DIR"
+stamp_echo >&2 'created contents indices'
