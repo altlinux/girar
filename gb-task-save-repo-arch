@@ -10,3 +10,7 @@ mkdir -p "build/repo/$arch/base.prev"
 umask 022
 cp -p "$GB_REPO_DIR/$arch/base/release" "build/repo/$arch/base.prev/"
 rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
+
+# Paranoia: ensure that no files has disappeared from tmpfs.
+cd "build/repo/$arch/base.next"
+cat release release.classic pkglist.classic.xz pkglist.classic.bz2 > /dev/null
