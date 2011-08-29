@@ -12,7 +12,15 @@ for arch in $GB_ARCH noarch; do
 		continue
 	gb-x-gen-ci $REPO_DIR/$arch/RPMS.classic >$tmpdir/$arch-ci &&
 		mv -f $tmpdir/$arch-ci $REPO_DIR/$arch/base/contents_index ||
-		echo >&2 "cannot create contents_index for $arch" &
+		stamp_echo "[$arch] FAILED to create contents_index" >> "$tmpdir"/FAIL &
 done
 
 wait
+
+# Fail if at least one arch failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+exit 0
