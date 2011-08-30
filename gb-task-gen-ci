@@ -1,7 +1,24 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+. gb-sh-tmpdir
 
-# Generate new contents_index files.
-gb-y-repo-regen-ci "$GB_TMP_REPO_DIR"
-stamp_echo >&2 'created contents indices'
+for arch in $GB_ARCH noarch; do
+	# Regen only if there are $arch packages.
+	cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch" ||
+		continue
+	repodir="$GB_TMP_REPO_DIR/$arch"
+	gb-x-gen-ci $repodir/RPMS.classic >$tmpdir/$arch-ci &&
+		mv -f $tmpdir/$arch-ci $repodir/base/contents_index ||
+		stamp_echo "[$arch] FAILED to create contents_index" >> "$tmpdir"/FAIL &
+done
+
+wait
+
+# Fail if at least one arch failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+stamp_echo >&2 'created contents_index files'
