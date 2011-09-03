@@ -102,7 +102,6 @@ show_cmd_usage()
 		add|create|del) msg="$msg <owners ...>" ;;
 		delete) ;;
 		leader) msg="$msg <owner>" ;;
-		nmu) msg="$msg {add|del} [<login> [<start time> [<end time>]]]" ;;
 		replace) msg="$msg <old-owner> <new-owner>" ;;
 	esac
 	writelog "$msg"
@@ -268,109 +267,6 @@ do_delete()
 		abort "$item: Failed to remove"
 }
 
-do_nmu_add()
-{
-	local changed= p b s e
-	while read p b s e; do
-		if [ "$item" != "$p" -o "$login" != "$b" ]; then
-			printf '%s\t%s\t%s\t%s\n' \
-				"$p" "$b" "$s" "$e"
-			continue
-		fi
-
-		[ $start_time -lt $s ] || start_time="$s"
-		[ $end_time -eq 0 -o $end_time -gt $e ] || end_time="$e"
-
-		printf '%s\t%s\t%s\t%s\n' \
-			"$item" "$login" "$start_time" "$end_time"
-		changed=1
-
-	done <"list.nmu.$repository" > new
-
-	[ -n "$changed" ] ||
-		printf '%s\t%s\t%s\t%s\n' \
-			"$item" "$login" "$start_time" "$end_time" >> new
-
-	sort -u -o "list.nmu.$repository" new &&
-		ok "$item $login $start_time $end_time" ||
-		abort 'Failed to add NMU entry'
-}
-
-do_nmu_del()
-{
-	local qitem qlogin
-	quote_sed_regexp_variable qitem "$item"
-	quote_sed_regexp_variable qlogin "$login"
-
-	if [ -z "$(sed -n "/^$qitem[[:space:]]$qlogin[[:space:]]/p" \
-		"list.nmu.$repository")" ]; then
-		ignore 'NMU not found in ACL file'
-		return
-	fi
-
-	sed -i "/^$qitem[[:space:]]$qlogin[[:space:]]/d" \
-		"list.nmu.$repository" &&
-		ok 'NMU removed' ||
-		abort 'Failed to remove NMU entry'
-}
-
-do_nmu()
-{
-	if [ "$action_type" = grp ]; then
-		abort "$item $action: Invalid action for a group"
-	fi
-
-	set -- $new_owners
-
-	[ "$#" -gt 0 ] || show_cmd_usage
-	local cmd="$1"; shift
-	case "$cmd" in
-		add|del) ;;
-		*)
-			abort "nmu $cmd: Invalid action"
-			;;
-	esac
-
-	[ -n "$prev_owners" ] ||
-		abort "$item: $item_type not found in ACL file"
-
-	local login='*' start_time=0 end_time=0
-
-	if [ "$#" -gt 0 ]; then
-		login="$1"; shift
-		if [ "$login" = '_' ]; then
-			login='*'
-		else
-			[ "${login#@}" = "$login" ] ||
-				abort "$item $action $cmd: Invalid action for a group"
-			check_new_members "$login"
-		fi
-	fi
-
-	if [ "$#" -gt 0 ]; then
-		start_time="$(opt_check_number 'start-time' "$1")" ||
-			abort "$item $action $cmd: Invalid start time"
-		shift
-	fi
-
-	if [ "$#" -gt 0 ]; then
-		end_time="$(opt_check_number 'end-time' "$1")" ||
-			abort "$item $action $cmd: Invalid end time"
-		shift
-	fi
-
-	if [ "$start_time" = 0 ]; then
-		start_time="$(date +'%s')"
-	fi
-
-	if [ "$end_time" != 0 ]; then
-		[ "$start_time" -lt "$end_time" ] ||
-			abort "$item $action $cmd: End time in the past"
-	fi
-
-	do_nmu_$cmd
-}
-
 while read item action new_owners; do
 	case "$item" in
 		''|\#*)
@@ -397,7 +293,7 @@ while read item action new_owners; do
 
 	# Check action name.
 	case "$action" in
-		add|create|del|delete|leader|nmu|replace) ;;
+		add|create|del|delete|leader|replace) ;;
 		*)
 			abort "$item $action: Invalid action"
 			;;
