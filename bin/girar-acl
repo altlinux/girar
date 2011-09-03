@@ -18,8 +18,6 @@ case "${1-}" in
 Usage: $PROG --list
    or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
-   or: $PROG <repository> <package> nmu show
-   or: $PROG <repository> <package> nmu {add|del} [<login> [<start date> [<end date>]]]
    or: $PROG <repository>
 Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")
 If no package is given, read commands from stdin, one command per line.
@@ -63,15 +61,6 @@ add_acl_cmd()
 	nqueued="$(($nqueued+1))"
 }
 
-show_nmu()
-{
-	[ "$#" -eq 0 ] ||
-		usage 'Too many arguments.'
-	local qitem
-	quote_sed_regexp_variable qitem "$item"
-	sed -n "/^$qitem[[:space:]]/p" "$workdir/list.nmu.$repository" 3>&-
-}
-
 show_acl()
 {
 	[ "$#" -eq 0 ] ||
@@ -93,14 +82,6 @@ parse_cmd()
 		show)
 			show_acl "$@"
 			return ;;
-		nmu)
-			[ "$#" -ge 1 ] ||
-				show_usage 'Not enough arguments.'
-			if [ "$1" = show ]; then
-				shift
-				show_nmu "$@"
-				return
-			fi ;;
 		check)
 			girar-check-perms "$item" "$repository" 3>&- || rc=1
 			return ;;
