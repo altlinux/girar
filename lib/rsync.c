@@ -111,3 +111,20 @@ int open(const char *path, int flags, mode_t mode)
 
 	return next_open(path, flags, mode);
 }
+
+char *getcwd(char *buf, size_t size)
+{
+	if (!buf)
+	{
+		errno = EFAULT;
+		return NULL;
+	}
+	if (size < 2)
+	{
+		errno = ERANGE;
+		return NULL;
+	}
+	buf[0] = '.';
+	buf[1] = '\0';
+	return buf;
+}
