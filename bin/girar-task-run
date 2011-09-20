@@ -97,11 +97,11 @@ fi
 iter=1
 
 # create group writable directories for build results
-mkdir -pm3775 bugmail install
+mkdir -pm3775 bugmail install logs report
 mkdir -pm2775 build plan
 
 # create group writable files required for build
-(umask 002; touch task/log.$try.$iter task/iter task/try task/summary) || false
+(umask 002; touch task/log.$try.$iter task/iter task/try) || false
 
 # set/remove test-only flag
 if [ -n "$test_only" ]; then
