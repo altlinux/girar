@@ -34,9 +34,9 @@ while :; do
 		pid=$!
 		stamp_echo "forked $pid"
 	fi
-	stamp_echo selecting
 	min_iter="$(gb-y-calc-max-iter BUILDING PENDING)" ||
 		min_iter=0
+	stamp_echo "selecting min_iter=$min_iter"
 	id="$(gb-y-select-task PENDING COMMITTING "$min_iter")" ||
 		id=
 	if [ -n "$id" ]; then
