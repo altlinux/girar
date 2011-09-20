@@ -9,7 +9,7 @@ check_acl()
 	local i="$1" src="$2"; shift 2
 	local u out st= a
 
-	list_notifiable_pkg_acl_members "$src" >> task/acl-addressees
+	list_notifiable_pkg_acl_members "$src" >> report/acl-addressees
 
 	# check author permissions
 	u="$(cat gears/$i/userid)"
@@ -65,7 +65,7 @@ while read -r i N; do
 	check_acl "$i" "$N"
 done < plan/check_acl
 
-sort -u -o task/acl-addressees{,}
+sort -u -o report/acl-addressees{,}
 
 if [ "$rc" = 0 ]; then
 	rm plan/check_acl

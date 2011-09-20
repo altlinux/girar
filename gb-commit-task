@@ -22,7 +22,7 @@ fi
 
 try=$(cat task/try)
 iter=$(cat task/iter)
-log="task/log.$try.$iter"
+log="logs/events.$try.$iter.log"
 
 (
 	exec >>"$log" 2>&1

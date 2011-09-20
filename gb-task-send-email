@@ -19,10 +19,10 @@ if [ "$state" = DONE ]; then
 else
 	url="$GB_SITE$GB_TASKS_DIR/$id/"
 fi
-cc="$(set +f; sort -u task/acl-addressees task/unmet-addressees gears/*/userid |
+cc="$(set +f; sort -u report/acl-addressees report/unmet-addressees gears/*/userid |
 	grep ^. | join -v1 - task/owner)"
 
-summary="$(cat task/summary)"
+summary="$(cat report/summary ||:)"
 [ -n "$summary" ] || summary=' empty'
 stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
 [ "$stripped_summary" = "$summary" ] ||
@@ -40,7 +40,7 @@ else
 	srepo=
 fi
 
-log_file="task/log.$try.$iter"
+log_file="logs/events.$try.$iter.log"
 log_size="$(du -bk "$log_file" |cut -f1)"
 
 logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter status=$state"

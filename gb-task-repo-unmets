@@ -59,8 +59,8 @@ join -v1 unmets.src add.src > unmets-new.src
 while read -r src; do
 	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
 	list_notifiable_pkg_acl_members "$src"
-done < unmets-new.src > "$topdir"/task/unmet-addressees
-sort -u -o "$topdir"/task/unmet-addressees{,}
+done < unmets-new.src > "$topdir"/report/unmet-addressees
+sort -u -o "$topdir"/report/unmet-addressees{,}
 
 if [ -s unmets.acl ]; then
 	echo '	ACLs of affected packages:'

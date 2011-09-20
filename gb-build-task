@@ -27,10 +27,10 @@ fi
 
 try=$(cat task/try)
 iter=$(cat task/iter)
-log="task/log.$try.$iter"
+log="logs/events.$try.$iter.log"
 gb-task-set-summary
 
-(umask 002 && > task/acl-addressees && > task/unmet-addressees) || exit
+(umask 002 && > report/acl-addressees && > report/unmet-addressees) || exit
 
 (
 	exec >>"$log" 2>&1
@@ -40,7 +40,7 @@ gb-task-set-summary
 	fi
 	task_prefix="${task_prefix}$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
 	[ "$try" = 1 ] && text=started || text=resumed
-	started_by="$(stat -c %U "${log%.*}.1")"
+	started_by="$(stat -c %U "logs/events.$try.1.log")"
 	started_by="${started_by#git_}"
 	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $started_by:"
 	gb-task-show

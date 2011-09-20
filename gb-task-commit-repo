@@ -2,7 +2,7 @@
 
 . gb-sh-functions
 
-gb-y-task-commit-packages "$GB_REPO_DIR" >plan/commit.log
+gb-y-task-commit-packages "$GB_REPO_DIR" > logs/commit.log
 stamp_echo >&2 'packages update OK'
 
 # Update lists.

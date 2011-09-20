@@ -17,4 +17,4 @@ for i; do
 		package="$(cat "gears/$i/package")"
 		printf ' %s=%s' "$action" "$package"
 	fi
-done >task/summary
+done > report/summary
