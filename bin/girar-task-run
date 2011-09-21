@@ -101,7 +101,7 @@ mkdir -pm3775 bugmail install logs report
 mkdir -pm2775 build plan
 
 # create group writable files required for build
-(umask 002; touch task/log.$try.$iter task/iter task/try) || false
+(umask 002; touch logs/events.$try.$iter.log task/iter task/try) || false
 
 # set/remove test-only flag
 if [ -n "$test_only" ]; then
@@ -111,6 +111,8 @@ else
 	[ ! -f task/test-only ] ||
 		rm task/test-only
 fi
+
+echo "$GIRAR_USER" > task/run
 
 logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try repo=$repo"
 

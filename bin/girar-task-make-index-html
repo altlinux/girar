@@ -11,7 +11,7 @@ repo="$(cat task/repo)"
 state="$(cat task/state)"
 try="$(cat task/try 2>/dev/null ||:)"
 iter="$(cat task/iter 2>/dev/null ||:)"
-log="task/log.$try.$iter"
+log="logs/events.$try.$iter.log"
 
 set_GIT_DIR()
 {
@@ -80,13 +80,14 @@ show_status()
 show_iterations()
 {
 	[ -f "$log" ] || return 0
-	set -- $(set +f && ls task/log.*.* 2>/dev/null | sort -t. -rnk2,3 | fgrep -vx "$log")
+	set -- $(set +f && ls logs/events.*.*.log 2>/dev/null | sort -t. -rnk2,3 | fgrep -vx "$log")
 	[ $# -ge 1 ] || return 0
 	printf '<h3>Previous iterations: '
-	local i n been
+	local i n been=
 	for i; do
 		[ -z "$been" ] || printf ', '
-		n="${i#task/log.}"
+		n="${i#logs/events.}"
+		n="${n%.log}"
 		n="${n%.1}"
 		printf '<a href="%s">%s</a>' "$i" "$n"
 		been=1
