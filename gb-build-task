@@ -40,9 +40,8 @@ gb-task-set-summary
 	fi
 	task_prefix="${task_prefix}$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
 	[ "$try" = 1 ] && text=started || text=resumed
-	started_by="$(stat -c %U "logs/events.$try.1.log")"
-	started_by="${started_by#git_}"
-	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $started_by:"
+	run_by="$(cat task/run ||:)"
+	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $run_by:"
 	gb-task-show
 
 	# prepare changes
