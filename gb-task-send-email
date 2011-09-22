@@ -19,8 +19,10 @@ if [ "$state" = DONE ]; then
 else
 	url="$GB_SITE$GB_TASKS_DIR/$id/"
 fi
-cc="$(set +f; sort -u report/acl-addressees report/unmet-addressees gears/*/userid |
-	grep ^. | join -v1 - task/owner)"
+
+cc="$((set +f; cat report/acl-addressees gears/*/userid;
+       [ -f task/test-only ] || cat report/unmet-addressees) |
+      grep ^. | sort -u | join -v1 - task/owner)"
 
 summary="$(cat report/summary ||:)"
 [ -n "$summary" ] || summary=' empty'
