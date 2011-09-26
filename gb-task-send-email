@@ -64,6 +64,7 @@ X-girar-task-try: $try
 X-girar-task-iter: $iter
 X-girar-task-status: $state
 X-girar-task-URL: $url
+X-girar-task-log: $log_file
 X-girar-task-summary: [#$id]$srepo $state$stry$summary
 Subject: [#$id]$srepo $state$stry$stripped_summary
 
