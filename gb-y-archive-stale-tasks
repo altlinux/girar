@@ -25,7 +25,7 @@ rotate()
 }
 
 
-find . -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d -mtime +5 |
+find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/state' -type f -mtime +5 |
   cut -d/ -f2 |sort -rn |while read n; do
 	rotate "$n"
 done
