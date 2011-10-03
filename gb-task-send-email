@@ -8,6 +8,10 @@ qgroups="$(quote_sed_regexp "$GB_EMAIL_DOMAIN_GROUPS")"
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
+if [ -f task/skip ]; then
+	exit 0
+fi
+
 state="$(cat task/state)"
 try="$(cat task/try)"
 iter="$(cat task/iter)"
