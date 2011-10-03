@@ -6,18 +6,25 @@ enable -f /usr/lib/bash/lockf lockf
 # Obtain a shared lock on the $GB_GEARS_DIR.
 builtin lockf -v -s "$GB_GEARS_DIR"
 
-rc=0
+text=OK
 
 fail()
 {
 	stamp_echo >&2 "error: $*"
-	rc=1
+	text=FAILED
+}
+
+warn()
+{
+	stamp_echo >&2 "warning: $*"
+	[ "$text" = FAILED ] ||
+		text=COND-OK
 }
 
 cond_fail()
 {
 	if is_check_failure_tolerated; then
-		stamp_echo >&2 "warning: $*"
+		warn "$@"
 	else
 		fail "$@"
 	fi
@@ -100,6 +107,5 @@ while read -r N EVR F; do
 	girar_check "$N" "$i"
 done <plan/add-src
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
 stamp_echo >&2 "gears inheritance check $text"
-exit $rc
+[ "$text" != FAILED ] || exit 1
