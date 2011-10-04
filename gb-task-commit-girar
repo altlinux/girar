@@ -111,9 +111,10 @@ girar_commit_copy()
 task_id=$(cat task/id)
 girar_obsolete()
 {
+	local dir="$1"; shift
 	local N="$1"; shift
 	local GIT_DIR
-	set_GIT_DIR "$GB_GEARS_DIR" "$N"
+	set_GIT_DIR "$dir" "$N"
 	[ -d "$GIT_DIR" ] || return 0
 	local id
 	if id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" &&
@@ -136,11 +137,12 @@ girar_commit()
 		# build from gear
 		set_GIT_DIR "$GB_GEARS_DIR" "$N"
 		girar_commit_git
+		girar_obsolete "$GB_SRPMS_DIR" "$N"
 	elif [ -s "gears/$i/srpm" ]; then
 		# build from srpm
 		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
 		girar_commit_srpm
-		girar_obsolete "$N"
+		girar_obsolete "$GB_GEARS_DIR" "$N"
 	elif [ -s "gears/$i/copy_repo" ]; then
 		# copy from another branch
 		set_GIT_DIR "$GB_GEARS_DIR" "$N"
