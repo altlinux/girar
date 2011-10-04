@@ -76,7 +76,13 @@ girar_check_git()
 
 girar_check_srpm()
 {
-	fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
+	(umask 002; mkdir -p check-git-inheritance)
+	(umask 077; echo "$old_commit_id" > "check-git-inheritance/.$i")
+	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
+		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
+	else
+		fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
+	fi
 }
 
 girar_check_copy()
