@@ -23,6 +23,7 @@ get_sig_uid()
 }
 
 built=
+srpm=
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"
 	I="${dir##*/} $(cat "gears/$i/tag_name")"
@@ -74,10 +75,15 @@ check_srpms()
 }
 
 srpms=$(check_srpms)
-n=$(echo "$srpms" |sort -u |wc -l)
+srpmsu=$(echo "$srpms" |sort -u)
+n=$(echo "$srpmsu" | wc -l)
 
 [ "$n" -eq 1 ] ||
-	Fatal 'different per-arch srpms:' $srpms
+	Fatal 'different per-arch srpms:' "$srpms"
+if [ -n "$srpm" ]; then
+	[ "$srpm" = "$srpmsu" ] ||
+		Fatal "source package \`$srpm' changed its name to \`$(echo "$srpms" |sort -u)' after build"
+fi
 
 check_brpms()
 {
@@ -181,4 +187,13 @@ for arch in $GB_ARCH; do
 			check_nevr bin "$N" "$EVR" "$arch"
 		done <"$tmpdir/new.bin"
 	fi
+done
+
+for arch in $GB_ARCH; do
+	[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
+	f="$arch/srpm/$srpmsu"
+	[ -f "$f" ] || continue
+	built_pkgname="$(rpmquery --qf '%{name}' -p -- "$f")"
+	echo "$built_pkgname" > pkgname
+	break
 done
