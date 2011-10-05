@@ -21,12 +21,12 @@ warn()
 		text=COND-OK
 }
 
-is_git_inheritance_check_bypassed()
+is_git_inheritance_check_relaxed()
 {
 	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
 		local owner="$(stat -c %U "check-git-inheritance/$i")"
 		owner="${owner#git_}"
-		echo >&2 "$N: git inheritance check bypassed by $owner"
+		echo >&2 "$N: git inheritance check relaxed by $owner"
 		return 0
 	fi
 	return 1
@@ -41,7 +41,7 @@ update_git_inheritance_data()
 
 cond1_fail()
 {
-	if is_git_inheritance_check_bypassed; then
+	if is_git_inheritance_check_relaxed; then
 		warn "$@"
 	else
 		fail "$@"
@@ -94,7 +94,7 @@ girar_check_git()
 girar_check_srpm()
 {
 	update_git_inheritance_data "$old_commit_id"
-	if is_git_inheritance_check_bypassed; then
+	if is_git_inheritance_check_relaxed; then
 		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
 	else
 		fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
