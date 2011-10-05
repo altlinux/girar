@@ -98,6 +98,7 @@ bin_TARGETS = \
 	bin/girar-task-add \
 	bin/girar-task-approve \
 	bin/girar-task-change-state \
+	bin/girar-task-check-git-inheritance \
 	bin/girar-task-delsub \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \

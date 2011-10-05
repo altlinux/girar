@@ -8,7 +8,7 @@
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG {ls|show|new|add|delsub|run|share|approve|rm} ..."
+	echo >&2 "usage: $PROG {ls|show|new|add|delsub|run|share|approve|rm|check-git-inheritance} ..."
 	exit 1
 }
 
@@ -21,7 +21,7 @@ op="$1"; shift
 case "$op" in
 	--help|help|'')
 		usage ;;
-	ls|show|new|add|delsub|run|share|approve|rm)
+	ls|show|new|add|delsub|run|share|approve|rm|check-git-inheritance)
 		exec "$PROG-$op" "$@"
 		;;
 	*)

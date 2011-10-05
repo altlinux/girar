@@ -1,0 +1,61 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task check-git-inheritance'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <task_id> <subtask_number> disable <commit_sha_id>"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 4 ]; then
+	usage 'Too many arguments.'
+fi
+
+if [ "$#" -lt 4 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+num="$1"; shift
+[ "$1" = disable ] ||
+	usage 'Invalid argument.'
+shift
+commit_id="$1"; shift
+[ "${#commit_id}" -eq 40 ] &&
+[ -n "${commit_id##*[!0123456789abcdefABCDEF]*}" ] ||
+	usage 'Invalid commit id.'
+
+enable -f /usr/lib/bash/lockf lockf
+cd "$GB_TASKS/$id"
+# obtain an exclusive lock on the TASKS structure
+builtin lockf -n . ||
+	fatal "task #$id is locked"
+
+check_task_modifiable
+
+set -- $(gear_nums)
+for i; do
+	[ "$i" = "$num" ] || continue
+	[ -f "check-git-inheritance/.$i" ] ||
+		fatal "task #$id: subtask #$i has no git inheritance check failures to overcome yet"
+	pkgname="$(cat "build/$i/pkgname" 2>/dev/null)" ||
+	pkgname="$(cat "gears/$i/package" 2>/dev/null)" ||
+		fatal "task #$id: source package name for subtask #$i is not known yet"
+	git --git-dir="$GIRAR_GEARS/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
+		fatal "commit $commit_id not found"
+	repo="$(cat task/repo)"
+	girar-check-perms "$pkgname" "$repo"
+	f="check-git-inheritance/$i"
+	fgrep -qsx "$commit_id" "$f" 2 >/dev/null ||
+		echo "$commit_id" > "$f"
+	echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome git inheritance check failure for commit $commit_id"
+	exit
+done
+fatal "task #$id: subtask #$num not found"
