@@ -121,7 +121,7 @@ girar_obsolete()
 	   [ -n "$id" ]; then
 		git symbolic-ref HEAD refs/heads/.nowhere
 		git branch -f "old/$GB_REPO_NAME-task$task_id" "$id"
-		git branch -D "$GB_REPO_NAME"
+		git branch -D "$GB_REPO_NAME" > /dev/null
 		git symbolic-ref HEAD refs/heads/sisyphus
 		update_git_timestamp
 		stamp_echo >&2 "removed $GIT_DIR branch \`$GB_REPO_NAME'"
