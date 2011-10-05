@@ -21,9 +21,27 @@ warn()
 		text=COND-OK
 }
 
-cond1_fail()
+is_git_inheritance_check_bypassed()
 {
 	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
+		local owner="$(stat -c %U "check-git-inheritance/$i")"
+		owner="${owner#git_}"
+		echo >&2 "$N: git inheritance check bypassed by $owner"
+		return 0
+	fi
+	return 1
+}
+
+update_git_inheritance_data()
+{
+	local id="$1"; shift
+	(umask 002; mkdir -p check-git-inheritance)
+	(umask 077; echo "$id" > "check-git-inheritance/.$i")
+}
+
+cond1_fail()
+{
+	if is_git_inheritance_check_bypassed; then
 		warn "$@"
 	else
 		fail "$@"
@@ -48,8 +66,7 @@ check_inheritance()
 		rm -f "check-git-inheritance/.$i"
 		return 0
 	else
-		(umask 002; mkdir -p check-git-inheritance)
-		(umask 077; echo "$old_id" > "check-git-inheritance/.$i")
+		update_git_inheritance_data "$old_id"
 		return 1
 	fi
 }
@@ -76,9 +93,8 @@ girar_check_git()
 
 girar_check_srpm()
 {
-	(umask 002; mkdir -p check-git-inheritance)
-	(umask 077; echo "$old_commit_id" > "check-git-inheritance/.$i")
-	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
+	update_git_inheritance_data "$old_commit_id"
+	if is_git_inheritance_check_bypassed; then
 		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
 	else
 		fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
