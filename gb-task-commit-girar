@@ -164,7 +164,8 @@ sort -k1,1 <plan/rm-src >"$tmpdir"/rm-src
 join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
 
 while read -r N EVR F; do
-	girar_obsolete "$N"
+	girar_obsolete "$GB_SRPMS_DIR" "$N"
+	girar_obsolete "$GB_GEARS_DIR" "$N"
 done <"$tmpdir"/rm
 
 gb-y-make-git-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
