@@ -10,13 +10,13 @@ text=OK
 
 fail()
 {
-	stamp_echo >&2 "error: $*"
+	echo >&2 "error: $*"
 	text=FAILED
 }
 
 warn()
 {
-	stamp_echo >&2 "warning: $*"
+	echo >&2 "warning: $*"
 	[ "$text" = FAILED ] ||
 		text=COND-OK
 }
