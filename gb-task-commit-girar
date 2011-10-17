@@ -24,14 +24,32 @@ git_fetch()
 	rm -f "$GIT_DIR/FETCH_HEAD"
 }
 
+check_inheritance()
+{
+	local new_id="$1"; shift
+	local old_id="$1"; shift
+
+	[ -z "$(git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]
+}
+
+task_id=$(cat task/id)
+girar_rename_repo_branch()
+{
+	git branch -m "$GB_REPO_NAME" "old/$GB_REPO_NAME-task$task_id"
+	git symbolic-ref HEAD refs/heads/sisyphus
+}
+
 girar_commit_git()
 {
-	local tag_name tag_id
+	local tag_name tag_id old_id
 	tag_name="$(cat "gears/$i/tag_name")"
 	tag_id="$(cat "gears/$i/tag_id")"
-	if [ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ]; then
+	old_id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null ||:)"
+	if [ -n "$old_id" ]; then
 		# update gear
 		git_fetch "gears/$i/git" tag "$tag_name"
+		check_inheritance "$tag_id" "$old_id" ||
+			girar_rename_repo_branch
 		git branch -f "$GB_REPO_NAME" "$tag_id"
 		stamp_echo >&2 "updated $GIT_DIR branch \`$GB_REPO_NAME'"
 	else
@@ -108,7 +126,6 @@ girar_commit_copy()
 	fi
 }
 
-task_id=$(cat task/id)
 girar_obsolete()
 {
 	local dir="$1"; shift
@@ -117,12 +134,8 @@ girar_obsolete()
 	set_GIT_DIR "$dir" "$N"
 	[ -d "$GIT_DIR" ] || return 0
 	local id
-	if id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" &&
-	   [ -n "$id" ]; then
-		git symbolic-ref HEAD refs/heads/.nowhere
-		git branch -f "old/$GB_REPO_NAME-task$task_id" "$id"
-		git branch -D "$GB_REPO_NAME" > /dev/null
-		git symbolic-ref HEAD refs/heads/sisyphus
+	if [ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ]; then
+		girar_rename_repo_branch
 		update_git_timestamp
 		stamp_echo >&2 "removed $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
