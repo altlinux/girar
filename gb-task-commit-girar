@@ -35,7 +35,10 @@ check_inheritance()
 task_id=$(cat task/id)
 girar_rename_repo_branch()
 {
-	git branch -m "$GB_REPO_NAME" "old/$GB_REPO_NAME-task$task_id"
+	local n
+	n="old/$GB_REPO_NAME-task$task_id"
+	git branch -m "$GB_REPO_NAME" "$n"
+	stamp_echo >&2 "saved $GIT_DIR branch \`$GB_REPO_NAME' as \`$n'"
 	git symbolic-ref HEAD refs/heads/sisyphus
 }
 
