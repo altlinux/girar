@@ -208,8 +208,9 @@ sort -u chroot_install > "$topdir"/install/chroot_install
 cp -p id chroot_base warnings "$topdir"/install/
 
 # Remove the package.
+mountpoints="$(hsh-run -- rpmquery -aR | grep -E '^/(proc|dev/pts)$' | sort -u | tr '\n' ,)"
 what=$(perl -pe 's/=\d+:/-/ or s/=/-/' <new-packages)
-hsh-run --rooter -- \
+hsh-run --rooter --mountpoints="$mountpoints" -- \
 rpm -ev -- ${what:?} </dev/null >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR uninstall failed:"
