@@ -2,6 +2,7 @@
 
 . gb-sh-functions
 . gb-sh-tmpdir
+. gb-sh-rpmhdrcache
 
 for arch in $GB_ARCH noarch; do
 	# Regen only if there are $arch packages.
