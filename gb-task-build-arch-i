@@ -25,6 +25,11 @@ else
 	exit 1
 fi
 
+if [ -f task/abort ]; then
+	stamp_echo >&2 "$I build ABORTED"
+	exit 1
+fi
+
 stamp_echo >&2 "$I build start"
 
 # copy source package and accompanying build data to remote side
