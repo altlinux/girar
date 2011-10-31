@@ -95,6 +95,7 @@ bin_TARGETS = \
 	bin/girar-rm-db \
 	bin/girar-sh \
 	bin/girar-task \
+	bin/girar-task-abort \
 	bin/girar-task-add \
 	bin/girar-task-approve \
 	bin/girar-task-change-state \

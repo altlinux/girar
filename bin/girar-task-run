@@ -112,6 +112,9 @@ else
 		rm task/test-only
 fi
 
+# remove "abort" flag
+rm -f task/abort
+
 echo "$GIRAR_USER" > task/run
 
 logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try repo=$repo"

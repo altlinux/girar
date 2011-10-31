@@ -1,0 +1,82 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task abort'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <task_id>"
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+if [ "$#" -gt 1 ]; then
+	usage 'Too many arguments.'
+fi
+
+if [ "$#" -lt 1 ]; then
+	usage 'Not enough arguments.'
+fi
+
+id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+
+cd "$GB_TASKS/$id"
+
+repo="$(cat task/repo)"
+owner="$(cat task/owner)"
+[ "$owner" = "$GIRAR_USER" ] ||
+	girar-check-superuser "$repo" ||
+		fatal "task #$id belongs to $owner"
+
+schedule_abort()
+{
+	if [ -f task/abort ]; then
+		local aowner
+		aowner="$(stat -c %U task/abort)"
+		aowner="${aowner#git_}"
+		fatal "task #$id abort already requested by $aowner"
+	fi
+	touch task/abort
+	local try iter log
+	try=$(cat task/try)
+	iter=$(cat task/iter)
+	log="logs/events.$try.$iter.log"
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: task abort requested by $GIRAR_USER." >> "$log"
+	message "task #$id scheduled for abort"
+}
+
+do_abort()
+{
+	girar-task-change-state "$id" FAILED
+	message "task #$id aborted"
+}
+
+try_abort()
+{
+	local state
+	state=$(cat task/state)
+	case "$state" in
+		AWAITING|PENDING)
+			do_abort ;;
+		NEW)
+			fatal "task #$id is not yet submitted for processing" ;;
+		DONE|EPERM|FAILED|TESTED)
+			fatal "task #$id is already processed" ;;
+		BUILDING|COMMITTING)
+			fatal "task #$id is in unexpected state \"$state\"" ;;
+		*)
+			fatal "task #$id is in unrecognized state \"$state\"" ;;
+	esac
+}
+
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
+if builtin lockf -n .; then
+	try_abort
+else
+	schedule_abort
+fi
