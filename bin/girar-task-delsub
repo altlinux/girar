@@ -47,7 +47,7 @@ for i; do
 	# del/copy
 	rm -f gears/$i/package gears/$i/copy_repo
 	# srpm
-	rm -f gears/$i/srpm
+	rm -f gears/$i/srpm gears/$i/nevr
 	# gear
 	rm -f gears/$i/dir gears/$i/tag_name gears/$i/tag_id gears/$i/tag_author
 	rm -rf gears/$i/git

@@ -116,8 +116,9 @@ validate_srpm()
 	mv -- "$srpm" tmp/
 	cd tmp
 
-	package="$(rpmquery -p --qf '%{name}' -- "$srpm")" ||
+	nevr="$(rpmquery -p --qf '%{name}\t%|epoch?{%{epoch}:}|%{version}-%{release}' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
+	package="${nevr%	*}"
 	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
 		fatal "$srpm: sisyphus_check failed"
 
@@ -343,6 +344,7 @@ case "$action" in
 	mv -- "$HOME/incoming/tmp/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
+	printf '%s\n' "$nevr" >gears/$i/nevr
 	girar-task-change-state "$id" NEW
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
 	exit 0
