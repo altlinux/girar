@@ -99,6 +99,7 @@ validate_tag_name()
 }
 
 srpm_tmp_locked=
+nevr=
 validate_srpm()
 {
 	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
@@ -218,6 +219,15 @@ check_already_added_package()
 		[ "$a_name" = "$package" ] || continue
 		a_copy="$(cat gears/$i/copy_repo 2>/dev/null ||:)"
 		case "$action" in
+			srpm)
+			local reason
+			if [ -s gears/$i/copy_repo ]; then
+				reason="copy from $a_copy"
+			else
+				reason="deletion"
+			fi
+			fatal "package $package was already queued by $(cat gears/$i/userid) for $reason"
+			;;
 			del)
 			if [ -s gears/$i/copy_repo ]; then
 				fatal "package $package was already queued by $(cat gears/$i/userid) for copy from $a_copy"
@@ -229,12 +239,25 @@ check_already_added_package()
 			copy)
 			if [ -s gears/$i/copy_repo ]; then
 				message "package $package was already queued by $(cat gears/$i/userid) for copy from $a_copy"
-				[ "$copy_repo" = "$a_copy" ] && exit 0
+				[ "$copy_repo" = "$a_copy" ] && exit 0 || exit 1
 			else
 				fatal "package $package was already queued by $(cat gears/$i/userid) for deletion"
 			fi
 			;;
 		esac
+	done
+}
+
+check_already_added_srpm()
+{
+	local i
+	for i in $nums; do
+		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
+		local a_nevr a_name
+		a_nevr="$(cat gears/$i/nevr)"
+		a_name="${a_nevr%	*}"
+		[ "$a_name" = "$package" ] || continue
+		fatal "package $(cat gears/$i/srpm) was already queued by $(cat gears/$i/userid) for build"
 	done
 }
 
@@ -244,7 +267,8 @@ check_already_added()
 		repo)
 		check_already_added_repo
 		;;
-		del|copy)
+		srpm|del|copy)
+		check_already_added_srpm
 		check_already_added_package
 		;;
 	esac
