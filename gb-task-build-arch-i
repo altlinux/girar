@@ -38,12 +38,19 @@ gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:tmp/"
 touch "build/$i/$arch/log"
 gb-x-rsync-loop -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
 
+swift=
+if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chroot_BR" ] &&
+   [ -n "$(set +f && ls "build/$i/$arch/srpm"/*.src.rpm 2>/dev/null)" ]; then
+	swift=swift
+fi
+
 # run the build on remote side
 ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$from")\"" \
 	"\"$(quote_shell "$tag_name")\"" \
-	"\"$(quote_shell "$tag_author")\"" ||
+	"\"$(quote_shell "$tag_author")\"" \
+	$swift ||
 		{ stamp_echo >&2 "$I build FAILED";
 		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
 		  exit 1; }
@@ -60,6 +67,11 @@ fi
 
 # copy some build warnings from the build log to the task log
 grep -EHs 'WARNING: [^ ]+ is not yet (set-versioned|debuginfo-enabled)' "build/$i/$arch/log" ||:
+
+if [ -n "$swift" ]; then
+	stamp_echo >&2 "$I build swiftly SKIPPED"
+	exit 0
+fi
 
 if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
 	printf '%s\n' "$out"

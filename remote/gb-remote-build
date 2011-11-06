@@ -4,6 +4,10 @@ arch="$1"; shift
 from="$1"; shift
 tag_name="$1"; shift
 tag_author="$1"; shift
+swift=
+if [ "${1-}" = swift ]; then
+	swift="$1"; shift
+fi
 
 if [ -z "${from##*.src.rpm}" ]; then
 	src="$from"
@@ -46,6 +50,16 @@ examine_excludearch_exclusivearch()
 rm -f build/excluded
 if [ "$from" = "$src" ]; then
 	examine_excludearch_exclusivearch tmp/"$src"
+fi
+
+if [ -n "$swift" -a -s build/chroot_base -a -f build/chroot_BR ]; then
+	mkdir -p hasher/repo/$arch/RPMS.hasher hasher/repo/SRPMS.hasher
+	(set +f
+	 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
+	 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+		Fatal 'failed to obtain packages from previous run'
+	stamp_echo >&2 "$I: too swift to rebuild"
+	exit 0
 fi
 
 tmpdir=

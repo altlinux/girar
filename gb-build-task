@@ -37,6 +37,9 @@ gb-task-set-summary
 	if [ -f task/test-only ]; then
 		task_prefix="${task_prefix}test-only "
 	fi
+	if [ -f task/swift ]; then
+		task_prefix="${task_prefix}swift "
+	fi
 	task_prefix="${task_prefix}$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
 	[ "$try" = 1 ] && text=started || text=resumed
 	run_by="$(cat task/run ||:)"
@@ -76,6 +79,11 @@ gb-task-set-summary
 
 	# apply local policy enforcement
 	gb-task-local-policy
+
+	if [ -f task/swift ]; then
+		stamp_echo 'swift processing complete'
+		exit 1
+	fi
 
 	# save test repo for commit
 	gb-task-gen-ci
