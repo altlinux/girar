@@ -199,5 +199,14 @@ $(show_subtasks)
 __EOF__
 }
 
+cleanup_tmpdir()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "${@-}"
+}
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup_tmpdir $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+show > "$tmpdir/index.html"
 umask 002
-show > index.html
+cat "$tmpdir/index.html" > index.html
