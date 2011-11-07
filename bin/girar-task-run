@@ -6,12 +6,18 @@ PROG='girar-task run'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--test-only] [<task_id>]"
+	echo >&2 "usage: $PROG [--dry-run] [--test-only] [<task_id>]"
 	exit 1
 }
 
 if [ "${1-}" = '--help' ]; then
 	usage
+fi
+
+dry_run=
+if [ "${1-}" = '--dry-run' ]; then
+	dry_run=1
+	shift
 fi
 
 test_only=
@@ -95,6 +101,11 @@ else
 	try=1
 fi
 iter=1
+
+if [ -n "$dry_run" ]; then
+	echo >&2 "task #$id: try #$try could be queued"
+	exit 0
+fi
 
 # create group writable directories for build results
 mkdir -pm3775 bugmail install logs report
