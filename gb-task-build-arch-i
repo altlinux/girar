@@ -45,7 +45,7 @@ if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chro
 fi
 
 # run the build on remote side
-ssh "$remote_host" ./gb-remote-build \
+gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$from")\"" \
 	"\"$(quote_shell "$tag_name")\"" \

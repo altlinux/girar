@@ -11,7 +11,7 @@ qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
 gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
-ssh "$remote_host" ./gb-remote-plant \
+gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
 	"\"$(quote_shell "$remote_home/gb-repo")\"" \
@@ -23,8 +23,8 @@ if [ -L "$GB_TMP_REPO_DIR" ]; then
 	# Clever hack: simply change gb-repo symlink.  Note that we
 	# do not want to pass $GB_REPO_DIR to remote-plant because
 	# this is going to invalidate hasher's chroot cache.
-	ssh "$remote_host" rm gb-repo
-	ssh "$remote_host" ln -s "$GB_REPO_DIR" gb-repo
+	gb-x-ssh "$remote_host" rm gb-repo
+	gb-x-ssh "$remote_host" ln -s "$GB_REPO_DIR" gb-repo
 else
 	# Need to copy.
 	gb-x-rsync-loop -a "$GB_TMP_REPO_DIR"/{$arch,noarch} "$remote_host:gb-repo/"

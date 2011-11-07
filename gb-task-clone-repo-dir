@@ -15,7 +15,7 @@ fi
 . gb-sh-tmpdir
 
 for host in $GB_REPO_CLONES; do
-	ssh "$host" clone-repo "$USER" "$repo" ||
+	gb-x-ssh "$host" clone-repo "$USER" "$repo" ||
 		stamp_echo "FAILED to remote clone $repo on $host" >> "$tmpdir"/FAIL &
 done
 

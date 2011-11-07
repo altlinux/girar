@@ -10,7 +10,7 @@ arch="$1"; shift
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR.
 gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
 remote_home=$(ssh "$remote_host" pwd)
-ssh "$remote_host" ./gb-remote-plant \
+gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
 	"\"$(quote_shell "$remote_home/gb-repo")\"" \
@@ -37,7 +37,7 @@ while read -r N EVR A F; do
 	(umask 002; mkdir -p "install/$N/$arch") || false
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
 
-	if ssh "$remote_host" ./gb-remote-check-install \
+	if gb-x-ssh "$remote_host" ./gb-remote-check-install \
 	       "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$F" </dev/null; then
 		# copy install chroot identification from remote side
 		gb-x-rsync-loop -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
