@@ -94,6 +94,49 @@ check_acl()
 		check_acl ||
 			fatal "task #$id belongs to $owner"
 
+nums=$(gear_nums)
+check_copy_del()
+{
+	local i package action a_repo rc=0
+	for i in $nums; do
+		[ -s gears/$i/package ] || continue
+		package="$(cat gears/$i/package)"
+		if [ -s gears/$i/copy_repo ]; then
+			action=copy
+			a_repo="$(cat gears/$i/copy_repo)"
+		else
+			action=delete
+			a_repo=$repo
+		fi
+		girar-check-package-in-repo "$package" "$a_repo" ||
+		{
+			message "task #$id: subtask #$i: invalid request to $action nonexistent package \`$package' from \`$a_repo'"
+			rc=1
+		}
+	done
+	return $rc
+}
+
+check_srpm()
+{
+	local i nevr rc=0
+	for i in $nums; do
+		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
+		nevr="$(cat gears/$i/nevr)"
+		girar-check-nevr-in-repo "${nevr%	*}" "${nevr#*	}" "$repo" ||
+		{
+			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is too old for \`$repo'"
+			rc=1
+		}
+	done
+	return $rc
+}
+
+fail=
+check_copy_del || fail=1
+check_srpm || fail=1
+[ -z "$fail" ]
+
 try=$(cat task/try 2>/dev/null ||:)
 if [ -n "$try" ]; then
 	try=$(($try+1))
