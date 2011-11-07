@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <source package name> <source package epoch:version-release> <binary package repository name>"
+	exit 1
+}
+
+[ "$#" -ge 3 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 3 ] ||
+	usage 'Too many arguments.'
+
+package="$1"; shift
+evr="$1"; shift
+repository="$1"; shift
+
+# Returns:
+# 0 - $package doesn't exist in $repository, or its $evr is greater than in $repository;
+# 1 - otherwise.
+
+[ -n "${GIRAR_USER-}" ] ||
+	fatal 'GIRAR_USER undefined'
+
+repository="$(girar-normalize-repo-name "$repository")"
+
+conf="$GIRAR_REPO_CONF_DIR/$repository"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
+[ -d "${GIRAR_REPO_DIR-}" ] ||
+	fatal 'GIRAR_REPO_DIR is either undefined or invalid'
+
+r_evr="$(printf %s "$package" |join -j1 -o2.2 - $GIRAR_REPO_DIR/files/list/src.list)" || exit 0
+[ "$(rpmevrcmp "$r_evr" "$evr")" -lt 0 ]
