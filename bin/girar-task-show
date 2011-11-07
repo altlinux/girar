@@ -32,6 +32,7 @@ enable -f /usr/lib/bash/lockf lockf
 printf ' locked=%s' "$(builtin lockf -n . && echo no || echo yes)"
 printf ' shared=%s' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf yes -or -printf no 2>/dev/null || echo no)"
 printf ' test_only=%s' "$(test -f task/test-only && echo yes || echo no)"
+printf ' swift=%s' "$(test -f task/swift && echo yes || echo no)"
 if [ -f task/abort ]; then
 	aowner="$(stat -c %U task/abort)"
 	aowner="${aowner#git_}"

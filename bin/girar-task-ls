@@ -153,6 +153,9 @@ ls1()
 	if [ -f task/test-only ]; then
 		printf ' [test-only]'
 	fi
+	if [ -f task/swift ]; then
+		printf ' [swift]'
+	fi
 	printf ' %s' "$(cat task/repo)"
 	[ -n "$ls_user" ] ||
 		printf '/%s' "$(cat task/owner)"
