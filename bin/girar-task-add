@@ -122,6 +122,8 @@ validate_srpm()
 	package="${nevr%	*}"
 	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
 		fatal "$srpm: sisyphus_check failed"
+	girar-check-nevr-in-repo "$package" "${nevr#*	}" "$repo" ||
+		fatal "$srpm: too old for \`$repo'"
 
 	popd >/dev/null
 }
@@ -164,12 +166,12 @@ builtin lockf -n . ||
 
 repo="$(cat task/repo)"
 case "$action" in
+	srpm)
+	validate_srpm
+	;;
 	del)
 	girar-check-package-in-repo "$package" "$repo" ||
 		fatal "Invalid request to delete nonexistent package \`$package' from \`$repo'"
-	;;
-	srpm)
-	validate_srpm
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
