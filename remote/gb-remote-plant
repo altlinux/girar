@@ -33,12 +33,10 @@ mkdir -p -- "$install"
 ln -snf -- "$install"
 
 # create $TMPDIR/hasher if necessary
-# recreate $TMPDIR/hasher/repo
 # recreate ~/hasher as symlink to $TMPDIR/hasher
 workdir="$TMPDIR/hasher"
 mkdir -p -- "$workdir"
 ln -snf -- "$workdir"
-rm -rf -- "$workdir/repo"
 
 # store pkglists outside of aptbox
 rm -rf -- "$workdir/lists"
@@ -50,12 +48,17 @@ rm -rf -- "$gb_repo"
 mkdir -p -- "$gb_repo"
 ln -snf -- "$gb_repo"
 
+# store hasher build repo outside of workdir
+rm -rf -- "$HOME/hasher_repo"
+mkdir -p -- "$HOME/hasher_repo"
+
 # recreate hasher config file
 mkdir -p -- .hasher
 cat >.hasher/config <<EOF
 workdir="\$TMPDIR/hasher"
 apt_config="\$workdir/apt.conf"
 def_target="$arch"
+def_repo="\$HOME/hasher_repo"
 nprocs=1
 known_mountpoints=/proc,/dev/pts
 USER="$owner-$repo_name"

@@ -53,10 +53,10 @@ if [ "$from" = "$src" ]; then
 fi
 
 if [ -n "$swift" -a -s build/chroot_base -a -f build/chroot_BR ]; then
-	mkdir -p hasher/repo/$arch/RPMS.hasher hasher/repo/SRPMS.hasher
+	mkdir -p hasher_repo/$arch/RPMS.hasher hasher_repo/SRPMS.hasher
 	(set +f
-	 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
-	 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+	 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+	 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 		Fatal 'failed to obtain packages from previous run'
 	stamp_echo >&2 "$I: too swift to rebuild"
 	exit 0
@@ -97,8 +97,8 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 		sort -u >"$tmpdir"/chroot_BR
 	if cmp -s {build,"$tmpdir"}/chroot_BR; then
 		(set +f
-		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
-		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
 		stamp_echo >&2 "$I: no need to rebuild"
 		exit 0
@@ -143,8 +143,8 @@ mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
 if cmp -s {build,"$tmpdir"}/chroot_base; then
 	if cmp -s {build,"$tmpdir"}/chroot_BR; then
 		(set +f
-		 cp -p build/rpms/*.rpm hasher/repo/$arch/RPMS.hasher/ &&
-		 cp -p build/srpm/*.rpm hasher/repo/SRPMS.hasher/ ) ||
+		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
 		stamp_echo >&2 "$I: no need to rebuild"
 		exit 0
@@ -152,11 +152,11 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 fi
 
 # Step 5: examine repo/ contents before build.
-find hasher/repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-execdir sha1sum -- '{}' '+' >"$tmpdir"/srpm1
 sort -o "$tmpdir"/srpm1{,}
 
-find hasher/repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-execdir sha1sum -- '{}' '+' >"$tmpdir"/rpms1
 sort -o "$tmpdir"/rpms1{,}
 
@@ -167,11 +167,11 @@ hsh-rebuild tmp/"$src" >build/log 2>&1 ||
 hsh-rmchroot
 
 # Step 5: examine repo/ contents after build.
-find hasher/repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-execdir sha1sum -- '{}' '+' >"$tmpdir"/srpm2
 sort -o "$tmpdir"/srpm2{,}
 
-find hasher/repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-execdir sha1sum -- '{}' '+' >"$tmpdir"/rpms2
 sort -o "$tmpdir"/rpms2{,}
 
@@ -202,7 +202,7 @@ if [ "$n" -ne 1 ]; then
 	Fatal 'multpile source packages'
 fi >&2
 
-(cd hasher/repo/$arch/RPMS.hasher
+(cd hasher_repo/$arch/RPMS.hasher
  xargs -r <"$tmpdir"/add-bin \
 	rpmquery --qf '%{SOURCERPM}\n' -p ) >"$tmpdir"/ref-src || false
 sort -u -o "$tmpdir"/ref-src{,}
@@ -212,12 +212,12 @@ sort -u -o "$tmpdir"/ref-src{,}
 # Copyout.
 rm -rf build/rpms
 mkdir -p build/rpms
-tar -C hasher/repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
+tar -C hasher_repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
 tar -C build/rpms -xf -
 
 rm -rf build/srpm
 mkdir -p build/srpm
-tar -C hasher/repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
+tar -C hasher_repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
 tar -C build/srpm -xf -
 
 # Meta copyout.
