@@ -153,11 +153,11 @@ fi
 
 # Step 5: examine repo/ contents before build.
 find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-	-execdir sha1sum -- '{}' '+' >"$tmpdir"/srpm1
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/srpm1
 sort -o "$tmpdir"/srpm1{,}
 
 find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-	-execdir sha1sum -- '{}' '+' >"$tmpdir"/rpms1
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms1
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 6: build.
@@ -168,38 +168,36 @@ hsh-rmchroot
 
 # Step 5: examine repo/ contents after build.
 find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-	-execdir sha1sum -- '{}' '+' >"$tmpdir"/srpm2
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/srpm2
 sort -o "$tmpdir"/srpm2{,}
 
 find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-	-execdir sha1sum -- '{}' '+' >"$tmpdir"/rpms2
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms2
 sort -o "$tmpdir"/rpms2{,}
 
-comm -23 "$tmpdir"/rpms{1,2} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
+comm -23 "$tmpdir"/rpms{1,2} |cut -f1 >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
 	cat "$tmpdir"/out
 	Fatal 'attempt to replace binary packages'
 fi >&2
-comm -23 "$tmpdir"/srpm{1,2} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
+comm -23 "$tmpdir"/srpm{1,2} |cut -f1 >"$tmpdir"/out
 if [ -s "$tmpdir"/out ]; then
 	cat "$tmpdir"/out
 	Fatal 'attempt to replace source packages'
 fi >&2
 
 # Step 8: save results.
-comm -23 "$tmpdir"/rpms{2,1} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal 'no binary packages'
-cut -f1 "$tmpdir"/out >"$tmpdir"/add-bin
+comm -23 "$tmpdir"/rpms{2,1} |cut -f1 >"$tmpdir"/add-bin
+[ -s "$tmpdir"/add-bin ] || Fatal 'no binary packages'
 
-comm -23 "$tmpdir"/srpm{2,1} |cut -f2 |cut -d/ -f2 >"$tmpdir"/out
-[ -s "$tmpdir"/out ] || Fatal 'no source package'
-cut -f1 "$tmpdir"/out >"$tmpdir"/add-src
+comm -23 "$tmpdir"/srpm{2,1} |cut -f1 >"$tmpdir"/add-src
+[ -s "$tmpdir"/add-src ] || Fatal 'no source package'
 
 # Check that we've got (src,bin+) tuple.
 n=$(wc -l <"$tmpdir"/add-src)
 if [ "$n" -ne 1 ]; then
 	cat "$tmpdir"/add-src
-	Fatal 'multpile source packages'
+	Fatal 'multiple source packages'
 fi >&2
 
 (cd hasher_repo/$arch/RPMS.hasher
