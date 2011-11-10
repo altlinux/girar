@@ -107,7 +107,8 @@ girar_check_copy()
 	copy_repo="$(cat gears/$i/copy_repo)"
 	copy_commit_id="$(git rev-parse --branches="[${copy_repo:0:1}]${copy_repo:1}")"
 	if [ -z "$copy_commit_id" ]; then
-		fail "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
+		warn "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
+		girar_check_srpm
 		return
 	fi
 	check_inheritance "$copy_commit_id" "$old_commit_id" ||
