@@ -17,6 +17,10 @@ wait
 
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
+	if is_check_failure_tolerated; then
+		echo >&2 "The most essential install check failed, but \`$GB_REPO_NAME' is so neglected a repository that nobody cares about such trifles as this."
+		exit 0
+	fi
 	exit 1
 fi
 
