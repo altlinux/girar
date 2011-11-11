@@ -88,7 +88,7 @@ girar_commit_srpm()
 		git clone -q -s --bare --template=/var/empty "$GIT_DIR" "$tmp_repo/.git"
 		cd "$tmp_repo"
 		git config core.bare false
-		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm"
+		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm" ||:
 		cd - >/dev/null
 
 		export GIT_DIR
@@ -100,7 +100,7 @@ girar_commit_srpm()
 		mkdir -p -- "$tmp_repo"
 		cd "$tmp_repo"
 		git init -q --template=/var/empty
-		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm"
+		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm" ||:
 		cd - >/dev/null
 
 		export GIT_DIR
