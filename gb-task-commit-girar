@@ -47,7 +47,7 @@ girar_commit_git()
 	local tag_name tag_id old_id
 	tag_name="$(cat "gears/$i/tag_name")"
 	tag_id="$(cat "gears/$i/tag_id")"
-	old_id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null ||:)"
+	old_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null ||:)"
 	if [ -n "$old_id" ]; then
 		# update gear
 		git_fetch "gears/$i/git" tag "$tag_name"
@@ -82,7 +82,7 @@ girar_commit_srpm()
 	local srpm tmp_repo="$tmpdir/repo"
 	srpm="$PWD/gears/$i/$(cat "gears/$i/srpm")"
 	rm -rf -- "$tmp_repo"
-	if [ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ]; then
+	if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
 		# update gear
 		export -n GIT_DIR
 		git clone -q -s --bare --template=/var/empty "$GIT_DIR" "$tmp_repo/.git"
@@ -116,23 +116,6 @@ girar_commit_srpm()
 	update_git_timestamp
 }
 
-girar_commit_copy()
-{
-	local copy_repo text
-	copy_repo="$(cat "gears/$i/copy_repo")"
-	if [ -n "$(git rev-parse --branches="[${copy_repo:0:1}]${copy_repo:1}" 2>/dev/null)" ]; then
-		[ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ] &&
-			text=updated || text=created
-		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
-		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
-		update_git_timestamp
-	else
-		if [ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ]; then
-			girar_obsolete "$GB_GEARS_DIR" "$N"
-		fi
-	fi
-}
-
 girar_obsolete()
 {
 	local dir="$1"; shift
@@ -141,10 +124,27 @@ girar_obsolete()
 	set_GIT_DIR "$dir" "$N"
 	[ -d "$GIT_DIR" ] || return 0
 	local id
-	if [ -n "$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" ]; then
+	if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
 		girar_rename_repo_branch
 		update_git_timestamp
 		stamp_echo >&2 "removed $GIT_DIR branch \`$GB_REPO_NAME'"
+	fi
+}
+
+girar_commit_copy()
+{
+	local copy_repo text
+	copy_repo="$(cat "gears/$i/copy_repo")"
+	if [ -n "$(git_get_branch_id "$copy_repo" 2>/dev/null)" ]; then
+		[ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ] &&
+			text=updated || text=created
+		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
+		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
+		update_git_timestamp
+	else
+		if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
+			girar_obsolete "$GB_GEARS_DIR" "$N"
+		fi
 	fi
 }
 

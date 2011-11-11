@@ -105,7 +105,7 @@ girar_check_copy()
 {
 	local copy_repo copy_commit_id
 	copy_repo="$(cat gears/$i/copy_repo)"
-	copy_commit_id="$(git rev-parse --branches="[${copy_repo:0:1}]${copy_repo:1}")"
+	copy_commit_id="$(git_get_branch_id "$copy_repo")"
 	if [ -z "$copy_commit_id" ]; then
 		warn "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
 		girar_check_srpm
@@ -122,7 +122,7 @@ girar_check()
 
 	set_GIT_DIR "$GB_GEARS_DIR" "$N"
 
-	old_commit_id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" &&
+	old_commit_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" &&
 	[ -n "$old_commit_id" ] ||
 		return 0	# first time push to this branch
 
