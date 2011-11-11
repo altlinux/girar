@@ -191,6 +191,13 @@ set_GIT_DIR()
 	export GIT_DIR
 }
 
+git_get_branch_id()
+{
+	local name="$1"; shift
+	[ -n "${name:1}" ]
+	git rev-parse --branches="[${name:0:1}]${name:1}"
+}
+
 # When replacing packages, versions must increase.
 vercheck()
 {
