@@ -16,6 +16,6 @@ done <plan/add-bin
 
 if [ $RC -gt 0 ]; then
 	stamp_echo >&2 'python2.6 dependencies are no longer allowed'
-	stamp_echo >&2 'sorry for inconvenience, please try again later'
+	stamp_echo >&2 'sorry for inconvenience, please wait for python2.7 and try again later'
 	exit 1
 fi
