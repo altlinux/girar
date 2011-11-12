@@ -33,6 +33,12 @@ while read -r N EVR A F; do
 		fi
 	fi
 
+	if [ -f task/abort ]; then
+		stamp_echo >&2 "[$arch] $N: install check ABORTED"
+		rc=1
+		break
+	fi
+
 	# copy install chroot identification to remote side
 	(umask 002; mkdir -p "install/$N/$arch") || false
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
