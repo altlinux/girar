@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 for i in $(gear_nums); do
 	if [ -s gears/$i/pkg.tar ]; then
 		continue

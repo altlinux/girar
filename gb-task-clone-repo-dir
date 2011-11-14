@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 repo="${GB_REPO_DIR##*/}"
 
 enable -f /usr/lib/bash/lockf lockf

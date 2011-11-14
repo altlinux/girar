@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 # Check that the plan is consitent with respect to package versioning:
 # when replacing packages, versions must increase.
 

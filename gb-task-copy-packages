@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 for i in $(copy_nums); do
 	gb-task-copy-packages-i "$i"
 done

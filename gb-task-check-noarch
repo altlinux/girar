@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 rc=0 text=OK
 
 for i in $(src_nums) $(copy_nums); do

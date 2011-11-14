@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 changelog_with_time()
 {
 	local s='[:space:]'

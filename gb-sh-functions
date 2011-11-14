@@ -212,6 +212,14 @@ halt_build_queue()
 	return 1
 }
 
+fail_if_task_abort_requested()
+{
+	if [ -f task/abort ]; then
+		stamp_echo >&2 'task processing ABORTED'
+		exit 1
+	fi
+}
+
 is_check_failure_tolerated()
 {
 	local n

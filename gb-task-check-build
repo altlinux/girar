@@ -6,6 +6,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 rc=0
 fail()
 {

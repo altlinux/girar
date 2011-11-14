@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 i="$1"; shift
 
 handle_build_arch()

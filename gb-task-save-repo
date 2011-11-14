@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 . gb-sh-tmpdir
 
 for arch in $GB_ARCH noarch; do

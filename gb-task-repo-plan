@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 # Drop old plan if any.
 find plan -type f -delete
 

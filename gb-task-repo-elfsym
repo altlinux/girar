@@ -1,9 +1,12 @@
 #!/bin/sh -efu
 
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
 # This check does not apply to noarch packages.
 cut -f3 plan/{add,rm}-bin |fgrep -qs -v noarch || exit 0
 
-. gb-sh-functions
 repo1="$GB_REPO_DIR"
 
 # Reuse our temporary repo.

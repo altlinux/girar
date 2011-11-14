@@ -1,6 +1,9 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+
+fail_if_task_abort_requested
+
 repo1="$GB_REPO_DIR"
 repo2="$GB_TMP_REPO_DIR"
 topdir="$PWD"

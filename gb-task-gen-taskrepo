@@ -2,6 +2,8 @@
 
 . gb-sh-functions
 
+fail_if_task_abort_requested
+
 id="$1"; shift
 
 . gb-sh-tmpdir

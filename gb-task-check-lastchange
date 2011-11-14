@@ -6,6 +6,9 @@
 #
 
 . gb-sh-functions
+
+fail_if_task_abort_requested
+
 . gb-sh-tmpdir
 
 rc=0
