@@ -51,6 +51,7 @@ schedule_abort()
 
 do_abort()
 {
+	message "task #$id was not locked, trying immediate abort"
 	girar-task-change-state "$id" FAILED
 	message "task #$id aborted"
 }
