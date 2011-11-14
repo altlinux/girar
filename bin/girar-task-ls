@@ -40,17 +40,19 @@ EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o h -l all,done,repo:,state:,user:,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o h -l all,brief,done,repo:,state:,user:,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
 repo=
+brief=
 state=
 user=
 while :; do
 	case "$1" in
 		--) shift; break ;;
 		--all) user=all ;;
+		--brief) brief=1 ;;
 		--done) state=done ;;
 		--repo) shift; repo="$1" ;;
 		--state) shift; state="$1" ;;
@@ -159,6 +161,10 @@ ls1()
 	printf ' %s' "$(cat task/repo)"
 	[ -n "$ls_user" ] ||
 		printf '/%s' "$(cat task/owner)"
+	if [ -n "$brief" ]; then
+		echo ' ...'
+		return
+	fi
 	local i
 	for i in $(gear_nums); do
 		if [ -s "gears/$i/dir" ]; then
