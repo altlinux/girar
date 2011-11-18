@@ -61,7 +61,7 @@ try_abort()
 	local state
 	state=$(cat task/state)
 	case "$state" in
-		AWAITING|PENDING)
+		AWAITING|PENDING|POSTPONED)
 			do_abort ;;
 		NEW)
 			fatal "task #$id is not yet submitted for processing" ;;

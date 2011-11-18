@@ -49,7 +49,7 @@ case "$state" in
 		;;
 	AWAITING)
 		fatal "task #$id is already scheduled for run" ;;
-	BUILDING|PENDING|COMMITTING)
+	BUILDING|PENDING|POSTPONED|COMMITTING)
 		fatal "task #$id is a work in progress" ;;
 	DONE)
 		fatal "task #$id is already successfully processed" ;;
