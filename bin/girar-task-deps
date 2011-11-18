@@ -1,0 +1,88 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task deps'
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	cat >&2 <<EOF
+Usage: $PROG [<task_id>] show
+   or: $PROG [<task_id>] clear
+   or: $PROG [<task_id>] add|del|set <required task id1> [<required task id2>...]
+EOF
+	exit 1
+}
+
+if [ "${1-}" = '--help' ]; then
+	usage
+fi
+
+[ $# -ge 1 ] || usage 'Not enough arguments.'
+case "$1" in
+	show|clear|add|del|set) id=$(PROG="$PROG" girar-task-find-current) ;;
+	*) id=$(PROG="$PROG" girar-task-find-current "$@"); shift;;
+esac
+cd "$GB_TASKS/$id"
+
+[ $# -ge 1 ] || usage 'Not enough arguments.'
+action="$1"; shift
+case "$action" in
+	show)	[ $# -eq 0 ] || usage 'Too many arguments.'
+		cat task/depends 2>/dev/null ||:
+		exit 0
+		;;
+	clear)	[ $# -eq 0 ] || usage 'Too many arguments.' ;;
+	add|set)[ $# -ge 1 ] || usage 'Not enough arguments.' ;;
+	del)	[ $# -ge 1 ] || usage 'Not enough arguments.'
+		[ -s task/depends ] || exit 0
+		;;
+	*)	usage "Invalid action: $action" ;;
+esac
+
+for i; do
+	[ -n "$i" -a -z "$(printf %s "$i" |tr -d '[:digit:]')" ] ||
+		fatal "invalid task id: $i"
+	case "$action" in
+		del) ;;
+		*) [ -d "$GB_TASKS/$i/task" ] ||
+			fatal "task #$i not found" ;;
+	esac
+done
+
+# obtain an exclusive lock on the TASKS structure
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -n . ||
+	fatal "task #$id is locked"
+
+repo="$(cat task/repo)"
+owner="$(cat task/owner)"
+state="$(cat task/state)"
+
+check_task_modifiable
+
+[ "$owner" = "$GIRAR_USER" ] ||
+	girar-check-superuser "$repo" ||
+		fatal "task #$id belongs to $owner"
+
+umask 002
+case "$action" in
+	clear|set) > task/depends ;;
+	*) >> task/depends ;;
+esac
+
+for i; do
+	k="_$(($i/1024))"
+	if [ -d "$GB_TASKS_DONE_DIR/$k/$i/task" ]; then
+		sed -i "/^$i\$/d" task/depends
+		continue
+	fi
+	case "$action" in
+		del) sed -i "/^$i\$/d" task/depends ;;
+		*) echo "$i" >> task/depends ;;
+	esac
+done
+
+sort -u -o task/depends task/depends
+logger -t "$PROG" "user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+girar-task-change-state "$id" NEW

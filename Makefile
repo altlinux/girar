@@ -27,6 +27,7 @@ girar_repo_conf_dir = ${girar_confdir}/repo
 EMAIL_DOMAIN = altlinux.org
 GB_GROUP = girar-builder
 GB_TASKS = ${girar_spooldir}/tasks
+GB_TASKS_DONE_DIR = ${GB_TASKS}/archive/done
 GIRAR_ACL_SOCKET = ${girar_spooldir}/acl/socket
 GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
@@ -102,6 +103,7 @@ bin_TARGETS = \
 	bin/girar-task-change-state \
 	bin/girar-task-check-git-inheritance \
 	bin/girar-task-delsub \
+	bin/girar-task-deps \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \
 	bin/girar-task-make-index-html \
@@ -225,6 +227,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
 	    -e 's,@GB_GROUP@,${GB_GROUP},g' \
 	    -e 's,@GB_TASKS@,${GB_TASKS},g' \
+	    -e 's,@GB_TASKS_DONE_DIR@,${GB_TASKS_DONE_DIR},g' \
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \

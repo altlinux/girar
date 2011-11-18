@@ -47,9 +47,9 @@ state="$(cat task/state)"
 case "$state" in
 	NEW|TESTED|EPERM|FAILED)
 		;;
-	AWAITING)
+	AWAITING|POSTPONED)
 		fatal "task #$id is already scheduled for run" ;;
-	BUILDING|PENDING|POSTPONED|COMMITTING)
+	BUILDING|PENDING|COMMITTING)
 		fatal "task #$id is a work in progress" ;;
 	DONE)
 		fatal "task #$id is already successfully processed" ;;
@@ -132,9 +132,27 @@ check_srpm()
 	return $rc
 }
 
+check_depends()
+{
+	[ -s task/depends ] || return 0
+	local i k rc=0
+	set -- $(cat task/depends)
+	for i; do
+		k="_$(($i/1024))"
+		if [ -d "$GB_TASKS_DONE_DIR/$k/$i/task" ]; then
+			sed -i "/^$i\$/d" task/depends
+		elif [ ! -d "$GB_TASKS/$i/task" ]; then
+			message "required task #$i not found"
+			rc=1
+		fi
+	done
+	return $rc
+}
+
 fail=
 check_copy_del || fail=1
 check_srpm || fail=1
+check_depends || fail=1
 [ -z "$fail" ]
 
 try=$(cat task/try 2>/dev/null ||:)
@@ -145,8 +163,15 @@ else
 fi
 iter=1
 
+next_state=AWAITING
+if [ "$state" = TESTED -a -z "$test_only" ]; then
+	next_state=PENDING
+fi
+if [ "$next_state" = AWAITING -a -s task/depends ]; then
+	next_state=POSTPONED
+fi
 if [ -n "$dry_run" ]; then
-	echo >&2 "task #$id: try #$try could be queued"
+	echo >&2 "task #$id: try #$try could be placed to $next_state queue"
 	exit 0
 fi
 
@@ -176,10 +201,6 @@ logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try repo=$repo"
 trap '' HUP INT QUIT PIPE TERM
 echo $try > task/try
 echo 1 > task/iter
-next_state=AWAITING
-if [ "$state" = TESTED -a -z "$test_only" ]; then
-	next_state=PENDING
-fi
 girar-task-change-state "$id" "$next_state"
 
-echo >&2 "task #$id: try #$try queued, result will be emailed to $owner@$EMAIL_DOMAIN"
+echo >&2 "task #$id: try #$try is $next_state, result will be emailed to $owner@$EMAIL_DOMAIN"
