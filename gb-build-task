@@ -94,15 +94,16 @@ gb-task-set-summary
 )
 
 rc=$?
-case "$rc" in
-	0) state=TESTED ;;
-	7) state=EPERM ;;
-	*) state=FAILED ;;
+state="$(cat task/state)"
+case "$state" in
+	EPERM|POSTPONED) rc=1 ;;
+	BUILDING) [ "$rc" = 0 ] && state=TESTED || state=FAILED ;;
+	*) rc=1; state=FAILED ;;
 esac
 
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 
-if [ "$rc" != 0 -o -f task/test-only ]; then
+if [ "$state" != TESTED -o -f task/test-only ]; then
 	gb-x-girar task-change-state "$id" "$state"
 	gb-task-send-email "$id"
 else

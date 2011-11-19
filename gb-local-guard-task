@@ -3,8 +3,9 @@
 . gb-sh-functions
 
 guard="$1"; shift
+id=$(cat task/id)
 [ -d "$GB_TASKS_DIR/$guard/build" ] &&
-[ "$(cat task/id)" != "$guard" ] ||
+[ "$id" != "$guard" ] ||
 exit 0
 
 . gb-sh-tmpdir
@@ -16,8 +17,11 @@ cut -f1 plan/add-bin plan/rm-bin 2>/dev/null |
 	sort -u >"$tmpdir"/change
 comm -12 "$tmpdir"/guard "$tmpdir"/change >"$tmpdir"/affected
 if [ -s "$tmpdir"/affected ]; then
-	stamp_echo >&2 "following just built binary packages affect task #$guard:"
+	stamp_echo >&2 "following just built binary packages affect protected task #$guard:"
 	echo "$(oneliner "$(cat "$tmpdir"/affected)")"
-	stamp_echo >&2 "sorry for inconvenience, please try again later"
+	stamp_echo >&2 'sorry for inconvenience, another build iteration will be made later'
+	echo "$guard" >> task/depends
+	sort -u -o task/depends task/depends
+	gb-x-girar task-change-state "$id" POSTPONED
 	exit 1
 fi

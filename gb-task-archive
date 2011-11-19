@@ -26,3 +26,5 @@ fi
 mv -- "$id" "$destdir/"
 ln -snf ../../.."${GB_TASKS_DONE_DIR#$GB_TASKS_DIR}/$k/$id" \
 	index/"$GB_REPO_NAME"/done/
+
+gb-y-awake-tasks "$id" ||:

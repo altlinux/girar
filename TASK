@@ -11,6 +11,7 @@ TASK_ID/task/try		task try number
 TASK_ID/task/iter		task iteration number
 TASK_ID/task/run		girar user id started the latest try
 TASK_ID/task/test-only		test-only flag
+TASK_ID/task/depends		list of done task numbers the task depends on
 
 # Task logs.
 TASK_ID/logs/events.$try.$iter.log	log of important events during $try.$iter stage

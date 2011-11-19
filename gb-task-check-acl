@@ -30,7 +30,7 @@ check_acl()
 	done
 
 	# author is not permitted and nobody approved
-	rc=7
+	rc=1
 	echo >&2 "$src: Operation not permitted"
 }
 
@@ -71,10 +71,11 @@ sort -u -o report/acl-addressees{,}
 
 if [ "$rc" = 0 ]; then
 	rm plan/check_acl
-	text=OK
+	stamp_echo >&2 'acl check OK'
 else
-	text=FAILED
+	stamp_echo >&2 'acl check FAILED'
+	id=$(cat task/id)
+	gb-x-girar task-change-state "$id" EPERM
 fi
 
-stamp_echo >&2 "acl check $text"
 exit $rc
