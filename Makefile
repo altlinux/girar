@@ -96,6 +96,7 @@ bin_TARGETS = \
 	bin/girar-repack \
 	bin/girar-rm-db \
 	bin/girar-sh \
+	bin/girar-sh-tmpdir \
 	bin/girar-task \
 	bin/girar-task-abort \
 	bin/girar-task-add \
