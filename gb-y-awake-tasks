@@ -5,14 +5,20 @@
 id="$1"; shift
 cd "$GB_TASKS_DIR/index"
 
+. gb-sh-tmpdir
 
 for index in */postponed; do
 	[ -d "$index" ] || continue
 	for i in "$index"/[1-9]*; do
 		[ -d "$i/task" ] || continue
 		# no locking yet
-		sed -i "/^$id\$/d" "$i/task/depends" ||:
-		[ ! -s "$i/task/depends" ] || continue
+		# sed -i is not available because of permissions
+		sed "/^$id\$/d" < "$i/task/depends" > "$tmpdir/depends"
+		cmp -s "$i/task/depends" "$tmpdir/depends" ||
+			cat < "$tmpdir/depends" > "$i/task/depends"
+		if [ -s "$i/task/depends" ]; then
+			continue
+		fi
 		(
 			enable -f /usr/lib/bash/lockf lockf &&
 			cd "$i" &&
