@@ -10,18 +10,8 @@ new_acl_dir="$(readlink -ev "$new_acl_dir")"
 . shell-error
 . shell-quote
 
-workdir=
-cleanup_handler()
-{
-	[ -z "$workdir" ] || rm -rf -- "$workdir"
-	exit "$@"
-}
-
-[ -z "$workdir" ] || return 0
-trap 'cleanup_handler $?' EXIT
-trap 'exit 143' HUP PIPE INT QUIT TERM
-workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
-cd "$workdir"
+. girar-sh-tmpdir
+cd "$tmpdir"
 mkdir -p diff notify
 
 for f in $(cd "$new_acl_dir" && set +f && echo list.*); do

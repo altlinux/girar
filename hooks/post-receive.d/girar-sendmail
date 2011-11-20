@@ -1,6 +1,8 @@
 #!/bin/sh -efu
 
-[ "$ref_style" != remote ] || exit 0
+if [ "$ref_style" = remote ]; then
+	exit 0
+fi
 
 . girar-sh-functions
 
@@ -60,7 +62,7 @@ show_changes_statistics()
 
 generate_email_header()
 {
-	DIFF="$workdir/diff"
+	DIFF="$tmpdir/diff"
 	from_addr="${GIRAR_USER}@${EMAIL_DOMAIN} ($(getent passwd "$USER" |cut -d: -f5))"
 	case "$project_type" in
 		packages)
@@ -115,7 +117,7 @@ generate_create_head_email()
 
 generate_create_tag_email()
 {
-	local tag="$workdir/tag"
+	local tag="$tmpdir/tag"
 	git cat-file tag "$arg_newrev" >"$tag"
 	local tagger ts date
 	tagger="$(sed -ne '4s/^tagger \([^>]\+>\).*/\1/p' <"$tag")"
@@ -218,26 +220,6 @@ send_email()
 		message "email notification about \`$arg_refname' update sent."
 }
 
-workdir=
-cleanup()
-{
-	trap - EXIT
-	[ -z "$workdir" ] || rm -rf -- "$workdir"
-	exit "$@"
-}
-
-exit_handler()
-{
-	cleanup $?
-}
-
-signal_handler()
-{
-	cleanup 143
-}
-
-trap exit_handler EXIT
-trap signal_handler HUP PIPE INT QUIT TERM
-workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
+. girar-sh-tmpdir
 
 generate_email |send_email

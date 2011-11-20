@@ -35,28 +35,10 @@ EOF
 		;;
 esac
 
-workdir=
-cleanup()
-{
-	trap - EXIT
-	[ -z "$workdir" ] || rm -rf -- "$workdir"
-	exit "$@"
-}
-
-exit_handler()
-{
-	cleanup $?
-}
-
-signal_handler()
-{
-	cleanup 143
-}
-
 nqueued=0
 add_acl_cmd()
 {
-	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$workdir" 3>&-
+	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$tmpdir" 3>&-
 	printf >&3 "$@"
 	nqueued="$(($nqueued+1))"
 }
@@ -65,7 +47,7 @@ show_acl()
 {
 	[ "$#" -eq 0 ] ||
 		usage 'Too many arguments.'
-	girar-acl-show "$repository" "$item" "$workdir" 3>&-
+	girar-acl-show "$repository" "$item" "$tmpdir" 3>&-
 }
 
 rc=0
@@ -98,19 +80,17 @@ shift
 
 repository="$(girar-normalize-repo-name "$repository")"
 
-trap exit_handler EXIT
-trap signal_handler HUP PIPE INT QUIT TERM
-workdir="$(mktemp -dt "$PROG.XXXXXXXX")"
+. girar-sh-tmpdir
 
-# Copy all current acl files to workdir.
+# Copy all current acl files to tmpdir.
 cd "$GIRAR_ACL_CONF_DIR"
 flock -s . \
 find -maxdepth 1 -type f -name 'list.*' \
-        -exec cp -at "$workdir" -- \{\} \+
+        -exec cp -at "$tmpdir" -- \{\} \+
 cd - > /dev/null
 
 # First line is a repository name
-exec 3>"$workdir/cmd"
+exec 3>"$tmpdir/cmd"
 echo "$repository" >&3
 
 # If caller specified arguments, parse them,
@@ -128,7 +108,7 @@ exec 3>&-
 
 [ $nqueued -gt 0 ] || exit $rc
 
-girar-connect-stdout "$GIRAR_ACL_SOCKET" cat < "$workdir/cmd"
+girar-connect-stdout "$GIRAR_ACL_SOCKET" cat < "$tmpdir/cmd"
 
 [ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"

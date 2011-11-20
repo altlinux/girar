@@ -2,28 +2,8 @@
 
 PROG="${0##*/}"
 
-workdir=
-cleanup()
-{
-	trap - EXIT
-	[ -z "$workdir" ] || rm -rf -- "$workdir"
-	exit "$@"
-}
-
-exit_handler()
-{
-	cleanup $?
-}
-
-signal_handler()
-{
-	cleanup 143
-}
-
-trap exit_handler EXIT
-trap signal_handler HUP PIPE INT QUIT TERM
-workdir="$(mktemp -dt "$PROG.XXXXXXXX")" || exit 1
-cd "$workdir"
+. "@CMDDIR@/girar-sh-tmpdir"
+cd "$tmpdir"
 
 for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 
@@ -71,7 +51,7 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 	git add $files  >/dev/null
 	git commit -a -m "Add templates for $files" >/dev/null
 
-	git clone --bare "$workdir" "$d" >/dev/null &&
+	git clone --bare "$tmpdir" "$d" >/dev/null &&
 		printf %s\\n "$PROG: $d: Creation complete" ||
 		printf %s\\n "$PROG: $d: Creation failed!"
 
