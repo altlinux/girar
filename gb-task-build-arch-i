@@ -7,7 +7,7 @@ arch="$1" i="$2"; shift 2
 . gb-sh-functions
 
 if [ -f task/abort ]; then
-	stamp_echo >&2 '[$arch] task processing ABORTED'
+	stamp_echo >&2 "[$arch] task processing ABORTED"
 	exit 1
 fi
 
