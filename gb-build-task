@@ -81,11 +81,6 @@ gb-task-set-summary
 	# apply local policy enforcement
 	gb-task-local-policy
 
-	if [ -f task/swift ]; then
-		stamp_echo 'swift processing complete'
-		exit 1
-	fi
-
 	# save test repo for commit
 	gb-task-gen-ci
 	gb-task-save-repo
