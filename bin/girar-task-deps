@@ -41,6 +41,8 @@ case "$action" in
 esac
 
 for i; do
+	[ "$id" != "$i" ] ||
+		fatal "$i: reflexive dependencies are not supported"
 	[ -n "$i" -a -z "$(printf %s "$i" |tr -d '[:digit:]')" ] ||
 		fatal "invalid task id: $i"
 	case "$action" in
