@@ -9,8 +9,10 @@ usage()
 {
 	[ -z "$*" ] || echo >&2 "$PROG: $*"
 cat >&2 <<EOF
-Usage: $PROG [--test-only] [-b <binary_repository_name>] <build_source_1> <build_name_1> ...
-where \`<build_source> <build_name>' pair is either \`<gear_repo> <gear_tag>'
+Usage: $PROG [--test-only] [-b <binary_repository_name>] [--deps <deps>] <build_source_1> <build_name_1> ...
+where \`<binary_repository_name>' is a valid binary package repository name,
+\`<deps> is a comma-separated list of required task id numbers, and
+\`<build_source> <build_name>' pair is either \`<gear_repo> <gear_tag>'
 or \`srpm <srpm_file>' or \`del <package_name>' or \`copy <package_name>'.
 EOF
 	exit 1
@@ -26,17 +28,23 @@ if [ "${1-}" = '--test-only' ]; then
 	shift
 fi
 
-if [ "$#" -lt 2 ]; then
+if [ $# -lt 2 ]; then
 	usage "not enough arguments"
 fi
 
 repo=
-if [ "$1" = "-b" ]; then
+if [ "$1" = '-b' ]; then
 	repo="$2"
 	shift 2
 fi
 
-if [ "$#" -lt 2 ]; then
+deps=
+if [ "$1" = '--deps' ]; then
+	deps="$2"
+	shift 2
+fi
+
+if [ $# -lt 2 ]; then
 	usage "not enough arguments"
 fi
 
@@ -55,6 +63,10 @@ atexit()
 trap '' HUP INT QUIT PIPE TERM
 id="$(girar-task new "$repo")"
 trap atexit EXIT
+
+if [ -n "$deps" ]; then
+	girar-task deps "$id" set $(printf %s "$deps" |tr , ' ')
+fi
 
 while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
