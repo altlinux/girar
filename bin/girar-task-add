@@ -28,7 +28,9 @@ subtask_id=
 case "$1" in
 	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 		case "$1" in
+			repo|srpm|del|copy) ;;
 			[1-7]*) subtask_id="$1"; shift ;;
+			*) usage "Invalid action: $1" ;;
 		esac ;;
 	*)	id=$(PROG="$PROG" girar-task-find-current) ;;
 esac
