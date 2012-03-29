@@ -53,17 +53,20 @@ for arch in $GB_ARCH noarch; do
 		maybe_unchanged='--maybe-unchanged'
 	fi
 
+	label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
+	description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
+	date_s="$(date +%s)"
 	genbasedir "$@" $maybe_unchanged \
 		--cachedir="$HOME"/.cache \
-		--architectures="$GB_ARCH noarch" \
 		--architecture="$arch" \
-		--archive="${GB_REPO_ARCHIVE:-ALT Linux $GB_REPO_NAME}" \
-		--codename="$GB_REPO_CODENAME" \
-		--description="${GB_REPO_DESCRIPTION:-ALT Linux $GB_REPO_NAME}" \
-		--label="${GB_REPO_LABEL:-$GB_REPO_NAME}" \
+		--architectures="$GB_ARCH noarch" \
+		--archive="${GB_REPO_ARCHIVE:-$description}" \
+		--codename="${GB_REPO_CODENAME:-$date_s}" \
+		--description="${GB_REPO_DESCRIPTION:-$description}" \
+		--label="$label" \
 		--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
-		--suite="${GB_REPO_SUITE:-$GB_REPO_NAME}" \
-		--version="${GB_REPO_VERSION:-$GB_REPO_NAME}" \
+		--suite="${GB_REPO_SUITE:-$label}" \
+		--version="${GB_REPO_VERSION:-$date_s}" \
 		-s --default-key="$GB_REPO_SIGNER" \
 		--topdir="$REPO_DIR" \
 		--flat --no-oldhashfile --bz2only --mapi \
