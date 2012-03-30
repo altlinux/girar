@@ -177,7 +177,7 @@ fi
 
 # create group writable directories for build results
 mkdir -pm3775 bugmail install logs report
-mkdir -pm2775 build plan
+mkdir -pm2775 arepo build plan
 
 # create group writable files required for build
 (umask 002; touch logs/events.$try.$iter.log task/iter task/try) || false
