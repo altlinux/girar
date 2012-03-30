@@ -5,7 +5,7 @@
 fail_if_task_abort_requested
 
 # This check does not apply to noarch packages.
-cut -f3 plan/{add,rm}-bin |fgrep -qs -v noarch || exit 0
+fgrep -qs -xv noarch plan/change-arch || exit 0
 
 repo1="$GB_REPO_DIR"
 

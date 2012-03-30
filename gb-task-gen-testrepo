@@ -15,7 +15,7 @@ for arch in $GB_ARCH noarch; do
 	rsync -a --exclude contents_index \
 		$GB_REPO_DIR/$arch/base $GB_TMP_REPO_DIR/$arch/
 	# Deal with RPMS and SRPMS.
-	if cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
+	if fgrep -qsx "$arch" plan/change-arch; then
 		# Need to copy directory structure (using symlinks).
 		cp -prs $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic \
 			$GB_TMP_REPO_DIR/$arch/
@@ -60,7 +60,7 @@ done
 
 # Optimize even more: the whole arch component can be turned into symlink.
 for arch in $GB_ARCH noarch; do
-	if cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
+	if fgrep -qsx "$arch" plan/change-arch; then
 		# Arch packages changed, cannot optimize.
 		continue
 	fi

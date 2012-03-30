@@ -38,6 +38,8 @@ TASK_ID/plan/rm-srpm2arch	src-F bin-A
 TASK_ID/plan/rm-bin		bin-N bin-EVR bin-A bin-F
 # packages going to be replaced
 TASK_ID/plan/oldsrc2newsrpm	src1-N src2-F
+# arches to be changed
+TASK_ID/plan/change-arch	bin-A
 # new lists
 TASK_ID/plan/next.src		src.list to be committed
 TASK_ID/plan/next.bin		bin.list to be committed

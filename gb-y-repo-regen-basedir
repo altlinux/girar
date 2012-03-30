@@ -47,7 +47,7 @@ for arch in $GB_ARCH noarch; do
 
 	# Arch packages haven't changed?
 	maybe_unchanged=
-	if [ -z "$bloat" ] && ! cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch"; then
+	if [ -z "$bloat" ] && ! fgrep -qsx "$arch" plan/change-arch; then
 		# But the result also depends on the list of useful-files,
 		# which might have changed due to other architectures.
 		maybe_unchanged='--maybe-unchanged'

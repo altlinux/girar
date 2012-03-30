@@ -9,7 +9,7 @@ fail_if_task_abort_requested
 
 for arch in $GB_ARCH noarch; do
 	# Regen only if there are $arch packages.
-	cut -f3 plan/{add,rm}-bin |fgrep -qs "$arch" ||
+	fgrep -qsx "$arch" plan/change-arch ||
 		continue
 	repodir="$GB_TMP_REPO_DIR/$arch"
 	gb-x-gen-ci $repodir/RPMS.classic >$tmpdir/$arch-ci &&

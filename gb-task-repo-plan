@@ -145,5 +145,7 @@ if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
 	diff -u "$GB_REPO_DIR/files/list/bin.list" plan/next.bin >plan/bin.list.diff ||:
 fi
 
+cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
+
 # This operation is quite fast, no need to stamp.
 exit 0
