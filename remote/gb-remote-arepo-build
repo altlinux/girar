@@ -1,0 +1,74 @@
+#!/bin/sh -efu
+
+> build/arepo.log
+arch="$1"; shift
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+}
+
+I="[$arch] remote arepo"
+
+Fatal()
+{
+	stamp_echo >&2 "$I: $*"
+	exit 1
+}
+
+tmpdir=
+cleanup()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+
+# initialize hasher chroot
+time setarch "$arch" -- \
+hsh --init --without-stuff --no-contents-ind \
+    --pkg-build-list=+rpmrebuild-arepo > build/arepo.log 2>&1 ||
+	Fatal 'initroot failed'
+
+# install pkg.list
+ln tmp/pkg.list hasher/chroot/.in/
+
+cat > hasher/chroot/.host/arepoize << EOF
+#!/bin/sh -efu
+AREPO_PKGLIST=pkg.list
+AREPO_ARCH=$arch
+AREPO_MODE=\$1; shift
+AREPO_COMPAT=\$1; shift
+AREPO_NATIVE=\$1; shift
+target=\$1; shift
+export AREPO_PKGLIST AREPO_ARCH AREPO_MODE AREPO_COMPAT AREPO_NATIVE
+time rpmrebuild --include arepo.plug -np --define '_spec_line_buffer_size 262144' \$AREPO_COMPAT
+ln --target-directory /.out \$HOME/RPM/RPMS/\$AREPO_ARCH/\$target
+EOF
+chmod a+rx hasher/chroot/.host/arepoize
+
+mkdir -p build/rpms
+# arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1
+while read -r N EVR F from_F from_SHA1 mode to_F to_SHA1; do
+	from_F_path="$(readlink -ev "gb-repo/$arch/RPMS.classic/$from_F")"
+	ln -- "$from_F_path" hasher/chroot/.in/
+
+	to_F_path=
+	if [ -n "$to_F" ]; then
+		native_arch="${to_F%.rpm}"
+		native_arch="${native_arch##*.}"
+		to_F_path="$(readlink -ev "gb-repo/$native_arch/RPMS.classic/$to_F")"
+		ln -- "$to_F_path" hasher/chroot/.in/
+	fi
+
+	echo
+	echo "Arepoizing $from_F"
+	hsh-run -- /.host/arepoize "$mode" "$from_F" "$to_F" "$F" 2>&1 ||
+		Fatal "failed to build $F"
+	ln -- hasher/chroot/.out/"$F" build/rpms/
+done < tmp/todo.list >> build/arepo.log
+
+hsh-rmchroot

@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+fail()
+{
+	stamp_echo >&2 "[$arch] arepo save FAILED"
+	exit 1
+}
+
+for arch in ${GB_AREPO_ARCH-}; do
+	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || continue
+	(umask 002; mkdir -p arepo/$arch/base) || fail
+	rsync -rlt "$GB_AREPO_DIR/$arch/base/" arepo/$arch/base/ || fail
+done
+
+#stamp_echo >&2 'arepo save OK'

@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+arch="$1"; shift
+[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || exit 0
+arch_to=${arch##*-}
+
+. gb-sh-tmpdir
+cd "$tmpdir"
+
+# dump unmets
+cat > sources.list << EOF
+rpm file:$GB_TMP_REPO_DIR $arch_to classic
+rpm file:$GB_TMP_REPO_DIR noarch classic
+rpm file:$GB_AREPO_DIR $arch classic
+EOF
+unmets -s sources.list > unmets
+
+if [ -s unmets ]; then
+	echo "  $arch: NEW unmet dependencies detected:"
+	cat unmets
+	#stamp_echo >&2 "[$arch] dependencies check FAILED"
+	exit 1
+fi
+
+stamp_echo >&2 "[$arch] dependencies check OK"

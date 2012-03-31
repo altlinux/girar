@@ -9,3 +9,6 @@ done
 for arch in $GB_ARCH noarch; do
 	rm -rf -- build/repo/$arch/base.{prev,next}
 done
+for arch in ${GB_AREPO_ARCH-}; do
+	rm -rf -- arepo/$arch/base
+done

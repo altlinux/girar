@@ -1,0 +1,11 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+[ -n "${GB_AREPO_ARCH-}" ] || exit 0
+
+for arch in $GB_AREPO_ARCH; do
+	$0-arch $arch
+done
+
+#stamp_echo >&2 'arepo update OK'

@@ -42,6 +42,7 @@ log="logs/events.$try.$iter.log"
 	gb-task-commit-repo
 	gb-task-commit-girar
 	gb-task-commit-acl
+	gb-task-commit-arepo
 	gb-task-repo-sync
 )
 

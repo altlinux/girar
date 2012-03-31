@@ -1,0 +1,66 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+arch="$1"; shift
+arch_from="${arch%%-*}"
+arch_to=${arch##*-}
+
+### rm
+
+# arepo-$arch.list: arepo-N arepo-EVR arepo-F from-bin-F
+> "$tmpdir/arepo-j"
+if [ -s "$GB_REPO_DIR/files/list/arepo-$arch.list" ]; then
+	sort -k4,4 "$GB_REPO_DIR/files/list/arepo-$arch.list" > "$tmpdir"/arepo-j
+fi
+
+# rm-bin: bin-N bin-EVR bin-A bin-F
+cut -f4 plan/rm-bin > "$tmpdir"/rm-bin
+sort -u -o "$tmpdir"/rm-bin{,}
+
+# arepo-rm-$arch: arepo-F
+join -t$'\t' -1 4 -2 1 -o 1.3 \
+	"$tmpdir"/arepo-j "$tmpdir"/rm-bin > plan/arepo-rm-$arch
+sort -u -o plan/arepo-rm-$arch{,}
+
+join -t$'\t' -1 4 -2 1 -v 1 -o 1.1,1.2,1.3,1.4 \
+	"$tmpdir"/arepo-j "$tmpdir"/rm-bin > "$tmpdir"/arepo-table
+
+### add
+
+while read -r N EVR A F; do
+	[ "$A" = "$arch_from" ] || continue
+
+	# arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1
+	gb-task-arepo-plan-identify "$N" "$EVR" "$arch_from" "$arch_to" "$F"
+done < plan/add-bin > "$tmpdir"/add-bin
+sort -u "$tmpdir"/add-bin > plan/arepo-add-$arch
+
+### table
+
+cut -f-4 plan/arepo-add-$arch >> "$tmpdir"/arepo-table
+sort -u "$tmpdir"/arepo-table > plan/arepo-table-$arch
+cut -f1 plan/arepo-table-$arch > plan/arepo-pkg-$arch
+
+(umask 002; mkdir -p arepo/$arch) || false
+if ! cmp -s plan/arepo-pkg-$arch arepo/$arch/pkg.list; then
+	# pkg list changed, invalidate everything
+	> arepo/$arch/done.list
+	cat plan/arepo-pkg-$arch > arepo/$arch/pkg.list
+fi
+
+# note what remains to be done
+
+comm -23 arepo/$arch/done.list plan/arepo-add-$arch > "$tmpdir"/rm
+while read -r dummy dummy F dummy; do
+	rm arepo/$arch/rpms/"$F"
+done < "$tmpdir"/rm
+
+comm -13 arepo/$arch/done.list plan/arepo-add-$arch > arepo/$arch/todo.list
+
+n_todo=$(cat arepo/$arch/todo.list |wc -l)
+n_add=$(cat plan/arepo-add-$arch |wc -l)
+n_rm=$(cat plan/arepo-rm-$arch |wc -l)
+n_all=$(cat plan/arepo-pkg-$arch |wc -l)
+stamp_echo >&2 "[$arch] plan #$n_todo +$n_add -$n_rm =$n_all OK"

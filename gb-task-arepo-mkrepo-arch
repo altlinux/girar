@@ -1,0 +1,49 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+arch="$1"; shift
+[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || exit 0
+
+mkdir $GB_AREPO_DIR/$arch
+mkdir $GB_AREPO_DIR/$arch/base
+# copy directory structure (using symlinks)
+if [ -d $GB_REPO_DIR/$arch/RPMS.classic ]; then
+	cp -prs $GB_REPO_DIR/$arch/RPMS.classic $GB_AREPO_DIR/$arch/
+else
+	mkdir $GB_AREPO_DIR/$arch/RPMS.classic
+fi
+
+while read -r F; do
+	rm -- $GB_AREPO_DIR/$arch/RPMS.classic/$F
+done < plan/arepo-rm-$arch
+
+while read -r dummy dummy F dummy; do
+	ln -s $PWD/arepo/$arch/rpms/$F $GB_AREPO_DIR/$arch/RPMS.classic/
+done < plan/arepo-add-$arch
+
+. gb-sh-rpmhdrcache
+
+export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
+
+label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
+description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
+date_s="$(date +%s)"
+genbasedir \
+	--cachedir="$HOME"/.cache \
+	--architecture="$arch" \
+	--architectures="$arch" \
+	--archive="${GB_REPO_ARCHIVE:-$description}" \
+	--codename="${GB_REPO_CODENAME:-$date_s}" \
+	--description="${GB_REPO_DESCRIPTION:-$description}" \
+	--label="$label" \
+	--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
+	--suite="${GB_REPO_SUITE:-$label}" \
+	--version="${GB_REPO_VERSION:-$date_s}" \
+	-s --default-key="$GB_REPO_SIGNER" \
+	--topdir="$GB_AREPO_DIR" \
+	--flat --no-oldhashfile --bz2only --mapi \
+	--xz --no-bz2 --changelog-since=2010-01-01 \
+	$arch ${GB_REPO_COMPONENT_NAMES:-classic}
+
+stamp_echo >&2 "[$arch] created test repo"

@@ -1,0 +1,83 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+N="$1"; shift
+EVR="$1"; shift
+arch_from="$1"; shift
+arch_to="$1"; shift
+file_from="$1"; shift
+
+# packages to skip
+BLACKLIST_PKGNAME_REGEXP="${GB_AREPO_BLACKLIST_PKGNAME_REGEXP:--debuginfo$|^kernel-}"
+
+# packages to skip by their contents
+BLACKLIST_PKG_CONTENTS_REGEXP="${GB_AREPO_BLACKLIST_PKG_CONTENTS_REGEXP:-^/lib/udev/devices/}"
+
+# packages to arepoize in 'prog' mode
+PROG_PKGNAME_REGEXP="${GB_AREPO_PROG_PKGNAME_REGEXP:-^wine$|^wine-vanilla$|^mozilla-plugin-adobe-flash$}"
+
+# files that define 'prog' mode
+PROG_FILE_REGEXP="${GB_AREPO_PROG_FILE_REGEXP:-^(/usr)?/s?bin/}"
+
+# files to arepoize in 'lib' mode
+LIB_FILE_REGEXP="${GB_AREPO_LIB_FILE_REGEXP:-^/lib/[^/]*\.so|^/usr/lib/.*\.so}"
+
+# files to skip
+SKIP_FILE_REGEXP="${GB_AREPO_SKIP_FILE_REGEXP:-^$}"
+
+if echo "$N" | grep -Eqse "$BLACKLIST_PKGNAME_REGEXP"; then
+	# package name is blacklisted
+	exit 0
+fi
+
+sha1_from="$(rpmquery --qf '%{sha1header}' -p "build/repo/$arch_from/RPMS.task/$file_from")"
+sha1_to=
+
+. gb-sh-tmpdir
+
+rpmquery -l -p "build/repo/$arch_from/RPMS.task/$file_from" > "$tmpdir"/from.in
+if grep -Eqse "$BLACKLIST_PKG_CONTENTS_REGEXP" "$tmpdir"/from.in; then
+	# package contents is blacklisted
+	exit 0
+fi
+grep -Eve "$SKIP_FILE_REGEXP" < "$tmpdir"/from.in > "$tmpdir"/from.list ||:
+sort -u -o "$tmpdir"/from.list{,}
+
+echo "$N" |
+	join -t$'\t' -j1 -o 2.3,2.4 - plan/add-bin > "$tmpdir"/a-f
+sort -u -o "$tmpdir"/a-f{,}
+echo "$arch_to" |
+	join -t$'\t' -j1 -o 2.2 - "$tmpdir"/a-f > "$tmpdir"/file_to
+file_to="$(cat "$tmpdir"/file_to)"
+
+result()
+{
+	# arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1
+	printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+		"$arch_from-$N" "$EVR" "$arch_from-$file_from" \
+		"$file_from" "$sha1_from" "$1" "$file_to" "$sha1_to"
+	exit 0
+}
+
+if echo "$N" | grep -Eqse "$PROG_PKGNAME_REGEXP"; then
+	if grep -Eqse "$PROG_FILE_REGEXP" "$tmpdir"/from.list; then
+		result prog
+	fi
+elif [ -z "$file_to" ]; then
+	if grep -Eqse "$PROG_FILE_REGEXP" "$tmpdir"/from.list; then
+		result prog
+	elif grep -Eqse "$LIB_FILE_REGEXP" "$tmpdir"/from.list; then
+		result lib
+	fi
+else
+	sha1_to="$(rpmquery --qf '%{sha1header}' -p "build/repo/$arch_to/RPMS.task/$file_to")"
+	rpmquery -l -p "build/repo/$arch_to/RPMS.task/$file_to" > "$tmpdir"/to.in
+	grep -Eve "$SKIP_FILE_REGEXP" < "$tmpdir"/to.in > "$tmpdir"/to.list ||:
+	sort -u -o "$tmpdir"/to.list{,}
+
+	comm -23 "$tmpdir"/from.list "$tmpdir"/to.list > "$tmpdir"/from-to.list
+	if grep -Eqse "$LIB_FILE_REGEXP" "$tmpdir"/from-to.list; then
+		result lib
+	fi
+fi

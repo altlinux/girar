@@ -70,3 +70,7 @@ for a in $GB_ARCH noarch; do
 	sync_dir_links $a/RPMS.classic
 	sync_dir_links $a/SRPMS.classic
 done
+for a in ${GB_AREPO_ARCH-}; do
+	sync_dir_rpms files/$a/RPMS
+	sync_dir_links $a/RPMS.classic
+done

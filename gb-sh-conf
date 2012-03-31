@@ -28,6 +28,7 @@
 : ${GB_SPOOL_PEOPLE_DIR:?}
 
 GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$USER-$GB_REPO_NAME"
+GB_AREPO_DIR="$TMPDIR/gb-arepo-$USER-$GB_REPO_NAME"
 
 [ -n "${GB_ARCH-}" ] ||
 	GB_ARCH='i586 x86_64'

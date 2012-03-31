@@ -85,6 +85,8 @@ gb-task-set-summary
 	gb-task-gen-ci
 	gb-task-save-repo
 
+	gb-task-arepo
+
 	fail_if_task_abort_requested
 )
 
