@@ -2,8 +2,8 @@
 
 arepo_arch="$1"; shift
 [ -s arepo/$arepo_arch/todo.list ] || exit 0
-native_arch="${arepo_arch##*-}"
-arch="${arepo_arch%%-*}"
+native_arch="${arepo_arch%%-*}"
+arch="${arepo_arch##*-}"
 
 . gb-sh-functions
 

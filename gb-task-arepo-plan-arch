@@ -4,8 +4,8 @@
 . gb-sh-tmpdir
 
 arch="$1"; shift
-arch_from="${arch%%-*}"
-arch_to=${arch##*-}
+arch_from=${arch##*-}
+arch_to="${arch%%-*}"
 
 ### rm
 
