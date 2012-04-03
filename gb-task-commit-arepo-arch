@@ -5,16 +5,18 @@
 arch="$1"; shift
 [ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || exit 0
 
+comp=${GB_AREPO_COMPONENT_NAME:-classic}
+
 commit()
 {
 	while read -r F; do
-		RM $GB_REPO_DIR/$arch/RPMS.classic/$F
+		RM $GB_REPO_DIR/$arch/RPMS.$comp/$F
 		RM $GB_REPO_DIR/files/$arch/RPMS/$F
 	done < plan/arepo-rm-$arch
 
 	while read -r N EVR F dummy; do
 		CP arepo/$arch/rpms/$F $GB_REPO_DIR/files/$arch/RPMS/$F
-		LN ../../files/$arch/RPMS/$F $GB_REPO_DIR/$arch/RPMS.classic/$F
+		LN ../../files/$arch/RPMS/$F $GB_REPO_DIR/$arch/RPMS.$comp/$F
 	done < plan/arepo-add-$arch
 }
 

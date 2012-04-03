@@ -6,6 +6,8 @@ arch="$1"; shift
 [ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || exit 0
 arch_to=${arch%%-*}
 
+acomp=${GB_AREPO_COMPONENT_NAME:-classic}
+
 . gb-sh-tmpdir
 cd "$tmpdir"
 
@@ -13,7 +15,7 @@ cd "$tmpdir"
 cat > sources.list << EOF
 rpm file:$GB_TMP_REPO_DIR $arch_to classic
 rpm file:$GB_TMP_REPO_DIR noarch classic
-rpm file:$GB_AREPO_DIR $arch classic
+rpm file:$GB_AREPO_DIR $arch $acomp
 EOF
 unmets -s sources.list > unmets
 
