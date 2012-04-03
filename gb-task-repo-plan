@@ -147,5 +147,17 @@ fi
 
 cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
 
-# This operation is quite fast, no need to stamp.
-exit 0
+n_add=$(cat plan/add-src |wc -l)
+n_rm=$(cat plan/rm-src |wc -l)
+n_all=$(cat plan/next.src |wc -l)
+plan="src +$n_add -$n_rm =$n_all"
+
+while read -r arch; do
+	n_add=$(cut -f3 plan/add-bin | grep -Fx "$arch" |wc -l)
+	n_rm=$(cut -f3 plan/rm-bin | grep -Fx "$arch" |wc -l)
+	n_all=$(cut -f3 plan/next.bin | grep -Fx "$arch" |wc -l)
+
+	plan="$plan, $arch +$n_add -$n_rm =$n_all"
+done < plan/change-arch
+
+stamp_echo >&2 "plan: $plan"
