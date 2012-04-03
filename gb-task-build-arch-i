@@ -73,14 +73,23 @@ if [ -n "$swift" ]; then
 	exit 0
 fi
 
-if ! out=$(find "build/$i/$arch/" -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
-	printf '%s\n' "$out"
-	stamp_echo >&2 "$I rpmsign FAILED"
-	exit 1
-fi
+sign()
+{
+	local dir="$1" out; shift
+
+	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
+		printf '%s\n' "$out"
+		stamp_echo >&2 "$I $dir rpmsign FAILED"
+		exit 1
+	fi
+}
 
 if [ -s "gears/$i/srpm" ]; then
 	ln -f -- "gears/$i/$src" "build/$i/$arch/srpm/"
+else
+	sign srpm
 fi
+
+sign rpms
 
 stamp_echo >&2 "$I build OK"
