@@ -13,7 +13,7 @@ install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 for arch in $GB_ARCH noarch; do
 	old_base="$GB_REPO_DIR/$arch/base"
 	new_base="build/repo/$arch/base.next"
-	cmp_file=pkglist.classic.bz2
+	cmp_file=pkglist.classic.xz
 	# If $cmp_file has not changed, skip the update.
 	if cmp -s "$old_base/$cmp_file" "$new_base/$cmp_file"; then
 		continue
