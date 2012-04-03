@@ -10,13 +10,13 @@ commit()
 	local arch_all
 	while read -r N EVR A F; do
 		RM $REPO_DIR/$A/RPMS.classic/$F
-		RM $REPO_DIR/files/$(suffix_arch $F)/RPMS/$F
+		RM $REPO_DIR/files/$A/RPMS/$F
 	done <plan/rm-bin
-	while read -r N EVR A F; do
-		bin=$(findbin "$F")
-		CP "$bin" $REPO_DIR/files/$A/RPMS/$F
+	while read -r F P I; do
+		A=$(suffix_arch $F)
+		CP "$P" $REPO_DIR/files/$A/RPMS/$F
 		LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.classic/$F
-	done <plan/add-bin
+	done <plan/i-bin
 
 	while read -r F A; do
 		RM $REPO_DIR/$A/SRPMS.classic/$F
@@ -35,10 +35,9 @@ commit()
 		RM $REPO_DIR/files/SRPMS/$F
 	done <plan/rm-src
 
-	while read -r N EVR F; do
-		src=$(findsrc "$F")
-		CP "$src" $REPO_DIR/files/SRPMS/$F
-	done <plan/add-src
+	while read -r F P I; do
+		CP "$P" $REPO_DIR/files/SRPMS/$F
+	done <plan/i-src
 	while read -r F A; do
 		LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
 		if [ "$A" = 'noarch' ]; then

@@ -32,11 +32,11 @@ done
 while read -r N EVR A F; do
 	rm -- $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
 done <plan/rm-bin
-while read -r N EVR A F; do
-       bin=$(findbin "$F")
+while read -r F P I; do
+       A=$(suffix_arch $F)
        # NB: copy here, so that the repo is rsyncable to remotes.
-       cp -p -- $PWD/$bin $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
-done <plan/add-bin
+       cp -p -- $P $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
+done <plan/i-bin
 
 # SRPMS.classic is also updated here, since we want to reuse
 # test repo base directories later in gb-task-commit-repo.

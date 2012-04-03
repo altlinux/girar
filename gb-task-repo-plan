@@ -7,6 +7,12 @@ fail_if_task_abort_requested
 # Drop old plan if any.
 find plan -type f -delete
 
+fail()
+{
+	stamp_echo >&2 "$*"
+	exit 1
+}
+
 # Make a plan for upgrade: assuming that all new packages go
 # into the repo, find out the existing packages which should
 # be replaced or removed.
@@ -15,19 +21,36 @@ find plan -type f -delete
 
 for i in $(build_nums); do
 	for arch in $GB_ARCH; do
-		if [ -d "build/$i/$arch/srpm" -o ! -s "build/$i/$arch/excluded" ]; then
-			qsrc build/$i/$arch/srpm/
-		fi
+		dir=build/$i/$arch/srpm
+		[ -d "$dir" -o ! -s "build/$i/$arch/excluded" ] ||
+			continue
+		find $dir/ -mindepth 1 -maxdepth 1 \
+			-name '*.src.rpm' -type f \
+			-printf '%f\t%p\t'$i'\n' # filename pathname subtask
 	done
-done >$tmpdir/new.src
+done > $tmpdir/i-src
+
+# sort by filename to filter out duplicates
+sort -u -k1,1 $tmpdir/i-src > plan/i-src
+cut -f2 plan/i-src > $tmpdir/i-src-F
+sort -o $tmpdir/i-src-F{,}
+xargs -r rpmquery --qf "$qf_src" -p -- < $tmpdir/i-src-F > $tmpdir/new.src
 
 for i in $(build_nums); do
 	for arch in $GB_ARCH; do
-		if [ -d "build/$i/$arch/rpms" -o ! -s "build/$i/$arch/excluded" ]; then
-			qbin build/$i/$arch/rpms/
-		fi
+		dir=build/$i/$arch/rpms
+		[ -d "dir" -o ! -s "build/$i/$arch/excluded" ] ||
+			continue
+		find $dir/ -mindepth 1 -maxdepth 1 \
+			-name '*.rpm' -not -name '*.src.rpm' -type f \
+			-printf '%f\t%p\t'$i'\n' # filename pathname subtask
 	done
-done >$tmpdir/new.bin
+done > $tmpdir/i-bin
+# sort by filename to filter out duplicates
+sort -u -k1,1 $tmpdir/i-bin > plan/i-bin
+cut -f2 plan/i-bin > $tmpdir/i-bin-F
+sort -o $tmpdir/i-bin-F{,}
+xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-F > $tmpdir/new.bin
 
 for i in $(package_nums); do
 	[ -s gears/$i/copy_repo ] ||
@@ -46,14 +69,12 @@ make_repo_table '' old
 sort -k1,1 -o old.src{,}
 join -v1 del.pkg old.src >del.missing
 if [ -s del.missing ]; then
-	stamp_echo >&2 "FAILED to delete non-existent packages: $(cat del.missing)"
-	exit 1
+	fail "FAILED to delete non-existent packages: $(cat del.missing)"
 fi
 sort -k1,1 -o new.src{,}
 join -o 1.1 del.pkg new.src >del.new
 if [ -s del.new ]; then
-	stamp_echo >&2 "FAILED to delete just built packages: $(cat del.new)"
-	exit 1
+	fail "FAILED to delete just built packages: $(cat del.new)"
 fi
 
 mktable new
@@ -146,6 +167,22 @@ if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
 fi
 
 cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
+
+# do some consistency checks, just in case
+[ -s plan/change-arch ] ||
+	fail 'cowardly refusing to create an empty plan'
+
+cut -f3 plan/add-src > $tmpdir/add-src-F
+sort -o $tmpdir/add-src-F{,}
+cut -f1 plan/i-src > $tmpdir/i-src-F
+cmp -s $tmpdir/add-src-F $tmpdir/i-src-F ||
+	fail 'oops, plan/add-src and plan/i-src do not match'
+
+cut -f4 plan/add-bin > $tmpdir/add-bin-F
+sort -o $tmpdir/add-bin-F{,}
+cut -f1 plan/i-bin > $tmpdir/i-bin-F
+cmp -s $tmpdir/add-bin-F $tmpdir/i-bin-F ||
+	fail 'oops, plan/add-bin and plan/i-bin do not match'
 
 n_add=$(cat plan/add-src |wc -l)
 n_rm=$(cat plan/rm-src |wc -l)

@@ -50,39 +50,37 @@ build_nums()
 
 srpm2i()
 {
-	local f="$1"; shift
-	local i
-	i="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-7]*/*/srpm/$f" -type f |
-		cut -d/ -f2 |sort -nu)"
-	if [ ! -d "build/$i" ]; then
-		echo >&2 " *** cannot find $f in build/[1-7]*/*/srpm/"
+	local f i
+	f="$1"; shift
+	i="$(printf '%s\n' "$f" | join -j 1 -o 2.3 - plan/i-src)"
+	[ -n "$i" -a -d "build/$i" ] || {
+		echo >&2 " *** cannot find $f in the plan"
 		return 1
-	fi
+	}
 	echo "$i"
 }
 
 findrpm()
 {
-	local dir="$1"; shift
-	local f="$1"; shift
-	local p
-	p="$(find build -mindepth 4 -maxdepth 4 -path "build/[1-7]*/*/$dir/$f" -type f |
-		sort -u |head -n1)"
-	if [ ! -f "$p" ]; then
+	local t f p
+	t="$1"; shift
+	f="$1"; shift
+	p="$(printf '%s\n' "$f" | join -j 1 -o 2.2 - plan/i-$t)"
+	[ -f "$p" ] || {
 		echo >&2 " *** cannot find $f in build/[1-7]*/*/$dir/"
 		return 1
-	fi
+	}
 	echo "$p"
 }
 
 findbin()
 {
-	findrpm rpms "$1"
+	findrpm bin "$1"
 }
 
 findsrc()
 {
-	findrpm srpm "$1"
+	findrpm src "$1"
 }
 
 _N="%{name}"
@@ -90,6 +88,8 @@ _VR="%{version}-%{release}"
 _EVR="%|epoch?{%{epoch}:}|$_VR"
 _NVR="%{name}-$_VR"
 _A="%{arch}"
+qf_src="$_N\\t$_EVR\\t$_NVR.src.rpm\\n"
+qf_bin="$_N\\t$_EVR\\t$_A\\t$_NVR.$_A.rpm\\t%{sourcerpm}\\n"
 
 qsrc()
 {
@@ -97,7 +97,7 @@ qsrc()
 	for d; do
 		# src-N  src-EVR  src-F
 		find "$d" -name '*.src.rpm' -execdir \
-			rpmquery --qf "$_N\t$_EVR\t$_NVR.src.rpm\n" -p -- '{}' '+'
+			rpmquery --qf "$qf_src" -p -- '{}' '+'
 	done
 }
 
@@ -107,7 +107,7 @@ qbin()
 	for d; do
 		# bin-N  bin-EVR  bin-A  bin-F  src-F
 		find "$d" -name '*.rpm' -not -name '*.src.rpm' -execdir \
-			rpmquery --qf "$_N\t$_EVR\t$_A\t$_NVR.$_A.rpm\t%{sourcerpm}\n" -p -- '{}' '+'
+			rpmquery --qf "$qf_bin" -p -- '{}' '+'
 	done
 }
 
