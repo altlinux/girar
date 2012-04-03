@@ -65,8 +65,8 @@ while read -r S A B; do
 	for arch in $a; do
 		cd "build/$i/$arch"
 		if [ ! -s excluded ]; then
-			s="$(readlink -ev "$repo_dir/$A/SRPMS.classic/$S")"
-			b="$(readlink -ev "$repo_dir/$A/RPMS.classic/$B")"
+			s="$(readlink -ev "$repo_dir/files/SRPMS/$S")"
+			b="$(readlink -ev "$repo_dir/files/$A/RPMS/$B")"
 			(umask 002; mkdir -p srpm rpms) || false
 			cp -v -l "$s" srpm/ >>log 2>&1
 			cp -v -l "$b" rpms/ >>log 2>&1
