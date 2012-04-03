@@ -164,9 +164,7 @@ make_repo_table()
 	if [ -s "$repo_dir/files/list/src.list" ]; then
 		sort -u "$repo_dir/files/list/src.list" >"$out.src"
 	else
-		for arch in $GB_ARCH noarch; do
-			qsrc "$repo_dir"/$arch/SRPMS.classic/
-		done >"$out.src"
+		qsrc "$repo_dir"/files/SRPMS/ >"$out.src"
 		sort -u -o "$out.src"{,}
 	fi
 
@@ -174,7 +172,7 @@ make_repo_table()
 		sort -u "$repo_dir/files/list/bin.list" >"$out.bin"
 	else
 		for arch in $GB_ARCH noarch; do
-			qbin "$repo_dir"/$arch/RPMS.classic/
+			qbin "$repo_dir"/files/$arch/RPMS/
 		done >"$out.bin"
 		sort -u -o "$out.bin"{,}
 	fi
