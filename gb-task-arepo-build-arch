@@ -7,6 +7,12 @@ arch="${arepo_arch##*-}"
 
 . gb-sh-functions
 
+fail()
+{
+	stamp_echo >&2 "[$arepo_arch] $*"
+	exit 1
+}
+
 (umask 002; mkdir -p arepo/$arepo_arch/rpms) || false
 
 . shell-quote
@@ -37,9 +43,8 @@ gb-x-rsync-loop -q -- arepo/$arepo_arch/{pkg,todo}.list "$remote_host:tmp/"
 # run the build on remote side
 gb-x-ssh "$remote_host" ./gb-remote-arepo-build \
 	"\"$(quote_shell "$arch")\"" || {
-		stamp_echo >&2 "[$arepo_arch] arepo remote build FAILED";
-		rsync -q -- "$remote_host:build/arepo.log" arepo/$arepo_arch/;
-		exit 1;
+		rsync -q -- "$remote_host:build/arepo.log" arepo/$arepo_arch/ ||:
+		fail 'remote build FAILED'
 	}
 
 # copy build results from remote side
@@ -48,12 +53,25 @@ gb-x-rsync-loop -qrlt -- "$remote_host:build/" arepo/$arepo_arch/
 # purge temporary repo
 gb-x-rsync-loop -a --delete /var/empty/ "$remote_host:gb-repo/"
 
-if ! out=$(find "arepo/$arepo_arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
+# check the result
+. gb-sh-tmpdir
+find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -printf '%f\n' > "$tmpdir"/out
+sort -o "$tmpdir"/out{,}
+cut -f3 plan/arepo-add-$arepo_arch > "$tmpdir"/in
+sort -o "$tmpdir"/in{,}
+cmp -s "$tmpdir"/in "$tmpdir"/out ||
+	fail 'built packages do not match expectations'
+
+sisyphus_check --no-check=arepo,gpg arepo/$arepo_arch/rpms ||
+	fail 'sisyphus_check FAILED'
+
+# sign the result
+if ! out=$(find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
 	printf '%s\n' "$out"
-	stamp_echo >&2 "[$arepo_arch] arepo rpmsign FAILED"
-	exit 1
+	fail 'rpmsign FAILED'
 fi
 
+# mark the job as done
 cat plan/arepo-add-$arepo_arch > arepo/$arepo_arch/done.list
 
 stamp_echo >&2 "[$arepo_arch] arepo build OK"
