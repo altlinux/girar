@@ -31,10 +31,10 @@ for i in $(build_nums); do
 done > $tmpdir/i-src
 
 # sort by filename to filter out duplicates
-sort -u -k1,1 $tmpdir/i-src > plan/i-src
-cut -f2 plan/i-src > $tmpdir/i-src-F
-sort -o $tmpdir/i-src-F{,}
-xargs -r rpmquery --qf "$qf_src" -p -- < $tmpdir/i-src-F > $tmpdir/new.src
+sort -u -k1,1 -o $tmpdir/i-src{,}
+cut -f2 $tmpdir/i-src > $tmpdir/i-src-P
+sort -o $tmpdir/i-src-P{,}
+xargs -r rpmquery --qf "$qf_src" -p -- < $tmpdir/i-src-P > $tmpdir/new.src
 
 for i in $(build_nums); do
 	for arch in $GB_ARCH; do
@@ -47,10 +47,10 @@ for i in $(build_nums); do
 	done
 done > $tmpdir/i-bin
 # sort by filename to filter out duplicates
-sort -u -k1,1 $tmpdir/i-bin > plan/i-bin
-cut -f2 plan/i-bin > $tmpdir/i-bin-F
-sort -o $tmpdir/i-bin-F{,}
-xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-F > $tmpdir/new.bin
+sort -u -k1,1 -o $tmpdir/i-bin{,}
+cut -f2 $tmpdir/i-bin > $tmpdir/i-bin-P
+sort -o $tmpdir/i-bin-P{,}
+xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-P > $tmpdir/new.bin
 
 for i in $(package_nums); do
 	[ -s gears/$i/copy_repo ] ||
@@ -113,8 +113,9 @@ sort -u rm-by-{del,src,bin+} >rm
 # Save pairs: old src-N, their new non-matching src-F replacers
 sort -k4,4 -o rm-by-bin-only{,}
 # join by bin-N, output: src1-N  src2-F
-join -t$'\t' -o '1.1 2.3' -j 4 rm-by-bin-only new |
-	sort -u >oldsrc2newsrpm
+join -t$'\t' -o '1.1 2.3' -j 4 rm-by-bin-only new >oldsrc2newsrpm
+sort -u -o oldsrc2newsrpm{,}
+sort -k2,2 -o oldsrc2newsrpm{,}
 
 # Prepare new repo lists to update old.src/old.bin
 
@@ -155,7 +156,6 @@ cut -f1-7 <$tmpdir/rm |sort -u >plan/rm-src+bin
 cut -f1-3 <$tmpdir/rm |sort -u >plan/rm-src
 cut -f3,6 <$tmpdir/rm |sort -u >plan/rm-srpm2arch
 cut -f4-7 <$tmpdir/rm |sort -u >plan/rm-bin
-cat <$tmpdir/oldsrc2newsrpm >plan/oldsrc2newsrpm
 
 sort -u "$tmpdir/next.src" >plan/next.src
 if [ -s "$GB_REPO_DIR/files/list/src.list" ]; then
@@ -172,17 +172,23 @@ cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
 [ -s plan/change-arch ] ||
 	fail 'cowardly refusing to create an empty plan'
 
-cut -f3 plan/add-src > $tmpdir/add-src-F
-sort -o $tmpdir/add-src-F{,}
-cut -f1 plan/i-src > $tmpdir/i-src-F
-cmp -s $tmpdir/add-src-F $tmpdir/i-src-F ||
-	fail 'oops, plan/add-src and plan/i-src do not match'
+# join add-src with i-src by src-F
+sort -k3,3 plan/add-src |
+	join -t$'\t' -1 3 -2 1 -o 1.1,1.2,1.3,2.2,2.3 - $tmpdir/i-src > $tmpdir/add-src
+sort $tmpdir/add-src > plan/add-src
 
-cut -f4 plan/add-bin > $tmpdir/add-bin-F
-sort -o $tmpdir/add-bin-F{,}
-cut -f1 plan/i-bin > $tmpdir/i-bin-F
-cmp -s $tmpdir/add-bin-F $tmpdir/i-bin-F ||
-	fail 'oops, plan/add-bin and plan/i-bin do not match'
+# join add-bin with i-bin by bin-F
+sort -k4,4 plan/add-bin |
+	join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,2.2,2.3 - $tmpdir/i-bin > $tmpdir/add-bin
+sort $tmpdir/add-bin > plan/add-bin
+
+# join oldsrc2newsrpm with i-src by src-F
+join -t$'\t' -1 2 -2 1 -o 1.1,1.2,2.5 $tmpdir/oldsrc2newsrpm $tmpdir/i-src > plan/oldsrc2newsrpm
+sort -o plan/oldsrc2newsrpm{,}
+
+# join add-srpm2arch with i-src by src-F
+join -t$'\t' -j 1 -o 1.1,2.2,1.2 plan/add-srpm2arch $tmpdir/i-src > $tmpdir/add-srpm2arch
+sort $tmpdir/add-srpm2arch > plan/add-srpm2arch
 
 n_add=$(cat plan/add-src |wc -l)
 n_rm=$(cat plan/rm-src |wc -l)

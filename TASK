@@ -28,9 +28,9 @@ TASK_ID/bugmail/$bug_id  	bugmail contents for bug $bug_id
 # After the build is successful, there is a plan to upgrade the repo.
 # packages going to be added
 TASK_ID/plan/add-src+bin	src-N src-EVR src-F bin-N bin-EVR bin-A bin-F
-TASK_ID/plan/add-src		src-N src-EVR src-F
-TASK_ID/plan/add-srpm2arch	src-F bin-A
-TASK_ID/plan/add-bin		bin-N bin-EVR bin-A bin-F
+TASK_ID/plan/add-src		src-N src-EVR src-F src-P src-I
+TASK_ID/plan/add-srpm2arch	src-F src-P bin-A
+TASK_ID/plan/add-bin		bin-N bin-EVR bin-A bin-F bin-P bin-I
 # packages going to be removed
 TASK_ID/plan/rm-src+bin	src-N src-EVR src-F bin-N bin-EVR bin-A bin-F
 TASK_ID/plan/rm-src		src-N src-EVR src-F

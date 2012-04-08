@@ -4,9 +4,8 @@
 
 RC=0
 
-while read -r N EVR A F; do
-	bin=$(findbin "$F")
-	if py26_deps=$(rpmquery --requires --provides -p "$bin" |
+while read -r N EVR A F P I; do
+	if py26_deps=$(rpmquery --requires --provides -p "$P" |
 		grep -E '^(python2\.6|python = 2\.6|libpython2\.6)' )
 	then
 		echo >&2 $F: $py26_deps

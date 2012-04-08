@@ -12,11 +12,10 @@ commit()
 		RM $REPO_DIR/$A/RPMS.classic/$F
 		RM $REPO_DIR/files/$A/RPMS/$F
 	done <plan/rm-bin
-	while read -r F P I; do
-		A=$(suffix_arch $F)
+	while read -r N EVR A F P I; do
 		CP "$P" $REPO_DIR/files/$A/RPMS/$F
 		LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.classic/$F
-	done <plan/i-bin
+	done <plan/add-bin
 
 	while read -r F A; do
 		RM $REPO_DIR/$A/SRPMS.classic/$F
@@ -35,10 +34,10 @@ commit()
 		RM $REPO_DIR/files/SRPMS/$F
 	done <plan/rm-src
 
-	while read -r F P I; do
+	while read -r N EVR F P I; do
 		CP "$P" $REPO_DIR/files/SRPMS/$F
-	done <plan/i-src
-	while read -r F A; do
+	done <plan/add-src
+	while read -r F P A; do
 		LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
 		if [ "$A" = 'noarch' ]; then
 			arch_all="$GB_ARCH"

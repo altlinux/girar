@@ -48,41 +48,6 @@ build_nums()
 		cut -d/ -f2 |sort -nu
 }
 
-srpm2i()
-{
-	local f i
-	f="$1"; shift
-	i="$(printf '%s\n' "$f" | join -j 1 -o 2.3 - plan/i-src)"
-	[ -n "$i" -a -d "build/$i" ] || {
-		echo >&2 " *** cannot find $f in the plan"
-		return 1
-	}
-	echo "$i"
-}
-
-findrpm()
-{
-	local t f p
-	t="$1"; shift
-	f="$1"; shift
-	p="$(printf '%s\n' "$f" | join -j 1 -o 2.2 - plan/i-$t)"
-	[ -f "$p" ] || {
-		echo >&2 " *** cannot find $f in build/[1-7]*/*/$dir/"
-		return 1
-	}
-	echo "$p"
-}
-
-findbin()
-{
-	findrpm bin "$1"
-}
-
-findsrc()
-{
-	findrpm src "$1"
-}
-
 _N="%{name}"
 _VR="%{version}-%{release}"
 _EVR="%|epoch?{%{epoch}:}|$_VR"

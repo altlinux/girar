@@ -23,7 +23,7 @@ gb-x-rsync-loop -a --exclude '*list.*.bz2' \
 
 rc=0
 
-while read -r N EVR A F; do
+while read -r N EVR A F P I; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
 
 	if [ -f task/swift ]; then

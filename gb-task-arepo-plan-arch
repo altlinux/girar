@@ -29,7 +29,7 @@ join -t$'\t' -1 4 -2 1 -v 1 -o 1.1,1.2,1.3,1.4 \
 
 ### add
 
-while read -r N EVR A F; do
+while read -r N EVR A F P I; do
 	[ "$A" = "$arch_from" ] || continue
 
 	# arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1

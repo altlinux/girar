@@ -173,16 +173,13 @@ girar_commit()
 
 . gb-sh-tmpdir
 
-while read -r N EVR F; do
-	i=$(srpm2i "$F")
-	girar_commit "$N" "$i"
+while read -r N EVR F P I; do
+	girar_commit "$N" "$I"
 done <plan/add-src
 
-sort -k1,1 <plan/add-src >"$tmpdir"/add-src
-sort -k1,1 <plan/rm-src >"$tmpdir"/rm-src
-join -v2 "$tmpdir"/add-src "$tmpdir"/rm-src >"$tmpdir"/rm
+join -v2 plan/add-src plan/rm-src > "$tmpdir"/rm
 
-while read -r N EVR F; do
+while read -r N EVR F P I; do
 	girar_obsolete "$GB_GEARS_DIR" "$N"
 done <"$tmpdir"/rm
 

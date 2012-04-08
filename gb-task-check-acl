@@ -36,24 +36,19 @@ check_acl()
 
 . gb-sh-tmpdir
 
-# Deal with added packages.
-# input: src-N  src-EVR  src-F
-cut -f1,3 plan/add-src >$tmpdir/src2srpm
-sort -u -o $tmpdir/src2srpm{,}
-
 > $tmpdir/check_acl
 
-while read -r N F; do
-	i=$(srpm2i "$F")
-	printf '%s\t%s\n' "$i" "$N" >> $tmpdir/check_acl
-done < $tmpdir/src2srpm
+# Deal with added packages.
+# input: src-N src-EVR src-F src-P src-I
+while read -r N EVR F P I; do
+	printf '%s\t%s\n' "$I" "$N" >> $tmpdir/check_acl
+done < plan/add-src
 
 # Deal with removed/replaced packages.
-# input: src1-N  src2-F
-while read -r N F; do
-	i=$(srpm2i "$F")
-	echo >&2 "$N is replaced with $F"
-	printf '%s\t%s\n' "$i" "$N" >> $tmpdir/check_acl
+# input: src1-N src2-F src2-I
+while read -r N F I; do
+	echo >&2 "$N is replaced with $F from subtask #$I"
+	printf '%s\t%s\n' "$I" "$N" >> $tmpdir/check_acl
 done < plan/oldsrc2newsrpm
 
 # Deal with explicitly removed packages.

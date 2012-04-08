@@ -55,9 +55,7 @@ sort -u -o unmets.srpms{,}
 sort -k3,3 "$topdir"/plan/next.src |
 	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
 sort -u -o unmets.src{,}
-cut -f1 < "$topdir"/plan/add-src > add.src
-sort -u -o add.src{,}
-join -v1 unmets.src add.src > unmets-new.src
+join -v1 unmets.src "$topdir"/plan/add-src > unmets-new.src
 
 while read -r src; do
 	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl

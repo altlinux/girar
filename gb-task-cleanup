@@ -16,4 +16,4 @@ for arch in ${GB_AREPO_ARCH-}; do
 	rm -f -- plan/arepo-{pkg,table}-$arch
 done
 
-rm -f -- plan/next.{src,bin} plan/i-{src,bin}
+rm -f -- plan/next.{src,bin}

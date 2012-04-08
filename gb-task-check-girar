@@ -144,9 +144,8 @@ girar_check()
 	fi
 }
 
-while read -r N EVR F; do
-	i=$(srpm2i "$F")
-	girar_check "$N" "$i"
+while read -r N EVR F P I; do
+	girar_check "$N" "$I"
 done <plan/add-src
 
 stamp_echo >&2 "gears inheritance check $text"
