@@ -18,6 +18,7 @@ cd "$tmpdir"
 . gb-sh-rpmhdrcache
 
 for arch in $GB_ARCH; do
+	# Assume that the only component worth checking is "classic".
 	bad_elf_symbols_dircmp.pl {"$repo1","$repo2"}/$arch/RPMS.classic >$arch-bes.plus 3>$arch-bes.minus ||
 		echo $? >>FAIL &
 done

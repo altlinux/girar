@@ -12,6 +12,7 @@ for arch in $GB_ARCH noarch; do
 	fgrep -qsx "$arch" plan/change-arch ||
 		continue
 	repodir="$GB_TMP_REPO_DIR/$arch"
+	# Assume that the only relevant component is "classic".
 	gb-x-gen-ci $repodir/RPMS.classic >$tmpdir/$arch-ci &&
 		mv -f $tmpdir/$arch-ci $repodir/base/contents_index ||
 		stamp_echo "[$arch] FAILED to create contents_index" >> "$tmpdir"/FAIL &

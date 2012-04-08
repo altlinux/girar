@@ -11,23 +11,32 @@ topdir="$PWD"
 . gb-sh-tmpdir
 cd "$tmpdir"
 
-# dump unmets
-for age in old new; do
-for arch in $GB_ARCH; do
-	[ $age = old ] && repo=$repo1 || repo=$repo2
-	cat >$age-$arch-sources.list <<EOF
-rpm file:$repo $arch classic
-rpm file:$repo noarch classic
-EOF
-	$arch unmets -s $age-$arch-sources.list >$arch-unmets.$age ||
-		echo 1 >>FAIL &
-done
-done
+dump_unmets()
+{
+	local comp="${1-}"
+	for age in old new; do
+		for arch in $GB_ARCH; do
+			[ $age = old ] && repo=$repo1 || repo=$repo2
+			> $arch-$comp-unmets.$age
+			[ -z "$comp" -o -f "$repo/$arch/base/release.$comp" ] ||
+				continue
+			cat >$age-$arch-$comp-sources.list <<-EOF
+				rpm file:$repo $arch classic $comp
+				rpm file:$repo noarch classic
+			EOF
+			$arch unmets -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
+				echo 1 >>FAIL &
+		done
+	done
 
-wait
-if [ -s FAIL ]; then
-	exit 1
-fi
+	wait
+	if [ -s FAIL ]; then
+		exit 1
+	fi
+}
+
+dump_unmets
+dump_unmets debuginfo
 
 rc=0
 > unmets.bin
@@ -35,8 +44,14 @@ rc=0
 
 # compare unmets
 for arch in $GB_ARCH; do
-	comm -13 $arch-unmets.{old,new} >$arch-unmets.plus
-	comm -23 $arch-unmets.{old,new} >$arch-unmets.minus
+	for comp in '' debuginfo; do
+		comm -13 $arch-$comp-unmets.{old,new}
+	done >$arch-unmets.plus
+	sort -u -o $arch-unmets.plus{,}
+	for comp in '' debuginfo; do
+		comm -23 $arch-$comp-unmets.{old,new}
+	done >$arch-unmets.minus
+	sort -u -o $arch-unmets.minus{,}
 	if [ -s $arch-unmets.plus ]; then
 		echo "	$arch: NEW unmet dependencies detected:"
 		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.plus

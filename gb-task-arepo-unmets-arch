@@ -11,7 +11,7 @@ acomp=${GB_AREPO_COMPONENT_NAME:-classic}
 . gb-sh-tmpdir
 cd "$tmpdir"
 
-# dump unmets
+# dump unmets, assuming that the only relevant $GB_TMP_REPO_DIR component is "classic"
 cat > sources.list << EOF
 rpm file:$GB_TMP_REPO_DIR $arch_to classic
 rpm file:$GB_TMP_REPO_DIR noarch classic

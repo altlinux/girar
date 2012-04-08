@@ -27,6 +27,7 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
 	"\"$(quote_shell "$remote_home/gb-repo")\"" \
 	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell classic)\"" \
 	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\"" \
 	cache_dir=cache.arepo
 

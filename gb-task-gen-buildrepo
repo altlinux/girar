@@ -39,10 +39,13 @@ if [ -z "$need_regen" ]; then
 	exit 0
 fi
 
-# Create skeleton and make RPMS.classic symlinks.
+# Create skeleton and make RPMS.* symlinks.
 for a in $GB_ARCH noarch; do
 	mkdir -p -- "$GB_TMP_REPO_DIR"/$a/base
-	ln -s -- "$GB_REPO_DIR"/$a/RPMS.classic "$GB_TMP_REPO_DIR"/$a/
+	for d in $(set +f && ls -d "$GB_REPO_DIR"/$a/RPMS.?*); do
+		[ -d "$d" ]
+		ln -s -- "$d" "$GB_TMP_REPO_DIR"/$a/
+	done
 done
 
 # SRPMS not needed for build.

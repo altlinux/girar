@@ -21,7 +21,7 @@ if [ -n "$bloat" ]; then
 else
 	# Final repo: need to scan for useful files.
 	for arch in $GB_ARCH noarch; do
-		gb-x-useful-files "$REPO_DIR"/$arch/RPMS.classic >"$tmpdir"/useful-files.$arch ||
+		gb-x-useful-files $(set +f && ls -d "$REPO_DIR"/$arch/RPMS.?*) >"$tmpdir"/useful-files.$arch ||
 			echo 1 >>"$tmpdir"/FAIL &
 	done
 	wait
@@ -42,6 +42,10 @@ fi
 
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
+label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
+description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
+date_s="$(date +%s)"
+
 for arch in $GB_ARCH noarch; do
 	[ -d "$REPO_DIR/$arch" ] || continue
 
@@ -53,9 +57,14 @@ for arch in $GB_ARCH noarch; do
 		maybe_unchanged='--maybe-unchanged'
 	fi
 
-	label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
-	description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
-	date_s="$(date +%s)"
+	comps="${GB_REPO_COMPONENT_NAMES-}"
+	[ -n "$comps" ] ||
+		comps="$(set +f && cd "$REPO_DIR/$arch" && ls -d RPMS.?* | sed 's/^RPMS\.//')"
+	[ -n "$comps" ] || {
+		echo 1 >>"$tmpdir"/FAIL
+		continue
+	}
+
 	genbasedir "$@" $maybe_unchanged \
 		--cachedir="$HOME"/.cache \
 		--architecture="$arch" \
@@ -70,7 +79,7 @@ for arch in $GB_ARCH noarch; do
 		-s --default-key="$GB_REPO_SIGNER" \
 		--topdir="$REPO_DIR" \
 		--flat --no-oldhashfile --bz2only --mapi \
-		$arch ${GB_REPO_COMPONENT_NAMES:-classic} ||
+		$arch $comps ||
 			echo 1 >>"$tmpdir"/FAIL &
 done
 wait

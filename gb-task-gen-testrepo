@@ -15,26 +15,36 @@ for arch in $GB_ARCH noarch; do
 	rsync -a --exclude contents_index \
 		$GB_REPO_DIR/$arch/base $GB_TMP_REPO_DIR/$arch/
 	# Deal with RPMS and SRPMS.
-	if fgrep -qsx "$arch" plan/change-arch; then
-		# Need to copy directory structure (using symlinks).
-		cp -prs $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic \
-			$GB_TMP_REPO_DIR/$arch/
-	else
-		# Arch packages unchanged, no need to copy directory structure.
-		ln -s $GB_REPO_DIR/$arch/{RPMS,SRPMS}.classic \
-			$GB_TMP_REPO_DIR/$arch/
-	fi
+	for d in $GB_REPO_DIR/$arch/SRPMS.classic \
+		 $(set +f && ls -d $GB_REPO_DIR/$arch/RPMS.?*); do
+		[ -d "$d" ]
+		if fgrep -qsx "$arch" plan/change-arch; then
+			# Need to copy directory structure (using symlinks).
+			cp -prs "$d" $GB_TMP_REPO_DIR/$arch/
+		else
+			# Arch packages unchanged, no need to copy directory structure.
+			ln -s "$d" $GB_TMP_REPO_DIR/$arch/
+		fi
+	done
 done
 
 # Commit packages.  This is a light-weight reimplementation
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
 # and update only RPMS.classic components.
 while read -r N EVR A F; do
-	rm -- $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $GB_TMP_REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	rm -- $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
 done <plan/rm-bin
 while read -r N EVR A F P I; do
-       # NB: copy here, so that the repo is rsyncable to remotes.
-       cp -p -- $P $GB_TMP_REPO_DIR/$A/RPMS.classic/$F
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $GB_TMP_REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	# NB: copy here, so that the repo is rsyncable to remotes.
+	cp -p -- $P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
 done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse

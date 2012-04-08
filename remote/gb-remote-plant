@@ -4,6 +4,7 @@ owner="$1"; shift
 GB_REPO_NAME="$1"; shift
 dir="$1"; shift
 arch="$1"; shift
+comps="$1"; shift
 
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
@@ -82,7 +83,7 @@ Debug::pkgProblemResolver "true";
 APT::Cache-Limit "50331648";
 EOF
 cat >"$workdir/sources.list" <<EOF
-rpm file:$dir $arch classic
+rpm file:$dir $arch $comps
 rpm file:$dir noarch classic
 EOF
 cat >"$workdir/pkgpriorities" <<EOF
