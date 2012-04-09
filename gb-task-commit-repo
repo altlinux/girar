@@ -10,6 +10,7 @@ install -pm644 -- plan/next.src "$GB_REPO_DIR/files/list/src.list"
 install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 
 # Reuse base directories from our prepared repo.
+updated=
 for arch in $GB_ARCH noarch; do
 	old_base="$GB_REPO_DIR/$arch/base"
 	new_base="build/repo/$arch/base.next"
@@ -20,6 +21,7 @@ for arch in $GB_ARCH noarch; do
 	fi
 	# NB: no --delete here, contents_index might be optimized out.
 	rsync -rlt "$new_base"/ "$old_base"/
+	updated="$updated $arch"
 done
 
-stamp_echo >&2 'repo update OK'
+stamp_echo >&2 "[${updated## }] update OK"
