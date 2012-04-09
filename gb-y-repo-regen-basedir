@@ -16,7 +16,7 @@ shift
 
 if [ -n "$bloat" ]; then
 	# Temporary repo: disable bzip2, use 'xz --fast' mode.
-	set -- --bloat --no-bz2 --xz
+	set -- --bloat --xz --no-bz2
 	export XZ_OPT='--fast'
 else
 	# Final repo: need to scan for useful files.
@@ -33,10 +33,10 @@ else
 		set -- "$@" "$tmpdir"/useful-files.$arch
 	done
 	LC_ALL=C sort -m -u -o "$tmpdir"/useful-files -- "$@"
-	# Both bzip2 and xz should be enabled.
+	# By default, both xz and bzip2 should be enabled.
 	set -- --useful-files="$tmpdir"/useful-files --no-scan \
 		--changelog-since=2009-01-01 \
-		--xz --bz2
+		--xz ${GB_REPO_OPT_BZ2:---bz2}
 	export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
 fi
 
