@@ -40,9 +40,9 @@ log="logs/events.$try.$iter.log"
 	stamp_echo 'task is ready for commit'
 
 	gb-task-commit-repo
+	gb-task-commit-arepo
 	gb-task-commit-girar
 	gb-task-commit-acl
-	gb-task-commit-arepo
 	gb-task-repo-sync
 )
 
