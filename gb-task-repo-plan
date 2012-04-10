@@ -183,7 +183,7 @@ sort -k4,4 plan/add-bin |
 sort $tmpdir/add-bin > plan/add-bin
 
 # join oldsrc2newsrpm with i-src by src-F
-join -t$'\t' -1 2 -2 1 -o 1.1,1.2,2.5 $tmpdir/oldsrc2newsrpm $tmpdir/i-src > plan/oldsrc2newsrpm
+join -t$'\t' -1 2 -2 1 -o 1.1,1.2,2.3 $tmpdir/oldsrc2newsrpm $tmpdir/i-src > plan/oldsrc2newsrpm
 sort -o plan/oldsrc2newsrpm{,}
 
 # join add-srpm2arch with i-src by src-F
