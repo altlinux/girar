@@ -37,6 +37,14 @@ while read -r N EVR A F P I; do
 done < plan/add-bin > "$tmpdir"/add-bin
 sort -u "$tmpdir"/add-bin > plan/arepo-add-$arch
 
+### we've got a plan
+if ! [ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ]; then
+	# no changes to arepo
+	rm -f plan/arepo-table-$arch
+	rm -rf arepo/$arch
+	exit 0
+fi
+
 ### table
 
 cut -f-4 plan/arepo-add-$arch >> "$tmpdir"/arepo-table
