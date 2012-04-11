@@ -59,6 +59,9 @@ done < "$tmpdir"/rm
 
 comm -13 arepo/$arch/done.list plan/arepo-add-$arch > arepo/$arch/todo.list
 
+comm -12 arepo/$arch/done.list plan/arepo-add-$arch > "$tmpdir"/done
+cat "$tmpdir"/done > arepo/$arch/done.list
+
 n_todo=$(cat arepo/$arch/todo.list |wc -l)
 n_add=$(cat plan/arepo-add-$arch |wc -l)
 n_rm=$(cat plan/arepo-rm-$arch |wc -l)
