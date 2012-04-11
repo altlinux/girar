@@ -74,4 +74,4 @@ n_todo=$(cat arepo/$arch/todo.list |wc -l)
 n_add=$(cat plan/arepo-add-$arch |wc -l)
 n_rm=$(cat plan/arepo-rm-$arch |wc -l)
 n_all=$(cat plan/arepo-pkg-$arch |wc -l)
-stamp_echo >&2 "[$arch] plan #$n_todo +$n_add -$n_rm =$n_all OK"
+stamp_echo >&2 "[$arch] plan: #$n_todo +$n_add -$n_rm =$n_all"
