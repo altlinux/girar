@@ -45,6 +45,17 @@ if ! [ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ]; then
 	exit 0
 fi
 
+### handle copied packages
+for i in $(copy_nums); do
+	ci="build/$i/$arch/copy.list"
+	[ -s "$ci" ] || continue
+	while read -r N B; do
+		printf '%s\t%s\t%s\n' "$N" "$B" "build/$i/$arch/rpms/$B"
+	done < "$ci"
+done > "$tmpdir"/arepo-copy
+# N B P
+sort "$tmpdir"/arepo-copy > plan/arepo-copy-$arch
+
 ### table
 
 cut -f-4 plan/arepo-add-$arch >> "$tmpdir"/arepo-table
@@ -55,6 +66,7 @@ cut -f1 plan/arepo-table-$arch > plan/arepo-pkg-$arch
 if ! cmp -s plan/arepo-pkg-$arch arepo/$arch/pkg.list; then
 	# pkg list changed, invalidate everything
 	> arepo/$arch/done.list
+	rm -rf arepo/$arch/rpms
 	cat plan/arepo-pkg-$arch > arepo/$arch/pkg.list
 fi
 
@@ -65,7 +77,8 @@ while read -r dummy dummy F dummy; do
 	rm arepo/$arch/rpms/"$F"
 done < "$tmpdir"/rm
 
-comm -13 arepo/$arch/done.list plan/arepo-add-$arch > arepo/$arch/todo.list
+comm -13 arepo/$arch/done.list plan/arepo-add-$arch > "$tmpdir"/todo.list
+join -t$'\t' -v1 "$tmpdir"/todo.list plan/arepo-copy-$arch > arepo/$arch/todo.list
 
 comm -12 arepo/$arch/done.list plan/arepo-add-$arch > "$tmpdir"/done
 cat "$tmpdir"/done > arepo/$arch/done.list

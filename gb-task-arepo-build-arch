@@ -1,17 +1,35 @@
 #!/bin/sh -efu
 
 arepo_arch="$1"; shift
-[ -s arepo/$arepo_arch/todo.list ] || exit 0
+[ -s plan/arepo-add-$arepo_arch ] || exit 0
+[ -s arepo/$arepo_arch/todo.list -o -s plan/arepo-copy-$arepo_arch ] || exit 0
 native_arch="${arepo_arch%%-*}"
 arch="${arepo_arch##*-}"
 
 . gb-sh-functions
+
+if [ -s plan/arepo-copy-$arepo_arch -a \
+   ! -s arepo/$arepo_arch/todo.list -a \
+   ! -d arepo/$arepo_arch/rpms ]; then
+	(umask 002; mkdir arepo/$arepo_arch/rpms) || false
+	# copy what needs to be copied
+	while read -r N B P; do
+		ln "$P" arepo/$arepo_arch/rpms/
+	done < plan/arepo-copy-$arepo_arch
+fi
+
+[ -s arepo/$arepo_arch/todo.list ] || exit 0
 
 fail()
 {
 	stamp_echo >&2 "[$arepo_arch] $*"
 	exit 1
 }
+
+# remove copied packages
+while read -r N B P; do
+	rm -f "arepo/$arepo_arch/rpms/$B"
+done < plan/arepo-copy-$arepo_arch
 
 (umask 002; mkdir -p arepo/$arepo_arch/rpms) || false
 
@@ -58,7 +76,7 @@ gb-x-rsync-loop -a --delete /var/empty/ "$remote_host:gb-repo/"
 . gb-sh-tmpdir
 find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -printf '%f\n' > "$tmpdir"/out
 sort -o "$tmpdir"/out{,}
-cut -f3 plan/arepo-add-$arepo_arch > "$tmpdir"/in
+join -v1 -o1.3 plan/arepo-add-$arepo_arch plan/arepo-copy-$arepo_arch > "$tmpdir"/in
 sort -o "$tmpdir"/in{,}
 cmp -s "$tmpdir"/in "$tmpdir"/out ||
 	fail 'built packages do not match expectations'
@@ -71,6 +89,11 @@ if ! out=$(find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.
 	printf '%s\n' "$out"
 	fail 'rpmsign FAILED'
 fi
+
+# copy what needs to be copied
+while read -r N B P; do
+	ln -v "$P" arepo/$arepo_arch/rpms/ >> arepo/$arepo_arch/arepo.log 2>&1
+done < plan/arepo-copy-$arepo_arch
 
 # mark the job as done
 cat plan/arepo-add-$arepo_arch > arepo/$arepo_arch/done.list

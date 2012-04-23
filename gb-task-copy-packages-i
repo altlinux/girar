@@ -43,6 +43,7 @@ if [ ! -s "$tmpdir/copy" ]; then
 	exit 1
 fi
 cut -f1 "$tmpdir/copy" |sort -u >"$tmpdir/copy.src"
+cut -f3 "$tmpdir/copy" |sort -u >"$tmpdir/copy.bin"
 
 # remove previously copied packages if any
 rm -rf "build/$i"
@@ -74,6 +75,22 @@ while read -r S A B; do
 		cd - >/dev/null
 	done
 done <"$tmpdir/copy"
+
+for arch in ${GB_AREPO_ARCH-}; do
+	a="$repo_dir/files/list/arepo-$arch.list"
+	[ -s "$a" ] || continue
+	sort -k4,4 "$a" > "$tmpdir/arepo.list"
+	join -t$'\t' -1 1 -2 4 -o 2.1,2.3 "$tmpdir/copy.bin" "$tmpdir/arepo.list" > "$tmpdir/copy.arepo"
+	[ -s "$tmpdir/copy.arepo" ] || continue
+	(umask 002; mkdir "build/$i/$arch" "build/$i/$arch/rpms") || false
+	cd "build/$i/$arch"
+	sort -u "$tmpdir/copy.arepo" > copy.list
+	while read -r N B; do
+		b="$(readlink -ev "$repo_dir/files/$arch/RPMS/$B")"
+		cp -v -l "$b" rpms/ >> log 2>&1
+	done < copy.list
+	cd - >/dev/null
+done
 
 for a in $GB_ARCH; do
 	gb-task-copy-remote-arch-i $a $i
