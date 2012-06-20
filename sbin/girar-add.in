@@ -71,12 +71,12 @@ for d in "$REAL_HOME" "$REAL_HOME/packages" "$REAL_HOME/public"; do
 done
 
 for d in "$REAL_HOME/private"; do
-	install -d -o "$IT_NAME" -g girar -m751 "$d" ||
+	install -d -o "$IT_NAME" -g girar-admin -m751 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done
 
 for d in "$REAL_HOME/etc" "$REAL_HOME/incoming"; do
-	install -d -o "$IT_NAME" -g wheel -m750 "$d" ||
+	install -d -o "$IT_NAME" -g girar-admin -m750 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done
 
