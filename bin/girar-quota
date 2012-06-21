@@ -8,4 +8,4 @@ PROG=girar-quota
 	fatal "USER undefined"
 
 # do not check args, just show quota and filter out username.
-quota -ils |fgrep -ve "user $USER"
+quota -ils 2>/dev/null | grep -Fve "user $USER"
