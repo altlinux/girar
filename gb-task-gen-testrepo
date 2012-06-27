@@ -49,7 +49,6 @@ done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse
 # test repo base directories later in gb-task-commit-repo.
-# However, we omit SRPMS.all update.
 while read -r F A; do
 	rm -- $GB_TMP_REPO_DIR/$A/SRPMS.classic/$F
 done <plan/rm-srpm2arch
