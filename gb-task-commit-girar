@@ -65,6 +65,7 @@ girar_commit_git()
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
+	git tag "gb-$GB_REPO_NAME-task$task_id" "$tag_id" ||:
 	git repack -q -a -d ||:
 	update_git_timestamp
 	# Save space by replacing local objects store with symlink to global store.
@@ -112,6 +113,11 @@ girar_commit_srpm()
 		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
 	rm -rf -- "$tmp_repo"
+	local tag_name
+	tag_name="$(git describe --exact-match "refs/heads/$GB_REPO_NAME" ||:)"
+	if [ -n "$tag_name" ]; then
+		git tag "gb-$GB_REPO_NAME-task$task_id" "$tag_name" ||:
+	fi
 	git repack -q -a -d ||:
 	update_git_timestamp
 }
