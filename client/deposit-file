@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+. shell-error
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <file>"
+	exit 1
+}
+
+[ $# -ge 1 ] || usage 'Not enough arguments.'
+[ $# -le 1 ] || usage 'Too many arguments.'
+
+file="$1"; shift
+
+header="$(od -A n -N 4 -t x1 -- "$file")"
+[ "$header" = ' ed ab ee db' ] ||
+	usage "$file: Invalid file"
+
+hash="$(sha256sum -- "$file")"
+hash="${hash%% *}"
+
+stamp="$(date -r "$file" +%s)"
+
+deposited="$(ssh depot deposit "$hash" "$stamp" < "$file")"
+readlink -ev -- "$deposited"
