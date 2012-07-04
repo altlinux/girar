@@ -1,0 +1,35 @@
+#!/bin/sh -efu
+
+. shell-error
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <reponame> <taskno>"
+	exit 1
+}
+
+[ $# -ge 2 ] || usage 'Not enough arguments.'
+[ $# -le 2 ] || usage 'Too many arguments.'
+
+repo="$1"; shift
+task="$1"; shift
+
+[ "$task" -gt 0 ] 2>/dev/null || fatal "task $task: Invalid argument"
+k="_$(($task/1024))"
+if [ -e "$repo/task/$task" -o -e "$repo/task/archive/$k/$task" ]; then
+	fatal "task $task: Task already reposited"
+fi
+
+cd repo
+
+for d in $(set +f && echo ??*); do
+	[ "$repo" = "$d" ] || continue
+	[ -d "$d" ] || continue
+	cd /
+	savetree "$repo/release/$task" "$repo/task/$task"
+	# hook up task archivation?
+	exit
+done
+
+fatal "repo $repo: Invalid argument"

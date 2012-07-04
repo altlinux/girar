@@ -35,18 +35,23 @@ This package contains git.alt depot client components.
 
 %install
 %define depodir /usr/libexec/depot
-mkdir -p %buildroot%depodir
+%define repodir /usr/libexec/repo
+mkdir -p %buildroot{%_bindir,%depodir,%repodir}
 install -pm755 server/{deposit,depot-sh} %buildroot%depodir/
-mkdir -p %buildroot%_bindir
-install -pm755 client/deposit-file %buildroot%_bindir/
+install -pm755 server/{copyself,savetree,reposit,repo-sh} %buildroot%repodir/
+install -pm755 client/* %buildroot%_bindir/
 
 %pre server
 id depot > /dev/null 2>&1 ||
 	useradd -s %depodir/depot-sh -c 'git.alt depot server' depot
+id repo > /dev/null 2>&1 ||
+	useradd -s %repodir/repo-sh -c 'git.alt repo server' repo
 
 %files server
-%defattr(-,root,depot,750)
-%depodir/
+%defattr(750,root,depot,750)
+%depodir
+%defattr(750,root,repo,750)
+%repodir
 
 %files client
 %_bindir/*

@@ -6,4 +6,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 CPPFLAGS = -std=gnu99 ${WARNINGS}
 CFLAGS = -pipe -O2
 
+all: server/depot-sh server/repo-sh
+
 server/depot-sh: server/depot-sh.c
+server/repo-sh: server/repo-sh.c
