@@ -6,6 +6,8 @@ fail_if_task_abort_requested
 
 . gb-sh-tmpdir
 
+ln -snf "$GB_REPO_DIR" "build/repo/prev"
+
 for arch in $GB_ARCH noarch; do
 	$0-arch "$arch" ||
 		stamp_echo "[$arch] FAILED to save apt indices" >>"$tmpdir"/FAIL &

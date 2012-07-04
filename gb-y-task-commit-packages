@@ -5,78 +5,6 @@
 REPO_DIR="$1"
 shift
 
-commit()
-{
-	local comp arch_all
-	while read -r N EVR A F; do
-		comp=classic
-		if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
-			comp=debuginfo
-		fi
-		RM $REPO_DIR/$A/RPMS.$comp/$F
-		RM $REPO_DIR/files/$A/RPMS/$F
-	done <plan/rm-bin
-	while read -r N EVR A F P I; do
-		comp=classic
-		if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
-			comp=debuginfo
-		fi
-		CP "$P" $REPO_DIR/files/$A/RPMS/$F
-		LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$comp/$F
-	done <plan/add-bin
-
-	while read -r F A; do
-		RM $REPO_DIR/$A/SRPMS.classic/$F
-		if [ "$A" = 'noarch' ]; then
-			arch_all="$GB_ARCH"
-		else
-			arch_all="$A"
-		fi
-	done <plan/rm-srpm2arch
-	while read -r N EVR F; do
-		RM $REPO_DIR/files/SRPMS/$F
-	done <plan/rm-src
-
-	while read -r N EVR F P I; do
-		CP "$P" $REPO_DIR/files/SRPMS/$F
-	done <plan/add-src
-	while read -r F P A; do
-		LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
-		if [ "$A" = 'noarch' ]; then
-			arch_all="$GB_ARCH"
-		else
-			arch_all="$A"
-		fi
-	done <plan/add-srpm2arch
-}
-
-RM()
-{
-	if ! [ -f "$1" ]; then
-		echo "$1: file not found"
-		return 1
-	fi >&2
-}
-
-CP()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		return 1
-	fi >&2
-}
-
-LN()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		return 1
-	fi >&2
-}
-
-# test commit
-commit
-
 RM()
 {
 	rm -v "$1"
@@ -84,18 +12,47 @@ RM()
 
 CP()
 {
-	cp -v -l "$1" "$2"
+	local deposited
+	deposited=$(deposit-file "$1")
+	ln -v -- "$deposited" "$2"
+	ln -v -snf -- "$deposited" "$1"
 }
 
 LN()
 {
 	ln -v -s "$1" "$2"
-	if ! [ -f "$2" ]; then
-		echo "$2: created dangling symlink"
-		rm -v "$2"
-		return 1
-	fi >&2
 }
 
-# real commit
-commit
+while read -r N EVR A F; do
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	RM $REPO_DIR/$A/RPMS.$comp/$F
+	RM $REPO_DIR/files/$A/RPMS/$F
+done < plan/rm-bin
+
+while read -r N EVR A F P I; do
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	CP "$P" $REPO_DIR/files/$A/RPMS/$F
+	LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$comp/$F
+done < plan/add-bin
+
+while read -r F A; do
+	RM $REPO_DIR/$A/SRPMS.classic/$F
+done < plan/rm-srpm2arch
+
+while read -r N EVR F; do
+	RM $REPO_DIR/files/SRPMS/$F
+done < plan/rm-src
+
+while read -r N EVR F P I; do
+	CP "$P" $REPO_DIR/files/SRPMS/$F
+done < plan/add-src
+
+while read -r F P A; do
+	LN ../../files/SRPMS/$F $REPO_DIR/$A/SRPMS.classic/$F
+done < plan/add-srpm2arch

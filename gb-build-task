@@ -46,9 +46,26 @@ gb-task-set-summary
 	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $run_by:"
 	gb-task-show
 
-	# prepare changes
+	# check for pkg.tar files
 	gb-task-pkgtar
-	gb-task-clone-repo-dir; export GB_REPO_DIR="$GB_CLONED_REPO_DIR"
+
+	# wait for committer if any
+	(
+		lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
+		if ! builtin lockf -sn "$lockdir"; then
+			stamp_echo "waiting for a shared lock on $GB_REPO_NAME"
+			builtin lockf -sv "$lockdir"
+			stamp_echo "acquired a shared lock on $GB_REPO_NAME"
+		fi
+	)
+
+	GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
+	export GB_REPO_DIR
+
+	# obtain a shared lock on the $GB_REPO_DIR
+	builtin lockf -sv "$GB_REPO_DIR"
+
+	# prepare changes
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages

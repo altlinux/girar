@@ -28,22 +28,18 @@ log="logs/events.$try.$iter.log"
 
 	gb-task-validate-state pending || exit 0
 
-	# Obtain an exclusive lock on the $GB_REPO_DIR.
-	if ! builtin lockf -n "$GB_REPO_DIR"; then
-		stamp_echo "waiting for an exclusive lock on ${GB_REPO_DIR##*/}"
-		builtin lockf -v "$GB_REPO_DIR"
-		stamp_echo "acquired an exclusive lock on ${GB_REPO_DIR##*/}"
-	fi
+	# obtain a shared lock on the $GB_REPO_DIR
+	builtin lockf -sv "$GB_REPO_DIR"
 
-	gb-task-validate-state pending || exit 0
+	# obtain an excludive lock on the $lockdir
+	lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
+	builtin lockf -v "$lockdir"
 
 	stamp_echo 'task is ready for commit'
 
 	gb-task-commit-repo
-	gb-task-commit-arepo
 	gb-task-commit-girar
 	gb-task-commit-acl
-	gb-task-repo-sync
 )
 
 rc=$?
@@ -55,10 +51,15 @@ if [ "$rc" = 0 ]; then
 	state=DONE
 else
 	state=FAILURE
-	halt_build_queue ||:
 fi
+
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 gb-x-girar task-change-state "$id" "$state"
+
+if [ "$rc" != 0 ]; then
+	gb-task-send-email "$id"
+	exit $rc
+fi
 
 gb-task-close-bugs ||:
 gb-task-cleanup ||:

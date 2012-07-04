@@ -5,18 +5,9 @@ state="$1"; shift
 
 . gb-sh-functions
 
-mismatch=
-for arch in $GB_ARCH noarch; do
-	cmp -s "$GB_REPO_DIR/$arch/base/release" \
-	       "build/repo/$arch/base.prev/release" ||
-	{
-		mismatch=1
-		break
-	}
-done
-
-[ -n "$mismatch" ] || exit 0
-
+repo_cur="$(readlink -e -- "$GB_REPO_DIR")" &&
+repo_prev="$(readlink -e -- build/repo/prev)" &&
+[ "$repo_cur" = "$repo_prev" ] && exit ||
 gb-task-queue-rebuild
 
 exit 1

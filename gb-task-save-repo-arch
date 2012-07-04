@@ -6,9 +6,7 @@ arch="$1"; shift
 
 umask 002
 mkdir -p "build/repo/$arch/base.next"
-mkdir -p "build/repo/$arch/base.prev"
 umask 022
-cp -p "$GB_REPO_DIR/$arch/base/release" "build/repo/$arch/base.prev/"
 rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
 
 # Paranoia: ensure that no files has disappeared from tmpfs.

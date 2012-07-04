@@ -7,46 +7,6 @@ arch="$1"; shift
 
 comp=${GB_AREPO_COMPONENT_NAME:-classic}
 
-commit()
-{
-	while read -r F; do
-		RM $GB_REPO_DIR/$arch/RPMS.$comp/$F
-		RM $GB_REPO_DIR/files/$arch/RPMS/$F
-	done < plan/arepo-rm-$arch
-
-	while read -r N EVR F dummy; do
-		CP arepo/$arch/rpms/$F $GB_REPO_DIR/files/$arch/RPMS/$F
-		LN ../../files/$arch/RPMS/$F $GB_REPO_DIR/$arch/RPMS.$comp/$F
-	done < plan/arepo-add-$arch
-}
-
-RM()
-{
-	if ! [ -f "$1" ]; then
-		echo "$1: file not found"
-		return 1
-	fi >&2
-}
-
-CP()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		return 1
-	fi >&2
-}
-
-LN()
-{
-	if [ -e "$2" ] || [ -L "$2" ]; then
-		echo "$2: file already exists"
-		return 1
-	fi >&2
-}
-
-# test commit
-commit
-
 RM()
 {
 	rm -v "$1"
@@ -54,21 +14,26 @@ RM()
 
 CP()
 {
-	cp -v -l "$1" "$2"
+	local deposited
+	deposited=$(deposit-file "$1")
+	ln -v -- "$deposited" "$2"
+	ln -v -snf -- "$deposited" "$1"
 }
 
 LN()
 {
 	ln -v -s "$1" "$2"
-	if ! [ -f "$2" ]; then
-		echo "$2: created dangling symlink"
-		rm -v "$2"
-		return 1
-	fi >&2
 }
 
-# real commit
-commit > logs/commit-$arch.log
+while read -r F; do
+	RM $GB_REPO_DIR/$arch/RPMS.$comp/$F
+	RM $GB_REPO_DIR/files/$arch/RPMS/$F
+done < plan/arepo-rm-$arch >> logs/commit-$arch.log
+
+while read -r N EVR F dummy; do
+	CP arepo/$arch/rpms/$F $GB_REPO_DIR/files/$arch/RPMS/$F
+	LN ../../files/$arch/RPMS/$F $GB_REPO_DIR/$arch/RPMS.$comp/$F
+done < plan/arepo-add-$arch >> logs/commit-$arch.log
 
 install -pm644 -- plan/arepo-table-$arch \
 	"$GB_REPO_DIR/files/list/arepo-$arch.list"

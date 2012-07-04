@@ -120,9 +120,7 @@ make_repo_table()
 	if [ "$repo" = "$GB_REPO_NAME" ]; then
 		repo_dir="$GB_REPO_DIR"
 	else
-		repo_dir="$(unset GB_REPO_DIR &&
-			    . gb-sh-conf-$repo &&
-			    printf %s "$GB_REPO_DIR")"
+		repo_dir="$GB_REPO_ROOT/$repo/release/latest"
 	fi
 
 	local arch

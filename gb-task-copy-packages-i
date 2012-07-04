@@ -28,9 +28,7 @@ handle_build_arch()
 . gb-sh-tmpdir
 
 repo="$(cat gears/$i/copy_repo)"
-repo_dir="$(unset GB_REPO_DIR &&
-	    . gb-sh-conf-$repo &&
-	    printf %s "$GB_REPO_DIR")"
+repo_dir="$GB_REPO_ROOT/$repo/release/latest"
 cd "$tmpdir"
 make_repo_table "$repo"
 cd - >/dev/null
@@ -69,8 +67,8 @@ while read -r S A B; do
 			s="$(readlink -ev "$repo_dir/files/SRPMS/$S")"
 			b="$(readlink -ev "$repo_dir/files/$A/RPMS/$B")"
 			(umask 002; mkdir -p srpm rpms) || false
-			cp -v -l "$s" srpm/ >>log 2>&1
-			cp -v -l "$b" rpms/ >>log 2>&1
+			cp -v -p "$s" srpm/ >>log 2>&1
+			cp -v -p "$b" rpms/ >>log 2>&1
 		fi
 		cd - >/dev/null
 	done
@@ -87,7 +85,7 @@ for arch in ${GB_AREPO_ARCH-}; do
 	sort -u "$tmpdir/copy.arepo" > copy.list
 	while read -r N B; do
 		b="$(readlink -ev "$repo_dir/files/$arch/RPMS/$B")"
-		cp -v -l "$b" rpms/ >> log 2>&1
+		cp -v -p "$b" rpms/ >> log 2>&1
 	done < copy.list
 	cd - >/dev/null
 done

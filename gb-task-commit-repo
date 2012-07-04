@@ -2,6 +2,21 @@
 
 . gb-sh-functions
 
+prev_repo_dir="$(readlink -ev -- "$GB_REPO_DIR")"
+task_id=$(cat task/id)
+next_repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME/release/$task_id"
+
+if [ -d "$next_repo_dir" ]; then
+	stamp_echo >&2 "$next_repo_dir already exists!"
+	exit 1
+fi
+cp -al -- "$prev_repo_dir" "$next_repo_dir"
+sync
+stamp_echo >&2 'repo clone OK'
+
+GB_REPO_DIR="$next_repo_dir"
+export GB_REPO_DIR
+
 gb-y-task-commit-packages "$GB_REPO_DIR" > logs/commit.log
 stamp_echo >&2 'packages update OK'
 
@@ -12,16 +27,39 @@ install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
 # Reuse base directories from our prepared repo.
 updated=
 for arch in $GB_ARCH noarch; do
-	old_base="$GB_REPO_DIR/$arch/base"
-	new_base="build/repo/$arch/base.next"
+	repo_base="$GB_REPO_DIR/$arch/base"
+	next_base="build/repo/$arch/base.next"
 	cmp_file=pkglist.classic.xz
 	# If $cmp_file has not changed, skip the update for this $arch.
-	if cmp -s "$old_base/$cmp_file" "$new_base/$cmp_file"; then
+	if cmp -s "$repo_base/$cmp_file" "$next_base/$cmp_file"; then
 		continue
 	fi
 	# NB: no --delete here, contents_index might be optimized out.
-	rsync -rlt "$new_base"/ "$old_base"/
+	rsync -rlt "$next_base"/ "$repo_base"/
 	updated="$updated $arch"
 done
 
 stamp_echo >&2 "[${updated## }] update OK"
+
+gb-task-commit-arepo
+gb-task-commit-repo-hash
+
+rm -f -- "$GB_REPO_DIR/files/list/task.info"
+cat > "$GB_REPO_DIR/files/list/task.info" <<EOF
+task $task_id
+prev ${prev_repo_dir##*/}
+EOF
+
+stamp_echo >&2 'repo update OK'
+
+reposit-task "$GB_REPO_NAME" "$task_id"
+chmod u+w -- "$next_repo_dir"
+rm -rf -- "$next_repo_dir"
+
+latest="$GB_REPO_ROOT/$GB_REPO_NAME/release/latest"
+ln -snf -- ../task/$task_id "$latest.$task_id"
+readlink -ev -- "$latest.$task_id" > /dev/null
+mv -fT -- "$latest.$task_id" "$latest"
+
+sync
+stamp_echo >&2 'repo save OK'

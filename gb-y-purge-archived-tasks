@@ -6,7 +6,7 @@ cd "$GB_TASKS_DIR/archive"
 for d in new failed eperm tested; do
 	cd "$GB_TASKS_DIR/archive/$d" || continue
 	find . -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d \
-	  -mtime +10 -printf '%h\n' | cut -d/ -f2 |
+	  -mtime +7 -printf '%h\n' | cut -d/ -f2 |
 		while read n; do
 			logger -t "{0##*/}" "task=$n status=$d"
 			rm -rf "./$n"
