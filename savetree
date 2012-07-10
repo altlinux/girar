@@ -11,5 +11,3 @@ cd "$dst"
 
 find -type f -not -user depot -not -user repo -not -uid 0 -print0 |
 	xargs -r0 copyself
-
-sync

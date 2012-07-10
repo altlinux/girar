@@ -1,0 +1,70 @@
+#!/bin/sh -efu
+
+read line
+set -- $line
+unset line
+
+. shell-error
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <reponame> <taskno>"
+	exit 1
+}
+
+[ $# -ge 2 ] || usage 'Not enough arguments.'
+[ $# -le 2 ] || usage 'Too many arguments.'
+logger -t "$PROG" "$*"
+
+repo="$1"; shift
+task="$1"; shift
+
+[ "$task" -gt 0 ] 2>/dev/null || fatal "task $task: Invalid argument"
+
+src="$repo/release/$task"
+dst="$repo/task/$task"
+k="_$(($task/1024))"
+
+cd "$HOME/repo"
+
+if [ -e "$dst" -o -e "$repo/task/archive/$k/$task" ]; then
+	fatal "task $task: Task already reposited"
+fi
+[ -d "$src" ] ||
+	fatal "task $task: Task not ready"
+
+for d in $(set +f && echo ??*); do
+	[ "$repo" = "$d" ] || continue
+	[ -d "$d" ] || continue
+	savetree "$src" "$dst"
+	readlink -ev -- "$dst"
+	# hook up task archivation
+	exec </dev/null >/dev/null 2>&1
+	if [ -f "$dst"/files/list/task.info ]; then
+		touch -r "$dst"/files/list/task.info "$dst"
+	fi
+	enable -f /usr/lib/bash/lockf lockf
+	builtin lockf -n -s "$dst"
+	builtin lockf -n -s "$repo/release/latest"
+	cd "$repo/task/"
+	for t in $(set +f && echo [1-9]*); do
+		[ -d "$t" ] || continue
+		k="_$(($t/1024))" || continue
+		builtin lockf -n "$t" || continue
+		if [ -f "$t"/files/list/task.info ]; then
+			touch -r "$t"/files/list/task.info "$t"
+		fi
+		mkdir -p "archive/$k"
+		chmod u+w "$t"
+		mv "$t" "archive/$k/"
+		chmod a-w "archive/$k/$t"
+		logger -t "$PROG" "$repo/task/$t -> $repo/task/archive/$k/$t"
+		set +f
+		rm -f "archive/$k/$t"/*/base/contents_index
+		set -f
+	done
+	exit
+done
+
+fatal "repo $repo: Invalid argument"
