@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004,2010  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   The girar acl proxy daemon.
 
@@ -38,21 +38,17 @@
 #include <sys/un.h>
 #include <sys/wait.h>
 
-static void
-sigchld_handler(__attribute__ ((unused)) int signo)
+static void __attribute__ ((noreturn))
+bind_failed(const char *address, int code)
 {
-	while (waitpid(-1, 0, WNOHANG) > 0)
-		;
+	error(EXIT_FAILURE, code, "bind: %s", address);
+	exit(EXIT_FAILURE);
 }
 
 static int
-bind_address(const char *address)
+address_is_dead(const char *address)
 {
 	struct sockaddr_un sun;
-
-	if (strlen(address) >= sizeof(sun))
-		error(EXIT_FAILURE, EINVAL, "cannot bind socket `%s'",
-		      address);
 
 	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
@@ -61,23 +57,51 @@ bind_address(const char *address)
 	int     fd = socket(PF_UNIX, SOCK_STREAM, 0);
 
 	if (fd < 0)
-		error(EXIT_FAILURE, errno, "cannot create socket `%s'",
-		      address);
+		error(EXIT_FAILURE, errno, "socket");
+
+	int     rc = connect(fd, (struct sockaddr *) &sun, sizeof(sun));
+
+	if (rc && errno != ECONNREFUSED)
+		rc = 0;
+
+	close(fd);
+	return rc;
+}
+
+static int
+bind_address(const char *address)
+{
+	struct sockaddr_un sun;
+
+	if (strlen(address) >= sizeof(sun.sun_path))
+		bind_failed(address, ENAMETOOLONG);
+
+	memset(&sun, 0, sizeof(sun));
+	sun.sun_family = AF_UNIX;
+	strcpy(sun.sun_path, address);
+
+	int     fd = socket(PF_UNIX, SOCK_STREAM, 0);
+
+	if (fd < 0)
+		error(EXIT_FAILURE, errno, "socket");
+
+	umask(0);
 
 	if (bind(fd, (struct sockaddr *) &sun, sizeof(sun)))
 	{
-		unlink(address);
-
+		if (errno != EADDRINUSE)
+			bind_failed(address, errno);
+		if (!address_is_dead(address))
+			bind_failed(address, EADDRINUSE);
+		if (unlink(address))
+			error(EXIT_FAILURE, errno, "unlink: %s", address);
 		if (bind(fd, (struct sockaddr *) &sun, sizeof(sun)))
-			error(EXIT_FAILURE, errno, "cannot bind socket `%s'",
-			      address);
+			bind_failed(address, errno);
 	}
 
-	if (chmod(address, 0666))
-		error(EXIT_FAILURE, errno,
-		      "cannot set permissions of socket `%s'", address);
+	umask(022);
 
-	if (listen(fd, 5) < 0)
+	if (listen(fd, SOMAXCONN) < 0)
 		error(EXIT_FAILURE, errno, "listen");
 
 	int     flags;
@@ -135,11 +159,17 @@ handle_socket(int listen_fd)
 		return;
 	}
 
+	if (fd)
+	{
+		dup2(fd, 0);
+		close(fd);
+		fd = -1;
+	}
+
 	struct passwd *pw = getpwuid(sucred.uid);
 
 	if (!pw)
 	{
-		close(fd);
 		syslog(LOG_ERR,
 		       "getsockopt: request from (uid=%u), unknown user rejected",
 		       sucred.uid);
@@ -157,8 +187,6 @@ handle_socket(int listen_fd)
 		syslog(LOG_ERR, "setenv: %m");
 		exit(EXIT_FAILURE);
 	}
-	dup2(fd, 0);
-	close(fd);
 	syslog(LOG_INFO, "request from %s (uid=%u) forwarded via %s%s",
 	       pw->pw_name, sucred.uid, USER_PREFIX, girar_user);
 
@@ -169,11 +197,26 @@ handle_socket(int listen_fd)
 	exit(EXIT_FAILURE);
 }
 
+static void
+nocldwait(void)
+{
+	struct sigaction sa;
+
+	sa.sa_handler = SIG_DFL;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_NOCLDWAIT;
+	if (sigaction(SIGCHLD, &sa, NULL))
+		error(EXIT_FAILURE, errno, "sigaction");
+}
+
 int
 main(int argc, __attribute__ ((unused)) const char *argv[])
 {
 	if (argc > 1)
 		error(EXIT_FAILURE, 0, "Too many arguments");
+
+	if (clearenv() < 0)
+		error(EXIT_FAILURE, errno, "clearenv");
 
 	struct passwd *pw;
 
@@ -181,9 +224,6 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_USER);
 
 	int     fd = bind_address(GIRAR_ACL_SOCKET);
-
-	if (clearenv() < 0)
-		error(EXIT_FAILURE, errno, "clearenv");
 
 	if ((setenv("USER", GIRAR_USER, 1) < 0) ||
 	    (setenv("HOME", "/var/empty", 1) < 0) ||
@@ -206,7 +246,7 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 
 	openlog("girar-acl-proxyd", LOG_PERROR | LOG_PID, LOG_DAEMON);
 
-	signal(SIGCHLD, sigchld_handler);
+	nocldwait();
 
 	for (;;)
 	{
