@@ -1,0 +1,25 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. shell-error
+
+file="$1"; shift
+
+header="$(od -A n -N 4 -t x1 -- "$file")"
+[ "$header" = ' ed ab ee db' ] ||
+	fatal "$file: unrecognized header: $header"
+rfile="$(readlink -ev -- "$file")"
+
+set +e
+result="$(printf '%s\n' "$rfile" |
+		netcat -U "$GB_DEPOT_SOCKET_DIR/depot" -e \
+			'cat <&3 && cat >&4' 3<&0 4>&1)"
+set -e
+
+[ -n "$result" ] ||
+	fatal "$file: failed to deposit"
+if [ -n "${result##/*}" ]; then
+	printf >&2 '%s\n' "$result"
+	fatal "$file: failed to deposit"
+fi
+readlink -ev -- "$result"

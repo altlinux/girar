@@ -11,7 +11,6 @@ if [ -d "$next_repo_dir" ]; then
 	exit 1
 fi
 cp -al -- "$prev_repo_dir" "$next_repo_dir"
-sync
 stamp_echo >&2 'repo clone OK'
 
 GB_REPO_DIR="$next_repo_dir"
@@ -52,14 +51,20 @@ EOF
 
 stamp_echo >&2 'repo update OK'
 
-reposit-task "$GB_REPO_NAME" "$task_id"
+reposited="$(gb-y-reposit-task "$GB_REPO_NAME" "$task_id")"
+expected="$(readlink -ev -- "$GB_REPO_ROOT/$GB_REPO_NAME/task/$task_id")"
+if [ "$reposited" != "$expected" ]; then
+	stamp_echo >&2 "expected $expected, reposited $reposited!"
+	exit 1
+fi
+
 chmod u+w -- "$next_repo_dir"
 rm -rf -- "$next_repo_dir"
 
 latest="$GB_REPO_ROOT/$GB_REPO_NAME/release/latest"
-ln -snf -- ../task/$task_id "$latest.$task_id"
+ln -snf -- "../task/$task_id" "$latest.$task_id"
 readlink -ev -- "$latest.$task_id" > /dev/null
 mv -fT -- "$latest.$task_id" "$latest"
 
-sync
+sync &
 stamp_echo >&2 'repo save OK'

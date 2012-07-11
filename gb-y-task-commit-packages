@@ -13,7 +13,7 @@ RM()
 CP()
 {
 	local deposited
-	deposited=$(deposit-file "$1")
+	deposited=$(gb-y-deposit-file "$1")
 	ln -v -- "$deposited" "$2"
 	ln -v -snf -- "$deposited" "$1"
 }

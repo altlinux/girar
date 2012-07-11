@@ -1,0 +1,21 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. shell-error
+
+repo="$1"; shift
+task="$1"; shift
+
+set +e
+result="$(printf '%s %s\n' "$repo" "$task" |
+		netcat -U "$GB_DEPOT_SOCKET_DIR/repo" -e \
+			'cat <&3 && cat >&4' 3<&0 4>&1)"
+set -e
+
+[ -n "$result" ] ||
+	fatal "$repo $task: failed to reposit"
+if [ -n "${result##/*}" ]; then
+	printf >&2 '%s\n' "$result"
+	fatal "$repo $task: failed to reposit"
+fi
+readlink -ev -- "$result"
