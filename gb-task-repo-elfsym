@@ -48,7 +48,7 @@ done
 if [ "$rc" = 1 ]; then
 	# This list should include only proprietry binary drivers.
 	cat >allow-bad-p <<'EOF'
-^fglrx_glx-[[:digit:]][^[:space:]]+[[:space:]]+(/usr/lib(64)?/X11/(fglrx/lib(dri|glx)|modules/(drivers/fglrx_drv|amdxmm|glesx))\.so|/usr/lib/libAMDXvBA\.so\.1\.0)[[:space:]]
+^fglrx_glx-[[:digit:]][^[:space:]]+[[:space:]]+(/usr/lib(64)?/(X11/(fglrx/lib(dri|glx)|modules/(drivers/fglrx_drv|amdxmm|glesx))|libatiadlxx)\.so|/usr/lib/libAMDXvBA\.so\.1\.0)[[:space:]]
 ^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
 ^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
 EOF
