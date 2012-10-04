@@ -76,7 +76,7 @@ $url$log_file
 
 __EOF
 
-if [ "$log_size" -le 128 ]; then
+if [ "$log_size" -le 256 ]; then
 	cat -- "$log_file" >>"$tmpdir/draft"
 fi
 
