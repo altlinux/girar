@@ -65,10 +65,8 @@ if echo "$N" | grep -Eqse "$PROG_PKGNAME_REGEXP"; then
 		result prog
 	fi
 elif [ -z "$file_to" ]; then
-	if grep -Eqse "$PROG_FILE_REGEXP" "$tmpdir"/from.list; then
+	if grep -Eqse "$PROG_FILE_REGEXP|$LIB_FILE_REGEXP" "$tmpdir"/from.list; then
 		result prog
-	elif grep -Eqse "$LIB_FILE_REGEXP" "$tmpdir"/from.list; then
-		result lib
 	fi
 else
 	sha1_to="$(rpmquery --qf '%{sha1header}' -p "build/repo/$arch_to/RPMS.task/$file_to")"
