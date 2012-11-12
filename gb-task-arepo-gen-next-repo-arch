@@ -48,4 +48,4 @@ genbasedir \
 	--xz --no-bz2 --changelog-since=2010-01-01 \
 	$arch $comp
 
-stamp_echo >&2 "[$arch] created test repo"
+stamp_echo >&2 "[$arch] created next repo"

@@ -11,6 +11,6 @@ fail_if_task_abort_requested
 
 $0-plan
 $0-build
-$0-mkrepo
+$0-gen-next-repo
 $0-unmets
 $0-save

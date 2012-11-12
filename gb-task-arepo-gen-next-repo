@@ -12,7 +12,7 @@ mkdir "$GB_AREPO_DIR"
 
 for arch in $GB_AREPO_ARCH; do
 	$0-arch "$arch" ||
-		stamp_echo "[$arch] arepo mkrepo FAILED" >>"$tmpdir"/FAIL &
+		stamp_echo "[$arch] gen next repo FAILED" >>"$tmpdir"/FAIL &
 done
 
 wait
@@ -23,4 +23,4 @@ if [ -s "$tmpdir"/FAIL ]; then
 	exit 1
 fi
 
-#stamp_echo >&2 'arepo genrepo OK'
+#stamp_echo >&2 'arepo gen next repo OK'
