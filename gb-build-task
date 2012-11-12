@@ -79,14 +79,19 @@ gb-task-set-summary
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 
-	# generate task and test repos
+	# generate task repo (of packages built within this task)
 	gb-task-gen-taskrepo "$id"
+
+	# generate test repo
 	gb-task-gen-testrepo
 
 	# run expensive tests
 	gb-task-repo-unmets
 	gb-task-repo-elfsym
 	gb-task-check-install
+
+	# build and test arepo packages
+	gb-task-arepo
 
 	# run surmountable tests
 	gb-task-check-girar
@@ -97,8 +102,6 @@ gb-task-set-summary
 
 	# apply local policy enforcement
 	gb-task-local-policy
-
-	gb-task-arepo
 
 	# save test repo for commit
 	gb-task-gen-ci
