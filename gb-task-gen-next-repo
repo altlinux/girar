@@ -77,4 +77,4 @@ for arch in $GB_ARCH noarch; do
 	fi
 done
 
-stamp_echo >&2 'created test repo'
+stamp_echo >&2 'created next repo'

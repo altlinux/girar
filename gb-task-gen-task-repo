@@ -6,24 +6,11 @@ fail_if_task_abort_requested
 
 id="$1"; shift
 
-. gb-sh-tmpdir
-
 for arch in $GB_ARCH noarch; do
 	rm -rf "build/repo/$arch"
 done
 
-for arch in $GB_ARCH; do
-	$0-arch "$arch" ||
-		stamp_echo "[$arch] task repo generation FAILED" >>"$tmpdir"/FAIL &
-done
-
-wait
-
-# Fail if at least one arch failed.
-if [ -s "$tmpdir"/FAIL ]; then
-	cat >&2 "$tmpdir"/FAIL
-	exit 1
-fi
+gb-task-gen-task-repo-skel
 
 GB_REPO_COMPONENT_NAMES=task GB_REPO_ARCHIVE="task $id" GB_REPO_DESCRIPTION="task $id" GB_REPO_LABEL="task $id" GB_REPO_SUITE="task $id" GB_REPO_VERSION="task $id" \
 	gb-y-repo-regen-basedir --bloat build/repo
