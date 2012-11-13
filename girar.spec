@@ -14,6 +14,8 @@ Requires(pre): shadow-utils
 Requires: bash-builtin-lockf >= 0:0.2
 # due to post-receive hook
 Requires: git-core >= 0:1.5.1
+# due to girar-task-add
+Requires: gear
 
 %define girar_group girar
 %define girar_user girar
