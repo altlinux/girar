@@ -22,7 +22,8 @@ sub useful_files ($) {
 	my $f = shift;
 	my $rpm = RPM::Header->new($f) or die "$f: $RPM::err";
 	my %u;
-	for my $tag qw(REQUIRENAME PROVIDENAME CONFLICTNAME OBSOLETENAME) {
+	for my $tag (qw(REQUIRENAME PROVIDENAME CONFLICTNAME OBSOLETENAME)) {
+		next unless defined $$rpm{$tag};
 		for my $dep (@{$$rpm{$tag}}) {
 			next unless "/" eq substr $dep, 0, 1;
 			next if ")" eq substr $dep, -1, 1;
