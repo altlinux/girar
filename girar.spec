@@ -19,6 +19,7 @@ Requires: git-core >= 0:1.5.1
 %define girar_user girar
 %define gb_group girar-builder
 %define gb_user girar-builder
+%define girar_admin girar-admin
 
 %description
 This package contains server engine initially developed for git.alt,
@@ -38,6 +39,7 @@ mksock %buildroot%_spooldir/%name/acl/socket
 
 %pre
 /usr/sbin/groupadd -r -f %girar_group
+/usr/sbin/groupadd -r -f %girar_admin
 /usr/sbin/groupadd -r -f %gb_group
 /usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
 /usr/sbin/useradd -r -g %gb_group -d /dev/null -s /dev/null -c 'The girar build processor' -n %gb_user >/dev/null 2>&1 ||:
