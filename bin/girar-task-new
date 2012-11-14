@@ -28,6 +28,10 @@ cd "$GB_TASKS"
 [ -w .max-task-id ] ||
 	fatal 'Permission denied'
 
+cd index/"$repo"/new ||
+	fatal "index tree for '$repo' is not available"
+cd - >/dev/null
+
 # dumb protection against frequent runs
 sleep 1
 
