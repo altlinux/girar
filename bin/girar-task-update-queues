@@ -34,7 +34,5 @@ logger -t "$PROG" "user=${GIRAR_USER-} task=$id repo=$repo $old_state -> $new_st
 	rm -f index/"$repo/$old_state/$id"
 
 if [ -n "$new_state" ]; then
-	umask 002
-	mkdir -p index/"$repo/$new_state"
 	ln -snf ../../../"$id" index/"$repo/$new_state"/
 fi
