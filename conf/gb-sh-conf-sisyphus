@@ -1,0 +1,13 @@
+GB_REPO_NAME=sisyphus
+GB_REPO_UP_NAME=
+GB_REPO_DOWN_NAME='t6 p6 c6 5.1 p5 5.0 4.1 4.0'
+GB_REPO_REL_SUFF_MUST_NOT='*.M[4-9][0-9]*'
+GB_REPO_REL_SUFF_MUST_HAVE=
+GB_REPO_LABEL=Sisyphus
+GB_REPO_RPMARGS="--define '_binary_payload w5.lzdio' --define '_debuginfo_payload w7.lzdio' --define '_source_payload w7.lzdio'"
+GB_REPO_SIGNER=49B01E70C64124E6742EAE7195C584D5AE4AE412
+GB_REPO_CODENAME="$(date +%s)"
+GB_REPO_EMAIL='sisyphus-incominger@lists.altlinux.org'
+GB_REPO_OPT_BZ2='--no-bz2'
+GB_AREPO_ARCH=x86_64-i586
+GB_LIST_OF_CHECKS_ALLOWED_TO_FAIL=
