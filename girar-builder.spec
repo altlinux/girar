@@ -1,8 +1,8 @@
 Name: girar-builder
-Version: 0.1
+Version: 0.2
 Release: alt1
 
-Summary: builder part of git.alt server engine
+Summary: builder part of girar server engine
 License: GPL
 Group: System/Servers
 Packager: Dmitry V. Levin <ldv@altlinux.org>
@@ -13,37 +13,28 @@ Requires: girar memcached rpmhdrmemcache
 Source: %name-%version.tar
 
 %description
-builder part of git.alt server engine
-#This package contains server engine initially developed for git.alt,
-#including administration and user utilities, git hooks, email
-#subscription support and config files.
+This package contains %summary.
 
 %prep
 %setup
 
 %install
 mkdir -p %buildroot/usr/libexec/%name
-cp gb-* %buildroot/usr/libexec/%name/
-cp -r remote template tests %buildroot/usr/libexec/%name/
-install -d %buildroot/var/lib/%name/{home,lock}/{bull,cow}
-
+cp -a gb-* remote template %buildroot/usr/libexec/%name/
 %add_findreq_skiplist /usr/libexec/%name/remote/*
 
-%pre
-/usr/sbin/groupadd -r -f bull
-/usr/sbin/groupadd -r -f cow
-/usr/sbin/useradd -r -g bull -d /var/lib/%name/home/bull -c 'girar-builder bull' -n bull >/dev/null 2>&1 ||:
-/usr/sbin/useradd -r -g cow -d /var/lib/%name/home/cow -c 'girar-builder cow' -n cow >/dev/null 2>&1 ||:
+%check
+cd tests
+./run
 
 %files
-%doc LICENSE TASK
 /usr/libexec/%name/*
-%dir /var/lib/%name
-%dir /var/lib/%name/*
-%attr(2770,root,bull) /var/lib/%name/*/bull
-%attr(2770,root,cow) /var/lib/%name/*/cow
+%doc LICENSE TASK conf/
 
 %changelog
+* Thu Nov 15 2012 Dmitry V. Levin <ldv@altlinux.org> 0.2-alt1
+- Packaged example config files.
+
 * Wed Nov 14 2012 Gleb F-Malinovskiy <glebfm@altlinux.org> 0.1-alt1
 - initial spec
 
