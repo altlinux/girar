@@ -1,6 +1,6 @@
 EXECDIR = /usr/libexec/gb-depot
 SOCKDIR = /var/run/gb-depot
-SOCKGRP = brain
+SOCKGRP = bull
 USER =
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \

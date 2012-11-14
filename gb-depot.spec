@@ -1,6 +1,6 @@
 Name: gb-depot
 Version: 0.2
-Release: alt1
+Release: alt2
 
 Summary: girar-builder depot
 License: GPL
@@ -27,12 +27,14 @@ install -pm755 gb-proxyd-{depot,repo} socket-forward-* copyself savetree \
 	%buildroot%depodir/
 install -pDm755 gb-proxyd-depot.init %buildroot%_initdir/gb-proxyd-depot
 install -pDm755 gb-proxyd-repo.init %buildroot%_initdir/gb-proxyd-repo
+install -d %buildroot/etc/%name
 
 %pre
-id depot > /dev/null 2>&1 ||
-	useradd -s %depodir/depot-sh -c 'girar-builder depot server' depot
-id repo > /dev/null 2>&1 ||
-	useradd -s %depodir/repo-sh -c 'girar-builder repo server' repo
+/usr/sbin/groupadd -r -f bull
+for u in depot repo; do
+	/usr/sbin/groupadd -r -f $u
+	/usr/sbin/useradd -r -g $u -d /etc/%name -s /dev/null -c "girar-builder $ server" -n $u ||:
+done
 
 %post
 %post_service gb-proxyd-depot
@@ -45,8 +47,13 @@ id repo > /dev/null 2>&1 ||
 %files
 %depodir
 %_initdir/gb-proxyd-*
+%dir /etc/%name
 
 %changelog
+* Wed Nov 14 2012 Gleb F-Malinovskiy <glebfm@altlinux.org> 0.2-alt2
+- Rewritten %%pre.
+- Renamed brain to bull.
+
 * Wed Jul 11 2012 Dmitry V. Levin <ldv@altlinux.org> 0.2-alt1
 - Refactored.
 
