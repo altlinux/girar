@@ -2,9 +2,9 @@
 #
 # chkconfig: - 95 05
 # description: \
-#	The girar-builder @USER@ proxy daemon.
+#	The girar @USER@ proxy daemon.
 #
-# processname: gb-proxyd-@USER@
+# processname: girar-proxyd-@USER@
 
 WITHOUT_RC_COMPAT=1
 
@@ -14,7 +14,7 @@ WITHOUT_RC_COMPAT=1
 SOCKGRP='@SOCKGRP@'
 SOCKDIR='@SOCKDIR@'
 PATH="$PATH:@EXECDIR@"
-EXE=gb-proxyd-@USER@
+EXE=girar-proxyd-@USER@
 LOCKFILE=/var/lock/subsys/"$EXE"
 RUN_AS=@USER@
 RETVAL=0

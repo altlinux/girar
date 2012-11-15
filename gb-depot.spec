@@ -2,7 +2,7 @@ Name: gb-depot
 Version: 0.2
 Release: alt3
 
-Summary: girar-builder depot
+Summary: girar depot
 License: GPL
 Group: Other
 
@@ -22,10 +22,10 @@ This package contains %summary.
 %install
 %define depodir /usr/libexec/gb-depot
 mkdir -p %buildroot%depodir
-install -pm755 gb-proxyd-{depot,repo} socket-forward-* copyself savetree \
-	%buildroot%depodir/
-install -pDm755 gb-proxyd-depot.init %buildroot%_initdir/gb-proxyd-depot
-install -pDm755 gb-proxyd-repo.init %buildroot%_initdir/gb-proxyd-repo
+install -pm755 girar-proxyd-{depot,repo} girar-socket-forward-* \
+	girar-repo-copyself girar-repo-savetree %buildroot%depodir/
+install -pDm755 girar-proxyd-depot.init %buildroot%_initdir/girar-proxyd-depot
+install -pDm755 girar-proxyd-repo.init %buildroot%_initdir/girar-proxyd-repo
 install -d %buildroot/etc/%name
 
 %pre
@@ -35,16 +35,16 @@ for u in depot repo; do
 done
 
 %post
-%post_service gb-proxyd-depot
-%post_service gb-proxyd-repo
+%post_service girar-proxyd-depot
+%post_service girar-proxyd-repo
 
 %preun
-%preun_service gb-proxyd-depot
-%preun_service gb-proxyd-repo
+%preun_service girar-proxyd-depot
+%preun_service girar-proxyd-repo
 
 %files
 %depodir
-%_initdir/gb-proxyd-*
+%_initdir/girar-proxyd-*
 %dir /etc/%name
 
 %changelog

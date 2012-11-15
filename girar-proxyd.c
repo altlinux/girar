@@ -2,7 +2,7 @@
 /*
   Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 
-  The girar-builder proxy daemon.
+  The girar proxy daemon.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ handle_socket(int listen_fd)
 	dup2(fd, 2);
 	close(fd);
 
-	const char *file = "socket-forward-" USER;
+	const char *file = "girar-socket-forward-" USER;
 
 	const char *const args[] = {
 		file, NULL
@@ -231,7 +231,7 @@ main(int argc, __attribute__ ((unused))
 
 	nocldwait();
 
-	openlog("gb-proxyd-" USER, LOG_PERROR | LOG_PID, LOG_DAEMON);
+	openlog("girar-proxyd-" USER, LOG_PERROR | LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "waiting for requests");
 
 	for (;;)

@@ -37,7 +37,7 @@ fi
 for d in $(set +f && echo ??*); do
 	[ "$repo" = "$d" ] || continue
 	[ -d "$d" ] || continue
-	savetree "$src" "$dst"
+	girar-repo-savetree "$src" "$dst"
 	readlink -ev -- "$dst"
 	# hook up task archivation
 	exec </dev/null >/dev/null 2>&1
