@@ -1,6 +1,6 @@
 Name: gb-depot
 Version: 0.2
-Release: alt2
+Release: alt3
 
 Summary: girar-builder depot
 License: GPL
@@ -8,8 +8,7 @@ Group: Other
 
 Source: %name-%version.tar
 
-# due to "enable -f /usr/lib/bash/lockf lockf"
-Requires: bash-builtin-lockf >= 0:0.2
+Requires: girar
 
 %description
 This package contains %summary.
@@ -30,10 +29,9 @@ install -pDm755 gb-proxyd-repo.init %buildroot%_initdir/gb-proxyd-repo
 install -d %buildroot/etc/%name
 
 %pre
-/usr/sbin/groupadd -r -f bull
 for u in depot repo; do
 	/usr/sbin/groupadd -r -f $u
-	/usr/sbin/useradd -r -g $u -d /etc/%name -s /dev/null -c "girar-builder $ server" -n $u ||:
+	/usr/sbin/useradd -r -g $u -d /etc/%name -s /dev/null -c "Girar $u robot" -n $u ||:
 done
 
 %post
@@ -50,6 +48,9 @@ done
 %dir /etc/%name
 
 %changelog
+* Thu Nov 15 2012 Dmitry V. Levin <ldv@altlinux.org> 0.2-alt3
+- Renamed bull to girar-committer.
+
 * Wed Nov 14 2012 Gleb F-Malinovskiy <glebfm@altlinux.org> 0.2-alt2
 - Rewritten %%pre.
 - Renamed brain to bull.
