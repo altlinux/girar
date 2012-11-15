@@ -31,7 +31,7 @@ subscription support and config files.
 %install
 %makeinstall_std
 echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
-mksock %buildroot%_spooldir/%name/acl/socket
+mksock %buildroot/var/run/%name/acl/socket
 
 mkdir -p %buildroot/var/{lib,lock}/%name/{girar-builder,girar-committer}
 
@@ -67,17 +67,18 @@ done
 %dir %attr(2775,root,girar-acl) %_localstatedir/%name/acl.pub/
 %_localstatedir/%name/email/
 
+%dir /var/run/%name/
+%dir /var/run/%name/acl/
+%ghost %attr(666,root,root) /var/run/%name/acl/socket
+
 %dir %_spooldir/%name/
-%dir %_spooldir/%name/acl/
 %dir %_spooldir/%name/people/
-%ghost %attr(666,root,root) %_spooldir/%name/acl/socket
 %dir %attr(3775,girar-committer,girar-builder) %_spooldir/%name/tasks/
 %attr(664,girar-builder,girar-builder) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
 
 %dir /var/l*/girar/
 %attr(700,girar-committer,girar-committer) /var/l*/girar/girar-committer/
 %attr(700,girar-builder,girar-builder) /var/l*/girar/girar-builder/
-
 
 %changelog
 * Thu Dec 11 2008 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1

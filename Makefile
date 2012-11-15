@@ -2,6 +2,7 @@ DESTDIR =
 datadir = /usr/share
 libexecdir = /usr/libexec
 localstatedir = /var/lib
+runtimedir = /var/run
 sbindir = /usr/sbin
 spooldir = /var/spool
 sysconfdir = /etc
@@ -12,6 +13,7 @@ girar_libdir = ${libexecdir}/girar
 girar_sbindir = ${sbindir}
 girar_confdir = ${sysconfdir}/girar
 girar_datadir = ${datadir}/girar
+girar_runtimedir = ${runtimedir}/girar
 girar_spooldir = ${spooldir}/girar
 girar_statedir = ${localstatedir}/girar
 girar_hooks_dir = ${girar_datadir}/hooks
@@ -28,7 +30,7 @@ EMAIL_DOMAIN = altlinux.org
 GB_GROUP = girar-builder
 GB_TASKS = ${girar_spooldir}/tasks
 GB_TASKS_DONE_DIR = ${GB_TASKS}/archive/done
-GIRAR_ACL_SOCKET = ${girar_spooldir}/acl/socket
+GIRAR_ACL_SOCKET = ${girar_runtimedir}/acl/socket
 GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
@@ -201,8 +203,9 @@ install-var:
 		${DESTDIR}${girar_email_dir}/packages \
 		${DESTDIR}${girar_email_dir}/private \
 		${DESTDIR}${girar_email_dir}/public \
+		${DESTDIR}${girar_runtimedir} \
+		${DESTDIR}${girar_runtimedir}/acl \
 		${DESTDIR}${girar_spooldir} \
-		${DESTDIR}${girar_spooldir}/acl \
 		${DESTDIR}${GB_TASKS} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE}
 
@@ -212,6 +215,7 @@ install-perms:
 		${DESTDIR}${girar_confdir} \
 		${DESTDIR}${girar_datadir} \
 		${DESTDIR}${girar_statedir} \
+		${DESTDIR}${girar_runtimedir} \
 		${DESTDIR}${girar_spooldir}
 
 bin/girar-acl-proxyd: bin/girar-acl-proxyd.c
