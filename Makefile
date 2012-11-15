@@ -22,7 +22,7 @@ girar_packages_dir = ${girar_datadir}/packages.git
 girar_private_dir = ${girar_datadir}/private.git
 girar_public_dir = ${girar_datadir}/public.git
 girar_email_dir = ${girar_statedir}/email
-girar_acl_conf_dir = ${girar_confdir}/acl
+girar_acl_state_dir = ${girar_statedir}/acl
 girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_repo_conf_dir = ${girar_confdir}/repo
 
@@ -178,8 +178,8 @@ install-conf: ${conf_TARGETS}
 	install -d -m750 \
 		${DESTDIR}${initdir} \
 		${DESTDIR}${girar_confdir} \
-		${DESTDIR}${girar_acl_conf_dir} \
 		${DESTDIR}${girar_acl_pub_dir} \
+		${DESTDIR}${girar_acl_state_dir} \
 		${DESTDIR}${girar_repo_conf_dir}
 	install -pm755 $^ ${DESTDIR}${initdir}/
 
@@ -233,8 +233,8 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GB_GROUP@,${GB_GROUP},g' \
 	    -e 's,@GB_TASKS@,${GB_TASKS},g' \
 	    -e 's,@GB_TASKS_DONE_DIR@,${GB_TASKS_DONE_DIR},g' \
-	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
+	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
 	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \
 	    -e 's,@GIRAR_ACL_USER@,${GIRAR_ACL_USER},g' \
 	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \

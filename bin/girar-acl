@@ -83,7 +83,7 @@ repository="$(girar-normalize-repo-name "$repository")"
 . girar-sh-tmpdir
 
 # Copy all current acl files to tmpdir.
-cd "$GIRAR_ACL_CONF_DIR"
+cd "$GIRAR_ACL_STATE_DIR"
 flock -s . \
 find -maxdepth 1 -type f -name 'list.*' \
         -exec cp -at "$tmpdir" -- \{\} \+

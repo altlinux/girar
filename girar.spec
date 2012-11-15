@@ -61,10 +61,10 @@ done
 
 %dir %_sysconfdir/%name/
 %dir %_sysconfdir/%name/repo/
-%dir %attr(2775,root,girar-acl) %_sysconfdir/%name/acl/
 
 
 %dir %_localstatedir/%name/
+%dir %attr(2775,root,girar-acl) %_localstatedir/%name/acl/
 %dir %attr(2775,root,girar-acl) %_localstatedir/%name/acl.pub/
 %_localstatedir/%name/email/
 
