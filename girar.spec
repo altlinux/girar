@@ -17,34 +17,33 @@ Requires: git-core >= 0:1.5.1
 # due to girar-task-add
 Requires: gear
 
-%define girar_group girar
-%define girar_user girar
-%define gb_group girar-builder
-%define gb_user girar-builder
-%define girar_admin girar-admin
-
 %description
 This package contains server engine initially developed for git.alt,
 including administration and user utilities, git hooks, email
 subscription support and config files.
 
 %prep
-%setup -q
+%setup
 
 %build
-%make_build "GB_GROUP=%gb_group"
+%make_build
 
 %install
-%make_install install DESTDIR=%buildroot
+%makeinstall_std
 echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 mksock %buildroot%_spooldir/%name/acl/socket
 
+mkdir -p %buildroot/var/{lib,lock}/%name/{girar-builder,girar-committer}
+
 %pre
-/usr/sbin/groupadd -r -f %girar_group
-/usr/sbin/groupadd -r -f %girar_admin
-/usr/sbin/groupadd -r -f %gb_group
-/usr/sbin/useradd -r -g %girar_group -d /dev/null -s /dev/null -c 'The girar spool processor' -n %girar_user >/dev/null 2>&1 ||:
-/usr/sbin/useradd -r -g %gb_group -d /dev/null -s /dev/null -c 'The girar build processor' -n %gb_user >/dev/null 2>&1 ||:
+/usr/sbin/groupadd -r -f girar
+/usr/sbin/groupadd -r -f girar-admin
+/usr/sbin/groupadd -r -f girar-acl
+/usr/sbin/useradd -r -g girar-acl -G girar -d /dev/null -s /dev/null -c 'Girar ACL spool processor' -n girar-acl ||:
+for u in girar-builder girar-committer; do
+	/usr/sbin/groupadd -r -f $u
+	/usr/sbin/useradd -r -g $u -G girar -d /var/lib/%name/$u -c "$u robot" -n $u ||:
+done
 
 %post
 %post_service girar-acl-proxyd
@@ -54,21 +53,31 @@ mksock %buildroot%_spooldir/%name/acl/socket
 
 %files
 %_initdir/girar-acl-proxyd
-%defattr(-,root,%girar_group,750)
+%defattr(-,root,girar,750)
 %_sbindir/*
 %_usr/libexec/%name
-%dir %_sysconfdir/%name
-%dir %_sysconfdir/%name/repo
-%dir %attr(750,%girar_user,%girar_group) %_sysconfdir/%name/acl
-%_datadir/%name
-%dir %_spooldir/%name
-%dir %_spooldir/%name/people
-%dir %attr(770,root,%girar_group) %_spooldir/%name/people/.timestamp
-%_localstatedir/%name
-%dir %attr(750,root,%girar_group) %_spooldir/%name/acl
+%_datadir/%name/
+
+%dir %_sysconfdir/%name/
+%dir %_sysconfdir/%name/repo/
+%dir %attr(2775,root,girar-acl) %_sysconfdir/%name/acl/
+
+
+%dir %_localstatedir/%name/
+%dir %attr(2775,root,girar-acl) %_localstatedir/%name/acl.pub/
+%_localstatedir/%name/email/
+
+%dir %_spooldir/%name/
+%dir %_spooldir/%name/acl/
+%dir %_spooldir/%name/people/
 %ghost %attr(666,root,root) %_spooldir/%name/acl/socket
-%dir %attr(3775,%gb_user,%gb_group) %_spooldir/%name/tasks
-%attr(664,%girar_user,%gb_group) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
+%dir %attr(3775,girar-committer,girar-builder) %_spooldir/%name/tasks/
+%attr(664,girar-builder,girar-builder) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
+
+%dir /var/l*/girar/
+%attr(700,girar-committer,girar-committer) /var/l*/girar/girar-committer/
+%attr(700,girar-builder,girar-builder) /var/l*/girar/girar-builder/
+
 
 %changelog
 * Thu Dec 11 2008 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1

@@ -220,17 +220,17 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 
 	struct passwd *pw;
 
-	if (!(pw = getpwnam(GIRAR_USER)))
-		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_USER);
+	if (!(pw = getpwnam(GIRAR_ACL_USER)))
+		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_ACL_USER);
 
 	int     fd = bind_address(GIRAR_ACL_SOCKET);
 
-	if ((setenv("USER", GIRAR_USER, 1) < 0) ||
+	if ((setenv("USER", GIRAR_ACL_USER, 1) < 0) ||
 	    (setenv("HOME", "/var/empty", 1) < 0) ||
 	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1) < 0))
 		error(EXIT_FAILURE, errno, "setenv");
 
-	if (initgroups(GIRAR_USER, pw->pw_gid))
+	if (initgroups(GIRAR_ACL_USER, pw->pw_gid))
 		error(EXIT_FAILURE, errno, "initgroups");
 
 	if (setgid(pw->pw_gid))

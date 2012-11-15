@@ -41,7 +41,7 @@ GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
-GIRAR_USER = girar
+GIRAR_ACL_USER = girar-acl
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
@@ -50,12 +50,12 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DGIRAR_ACL_SOCKET=\"${GIRAR_ACL_SOCKET}\" \
+	-DGIRAR_ACL_USER=\"${GIRAR_ACL_USER}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
 	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
 	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
-	-DGIRAR_USER=\"${GIRAR_USER}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -Wall -O2
 
@@ -177,6 +177,7 @@ install-conf: ${conf_TARGETS}
 		${DESTDIR}${initdir} \
 		${DESTDIR}${girar_confdir} \
 		${DESTDIR}${girar_acl_conf_dir} \
+		${DESTDIR}${girar_acl_pub_dir} \
 		${DESTDIR}${girar_repo_conf_dir}
 	install -pm755 $^ ${DESTDIR}${initdir}/
 
@@ -203,8 +204,7 @@ install-var:
 		${DESTDIR}${girar_spooldir} \
 		${DESTDIR}${girar_spooldir}/acl \
 		${DESTDIR}${GB_TASKS} \
-		${DESTDIR}${GIRAR_PEOPLE_QUEUE} \
-		${DESTDIR}${GIRAR_PEOPLE_QUEUE}/.timestamp
+		${DESTDIR}${GIRAR_PEOPLE_QUEUE}
 
 install-perms:
 	chgrp girar \
@@ -232,6 +232,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_ACL_CONF_DIR@,${girar_acl_conf_dir},g' \
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \
+	    -e 's,@GIRAR_ACL_USER@,${GIRAR_ACL_USER},g' \
 	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
@@ -247,7 +248,6 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_REPO_CONF_DIR@,${girar_repo_conf_dir},g' \
 	    -e 's,@GIRAR_REPO_LIST@,${GIRAR_REPO_LIST},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
-	    -e 's,@GIRAR_USER@,${GIRAR_USER},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
