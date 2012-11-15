@@ -1,0 +1,75 @@
+#!/bin/sh -efu
+
+read line
+set -- $line
+unset line
+
+. shell-error
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <file>"
+	exit 1
+}
+
+[ $# -ge 1 ] || usage 'Not enough arguments.'
+[ $# -le 1 ] || usage 'Too many arguments.'
+logger -t "$PROG" "$*"
+
+file="$1"; shift
+
+header="$(od -A n -N 4 -t x1 -- "$file")"
+[ "$header" = ' ed ab ee db' ] ||
+	usage "$file: Invalid file"
+
+hash="$(sha256sum -- "$file")"
+hash="${hash%% *}"
+
+stamp="$(date -r "$file" +%s)"
+
+dir="${hash:0:2}/${hash:2:2}"
+name="${hash:4}"
+filename="$dir/$name"
+
+cd "$HOME/depot"
+
+finish()
+{
+	readlink -ev -- "$filename"
+	exit 0
+}
+
+if [ -f "$filename" ]; then
+	finish
+fi
+
+cleanup_tmpfile()
+{
+	[ -z "$tmpfile" ] || rm -f -- "$tmpfile"
+	exit "$@"
+}
+
+mkdir -p -m700 .tmp
+tmpfile="$(mktemp --tmpdir=.tmp -- "$hash.XXXXXX")"
+trap 'cleanup_tmpfile $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+
+cat -- "$file" > "$tmpfile"
+
+chmod 644 -- "$tmpfile"
+TZ=UTC touch -d "1970-01-01 $stamp seconds" -- "$tmpfile"
+
+umask 022
+mkdir -p "$dir"
+
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$dir"
+
+if [ -f "$filename" ]; then
+	finish
+fi
+
+mv -- "$tmpfile" "$filename"
+tmpfile=
+finish

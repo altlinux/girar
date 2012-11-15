@@ -1,0 +1,15 @@
+#!/bin/sh -efu
+
+cleanup()
+{
+	rm -f -- "$1"
+	exit $2
+}
+
+for f; do
+	t="$(mktemp -- "$f.XXXXXX")"
+	cp -a -- "$f" "$t" &&
+	chmod go-w -- "$t" &&
+	mv -f -- "$t" "$f" ||
+		cleanup "$t" $?
+done

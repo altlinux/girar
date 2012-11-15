@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+[ $# = 2 ]
+src="$1"; shift
+dst="$1"; shift
+[ -d "$src" ]
+[ ! -e "$dst" ]
+
+cp -al -- "$src" "$dst"
+cd "$dst"
+
+find -type f -not -user depot -not -user repo -not -uid 0 -print0 |
+	xargs -r0 girar-repo-copyself
