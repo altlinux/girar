@@ -51,8 +51,8 @@ for i; do
 	# gear
 	rm -f gears/$i/dir gears/$i/tag_name gears/$i/tag_id gears/$i/tag_author
 	rm -rf gears/$i/git
-	# girar-builder
 	rm -f gears/$i/pkg.tar
+
 	girar-task-change-state "$id" NEW
 	trap - HUP INT QUIT PIPE TERM
 	echo >&2 "task #$id: removed subtask #$i"

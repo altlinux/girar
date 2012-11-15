@@ -27,7 +27,7 @@ girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_repo_conf_dir = ${girar_confdir}/repo
 
 EMAIL_DOMAIN = altlinux.org
-GB_GROUP = girar-builder
+GB_GROUP = girar-tasks
 GB_TASKS = ${girar_spooldir}/tasks
 GB_TASKS_DONE_DIR = ${GB_TASKS}/archive/done
 GIRAR_ACL_SOCKET = ${girar_runtimedir}/acl/socket

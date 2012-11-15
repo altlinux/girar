@@ -33,14 +33,15 @@ subscription support and config files.
 echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
 mksock %buildroot/var/run/%name/acl/socket
 
-mkdir -p %buildroot/var/{lib,lock}/%name/{girar-builder,girar-committer}
+mkdir -p %buildroot/var/{lib,lock}/%name/{bull,cow}
 
 %pre
 /usr/sbin/groupadd -r -f girar
 /usr/sbin/groupadd -r -f girar-admin
 /usr/sbin/groupadd -r -f girar-acl
+/usr/sbin/groupadd -r -f girar-tasks
 /usr/sbin/useradd -r -g girar-acl -G girar -d /dev/null -s /dev/null -c 'Girar ACL spool processor' -n girar-acl ||:
-for u in girar-builder girar-committer; do
+for u in bull cow; do
 	/usr/sbin/groupadd -r -f $u
 	/usr/sbin/useradd -r -g $u -G girar -d /var/lib/%name/$u -c "$u robot" -n $u ||:
 done
@@ -73,12 +74,12 @@ done
 
 %dir %_spooldir/%name/
 %dir %_spooldir/%name/people/
-%dir %attr(3775,girar-committer,girar-builder) %_spooldir/%name/tasks/
-%attr(664,girar-builder,girar-builder) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
+%dir %attr(3775,bull,girar-tasks) %_spooldir/%name/tasks/
+%attr(664,cow,girar-tasks) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
 
 %dir /var/l*/girar/
-%attr(700,girar-committer,girar-committer) /var/l*/girar/girar-committer/
-%attr(700,girar-builder,girar-builder) /var/l*/girar/girar-builder/
+%attr(770,root,bull) /var/l*/girar/bull/
+%attr(770,root,cow) /var/l*/girar/cow/
 
 %changelog
 * Thu Dec 11 2008 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1
