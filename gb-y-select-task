@@ -58,11 +58,11 @@ select_task()
 	owner="$(stat -c %U .)" || exit
 
 	# create the per-owner-and-state file
-	(umask 002 && touch "$GB_SPOOL_PEOPLE_DIR/$owner.$next_state") || exit
+	(umask 002 && touch "$GB_LOCK_PEOPLE_DIR/$owner.$next_state") || exit
 
 	# obtain an exclusive lock on the per-owner-and-state file,
 	# if the lock cannot be immediately acquired, fail
-	builtin lockf -n "$GB_SPOOL_PEOPLE_DIR/$owner.$next_state" || exit
+	builtin lockf -n "$GB_LOCK_PEOPLE_DIR/$owner.$next_state" || exit
 
 	# if no non-empty subtasks found, fail
 	set -- $(nums)
