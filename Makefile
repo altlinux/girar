@@ -2,6 +2,7 @@ DESTDIR =
 datadir = /usr/share
 libexecdir = /usr/libexec
 localstatedir = /var/lib
+lockdir = /var/lock
 runtimedir = /var/run
 sbindir = /usr/sbin
 spooldir = /var/spool
@@ -13,6 +14,7 @@ girar_libdir = ${libexecdir}/girar
 girar_sbindir = ${sbindir}
 girar_confdir = ${sysconfdir}/girar
 girar_datadir = ${datadir}/girar
+girar_lockdir = ${lockdir}/girar
 girar_runtimedir = ${runtimedir}/girar
 girar_spooldir = ${spooldir}/girar
 girar_statedir = ${localstatedir}/girar
@@ -189,8 +191,6 @@ install-conf: ${conf_TARGETS}
 	install -d -m750 \
 		${DESTDIR}${initdir} \
 		${DESTDIR}${girar_confdir} \
-		${DESTDIR}${girar_acl_pub_dir} \
-		${DESTDIR}${girar_acl_state_dir} \
 		${DESTDIR}${girar_repo_conf_dir}
 	install -pm755 $^ ${DESTDIR}${initdir}/
 
@@ -209,18 +209,29 @@ install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 
 install-var:
 	install -d -m750 \
-		${DESTDIR}${girar_statedir} \
 		${DESTDIR}${girar_email_dir} \
 		${DESTDIR}${girar_email_dir}/packages \
 		${DESTDIR}${girar_email_dir}/private \
 		${DESTDIR}${girar_email_dir}/public \
+		${DESTDIR}${girar_statedir} \
+		${DESTDIR}${girar_statedir}/bull \
+		${DESTDIR}${girar_statedir}/cow \
+		${DESTDIR}${girar_statedir}/depot \
+		${DESTDIR}${girar_statedir}/depot/.tmp \
+		${DESTDIR}${girar_statedir}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
+		${DESTDIR}${girar_statedir}/repo \
+		${DESTDIR}${girar_statedir}/tasks \
+		${DESTDIR}${girar_acl_pub_dir} \
+		${DESTDIR}${girar_acl_state_dir} \
 		${DESTDIR}${girar_runtimedir} \
 		${DESTDIR}${girar_runtimedir}/acl \
 		${DESTDIR}${girar_runtimedir}/depot \
 		${DESTDIR}${girar_runtimedir}/repo \
+		${DESTDIR}${girar_lockdir} \
+		${DESTDIR}${girar_lockdir}/bull \
+		${DESTDIR}${girar_lockdir}/cow \
 		${DESTDIR}${girar_spooldir} \
-		${DESTDIR}${GB_TASKS} \
-		${DESTDIR}${GIRAR_PEOPLE_QUEUE}
+		${DESTDIR}${girar_spooldir}/people
 
 install-perms:
 	chgrp girar \
