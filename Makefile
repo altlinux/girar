@@ -28,7 +28,7 @@ girar_repo_conf_dir = ${girar_confdir}/repo
 
 EMAIL_DOMAIN = altlinux.org
 GB_GROUP = tasks
-GB_TASKS = ${girar_spooldir}/tasks
+GB_TASKS = ${girar_statedir}/tasks
 GB_TASKS_DONE_DIR = ${GB_TASKS}/archive/done
 GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases

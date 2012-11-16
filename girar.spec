@@ -30,7 +30,7 @@ subscription support and config files.
 
 %install
 %makeinstall_std
-echo 0 >%buildroot%_spooldir/%name/tasks/.max-task-id
+echo 0 >%buildroot%_localstatedir/%name/tasks/.max-task-id
 mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
 
 mkdir -p %buildroot/var/{lib,lock}/%name/{bull,cow}
@@ -69,10 +69,11 @@ done
 %dir %_sysconfdir/%name/
 %dir %_sysconfdir/%name/repo/
 
-
 %dir %_localstatedir/%name/
 %dir %attr(2775,root,acl) %_localstatedir/%name/acl/
 %dir %attr(2775,root,acl) %_localstatedir/%name/acl.pub/
+%dir %attr(3775,bull,tasks) %_localstatedir/%name/tasks/
+%attr(664,cow,tasks) %config(noreplace) %_localstatedir/%name/tasks/.max-task-id
 %_localstatedir/%name/email/
 
 %dir /var/run/%name/
@@ -83,8 +84,6 @@ done
 
 %dir %_spooldir/%name/
 %dir %_spooldir/%name/people/
-%dir %attr(3775,bull,tasks) %_spooldir/%name/tasks/
-%attr(664,cow,tasks) %config(noreplace) %_spooldir/%name/tasks/.max-task-id
 
 %dir /var/l*/girar/
 %attr(770,root,bull) /var/l*/girar/bull/
