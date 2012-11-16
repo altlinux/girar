@@ -36,22 +36,23 @@ mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
 mkdir -p %buildroot/var/{lib,lock}/%name/{bull,cow}
 
 %pre
-/usr/sbin/groupadd -r -f girar
-/usr/sbin/groupadd -r -f girar-admin
-/usr/sbin/groupadd -r -f tasks
+%_sbindir/groupadd -r -f girar
+%_sbindir/groupadd -r -f girar-admin
+%_sbindir/groupadd -r -f tasks
 for u in acl depot repo; do
-	/usr/sbin/groupadd -r -f $u
-	/usr/sbin/useradd -r -g $u -G girar -d /dev/null -s /dev/null -c 'Girar $u robot' -n $u ||:
+	%_sbindir/groupadd -r -f $u
+	%_sbindir/useradd -r -g $u -G girar -d /dev/null -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
 for u in bull cow; do
-	/usr/sbin/groupadd -r -f $u
-	/usr/sbin/useradd -r -g $u -G girar -d /var/lib/%name/$u -c "Girar $u robot" -n $u ||:
+	%_sbindir/groupadd -r -f $u
+	%_sbindir/useradd -r -g $u -G girar -d /var/lib/%name/$u -c "Girar $u robot" -n $u ||:
 done
 
 %post
 %post_service girar-proxyd-acl
 %post_service girar-proxyd-depot
 %post_service girar-proxyd-repo
+%_sbindir/girar-make-template-repos
 
 %preun
 %preun_service girar-proxyd-acl
