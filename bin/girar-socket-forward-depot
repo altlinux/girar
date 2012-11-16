@@ -5,6 +5,7 @@ set -- $line
 unset line
 
 . shell-error
+. girar-sh-config
 
 usage()
 {
@@ -32,7 +33,7 @@ dir="${hash:0:2}/${hash:2:2}"
 name="${hash:4}"
 filename="$dir/$name"
 
-cd "$HOME/depot"
+cd "$GIRAR_STATE_DIR/depot"
 
 finish()
 {

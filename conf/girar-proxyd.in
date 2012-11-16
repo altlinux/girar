@@ -2,25 +2,26 @@
 #
 # chkconfig: - 95 05
 # description: \
-#	The girar acl proxy daemon.
+#	The girar @RUN_AS@ proxy daemon.
 #
-# processname: girar-acl-proxyd
+# processname: girar-proxyd-@RUN_AS@
 
 WITHOUT_RC_COMPAT=1
 
 # Source function library.
 . /etc/init.d/functions
 
+SOCKDIR='@SOCKDIR@'
+SOCKGRP='@SOCKGRP@'
 PATH="$PATH:@CMDDIR@"
-EXE=girar-acl-proxyd
+EXE=girar-proxyd-@RUN_AS@
 LOCKFILE=/var/lock/subsys/"$EXE"
-RUN_AS=@GIRAR_ACL_USER@
-BIND_ADDR=
-RUN_CMD=
+RUN_AS=@RUN_AS@
 RETVAL=0
 
 start()
 {
+	install -d -g "$SOCKGRP" -m710 -- "$SOCKDIR" &&
 	start_daemon --lockfile "$LOCKFILE" --expect-user "$RUN_AS" -- "$EXE"
 	RETVAL=$?
 	return $RETVAL

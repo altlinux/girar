@@ -168,7 +168,7 @@ handle_socket(int listen_fd)
 	dup2(fd, 2);
 	close(fd);
 
-	const char *file = "girar-socket-forward-" USER;
+	const char *file = "girar-socket-forward-" RUN_AS;
 
 	const char *const args[] = {
 		file, NULL
@@ -202,20 +202,20 @@ main(int argc, __attribute__ ((unused))
 
 	struct passwd *pw;
 
-	if (!(pw = getpwnam(USER)))
-		error(EXIT_FAILURE, 0, "getpwnam: %s", USER);
+	if (!(pw = getpwnam(RUN_AS)))
+		error(EXIT_FAILURE, 0, "getpwnam: %s", RUN_AS);
 
-	if ((setenv("USER", USER, 1)) ||
+	if ((setenv("RUN_AS", RUN_AS, 1)) ||
 	    (setenv("HOME", pw->pw_dir, 1)) ||
-	    (setenv("PATH", EXECDIR ":/bin:/usr/bin", 1)))
+	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1)))
 		error(EXIT_FAILURE, errno, "setenv");
 
 	if (chdir(SOCKDIR))
-		error(EXIT_FAILURE, errno, "chdir: %s", pw->pw_dir);
+		error(EXIT_FAILURE, errno, "chdir: %s", SOCKDIR);
 
-	int     fd = bind_address(USER);
+	int     fd = bind_address("socket");
 
-	if (initgroups(USER, pw->pw_gid))
+	if (initgroups(RUN_AS, pw->pw_gid))
 		error(EXIT_FAILURE, errno, "initgroups: %u", pw->pw_gid);
 
 	if (setgid(pw->pw_gid))
@@ -231,7 +231,7 @@ main(int argc, __attribute__ ((unused))
 
 	nocldwait();
 
-	openlog("girar-proxyd-" USER, LOG_PERROR | LOG_PID, LOG_DAEMON);
+	openlog("girar-proxyd-" RUN_AS, LOG_PERROR | LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "waiting for requests");
 
 	for (;;)

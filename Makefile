@@ -27,10 +27,9 @@ girar_acl_pub_dir = ${girar_statedir}/acl.pub
 girar_repo_conf_dir = ${girar_confdir}/repo
 
 EMAIL_DOMAIN = altlinux.org
-GB_GROUP = girar-tasks
+GB_GROUP = tasks
 GB_TASKS = ${girar_spooldir}/tasks
 GB_TASKS_DONE_DIR = ${GB_TASKS}/archive/done
-GIRAR_ACL_SOCKET = ${girar_runtimedir}/acl/socket
 GIRAR_SRPMS = /srpms
 GIRAR_EMAIL_ALIASES = ${girar_confdir}/aliases
 GIRAR_FAKE_HOME = ${girar_datadir}/home
@@ -43,7 +42,13 @@ GITWEB_URL = http://git.altlinux.org
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 USER_PREFIX = git_
 
-GIRAR_ACL_USER = girar-acl
+ACL_SOCKDIR = ${girar_runtimedir}/acl
+DEPOT_SOCKDIR = ${girar_runtimedir}/depot
+REPO_SOCKDIR = ${girar_runtimedir}/repo
+GIRAR_ACL_SOCKET = ${ACL_SOCKDIR}/socket
+SOCKDIR = SOCKDIR
+SOCKGRP = SOCKGRP
+RUN_AS = RUN_AS
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
@@ -51,15 +56,15 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wmissing-prototypes -Wpointer-arith -Wredundant-decls \
 	-Wshadow -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
-	-DGIRAR_ACL_SOCKET=\"${GIRAR_ACL_SOCKET}\" \
-	-DGIRAR_ACL_USER=\"${GIRAR_ACL_USER}\" \
 	-DGIRAR_BINDIR=\"${girar_bindir}\" \
 	-DGIRAR_GEARS=\"${GIRAR_GEARS}\" \
 	-DGIRAR_HOME=\"${GIRAR_HOME}\" \
 	-DGIRAR_LIBDIR=\"${girar_libdir}\" \
 	-DGIRAR_SRPMS=\"${GIRAR_SRPMS}\" \
+	-DSOCKDIR=\"${SOCKDIR}\" \
+	-DRUN_AS=\"${RUN_AS}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
-CFLAGS = -pipe -Wall -O2
+CFLAGS = -pipe -O2
 
 bin_auto_TARGETS = \
 	bin/girar-sh-config \
@@ -73,14 +78,13 @@ bin_TARGETS = \
 	bin/girar-acl-apply-changes \
 	bin/girar-acl-merge-changes \
 	bin/girar-acl-notify-changes \
-	bin/girar-acl-proxyd \
 	bin/girar-acl-show \
 	bin/girar-build \
 	bin/girar-charset \
 	bin/girar-check-acl-item \
 	bin/girar-check-acl-leader \
-	bin/girar-check-orphaned \
 	bin/girar-check-nevr-in-repo \
+	bin/girar-check-orphaned \
 	bin/girar-check-package-in-repo \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
@@ -94,11 +98,18 @@ bin_TARGETS = \
 	bin/girar-ls \
 	bin/girar-mv-db \
 	bin/girar-normalize-repo-name \
+	bin/girar-proxyd-acl \
+	bin/girar-proxyd-depot \
+	bin/girar-proxyd-repo \
 	bin/girar-quota \
 	bin/girar-repack \
+	bin/girar-repo-copyself \
+	bin/girar-repo-savetree \
 	bin/girar-rm-db \
 	bin/girar-sh \
 	bin/girar-sh-tmpdir \
+	bin/girar-socket-forward-depot \
+	bin/girar-socket-forward-repo \
 	bin/girar-task \
 	bin/girar-task-abort \
 	bin/girar-task-add \
@@ -118,7 +129,7 @@ bin_TARGETS = \
 	bin/girar-task-update-queues \
 	#
 
-conf_TARGETS = conf/girar-acl-proxyd
+conf_TARGETS = conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo
 
 lib_TARGETS = lib/rsync.so
 
@@ -205,6 +216,8 @@ install-var:
 		${DESTDIR}${girar_email_dir}/public \
 		${DESTDIR}${girar_runtimedir} \
 		${DESTDIR}${girar_runtimedir}/acl \
+		${DESTDIR}${girar_runtimedir}/depot \
+		${DESTDIR}${girar_runtimedir}/repo \
 		${DESTDIR}${girar_spooldir} \
 		${DESTDIR}${GB_TASKS} \
 		${DESTDIR}${GIRAR_PEOPLE_QUEUE}
@@ -218,7 +231,16 @@ install-perms:
 		${DESTDIR}${girar_runtimedir} \
 		${DESTDIR}${girar_spooldir}
 
-bin/girar-acl-proxyd: bin/girar-acl-proxyd.c
+bin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${ACL_SOCKDIR}
+bin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${DEPOT_SOCKDIR}
+bin/girar-proxyd-repo conf/girar-proxyd-repo: SOCKDIR = ${REPO_SOCKDIR}
+bin/girar-proxyd-acl conf/girar-proxyd-acl: RUN_AS = acl
+bin/girar-proxyd-depot conf/girar-proxyd-depot: RUN_AS = depot
+bin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
+conf/girar-proxyd-acl: SOCKGRP = girar
+conf/girar-proxyd-depot bin/girar-proxyd-repo: SOCKGRP = bull
+
+bin/girar-proxyd-acl: bin/girar-proxyd-acl.c
 
 bin/girar-connect-stdout: bin/girar-connect-stdout.c
 
@@ -226,6 +248,17 @@ bin/girar-sh: bin/girar-sh.c
 
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
+
+bin/girar-proxyd-depot bin/girar-proxyd-repo: bin/girar-proxyd.c
+	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar-proxyd.in
+	sed -e 's,@CMDDIR@,${girar_bindir},g' \
+	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
+	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
+	    -e 's,@RUN_AS@,${RUN_AS},g' \
+		<$< >$@
+	chmod --reference=$< $@
 
 %: %.in
 	sed -e 's,@CMDDIR@,${girar_bindir},g' \
@@ -236,7 +269,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_ACL_PUB_DIR@,${girar_acl_pub_dir},g' \
 	    -e 's,@GIRAR_ACL_STATE_DIR@,${girar_acl_state_dir},g' \
 	    -e 's,@GIRAR_ACL_SOCKET@,${GIRAR_ACL_SOCKET},g' \
-	    -e 's,@GIRAR_ACL_USER@,${GIRAR_ACL_USER},g' \
+	    -e 's,@RUN_AS@,${RUN_AS},g' \
 	    -e 's,@GIRAR_SRPMS@,${GIRAR_SRPMS},g' \
 	    -e 's,@GIRAR_EMAIL_ALIASES@,${GIRAR_EMAIL_ALIASES},g' \
 	    -e 's,@GIRAR_EMAIL_DIR@,${girar_email_dir},g' \
@@ -251,6 +284,7 @@ lib/rsync.so: lib/rsync.c
 	    -e 's,@GIRAR_PUBLIC_DIR@,${girar_confdir}/public.git,g' \
 	    -e 's,@GIRAR_REPO_CONF_DIR@,${girar_repo_conf_dir},g' \
 	    -e 's,@GIRAR_REPO_LIST@,${GIRAR_REPO_LIST},g' \
+	    -e 's,@GIRAR_STATE_DIR@,${girar_statedir},g' \
 	    -e 's,@GIRAR_TEMPLATES_DIR@,${girar_templates_dir},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \

@@ -220,17 +220,20 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 
 	struct passwd *pw;
 
-	if (!(pw = getpwnam(GIRAR_ACL_USER)))
-		error(EXIT_FAILURE, 0, "user `%s' lookup failed", GIRAR_ACL_USER);
+	if (!(pw = getpwnam(RUN_AS)))
+		error(EXIT_FAILURE, 0, "user `%s' lookup failed", RUN_AS);
 
-	int     fd = bind_address(GIRAR_ACL_SOCKET);
+	if (chdir(SOCKDIR))
+		error(EXIT_FAILURE, errno, "chdir: %s", SOCKDIR);
 
-	if ((setenv("USER", GIRAR_ACL_USER, 1) < 0) ||
+	int     fd = bind_address("socket");
+
+	if ((setenv("USER", RUN_AS, 1) < 0) ||
 	    (setenv("HOME", "/var/empty", 1) < 0) ||
 	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1) < 0))
 		error(EXIT_FAILURE, errno, "setenv");
 
-	if (initgroups(GIRAR_ACL_USER, pw->pw_gid))
+	if (initgroups(RUN_AS, pw->pw_gid))
 		error(EXIT_FAILURE, errno, "initgroups");
 
 	if (setgid(pw->pw_gid))
@@ -244,7 +247,7 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 	if (daemon(0, 0))
 		error(EXIT_FAILURE, errno, "daemon");
 
-	openlog("girar-acl-proxyd", LOG_PERROR | LOG_PID, LOG_DAEMON);
+	openlog("girar-proxyd-acl", LOG_PERROR | LOG_PID, LOG_DAEMON);
 
 	nocldwait();
 
