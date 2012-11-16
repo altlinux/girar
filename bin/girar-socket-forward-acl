@@ -1,0 +1,11 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+GIRAR_USER="${1#$USER_PREFIX}"
+
+[ -n "$GIRAR_USER" -a "$GIRAR_USER" != "$1" ] ||
+	GIRAR_USER=root
+
+export GIRAR_USER
+exec girar-acl-merge-changes

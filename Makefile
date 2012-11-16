@@ -110,6 +110,7 @@ bin_TARGETS = \
 	bin/girar-rm-db \
 	bin/girar-sh \
 	bin/girar-sh-tmpdir \
+	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
 	bin/girar-socket-forward-repo \
 	bin/girar-task \
@@ -251,8 +252,6 @@ bin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
 conf/girar-proxyd-acl: SOCKGRP = girar
 conf/girar-proxyd-depot bin/girar-proxyd-repo: SOCKGRP = bull
 
-bin/girar-proxyd-acl: bin/girar-proxyd-acl.c
-
 bin/girar-connect-stdout: bin/girar-connect-stdout.c
 
 bin/girar-sh: bin/girar-sh.c
@@ -260,7 +259,7 @@ bin/girar-sh: bin/girar-sh.c
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
 
-bin/girar-proxyd-depot bin/girar-proxyd-repo: bin/girar-proxyd.c
+bin/girar-proxyd-acl bin/girar-proxyd-depot bin/girar-proxyd-repo: bin/girar-proxyd.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar-proxyd.in

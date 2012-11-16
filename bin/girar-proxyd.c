@@ -1,4 +1,3 @@
-
 /*
   Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 
@@ -160,19 +159,31 @@ handle_socket(int listen_fd)
 		return;
 	}
 
-	syslog(LOG_INFO, "request from [pid=%d, uid=%u, gid=%u]",
-	       sucred.pid, sucred.uid, sucred.gid);
+	if (fd)
+	{
+		dup2(fd, 0);
+		close(fd);
+		fd = -1;
+	}
 
-	dup2(fd, 0);
-	dup2(fd, 1);
-	dup2(fd, 2);
-	close(fd);
+	struct passwd *pw = getpwuid(sucred.uid);
+	if (!pw)
+	{
+		syslog(LOG_ERR,
+		       "request from unknown user [pid=%d, uid=%u, gid=%u] rejected",
+		       sucred.pid, sucred.uid, sucred.gid);
+		exit(EXIT_FAILURE);
+	}
+
+	syslog(LOG_INFO,
+	       "request from %s [pid=%d, uid=%u, gid=%u] forwarded",
+	       pw->pw_name, sucred.pid, sucred.uid, sucred.gid);
+
+	dup2(0, 1);
+	dup2(0, 2);
 
 	const char *file = "girar-socket-forward-" RUN_AS;
-
-	const char *const args[] = {
-		file, NULL
-	};
+	const char *const args[] = { file, pw->pw_name, NULL };
 	execvp(file, (char * const*) args);
 	syslog(LOG_ERR, "execvp: %s: %m", file);
 	exit(EXIT_FAILURE);
@@ -191,24 +202,18 @@ nocldwait(void)
 }
 
 int
-main(int argc, __attribute__ ((unused))
-     const char *argv[])
+main(int argc, __attribute__ ((unused)) const char *argv[])
 {
 	if (argc > 1)
 		error(EXIT_FAILURE, 0, "Too many arguments");
 
-	if (clearenv() < 0)
+	if (clearenv())
 		error(EXIT_FAILURE, errno, "clearenv");
 
 	struct passwd *pw;
 
 	if (!(pw = getpwnam(RUN_AS)))
 		error(EXIT_FAILURE, 0, "getpwnam: %s", RUN_AS);
-
-	if ((setenv("RUN_AS", RUN_AS, 1)) ||
-	    (setenv("HOME", pw->pw_dir, 1)) ||
-	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1)))
-		error(EXIT_FAILURE, errno, "setenv");
 
 	if (chdir(SOCKDIR))
 		error(EXIT_FAILURE, errno, "chdir: %s", SOCKDIR);
@@ -224,7 +229,10 @@ main(int argc, __attribute__ ((unused))
 	if (setuid(pw->pw_uid))
 		error(EXIT_FAILURE, errno, "setuid: %u", pw->pw_uid);
 
-	endpwent();
+	if (setenv("USER", RUN_AS, 1) ||
+	    setenv("HOME", pw->pw_dir, 1) ||
+	    setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1))
+		error(EXIT_FAILURE, errno, "setenv");
 
 	if (daemon(0, 0))
 		error(EXIT_FAILURE, errno, "daemon");
