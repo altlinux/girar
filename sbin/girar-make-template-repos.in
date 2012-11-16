@@ -10,7 +10,7 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 	[ ! -d "$d" ] ||
 		continue
 
-	git init-db >/dev/null
+	git init -q
 
 	files="email-distribution"
 
@@ -48,10 +48,10 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 		EOF
 	fi
 
-	git add $files  >/dev/null
-	git commit -a -m "Add templates for $files" >/dev/null
+	git add $files
+	git commit -q -a -m "Add templates for $files"
 
-	git clone --bare "$tmpdir" "$d" >/dev/null &&
+	git clone -q --bare "$tmpdir" "$d" &&
 		printf %s\\n "$PROG: $d: Creation complete" ||
 		printf %s\\n "$PROG: $d: Creation failed!"
 
