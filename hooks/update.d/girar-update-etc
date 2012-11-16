@@ -41,7 +41,7 @@ validate_email_list()
 				fatal "$where: invalid email address: $a"
 			continue
 		fi
-		cut -f1 -- "${GIRAR_EMAIL_ALIASES}" |
+		cut -f1 -- "${EMAIL_ALIASES}" |
 			fgrep -xqs "${GIRAR_USER_PREFIX}$a:" ||
 			fatal "$where: invalid email list: user $a not found."
 	done
@@ -75,7 +75,7 @@ validate_email_subscription()
 			continue
 		printf %s "$u" |egrep -qs "$user_name_regexp" ||
 			fatal "$where: invalid user name: $u"
-		[ -d "$GIRAR_HOME/$u" ] ||
+		[ -d "$PEOPLE_DIR/$u" ] ||
 			fatal "$where: unknown user name: $u"
 	done
 }

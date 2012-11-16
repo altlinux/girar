@@ -4,7 +4,7 @@ export IFS='
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-. "@CMDDIR@/girar-sh-functions"
+. "@CMD_DIR@/girar-sh-functions"
 
 usage()
 {
@@ -18,5 +18,5 @@ shift
 
 IT_NAME="@USER_PREFIX@$NAME"
 
-gpasswd -d "$IT_NAME" "@GB_GROUP@" ||
+gpasswd -d "$IT_NAME" "@TASKS_GROUP@" ||
 	fatal "error disabling girar build permissions for user $IT_NAME"

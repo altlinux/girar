@@ -42,7 +42,7 @@ repository="$(girar-normalize-repo-name "$repo")" ||
 	deny "invalid repository \`$repository'"
 
 # Denied if no acl file available for the given binary repository.
-[ -f "$GIRAR_ACL_STATE_DIR/list.packages.$repository" ] ||
+[ -f "$ACL_STATE_DIR/list.packages.$repository" ] ||
 	deny "acl file for repository \`$repository' not available"
 
 # Allowed if $GIRAR_USER is superuser.
@@ -51,13 +51,13 @@ if girar-check-superuser "$repository"; then
 fi
 
 # Source per-repository config file.
-conf="$GIRAR_REPO_CONF_DIR/$repository"
+conf="$REPO_CONF_DIR/$repository"
 if [ -s "$conf" ]; then
 	. "$conf"
 fi
 
 # Allowed if package is not listed in acl file.
-if ! acl_line="$(grep "^$project_name[[:space:]]" "$GIRAR_ACL_STATE_DIR/list.packages.$repository")"; then
+if ! acl_line="$(grep "^$project_name[[:space:]]" "$ACL_STATE_DIR/list.packages.$repository")"; then
 	if [ -z "${GIRAR_ACL_DENY_UNLISTED-}" ]; then
 		exit=allow
 	else
@@ -103,8 +103,8 @@ if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
 fi
 
 # Expand groups if any.
-if [ -n "$groups" -a -s "$GIRAR_ACL_STATE_DIR/list.groups.$repository" ]; then
-	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$GIRAR_ACL_STATE_DIR/list.groups.$repository")"
+if [ -n "$groups" -a -s "$ACL_STATE_DIR/list.groups.$repository" ]; then
+	gpeople="$(sed -r -n "s/^($groups)[[:space:]]+//p" "$ACL_STATE_DIR/list.groups.$repository")"
 	gpeople="$(printf %s "$gpeople" |tr -s '[:space:]' ' ')"
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.

@@ -9,12 +9,12 @@ __included_girar_hooks_sh_functions=1
 # Safety checks
 [ -n "${GIT_DIR-}" ] ||
 	fatal 'Environment variable GIT_DIR is not set'
-[ -n "${GIRAR_HOME-}" ] ||
-	fatal 'Environment variable GIRAR_HOME is not set'
+[ -n "${PEOPLE_DIR-}" ] ||
+	fatal 'Environment variable PEOPLE_DIR is not set'
 
 git_dir="$(readlink -ev "$GIT_DIR")" || exit 1
-girar_home="$(readlink -ev "$GIRAR_HOME")" || exit 1
-git_dir="$GIRAR_HOME${git_dir#$girar_home}"
+girar_home="$(readlink -ev "$PEOPLE_DIR")" || exit 1
+git_dir="$PEOPLE_DIR${git_dir#$girar_home}"
 project_name="${git_dir##*/}"
 project_name="${project_name%.git}"
 project_type="${git_dir%/*}"
@@ -59,7 +59,7 @@ run_parts()
 {
 	local t="$1"; shift
 
-	for f in "$GIRAR_HOOKS_DIR/$t.d"/*; do
+	for f in "$HOOKS_DIR/$t.d"/*; do
 		[ -f "$f" -a -r "$f" -a -x "$f" -a -s "$f" ] ||
 			continue
 		"$f"

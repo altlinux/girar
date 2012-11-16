@@ -30,7 +30,7 @@ if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
 fi
 
-cd "$GB_TASKS"
+cd "$TASKS_DIR"
 
 id="$(PROG="$PROG" girar-task-find-current "$@")"
 cd "$id"
@@ -139,9 +139,9 @@ check_depends()
 	set -- $(cat task/depends)
 	for i; do
 		k="_$(($i/1024))"
-		if [ -d "$GB_TASKS_DONE_DIR/$k/$i/task" ]; then
+		if [ -d "$TASKS_DONE_DIR/$k/$i/task" ]; then
 			sed -i "/^$i\$/d" task/depends
-		elif [ ! -d "$GB_TASKS/$i/task" ]; then
+		elif [ ! -d "$TASKS_DIR/$i/task" ]; then
 			message "required task #$i not found"
 			rc=1
 		fi

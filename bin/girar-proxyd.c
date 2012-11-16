@@ -231,7 +231,7 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 
 	if (setenv("USER", RUN_AS, 1) ||
 	    setenv("HOME", pw->pw_dir, 1) ||
-	    setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1))
+	    setenv("PATH", CMD_DIR ":/bin:/usr/bin", 1))
 		error(EXIT_FAILURE, errno, "setenv");
 
 	if (daemon(0, 0))

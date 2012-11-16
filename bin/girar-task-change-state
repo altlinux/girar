@@ -5,7 +5,7 @@ PROG='girar-task-change-state'
 
 id="$1"; shift
 new_state="$1"; shift
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the tasks state file

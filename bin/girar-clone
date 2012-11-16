@@ -14,14 +14,14 @@ usage()
 [ "$#" -le 2 ] ||
 	usage 'Too many arguments.'
 
-[ -n "${GIRAR_HOME:-}" ] ||
-	fatal 'GIRAR_HOME undefined'
+[ -n "${PEOPLE_DIR:-}" ] ||
+	fatal 'PEOPLE_DIR undefined'
 
-[ -n "${GIRAR_SRPMS:-}" ] ||
-	fatal 'GIRAR_SRPMS undefined'
+[ -n "${SRPMS_DIR:-}" ] ||
+	fatal 'SRPMS_DIR undefined'
 
-[ -n "${GIRAR_GEARS:-}" ] ||
-	fatal 'GIRAR_GEARS undefined'
+[ -n "${GEARS_DIR:-}" ] ||
+	fatal 'GEARS_DIR undefined'
 
 cd
 
@@ -31,9 +31,9 @@ p_repo="$(prefix_packages "$repo0")"
 p_repo="$(add_git_suffix "$p_repo")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
-	people="$(readlink -ev "$GIRAR_HOME")"
-	srpms="$(readlink -ev "$GIRAR_SRPMS")"
-	gears="$(readlink -ev "$GIRAR_GEARS")"
+	people="$(readlink -ev "$PEOPLE_DIR")"
+	srpms="$(readlink -ev "$SRPMS_DIR")"
+	gears="$(readlink -ev "$GEARS_DIR")"
 	[ -z "${repo##$people/*}" -o \
 	  -z "${repo##$srpms/*}" -o \
 	  -z "${repo##$gears/*}" ] ||
@@ -57,9 +57,9 @@ dir="$(add_git_suffix "$dir")"
 [ ! -e "$dir" ] ||
 	fatal "$dir0: destination already exists"
 
-git clone --bare --template="$GIRAR_TEMPLATES_DIR" "$p_repo" "$dir" >/dev/null
+git clone --bare --template="$GIT_TEMPLATE_DIR" "$p_repo" "$dir" >/dev/null
 cd "$dir"
 echo "${dir%.git}" >description
 install -m600 /dev/null git-daemon-export-ok
-GIT_DIR="$PWD" "$GIRAR_HOOKS_DIR/post-update"
+GIT_DIR="$PWD" "$HOOKS_DIR/post-update"
 printf '%s:\t%s\n' "$PROG" "$PWD"

@@ -25,7 +25,7 @@ fi
 id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 num="$1"; shift
 
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 
 for i in $(gear_nums); do
 	[ -d "acl/$i" -a 'all' = "$num" -o "$i" = "$num" ] ||

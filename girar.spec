@@ -74,6 +74,9 @@ done
 %dir %attr(770,root,depot) %_localstatedir/%name/depot/.tmp/
 %dir %attr(775,root,depot) %_localstatedir/%name/depot/??/
 %dir %attr(755,root,root) %_localstatedir/%name/repo/
+%dir %attr(755,root,root) %_localstatedir/%name/people/
+%dir %attr(775,root,bull) %_localstatedir/%name/gears/
+%dir %attr(775,root,bull) %_localstatedir/%name/srpms/
 %dir %attr(3775,bull,tasks) %_localstatedir/%name/tasks/
 %attr(664,cow,tasks) %config(noreplace) %_localstatedir/%name/tasks/.max-task-id
 %_localstatedir/%name/email/

@@ -2,12 +2,12 @@
 
 PROG="${0##*/}"
 
-. "@CMDDIR@/girar-sh-tmpdir"
+. "@CMD_DIR@/girar-sh-tmpdir"
 cd "$tmpdir"
 
-for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
-
-	[ ! -d "$d" ] ||
+for dest in packages private public; do
+	dest="@CONF_DIR@/$dest.git"
+	[ ! -d "$dest" ] ||
 		continue
 
 	git init -q
@@ -29,7 +29,7 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 
 	EOF
 
-	if [ "${d##*/}" != "private.git" ]; then
+	if [ "${dest##*/}" != "private.git" ]; then
 		files="$files email-subscription"
 
 		cat >email-subscription <<-EOF
@@ -51,9 +51,9 @@ for d in @GIRAR_PACKAGES_DIR@ @GIRAR_PRIVATE_DIR@ @GIRAR_PUBLIC_DIR@; do
 	git add $files
 	git commit -q -a -m "Add templates for $files"
 
-	git clone -q --bare "$tmpdir" "$d" &&
-		printf %s\\n "$PROG: $d: Creation complete" ||
-		printf %s\\n "$PROG: $d: Creation failed!"
+	git clone -q --bare "$tmpdir" "$dest" &&
+		printf %s\\n "$PROG: $dest: Creation complete" ||
+		printf %s\\n "$PROG: $dest: Creation failed!"
 
 	rm -rf -- .git $files
 done

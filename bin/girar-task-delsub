@@ -26,7 +26,7 @@ id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 num="$1"; shift
 
 enable -f /usr/lib/bash/lockf lockf
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -n . ||
 	fatal "task #$id is locked"

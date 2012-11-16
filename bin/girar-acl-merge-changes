@@ -12,7 +12,7 @@ read -t 1 repository
 repository="$(girar-normalize-repo-name "$repository")"
 
 enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$GIRAR_ACL_STATE_DIR"
+builtin lockf -v "$ACL_STATE_DIR"
 
 . girar-sh-tmpdir
 cd "$tmpdir"
@@ -20,7 +20,7 @@ cd "$tmpdir"
 mkdir list
 
 # Copy all current acl files to tmpdir.
-cd "$GIRAR_ACL_STATE_DIR"
+cd "$ACL_STATE_DIR"
 find -maxdepth 1 -type f -name 'list.*' \
 	-exec cp -at "$tmpdir/list" -- \{\} \+
 cd - > /dev/null
@@ -31,14 +31,14 @@ cp -a list list.orig
 cd list
 if girar-acl-apply-changes "$repository" . > ../log 2>&1 &&
    find -maxdepth 1 -type f -name 'list.*' \
-   -exec cp -at "$GIRAR_ACL_STATE_DIR" -- \{\} \+; then
+   -exec cp -at "$ACL_STATE_DIR" -- \{\} \+; then
 	status=COMPLETE
 else
 	status=ABORTED
 fi
 cd - > /dev/null
 
-rsync -rlt -- "$GIRAR_ACL_STATE_DIR/" "$GIRAR_ACL_PUB_DIR/"
+rsync -rlt -- "$ACL_STATE_DIR/" "$ACL_PUB_DIR/"
 
 email="$(girar-get-email-address "$GIRAR_USER")"
 robot="Girar ACL robot <girar-acl@$EMAIL_DOMAIN>"
@@ -75,4 +75,4 @@ EOF
 
 /usr/sbin/sendmail -i -t <msg
 
-girar-acl-notify-changes list.orig "$GIRAR_ACL_STATE_DIR"
+girar-acl-notify-changes list.orig "$ACL_STATE_DIR"

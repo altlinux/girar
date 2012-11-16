@@ -5,15 +5,14 @@ export IFS='
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
 
-. "@CMDDIR@/girar-sh-functions"
+. "@CMD_DIR@/girar-sh-functions"
 
 sudo_init
 
-# Validate @GIRAR_PACKAGES_DIR@
-GIT_DIR="@GIRAR_PACKAGES_DIR@" git rev-parse --git-dir >/dev/null
-
-# Validate @GIRAR_PRIVATE_DIR@
-GIT_DIR="@GIRAR_PRIVATE_DIR@" git rev-parse --git-dir >/dev/null
+# Validate template repositories.
+for n in packages private public; do
+	GIT_DIR="@GIRAR_CONF_DIR@/$n.git" git rev-parse --git-dir >/dev/null
+done
 
 usage()
 {
@@ -37,15 +36,15 @@ GECOS="$*"
 	fatal "$NAME: invalid GECOS specified"
 
 IT_NAME="@USER_PREFIX@$NAME"
-IT_HOME="@GIRAR_FAKE_HOME@"
-IT_SHELL="@CMDDIR@/girar-sh"
-GIRAR_HOME="@GIRAR_HOME@"
-REAL_HOME="$GIRAR_HOME/$NAME"
+IT_HOME="@FAKE_HOME@"
+IT_SHELL="@CMD_DIR@/girar-sh"
+PEOPLE_DIR="@PEOPLE_DIR@"
+REAL_HOME="$PEOPLE_DIR/$NAME"
 
 [ -d "$IT_HOME" ] ||
 	fatal "error adding $NAME: directory $IT_HOME not available"
-[ -d "$GIRAR_HOME" ] ||
-	fatal "error adding $NAME: directory $GIRAR_HOME not available"
+[ -d "$PEOPLE_DIR" ] ||
+	fatal "error adding $NAME: directory $PEOPLE_DIR not available"
 
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
@@ -54,16 +53,16 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 useradd -c "$GECOS" -d "$IT_HOME" -g 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
-printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@GIRAR_EMAIL_ALIASES@" &&
+printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@EMAIL_ALIASES@" &&
 	newaliases ||
 	fatal "$IT_NAME: error adding email alias"
 
 echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
-GIRAR_HOME_MOUNT="$(df -P "$GIRAR_HOME" |awk '{dir=$6} END{print dir}')"
-setquota "$IT_NAME" 1000000 1500000 100000 150000 "$GIRAR_HOME_MOUNT" ||
-	message "$IT_NAME: failed to set disk quota on $GIRAR_HOME_MOUNT"
+PEOPLE_MOUNT="$(df -P "$PEOPLE_DIR" |awk '{dir=$6} END{print dir}')"
+setquota "$IT_NAME" 1000000 1500000 100000 150000 "$PEOPLE_MOUNT" ||
+	message "$IT_NAME: failed to set disk quota on $PEOPLE_MOUNT"
 
 for d in "$REAL_HOME" "$REAL_HOME/packages" "$REAL_HOME/public"; do
 	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
@@ -81,27 +80,16 @@ for d in "$REAL_HOME/etc" "$REAL_HOME/incoming"; do
 done
 
 for n in packages private public; do
-	EMAIL_DIR="@GIRAR_EMAIL_DIR@/$n"
-	mkdir -p "$EMAIL_DIR"
-	install -d -o "$IT_NAME" -g girar -m755 "$EMAIL_DIR/$NAME" ||
-		fatal "$IT_NAME: failed to create $EMAIL_DIR/$NAME"
+	email_dir="@EMAIL_DIR@/$n"
+	mkdir -p "$email_dir"
+	install -d -o "$IT_NAME" -g girar -m755 "$email_dir/$NAME" ||
+		fatal "$IT_NAME: failed to create $email_dir/$NAME"
 done
 
-for d in "@GIRAR_PEOPLE_QUEUE@/$NAME"; do
-	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
-		fatal "$IT_NAME: failed to create $d"
-done
-
-git_clone()
-{
-	local src="$1"; shift
-	local dst="$1"; shift
-
+for n in packages private public; do
+	src="@CONF_DIR@/$n.git"
+	dst="$REAL_HOME/etc/$n.git"
 	su -l "$IT_NAME" -s /bin/sh -c \
-		"git clone --bare --template=@GIRAR_TEMPLATES_DIR@ '$src' '$dst'" ||
+		"git clone --bare --template=@GIT_TEMPLATE_DIR@ '$src' '$dst'" ||
 	fatal "$IT_NAME: failed to setup $dst"
-}
-
-git_clone "@GIRAR_PACKAGES_DIR@" "$REAL_HOME/etc/packages.git"
-git_clone "@GIRAR_PRIVATE_DIR@" "$REAL_HOME/etc/private.git"
-git_clone "@GIRAR_PUBLIC_DIR@" "$REAL_HOME/etc/public.git"
+done

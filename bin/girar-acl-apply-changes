@@ -122,7 +122,7 @@ check_new_members()
 	local i qi
 	for i; do
 		if [ "${i#@}" = "$i" ]; then
-			[ -d "$GIRAR_PEOPLE_QUEUE/${i##*/}" ] ||
+			[ -d "$PEOPLE_DIR/${i##*/}" ] ||
 				abort "$i: Login name not found"
 		elif [ "$i" != '@everybody' ]; then
 			quote_sed_regexp_variable qi "$i"

@@ -33,7 +33,7 @@ dir="${hash:0:2}/${hash:2:2}"
 name="${hash:4}"
 filename="$dir/$name"
 
-cd "$GIRAR_STATE_DIR/depot"
+cd "$STATE_DIR/depot"
 
 finish()
 {

@@ -27,7 +27,7 @@ src="$repo/release/$task"
 dst="$repo/task/$task"
 k="_$(($task/1024))"
 
-cd "$GIRAR_STATE_DIR/repo"
+cd "$STATE_DIR/repo"
 
 if [ -e "$dst" -o -e "$repo/task/archive/$k/$task" ]; then
 	fatal "task $task: Task already reposited"

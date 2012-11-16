@@ -51,9 +51,9 @@ validate_repo_dir()
 	dir="$(prefix_packages "$dir")"
 	dir="$(add_git_suffix "$dir")"
 	[ "${dir#/}" != "$dir" ] ||
-		dir="$GIRAR_HOME/$GIRAR_USER/$dir"
-	[ "${dir#$GIRAR_HOME/}" != "$dir" ] &&
-	printf '%s' "$dir" |egrep -qs "^$GIRAR_HOME/"'[a-z][a-z_0-9]+/packages/[A-Za-z0-9][-A-Za-z0-9_.]+[.]git$' ||
+		dir="$PEOPLE_DIR/$GIRAR_USER/$dir"
+	[ "${dir#$PEOPLE_DIR/}" != "$dir" ] &&
+	printf '%s' "$dir" |egrep -qs "^$PEOPLE_DIR/"'[a-z][a-z_0-9]+/packages/[A-Za-z0-9][-A-Za-z0-9_.]+[.]git$' ||
 		fatal "$dir0: path to git repository does not belong to allowed directory tree"
 
 	[ -d "$dir" ] ||
@@ -96,7 +96,7 @@ validate_tag_name()
 	userid="$(printf %s "$tag_author" |
 		LANG=C sed -n 's/^[^<]\+<[[:space:]]*\([a-z][a-z0-9_-]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\).*$/\1/p' |
 		tr '[:upper:]' '[:lower:]' |tr - _)"
-	[ -n "$userid" -a -d "$GIRAR_PEOPLE_QUEUE/$userid" ] ||
+	[ -n "$userid" -a -d "$PEOPLE_DIR/$userid" ] ||
 		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
@@ -161,7 +161,7 @@ case "$action" in
 	*) usage "Invalid action: $action" ;;
 esac
 
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -n . ||
 	fatal "task #$id is locked"

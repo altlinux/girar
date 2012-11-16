@@ -97,7 +97,7 @@ exec_cmd(const char *exec, char *str)
 
 	char   *path;
 
-	if (asprintf(&path, "%s/%s", GIRAR_BINDIR, exec) < 0)
+	if (asprintf(&path, "%s/%s", CMD_DIR, exec) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 	execv(path, (char *const *) args);
 	error(EXIT_FAILURE, errno, "execv: %s", args[0]);
@@ -135,7 +135,7 @@ exec_rsync(char *str)
 	if (chdir(home) < 0)
 		error(EXIT_FAILURE, errno, "chdir");
 	if ((setenv("HOME", home, 1) < 0) ||
-	    (setenv("LD_PRELOAD", GIRAR_LIBDIR "/rsync.so", 1) < 0))
+	    (setenv("LD_PRELOAD", PLUGIN_DIR "/rsync.so", 1) < 0))
 		error (EXIT_FAILURE, errno, "setenv");
 
 	execv("/usr/bin/rsync", (char *const *) args);
@@ -210,7 +210,7 @@ main (int ac, char *av[])
 
 	char   *home;
 
-	if (asprintf(&home, "%s/%s", GIRAR_HOME, girar_user) < 0)
+	if (asprintf(&home, "%s/%s", PEOPLE_DIR, girar_user) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 
 	if (chdir(home) < 0)
@@ -227,10 +227,10 @@ main (int ac, char *av[])
 	if ((setenv("USER", pw->pw_name, 1) < 0) ||
 	    (setenv("LOGNAME", pw->pw_name, 1) < 0) ||
 	    (setenv("HOME", home, 1) < 0) ||
-	    (setenv("PATH", GIRAR_BINDIR ":/bin:/usr/bin", 1) < 0) ||
-	    (setenv("GIRAR_SRPMS", GIRAR_SRPMS, 1) < 0) ||
-	    (setenv("GIRAR_GEARS", GIRAR_GEARS, 1) < 0) ||
-	    (setenv("GIRAR_HOME", GIRAR_HOME, 1) < 0) ||
+	    (setenv("PATH", CMD_DIR ":/bin:/usr/bin", 1) < 0) ||
+	    (setenv("SRPMS_DIR", SRPMS_DIR, 1) < 0) ||
+	    (setenv("GEARS_DIR", GEARS_DIR, 1) < 0) ||
+	    (setenv("PEOPLE_DIR", PEOPLE_DIR, 1) < 0) ||
 	    (setenv("GIRAR_USER", girar_user, 1) < 0) ||
 	    (setenv("GIRAR_USER_PREFIX", USER_PREFIX, 1) < 0) ||
 	    (tmpdir && *tmpdir && setenv("TMPDIR", tmpdir, 1) < 0))

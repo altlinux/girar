@@ -33,7 +33,7 @@ commit_id="$1"; shift
 	usage 'Invalid commit id.'
 
 enable -f /usr/lib/bash/lockf lockf
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 # obtain an exclusive lock on the TASKS structure
 builtin lockf -n . ||
 	fatal "task #$id is locked"
@@ -48,7 +48,7 @@ for i; do
 	pkgname="$(cat "build/$i/pkgname" 2>/dev/null)" ||
 	pkgname="$(cat "gears/$i/package" 2>/dev/null)" ||
 		fatal "task #$id: source package name for subtask #$i is not known yet"
-	git --git-dir="$GIRAR_GEARS/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
+	git --git-dir="$GEARS_DIR/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
 		fatal "commit $commit_id not found"
 	repo="$(cat task/repo)"
 	girar-check-perms "$pkgname" "$repo"

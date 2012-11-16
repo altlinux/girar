@@ -4,7 +4,7 @@
 . girar-sh-functions
 PROG='task ls'
 
-valid_repo_list="$(tr -s '\n' ' '<"$GIRAR_REPO_LIST" | sed 's/ $//')"
+valid_repo_list="$(tr -s '\n' ' '<"$REPO_LIST" | sed 's/ $//')"
 valid_state_list='awaiting building committing done eperm failed new pending postponed tested'
 notdone_state_list='awaiting building committing eperm failed new pending postponed tested'
 queue_state_list='awaiting building committing pending postponed'
@@ -119,7 +119,7 @@ printf %s "$user" |grep -qs '^[a-z][a-z_0-9]\+$' ||
 case "$user" in
 	all)	ls_user=
 		;;
-	*)	[ -d "$GIRAR_PEOPLE_QUEUE/$user" ] ||
+	*)	[ -d "$PEOPLE_DIR/$user" ] ||
 			fatal "user \"$user\" not found"
 		ls_user="-user $USER_PREFIX$user"
 		;;
@@ -186,7 +186,7 @@ ls1()
 	printf '\n'
 }
 
-cd "$GB_TASKS"
+cd "$TASKS_DIR"
 
 ids="$(
 	for r in $repo; do

@@ -8,7 +8,7 @@ usage()
 	[ -z "$*" ] || message "$*"
 	cat >&2 <<EOF
 usage: $PROG [<binary_repository_name>]
-Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")
+Valid repositories are: $(tr -s '\n' ' '<"$REPO_LIST")
 EOF
 	exit 1
 }
@@ -23,7 +23,7 @@ fi
 
 repo="$(girar-normalize-repo-name "${1:-sisyphus}")"
 
-cd "$GB_TASKS"
+cd "$TASKS_DIR"
 
 [ -w .max-task-id ] ||
 	fatal 'Permission denied'
@@ -36,7 +36,7 @@ cd - >/dev/null
 sleep 1
 
 enable -f /usr/lib/bash/lockf lockf
-# obtain an exclusive lock on $GB_TASKS
+# obtain an exclusive lock on $TASKS_DIR
 builtin lockf -v .
 
 id=$(cat .max-task-id)

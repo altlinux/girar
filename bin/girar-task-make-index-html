@@ -4,7 +4,7 @@
 PROG='girar-task-make-index-html'
 
 id="$1"; shift
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 
 owner="$(cat task/owner)"
 repo="$(cat task/repo)"
@@ -43,7 +43,7 @@ find_git_url()
 	local repo="$1"; shift
 	local prefix
 
-	for prefix in "$GIRAR_GEARS" "$GIRAR_SRPMS"; do
+	for prefix in "$GEARS_DIR" "$SRPMS_DIR"; do
 		try_git_url "$prefix" "$project" "$repo" || continue
 		return 0
 	done
@@ -190,7 +190,7 @@ show()
 <title>Task #$id for $repo by $owner</title>
 </head>
 <body>
-<h1>Task #$id for <i>$repo</i> by <a href="$GIRAR_HOME/$owner/packages/?o=age">$owner</a></h1>
+<h1>Task #$id for <i>$repo</i> by <a href="$PEOPLE_DIR/$owner/packages/?o=age">$owner</a></h1>
 <h2>Status:$(show_status)</h2>
 $(show_iterations)
 $(show_subtasks)

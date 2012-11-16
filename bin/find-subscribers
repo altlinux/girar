@@ -10,8 +10,8 @@ GIRAR_USER=${GIRAR_USER:?}
 GIT_DIR=${GIT_DIR:?}
 
 # Globals
-git_aliases="$GIRAR_EMAIL_ALIASES"
-maildir="$GIRAR_EMAIL_DIR"
+git_aliases="$EMAIL_ALIASES"
+maildir="$EMAIL_DIR"
 
 [ "$#" -ge 3 ] ||
 	fatal "Wrong number of arguments: $#"

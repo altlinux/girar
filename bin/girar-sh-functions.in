@@ -3,8 +3,8 @@
 if [ -z "${__included_girar_sh_functions-}" ]; then
 __included_girar_sh_functions=1
 
-[ -z "${PATH##@CMDDIR@:*}" -o -z "${PATH%%*:@CMDDIR@}" ] ||
-	PATH="@CMDDIR@:$PATH"
+[ -z "${PATH##@CMD_DIR@:*}" -o -z "${PATH%%*:@CMD_DIR@}" ] ||
+	PATH="@CMD_DIR@:$PATH"
 
 . shell-error
 . girar-sh-config

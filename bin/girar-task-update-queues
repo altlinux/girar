@@ -3,7 +3,7 @@
 . girar-sh-functions
 PROG='girar-task-update-queues'
 
-cd "$GB_TASKS"
+cd "$TASKS_DIR"
 
 id="$1"; shift
 old_state="$1"; shift

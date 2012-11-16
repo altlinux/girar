@@ -23,7 +23,7 @@ case "$1" in
 	show|clear|add|del|set) id=$(PROG="$PROG" girar-task-find-current) ;;
 	*) id=$(PROG="$PROG" girar-task-find-current "$@"); shift;;
 esac
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 
 [ $# -ge 1 ] || usage 'Not enough arguments.'
 action="$1"; shift
@@ -47,7 +47,7 @@ for i; do
 		fatal "invalid task id: $i"
 	case "$action" in
 		del) ;;
-		*) [ -d "$GB_TASKS/$i/task" ] ||
+		*) [ -d "$TASKS_DIR/$i/task" ] ||
 			fatal "task #$i not found" ;;
 	esac
 done
@@ -75,7 +75,7 @@ esac
 
 for i; do
 	k="_$(($i/1024))"
-	if [ -d "$GB_TASKS_DONE_DIR/$k/$i/task" ]; then
+	if [ -d "$TASKS_DONE_DIR/$k/$i/task" ]; then
 		sed -i "/^$i\$/d" task/depends
 		continue
 	fi

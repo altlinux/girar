@@ -24,7 +24,7 @@ fi
 
 id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 
-cd "$GB_TASKS/$id"
+cd "$TASKS_DIR/$id"
 
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"

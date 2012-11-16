@@ -8,7 +8,7 @@
 	fatal 'GIRAR_USER undefined'
 
 # Abort if no non-empty repository list available.
-[ -s "$GIRAR_REPO_LIST" ] ||
+[ -s "$REPO_LIST" ] ||
 	fatal 'Sorry, list of available repositories is not available'
 
 quiet=
@@ -19,14 +19,14 @@ Usage: $PROG --list
    or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository>
-Valid repositories are: $(tr -s '\n' ' '<"$GIRAR_REPO_LIST")
+Valid repositories are: $(tr -s '\n' ' '<"$REPO_LIST")
 If no package is given, read commands from stdin, one command per line.
 See http://www.altlinux.org/Incoming/acl for details.
 EOF
 		exit 0
 		;;
 	--list)
-		cat -- "$GIRAR_REPO_LIST"
+		cat -- "$REPO_LIST"
 		exit 0
 		;;
 	--quiet)
@@ -83,7 +83,7 @@ repository="$(girar-normalize-repo-name "$repository")"
 . girar-sh-tmpdir
 
 # Copy all current acl files to tmpdir.
-cd "$GIRAR_ACL_STATE_DIR"
+cd "$ACL_STATE_DIR"
 flock -s . \
 find -maxdepth 1 -type f -name 'list.*' \
         -exec cp -at "$tmpdir" -- \{\} \+
@@ -108,7 +108,7 @@ exec 3>&-
 
 [ $nqueued -gt 0 ] || exit $rc
 
-girar-connect-stdout "$GIRAR_ACL_SOCKET" cat < "$tmpdir/cmd"
+girar-connect-stdout "$ACL_SOCKET" cat < "$tmpdir/cmd"
 
 [ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"

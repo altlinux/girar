@@ -23,10 +23,10 @@ update()
 
 case "$project_name" in
 	packages)
-		update email subscription "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
+		update email subscription "$EMAIL_DIR/$project_name/$GIRAR_USER"
 		;;
 	public)
-		update email subscription "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
+		update email subscription "$EMAIL_DIR/$project_name/$GIRAR_USER"
 		;;
 esac
-update email distribution "$GIRAR_EMAIL_DIR/$project_name/$GIRAR_USER"
+update email distribution "$EMAIL_DIR/$project_name/$GIRAR_USER"
