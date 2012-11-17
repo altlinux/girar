@@ -84,7 +84,6 @@ bin_TARGETS = \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
 	bin/girar-clone \
-	bin/girar-connect-stdout \
 	bin/girar-default-branch \
 	bin/girar-find \
 	bin/girar-get-email-address \
@@ -247,8 +246,6 @@ bin/girar-proxyd-depot conf/girar-proxyd-depot: RUN_AS = depot
 bin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
 conf/girar-proxyd-acl: SOCKGRP = girar
 conf/girar-proxyd-depot conf/girar-proxyd-repo: SOCKGRP = bull
-
-bin/girar-connect-stdout: bin/girar-connect-stdout.c
 
 bin/girar-sh: bin/girar-sh.c
 
