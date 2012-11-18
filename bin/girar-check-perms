@@ -51,7 +51,7 @@ if girar-check-superuser "$repository"; then
 fi
 
 # Source per-repository config file.
-conf="$REPO_CONF_DIR/$repository"
+conf="$CONF_DIR/repo/$repository"
 if [ -s "$conf" ]; then
 	. "$conf"
 fi

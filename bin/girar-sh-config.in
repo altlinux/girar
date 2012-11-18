@@ -15,7 +15,6 @@ GIT_TEMPLATE_DIR='@GIT_TEMPLATE_DIR@'
 HOOKS_DIR='@HOOKS_DIR@'
 PACKAGES_EMAIL='@PACKAGES_EMAIL@'
 PEOPLE_DIR='@PEOPLE_DIR@'
-REPO_CONF_DIR='@REPO_CONF_DIR@'
 REPO_LIST='@REPO_LIST@'
 RUNTIME_DIR='@RUNTIME_DIR@'
 SRPMS_DIR='@SRPMS_DIR@'
@@ -24,12 +23,12 @@ TASKS_DIR='@TASKS_DIR@'
 TASKS_DONE_DIR='@TASKS_DONE_DIR@'
 USER_PREFIX='@USER_PREFIX@'
 
-if [ -s "$REPO_CONF_DIR/.default" ]; then
-	. "$REPO_CONF_DIR/.default"
+if [ -s "$CONF_DIR/repo/.default" ]; then
+	. "$CONF_DIR/repo/.default"
 fi
 if [ -n "${GIRAR_REPO_NAME-}" -a \
-     -s "$REPO_CONF_DIR/${GIRAR_REPO_NAME-}" ]; then
-	. "$REPO_CONF_DIR/${GIRAR_REPO_NAME-}"
+     -s "$CONF_DIR/repo/${GIRAR_REPO_NAME-}" ]; then
+	. "$CONF_DIR/repo/${GIRAR_REPO_NAME-}"
 fi
 
 fi #__included_girar_sh_config

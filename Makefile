@@ -21,7 +21,6 @@ HOOKS_DIR = ${girar_datadir}/hooks
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 PEOPLE_DIR = ${STATE_DIR}/people
 PLUGIN_DIR = ${libexecdir}/girar
-REPO_CONF_DIR = ${CONF_DIR}/repo
 REPO_LIST = ${CONF_DIR}/repositories
 RUNTIME_DIR = ${runtimedir}/girar
 RUN_AS = @RUN_AS@
@@ -176,7 +175,8 @@ install-conf: ${conf_TARGETS}
 	install -d -m750 \
 		${DESTDIR}${initdir} \
 		${DESTDIR}${CONF_DIR} \
-		${DESTDIR}${REPO_CONF_DIR}
+		${DESTDIR}${CONF_DIR}/repo \
+		#
 	install -pm755 $^ ${DESTDIR}${initdir}/
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
@@ -257,7 +257,6 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 	    -e 's,@HOOKS_DIR@,${HOOKS_DIR},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
-	    -e 's,@REPO_CONF_DIR@,${REPO_CONF_DIR},g' \
 	    -e 's,@REPO_LIST@,${REPO_LIST},g' \
 	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \

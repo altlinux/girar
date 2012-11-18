@@ -25,7 +25,7 @@ repository="$1"; shift
 
 repository="$(girar-normalize-repo-name "$repository")"
 
-conf="$REPO_CONF_DIR/$repository"
+conf="$CONF_DIR/repo/$repository"
 if [ -s "$conf" ]; then
 	. "$conf"
 fi
