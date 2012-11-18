@@ -29,7 +29,6 @@ SOCKGRP = @SOCKGRP@
 SRPMS_DIR = ${STATE_DIR}/srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = ${STATE_DIR}/tasks
-TASKS_DONE_DIR = ${TASKS_DIR}/archive/done
 TASKS_GROUP = tasks
 USER_PREFIX = git_
 girar_datadir = ${datadir}/girar
@@ -210,6 +209,8 @@ install-var:
 		${DESTDIR}${STATE_DIR}/repo \
 		${DESTDIR}${STATE_DIR}/srpms \
 		${DESTDIR}${STATE_DIR}/tasks \
+		${DESTDIR}${STATE_DIR}/tasks/archive \
+		${DESTDIR}${STATE_DIR}/tasks/archive/done \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
 		${DESTDIR}${RUNTIME_DIR}/depot \
@@ -264,7 +265,6 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 	    -e 's,@SRPMS_DIR@,${SRPMS_DIR},g' \
 	    -e 's,@STATE_DIR@,${STATE_DIR},g' \
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \
-	    -e 's,@TASKS_DONE_DIR@,${TASKS_DONE_DIR},g' \
 	    -e 's,@TASKS_GROUP@,${TASKS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 		<$< >$@
