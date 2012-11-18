@@ -36,13 +36,10 @@ GECOS="$*"
 	fatal "$NAME: invalid GECOS specified"
 
 IT_NAME="@USER_PREFIX@$NAME"
-IT_HOME="@FAKE_HOME@"
 IT_SHELL="@CMD_DIR@/girar-sh"
 PEOPLE_DIR="@PEOPLE_DIR@"
 REAL_HOME="$PEOPLE_DIR/$NAME"
 
-[ -d "$IT_HOME" ] ||
-	fatal "error adding $NAME: directory $IT_HOME not available"
 [ -d "$PEOPLE_DIR" ] ||
 	fatal "error adding $NAME: directory $PEOPLE_DIR not available"
 
@@ -50,7 +47,7 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
 	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
 
-useradd -c "$GECOS" -d "$IT_HOME" -g 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
+useradd -c "$GECOS" -d /var/empty -g 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
 printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@EMAIL_ALIASES@" &&

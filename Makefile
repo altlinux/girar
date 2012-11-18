@@ -15,7 +15,6 @@ CONF_DIR = ${sysconfdir}/girar
 EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DIR = ${STATE_DIR}/email
 EMAIL_DOMAIN = altlinux.org
-FAKE_HOME = ${girar_datadir}/home
 GEARS_DIR = ${STATE_DIR}/gears
 GITWEB_URL = http://git.altlinux.org
 GIT_TEMPLATE_DIR = ${girar_datadir}/templates
@@ -188,7 +187,7 @@ install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 		${DESTDIR}${HOOKS_DIR}/update.d \
 		${DESTDIR}${HOOKS_DIR}/post-receive.d \
 		${DESTDIR}${GIT_TEMPLATE_DIR} \
-		${DESTDIR}${FAKE_HOME}
+		#
 	install -pm750 ${hooks_TARGETS} ${DESTDIR}${HOOKS_DIR}/
 	install -pm750 ${hooks_update_TARGETS} ${DESTDIR}${HOOKS_DIR}/update.d/
 	install -pm750 ${hooks_receive_TARGETS} ${DESTDIR}${HOOKS_DIR}/post-receive.d/
@@ -255,7 +254,6 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \
 	    -e 's,@EMAIL_DIR@,${EMAIL_DIR},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
-	    -e 's,@FAKE_HOME@,${FAKE_HOME},g' \
 	    -e 's,@GEARS_DIR@,${GEARS_DIR},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@GIT_TEMPLATE_DIR@,${GIT_TEMPLATE_DIR},g' \
