@@ -8,7 +8,6 @@ sbindir = /usr/sbin
 sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
 
-ACL_PUB_DIR = ${STATE_DIR}/acl.pub
 ACL_STATE_DIR = ${STATE_DIR}/acl
 CMD_DIR = ${libexecdir}/girar
 CONF_DIR = ${sysconfdir}/girar
@@ -200,6 +199,7 @@ install-var:
 		${DESTDIR}${EMAIL_DIR}/private \
 		${DESTDIR}${EMAIL_DIR}/public \
 		${DESTDIR}${STATE_DIR} \
+		${DESTDIR}${STATE_DIR}/acl \
 		${DESTDIR}${STATE_DIR}/bull \
 		${DESTDIR}${STATE_DIR}/cow \
 		${DESTDIR}${STATE_DIR}/depot \
@@ -210,8 +210,6 @@ install-var:
 		${DESTDIR}${STATE_DIR}/repo \
 		${DESTDIR}${STATE_DIR}/srpms \
 		${DESTDIR}${STATE_DIR}/tasks \
-		${DESTDIR}${ACL_PUB_DIR} \
-		${DESTDIR}${ACL_STATE_DIR} \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
 		${DESTDIR}${RUNTIME_DIR}/depot \
@@ -247,7 +245,6 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 
 %: %.in
 	sed \
-	    -e 's,@ACL_PUB_DIR@,${ACL_PUB_DIR},g' \
 	    -e 's,@ACL_STATE_DIR@,${ACL_STATE_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \

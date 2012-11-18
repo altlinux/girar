@@ -69,7 +69,6 @@ done
 
 %dir %_localstatedir/%name/
 %dir %attr(2775,root,acl) %_localstatedir/%name/acl/
-%dir %attr(2775,root,acl) %_localstatedir/%name/acl.pub/
 %dir %attr(755,root,root) %_localstatedir/%name/depot/
 %dir %attr(770,root,depot) %_localstatedir/%name/depot/.tmp/
 %dir %attr(775,root,depot) %_localstatedir/%name/depot/??/
