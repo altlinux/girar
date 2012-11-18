@@ -18,7 +18,7 @@ usage()
 
 repository="$1"; shift
 item="$1"; shift
-dir="${1-$ACL_STATE_DIR}"
+dir="${1-$ACL_DIR}"
 
 cd
 

@@ -22,11 +22,11 @@ cd
 repository="$(girar-normalize-repo-name "$repository")"
 
 # Fail if no acl file available for the given binary repository.
-[ -s "$ACL_STATE_DIR/list.packages.$repository" ] ||
+[ -s "$ACL_DIR/list.packages.$repository" ] ||
 	fatal "acl file for repository \`$repository' not available"
 
 # exit 1 if package is not listed in acl file.
-acl_line="$(grep "^$project_name[[:space:]]" "$ACL_STATE_DIR/list.packages.$repository")" ||
+acl_line="$(grep "^$project_name[[:space:]]" "$ACL_DIR/list.packages.$repository")" ||
 	exit 1
 
 # acl_line format: pkg_name leader [builders]

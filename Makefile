@@ -8,7 +8,7 @@ sbindir = /usr/sbin
 sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
 
-ACL_STATE_DIR = ${STATE_DIR}/acl
+ACL_DIR = ${STATE_DIR}/acl
 CMD_DIR = ${libexecdir}/girar
 CONF_DIR = ${sysconfdir}/girar
 EMAIL_ALIASES = ${CONF_DIR}/aliases
@@ -245,7 +245,7 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 
 %: %.in
 	sed \
-	    -e 's,@ACL_STATE_DIR@,${ACL_STATE_DIR},g' \
+	    -e 's,@ACL_DIR@,${ACL_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \

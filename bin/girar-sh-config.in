@@ -3,7 +3,7 @@
 if [ -z "${__included_girar_sh_config-}" ]; then
 __included_girar_sh_config=1
 
-ACL_STATE_DIR='@ACL_STATE_DIR@'
+ACL_DIR='@ACL_DIR@'
 CMD_DIR='@CMD_DIR@'
 CONF_DIR='@CONF_DIR@'
 EMAIL_ALIASES='@EMAIL_ALIASES@'
