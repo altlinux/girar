@@ -9,12 +9,9 @@ sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
 
 ACL_PUB_DIR = ${STATE_DIR}/acl.pub
-ACL_SOCKDIR = ${girar_runtimedir}/acl
-ACL_SOCKET = ${ACL_SOCKDIR}/socket
 ACL_STATE_DIR = ${STATE_DIR}/acl
 CMD_DIR = ${libexecdir}/girar
 CONF_DIR = ${sysconfdir}/girar
-DEPOT_SOCKDIR = ${girar_runtimedir}/depot
 EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DIR = ${STATE_DIR}/email
 EMAIL_DOMAIN = altlinux.org
@@ -28,7 +25,7 @@ PEOPLE_DIR = ${STATE_DIR}/people
 PLUGIN_DIR = ${libexecdir}/girar
 REPO_CONF_DIR = ${CONF_DIR}/repo
 REPO_LIST = ${CONF_DIR}/repositories
-REPO_SOCKDIR = ${girar_runtimedir}/repo
+RUNTIME_DIR = ${runtimedir}/girar
 RUN_AS = @RUN_AS@
 SOCKDIR = @SOCKDIR@
 SOCKGRP = @SOCKGRP@
@@ -40,7 +37,6 @@ TASKS_GROUP = tasks
 USER_PREFIX = git_
 girar_datadir = ${datadir}/girar
 girar_lockdir = ${lockdir}/girar
-girar_runtimedir = ${runtimedir}/girar
 girar_sbindir = ${sbindir}
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
@@ -217,25 +213,17 @@ install-var:
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${ACL_PUB_DIR} \
 		${DESTDIR}${ACL_STATE_DIR} \
-		${DESTDIR}${girar_runtimedir} \
-		${DESTDIR}${girar_runtimedir}/acl \
-		${DESTDIR}${girar_runtimedir}/depot \
-		${DESTDIR}${girar_runtimedir}/repo \
+		${DESTDIR}${RUNTIME_DIR} \
+		${DESTDIR}${RUNTIME_DIR}/acl \
+		${DESTDIR}${RUNTIME_DIR}/depot \
+		${DESTDIR}${RUNTIME_DIR}/repo \
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/bull \
 		${DESTDIR}${girar_lockdir}/cow \
 
-install-perms:
-	chgrp girar \
-		${DESTDIR}${CMD_DIR} \
-		${DESTDIR}${CONF_DIR} \
-		${DESTDIR}${girar_datadir} \
-		${DESTDIR}${STATE_DIR} \
-		${DESTDIR}${girar_runtimedir} \
-
-bin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${ACL_SOCKDIR}
-bin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${DEPOT_SOCKDIR}
-bin/girar-proxyd-repo conf/girar-proxyd-repo: SOCKDIR = ${REPO_SOCKDIR}
+bin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${RUNTIME_DIR}/acl
+bin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${RUNTIME_DIR}/depot
+bin/girar-proxyd-repo conf/girar-proxyd-repo: SOCKDIR = ${RUNTIME_DIR}/repo
 bin/girar-proxyd-acl conf/girar-proxyd-acl: RUN_AS = acl
 bin/girar-proxyd-depot conf/girar-proxyd-depot: RUN_AS = depot
 bin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
@@ -261,7 +249,6 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 %: %.in
 	sed \
 	    -e 's,@ACL_PUB_DIR@,${ACL_PUB_DIR},g' \
-	    -e 's,@ACL_SOCKET@,${ACL_SOCKET},g' \
 	    -e 's,@ACL_STATE_DIR@,${ACL_STATE_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
@@ -277,7 +264,9 @@ conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
 	    -e 's,@REPO_CONF_DIR@,${REPO_CONF_DIR},g' \
 	    -e 's,@REPO_LIST@,${REPO_LIST},g' \
+	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \
+	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
 	    -e 's,@SRPMS_DIR@,${SRPMS_DIR},g' \
 	    -e 's,@STATE_DIR@,${STATE_DIR},g' \
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \

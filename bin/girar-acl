@@ -108,7 +108,8 @@ exec 3>&-
 
 [ $nqueued -gt 0 ] || exit $rc
 
-netcat -U "$ACL_SOCKET" -e 'cat <&3 && cat >&4' < "$tmpdir/cmd" 3<&0 4>&1 ||:
+netcat -U "$RUNTIME_DIR/acl/socket" -e 'cat <&3 && cat >&4' \
+	< "$tmpdir/cmd" 3<&0 4>&1 ||:
 
 [ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"
