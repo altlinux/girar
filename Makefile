@@ -5,7 +5,6 @@ localstatedir = /var/lib
 lockdir = /var/lock
 runtimedir = /var/run
 sbindir = /usr/sbin
-spooldir = /var/spool
 sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
 
@@ -43,7 +42,6 @@ girar_datadir = ${datadir}/girar
 girar_lockdir = ${lockdir}/girar
 girar_runtimedir = ${runtimedir}/girar
 girar_sbindir = ${sbindir}
-girar_spooldir = ${spooldir}/girar
 
 WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 	-Wdisabled-optimization -Wmissing-declarations \
@@ -226,8 +224,6 @@ install-var:
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/bull \
 		${DESTDIR}${girar_lockdir}/cow \
-		${DESTDIR}${girar_spooldir} \
-		${DESTDIR}${girar_spooldir}/people
 
 install-perms:
 	chgrp girar \
@@ -236,7 +232,6 @@ install-perms:
 		${DESTDIR}${girar_datadir} \
 		${DESTDIR}${STATE_DIR} \
 		${DESTDIR}${girar_runtimedir} \
-		${DESTDIR}${girar_spooldir}
 
 bin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${ACL_SOCKDIR}
 bin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${DEPOT_SOCKDIR}

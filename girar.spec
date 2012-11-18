@@ -87,9 +87,6 @@ done
 %dir %attr(710,root,bull) /var/run/%name/repo/
 %ghost %attr(666,root,root) /var/run/%name/*/socket
 
-%dir %_spooldir/%name/
-%dir %_spooldir/%name/people/
-
 %dir /var/l*/girar/
 %attr(770,root,bull) /var/l*/girar/bull/
 %attr(770,root,cow) /var/l*/girar/cow/
