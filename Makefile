@@ -83,9 +83,6 @@ bin_TARGETS = \
 	bin/girar-ls \
 	bin/girar-mv-db \
 	bin/girar-normalize-repo-name \
-	bin/girar-proxyd-acl \
-	bin/girar-proxyd-depot \
-	bin/girar-proxyd-repo \
 	bin/girar-quota \
 	bin/girar-repack \
 	bin/girar-repo-copyself \
@@ -131,6 +128,9 @@ sbin_TARGETS = \
 	sbin/girar-disable \
 	sbin/girar-enable \
 	sbin/girar-make-template-repos \
+	sbin/girar-proxyd-acl \
+	sbin/girar-proxyd-depot \
+	sbin/girar-proxyd-repo \
 	#
 
 hooks_TARGETS = \
@@ -228,12 +228,12 @@ install-var:
 		${DESTDIR}${girar_lockdir}/bull \
 		${DESTDIR}${girar_lockdir}/cow \
 
-bin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${RUNTIME_DIR}/acl
-bin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${RUNTIME_DIR}/depot
-bin/girar-proxyd-repo conf/girar-proxyd-repo: SOCKDIR = ${RUNTIME_DIR}/repo
-bin/girar-proxyd-acl conf/girar-proxyd-acl: RUN_AS = acl
-bin/girar-proxyd-depot conf/girar-proxyd-depot: RUN_AS = depot
-bin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
+sbin/girar-proxyd-acl conf/girar-proxyd-acl: SOCKDIR = ${RUNTIME_DIR}/acl
+sbin/girar-proxyd-depot conf/girar-proxyd-depot: SOCKDIR = ${RUNTIME_DIR}/depot
+sbin/girar-proxyd-repo conf/girar-proxyd-repo: SOCKDIR = ${RUNTIME_DIR}/repo
+sbin/girar-proxyd-acl conf/girar-proxyd-acl: RUN_AS = acl
+sbin/girar-proxyd-depot conf/girar-proxyd-depot: RUN_AS = depot
+sbin/girar-proxyd-repo conf/girar-proxyd-repo: RUN_AS = repo
 conf/girar-proxyd-acl: SOCKGRP = girar
 conf/girar-proxyd-depot conf/girar-proxyd-repo: SOCKGRP = bull
 
@@ -242,7 +242,7 @@ bin/girar-sh: bin/girar-sh.c
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
 
-bin/girar-proxyd-acl bin/girar-proxyd-depot bin/girar-proxyd-repo: bin/girar-proxyd.c
+sbin/girar-proxyd-acl sbin/girar-proxyd-depot sbin/girar-proxyd-repo: sbin/girar-proxyd.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo: conf/girar-proxyd.in

@@ -7,3 +7,6 @@ girar-del
 girar-disable
 girar-enable
 girar-make-template-repos
+girar-proxyd-acl
+girar-proxyd-depot
+girar-proxyd-repo
