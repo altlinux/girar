@@ -112,9 +112,23 @@ bin_TARGETS = \
 	bin/girar-task-update-queues \
 	#
 
-init_TARGETS = init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo
+hooks_TARGETS = \
+	hooks/post-receive \
+	hooks/post-update \
+	hooks/update \
+	#
 
-sudoers_TARGETS = sudoers/girar
+hooks_update_TARGETS = \
+	hooks/update.d/girar-update-check-refs \
+	hooks/update.d/girar-update-etc \
+	#
+
+hooks_receive_TARGETS = \
+	hooks/post-receive.d/girar-etc \
+	hooks/post-receive.d/girar-sendmail \
+	#
+
+init_TARGETS = init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo
 
 lib_TARGETS = lib/rsync.so
 
@@ -133,59 +147,26 @@ sbin_TARGETS = \
 	sbin/girar-proxyd-repo \
 	#
 
-hooks_TARGETS = \
-	hooks/post-receive \
-	hooks/post-update \
-	hooks/update \
-	#
+sudoers_TARGETS = sudoers/girar
 
-hooks_update_TARGETS = \
-	hooks/update.d/girar-update-check-refs \
-	hooks/update.d/girar-update-etc \
-	#
+TARGETS = ${bin_TARGETS} ${hooks_TARGETS} ${hooks_receive_TARGETS} \
+	${hooks_update_TARGETS} ${init_TARGETS} ${lib_TARGETS} \
+	${sbin_TARGETS} ${sudoers_TARGETS}
 
-hooks_receive_TARGETS = \
-	hooks/post-receive.d/girar-etc \
-	hooks/post-receive.d/girar-sendmail \
-	#
-
-TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} \
-	  ${init_TARGETS} ${sudoers_TARGETS} \
-	  ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
-
-.PHONY: all clean install install-init install-data install-bin install-sbin install-var
+.PHONY: all clean install install-bin install-data install-init install-lib \
+	install-sbin install-sudoers install-var
 
 all: ${TARGETS}
 
 clean:
-	${RM} ${init_TARGETS} ${bin_auto_TARGETS} ${sbin_TARGETS} ${lib_TARGETS}
+	${RM} ${bin_auto_TARGETS} ${init_TARGETS} ${lib_TARGETS} ${sbin_TARGETS}
 
-install: install-init install-sudoers install-data \
-	install-bin install-lib install-sbin install-var
+install: install-bin install-data install-init install-lib \
+	install-sbin install-sudoers install-var
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${CMD_DIR}
 	install -pm755 $^ ${DESTDIR}${CMD_DIR}/
-
-install-sbin: ${sbin_TARGETS}
-	install -d -m755 ${DESTDIR}${girar_sbindir}
-	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
-
-install-lib: ${lib_TARGETS}
-	install -d -m750 ${DESTDIR}${PLUGIN_DIR}
-	install -pm644 $^ ${DESTDIR}${PLUGIN_DIR}/
-
-install-init: ${init_TARGETS}
-	install -d -m750 \
-		${DESTDIR}${initdir} \
-		${DESTDIR}${CONF_DIR} \
-		${DESTDIR}${CONF_DIR}/repo \
-		#
-	install -pm755 $^ ${DESTDIR}${initdir}/
-
-install-sudoers: ${sudoers_TARGETS}
-	install -d -m700 ${DESTDIR}${sudoers_dir}
-	install -pm400 $^ ${DESTDIR}${sudoers_dir}/
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \
@@ -199,6 +180,26 @@ install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -pm750 ${hooks_update_TARGETS} ${DESTDIR}${HOOKS_DIR}/update.d/
 	install -pm750 ${hooks_receive_TARGETS} ${DESTDIR}${HOOKS_DIR}/post-receive.d/
 	ln -snf ${HOOKS_DIR} ${DESTDIR}${GIT_TEMPLATE_DIR}/hooks
+
+install-init: ${init_TARGETS}
+	install -d -m750 \
+		${DESTDIR}${initdir} \
+		${DESTDIR}${CONF_DIR} \
+		${DESTDIR}${CONF_DIR}/repo \
+		#
+	install -pm755 $^ ${DESTDIR}${initdir}/
+
+install-lib: ${lib_TARGETS}
+	install -d -m750 ${DESTDIR}${PLUGIN_DIR}
+	install -pm644 $^ ${DESTDIR}${PLUGIN_DIR}/
+
+install-sbin: ${sbin_TARGETS}
+	install -d -m755 ${DESTDIR}${girar_sbindir}
+	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
+
+install-sudoers: ${sudoers_TARGETS}
+	install -d -m700 ${DESTDIR}${sudoers_dir}
+	install -pm400 $^ ${DESTDIR}${sudoers_dir}/
 
 install-var:
 	install -d -m750 \
@@ -228,14 +229,16 @@ install-var:
 		${DESTDIR}${girar_lockdir}/bull \
 		${DESTDIR}${girar_lockdir}/cow \
 
-sbin/girar-proxyd-acl init/girar-proxyd-acl: SOCKDIR = ${RUNTIME_DIR}/acl
-sbin/girar-proxyd-depot init/girar-proxyd-depot: SOCKDIR = ${RUNTIME_DIR}/depot
-sbin/girar-proxyd-repo init/girar-proxyd-repo: SOCKDIR = ${RUNTIME_DIR}/repo
-sbin/girar-proxyd-acl init/girar-proxyd-acl: RUN_AS = acl
-sbin/girar-proxyd-depot init/girar-proxyd-depot: RUN_AS = depot
-sbin/girar-proxyd-repo init/girar-proxyd-repo: RUN_AS = repo
 init/girar-proxyd-acl: SOCKGRP = girar
 init/girar-proxyd-depot init/girar-proxyd-repo: SOCKGRP = bull
+
+init/girar-proxyd-acl sbin/girar-proxyd-acl: RUN_AS = acl
+init/girar-proxyd-depot sbin/girar-proxyd-depot: RUN_AS = depot
+init/girar-proxyd-repo sbin/girar-proxyd-repo: RUN_AS = repo
+
+init/girar-proxyd-acl sbin/girar-proxyd-acl: SOCKDIR = ${RUNTIME_DIR}/acl
+init/girar-proxyd-depot sbin/girar-proxyd-depot: SOCKDIR = ${RUNTIME_DIR}/depot
+init/girar-proxyd-repo sbin/girar-proxyd-repo: SOCKDIR = ${RUNTIME_DIR}/repo
 
 bin/girar-sh: bin/girar-sh.c
 
