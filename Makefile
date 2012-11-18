@@ -53,6 +53,7 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 CFLAGS = -pipe -O2
 
 bin_auto_TARGETS = \
+	bin/girar-sh \
 	bin/girar-sh-config \
 	bin/girar-sh-functions \
 	#
@@ -88,7 +89,6 @@ bin_TARGETS = \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
 	bin/girar-rm-db \
-	bin/girar-sh \
 	bin/girar-sh-tmpdir \
 	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
@@ -158,7 +158,7 @@ TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} \
 all: ${TARGETS}
 
 clean:
-	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS} ${lib_TARGETS}
+	${RM} ${conf_TARGETS} ${bin_auto_TARGETS} ${sbin_TARGETS} ${lib_TARGETS}
 
 install: install-conf install-sudoers install-data \
 	install-bin install-lib install-sbin install-var
