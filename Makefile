@@ -7,6 +7,7 @@ runtimedir = /var/run
 sbindir = /usr/sbin
 sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
+sudoers_dir = ${sysconfdir}/sudoers.d
 
 ACL_DIR = ${STATE_DIR}/acl
 CMD_DIR = ${libexecdir}/girar
@@ -116,6 +117,8 @@ bin_TARGETS = \
 
 conf_TARGETS = conf/girar-proxyd-acl conf/girar-proxyd-depot conf/girar-proxyd-repo
 
+sudoers_TARGETS = sudoers/girar
+
 lib_TARGETS = lib/rsync.so
 
 sbin_TARGETS = \
@@ -146,7 +149,8 @@ hooks_receive_TARGETS = \
 	hooks/post-receive.d/girar-sendmail \
 	#
 
-TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} ${conf_TARGETS} \
+TARGETS = ${bin_TARGETS} ${sbin_TARGETS} ${lib_TARGETS} \
+	  ${conf_TARGETS} ${sudoers_TARGETS} \
 	  ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 
 .PHONY: all clean install install-bin install-conf install-data install-sbin install-var
@@ -156,7 +160,8 @@ all: ${TARGETS}
 clean:
 	${RM} ${bin_auto_TARGETS} ${sbin_TARGETS} ${lib_TARGETS}
 
-install: install-bin install-conf install-data install-lib install-sbin install-var
+install: install-conf install-sudoers install-data \
+	install-bin install-lib install-sbin install-var
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${CMD_DIR}
@@ -177,6 +182,10 @@ install-conf: ${conf_TARGETS}
 		${DESTDIR}${CONF_DIR}/repo \
 		#
 	install -pm755 $^ ${DESTDIR}${initdir}/
+
+install-sudoers: ${sudoers_TARGETS}
+	install -d -m700 ${DESTDIR}${sudoers_dir}
+	install -pm400 $^ ${DESTDIR}${sudoers_dir}/
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \

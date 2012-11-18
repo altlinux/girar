@@ -64,6 +64,8 @@ done
 %_usr/libexec/%name/
 %_datadir/%name/
 
+%config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
+
 %dir %_sysconfdir/%name/
 %dir %_sysconfdir/%name/repo/
 
