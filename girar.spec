@@ -67,13 +67,13 @@ fi
 %preun_service girar-proxyd-repo
 
 %files
+%config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
 %_initdir/girar-proxyd-*
-%defattr(-,root,girar,750)
 %attr(700,root,root) %_sbindir/*
 %_usr/libexec/%name/
 %_datadir/%name/
 
-%config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
+%defattr(-,root,girar,750)
 
 %dir %_sysconfdir/%name/
 %dir %_sysconfdir/%name/repo/
