@@ -220,7 +220,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/srpms \
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${STATE_DIR}/tasks/archive \
-		${DESTDIR}${STATE_DIR}/tasks/archive/done \
+		${DESTDIR}${STATE_DIR}/tasks/archive/{done,eperm,failed,failure,new,postponed,tested} \
 		${DESTDIR}${STATE_DIR}/tasks/index \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
