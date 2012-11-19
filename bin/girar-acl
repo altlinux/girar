@@ -7,9 +7,7 @@
 [ -n "${GIRAR_USER-}" ] ||
 	fatal 'GIRAR_USER undefined'
 
-# Abort if no non-empty repository list available.
-[ -s "$REPO_LIST" ] ||
-	fatal 'Sorry, list of available repositories is not available'
+repo_dir="$STATE_DIR/repo"
 
 quiet=
 case "${1-}" in
@@ -19,14 +17,14 @@ Usage: $PROG --list
    or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository>
-Valid repositories are: $(tr -s '\n' ' '<"$REPO_LIST")
+Valid repositories are: $(ls -- "$repo_dir/")
 If no package is given, read commands from stdin, one command per line.
 See http://www.altlinux.org/Incoming/acl for details.
 EOF
 		exit 0
 		;;
 	--list)
-		cat -- "$REPO_LIST"
+		ls -- "$repo_dir/"
 		exit 0
 		;;
 	--quiet)

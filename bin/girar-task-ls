@@ -4,7 +4,7 @@
 . girar-sh-functions
 PROG='task ls'
 
-valid_repo_list="$(tr -s '\n' ' '<"$REPO_LIST" | sed 's/ $//')"
+valid_repo_list="$(ls -- "$STATE_DIR/repo/")"
 valid_state_list='awaiting building committing done eperm failed new pending postponed tested'
 notdone_state_list='awaiting building committing eperm failed new pending postponed tested'
 queue_state_list='awaiting building committing pending postponed'

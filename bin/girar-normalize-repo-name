@@ -19,12 +19,9 @@ repository="$1"; shift
 
 cd
 
-# Fail if no non-empty repository list available.
-[ -s "$REPO_LIST" ] ||
-	fatal 'Sorry, list of available repositories is not available'
+repo_dir="$STATE_DIR/repo"
 
-# Fail if requested binary repository is not listed.
-fgrep -ixqse "$repository" "$REPO_LIST" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(tr -s '\n' ' '<"$REPO_LIST")"
-
-printf %s "$repository" |tr '[:upper:]' '[:lower:]'
+# Fail if requested binary repository does not exist.
+[ -n "$repository" ] &&
+ls -- "$repo_dir/" | grep -Fixse "$repository" ||
+	fatal "Invalid repository \`$repository', valid repositories are: $(ls -- "$repo_dir/")"

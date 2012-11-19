@@ -22,7 +22,6 @@ HOOKS_DIR = ${girar_datadir}/hooks
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 PEOPLE_DIR = ${STATE_DIR}/people
 PLUGIN_DIR = ${libexecdir}/girar
-REPO_LIST = ${CONF_DIR}/repositories
 RUNTIME_DIR = ${runtimedir}/girar
 RUN_AS = @RUN_AS@
 SOCKDIR = @SOCKDIR@
@@ -270,7 +269,6 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@HOOKS_DIR@,${HOOKS_DIR},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
-	    -e 's,@REPO_LIST@,${REPO_LIST},g' \
 	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \
 	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
