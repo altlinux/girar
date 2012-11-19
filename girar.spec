@@ -51,6 +51,9 @@ done
 %post_service girar-proxyd-depot
 %post_service girar-proxyd-repo
 %_sbindir/girar-make-template-repos
+if [ $1 -eq 1 ] && grep -Fxqs 'EXTRAOPTIONS=' /etc/sysconfig/memcached; then
+	sed -i 's/^EXTRAOPTIONS=$/&"-m 2048"/' /etc/sysconfig/memcached
+fi
 
 %preun
 %preun_service girar-proxyd-acl
