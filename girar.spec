@@ -51,8 +51,13 @@ done
 %post_service girar-proxyd-depot
 %post_service girar-proxyd-repo
 %_sbindir/girar-make-template-repos
-if [ $1 -eq 1 ] && grep -Fxqs 'EXTRAOPTIONS=' /etc/sysconfig/memcached; then
-	sed -i 's/^EXTRAOPTIONS=$/&"-m 2048"/' /etc/sysconfig/memcached
+if [ $1 -eq 1 ]; then
+	if grep -Fxqs 'EXTRAOPTIONS=' /etc/sysconfig/memcached; then
+		sed -i 's/^EXTRAOPTIONS=$/&"-m 2048"/' /etc/sysconfig/memcached
+	fi
+	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
+		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
+	fi
 fi
 
 %preun
