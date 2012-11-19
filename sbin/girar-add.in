@@ -11,7 +11,7 @@ sudo_init
 
 # Validate template repositories.
 for n in packages private public; do
-	GIT_DIR="@GIRAR_CONF_DIR@/$n.git" git rev-parse --git-dir >/dev/null
+	GIT_DIR="@CONF_DIR@/$n.git" git rev-parse --git-dir >/dev/null
 done
 
 usage()
