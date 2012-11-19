@@ -47,7 +47,7 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
 	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
 
-useradd -c "$GECOS" -d /var/empty -g 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
+useradd -c "$GECOS" -d /var/empty -g '@USERS_GROUP@' -G 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
 printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@EMAIL_ALIASES@" &&

@@ -35,6 +35,7 @@ mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
 
 %pre
 %_sbindir/groupadd -r -f girar
+%_sbindir/groupadd -r -f girar-users
 %_sbindir/groupadd -r -f girar-admin
 %_sbindir/groupadd -r -f tasks
 for u in acl depot repo; do

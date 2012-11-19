@@ -30,6 +30,7 @@ SRPMS_DIR = ${STATE_DIR}/srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = ${STATE_DIR}/tasks
 TASKS_GROUP = tasks
+USERS_GROUP = girar-users
 USER_PREFIX = git_
 girar_datadir = ${datadir}/girar
 girar_lockdir = ${lockdir}/girar
@@ -276,6 +277,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@STATE_DIR@,${STATE_DIR},g' \
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \
 	    -e 's,@TASKS_GROUP@,${TASKS_GROUP},g' \
+	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 		<$< >$@
 	chmod --reference=$< $@
