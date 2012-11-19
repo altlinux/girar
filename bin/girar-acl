@@ -106,8 +106,9 @@ exec 3>&-
 
 [ $nqueued -gt 0 ] || exit $rc
 
-netcat -U "$RUNTIME_DIR/acl/socket" -e 'cat <&3 && cat >&4' \
-	< "$tmpdir/cmd" 3<&0 4>&1 ||:
+netcat -U "$RUNTIME_DIR/acl/socket" -e 'exec cat <&3 2>&4' \
+	< "$tmpdir/cmd" 3<&0 4>&2 ||
+		fatal 'failed to communicate with acl server'
 
 [ -n "$quiet" ] ||
 	message "$nqueued command(s) queued"
