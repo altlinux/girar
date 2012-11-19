@@ -44,7 +44,7 @@ for u in acl depot repo; do
 done
 for u in bull cow; do
 	%_sbindir/groupadd -r -f $u
-	%_sbindir/useradd -r -g $u -G girar -d /var/lib/%name/$u -c "Girar $u robot" -n $u ||:
+	%_sbindir/useradd -r -g $u -G girar,tasks -d /var/lib/%name/$u -c "Girar $u robot" -n $u ||:
 done
 
 %post
