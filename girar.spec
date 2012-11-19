@@ -40,7 +40,7 @@ mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
 %_sbindir/groupadd -r -f tasks
 for u in acl depot repo; do
 	%_sbindir/groupadd -r -f $u
-	%_sbindir/useradd -r -g $u -G girar -d /dev/null -s /dev/null -c 'Girar $u robot' -n $u ||:
+	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
 for u in bull cow; do
 	%_sbindir/groupadd -r -f $u
