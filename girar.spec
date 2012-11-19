@@ -69,7 +69,7 @@ fi
 %files
 %_initdir/girar-proxyd-*
 %defattr(-,root,girar,750)
-%_sbindir/*
+%attr(700,root,root) %_sbindir/*
 %_usr/libexec/%name/
 %_datadir/%name/
 
