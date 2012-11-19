@@ -68,15 +68,13 @@ fi
 
 %files
 %config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
-%_initdir/girar-proxyd-*
-%attr(700,root,root) %_sbindir/*
+%_sysconfdir/%name/
 %_usr/libexec/%name/
 %_datadir/%name/
+%_initdir/girar-proxyd-*
+%attr(700,root,root) %_sbindir/*
 
 %defattr(-,root,girar,750)
-
-%dir %_sysconfdir/%name/
-%dir %_sysconfdir/%name/repo/
 
 %dir %_localstatedir/%name/
 %dir %attr(2775,root,acl) %_localstatedir/%name/acl/
