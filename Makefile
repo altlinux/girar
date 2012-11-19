@@ -221,6 +221,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${STATE_DIR}/tasks/archive \
 		${DESTDIR}${STATE_DIR}/tasks/archive/done \
+		${DESTDIR}${STATE_DIR}/tasks/index \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
 		${DESTDIR}${RUNTIME_DIR}/depot \
