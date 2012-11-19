@@ -134,11 +134,12 @@ lib_TARGETS = lib/rsync.so
 
 sbin_TARGETS = \
 	sbin/girar-add \
-	sbin/girar-del \
 	sbin/girar-auth-add \
 	sbin/girar-auth-zero \
 	sbin/girar-build-disable \
 	sbin/girar-build-enable \
+	sbin/girar-clone-repo \
+	sbin/girar-del \
 	sbin/girar-disable \
 	sbin/girar-enable \
 	sbin/girar-make-template-repos \

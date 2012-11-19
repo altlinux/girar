@@ -18,6 +18,7 @@ Cmnd_Alias	GIRAR_CMD = \
 	/usr/sbin/girar-auth-zero ,\
 	/usr/sbin/girar-build-disable ,\
 	/usr/sbin/girar-build-enable ,\
+	/usr/sbin/girar-clone-repo ,\
 	/usr/sbin/girar-del ,\
 	/usr/sbin/girar-disable ,\
 	/usr/sbin/girar-enable

@@ -1,0 +1,58 @@
+#!/bin/sh -e
+
+export IFS=' 	
+'
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+umask 022
+
+. "@CMD_DIR@/girar-sh-functions"
+
+sudo_init
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <NEW-REPO-NAME> <FROM-REPO-DIR>"
+	exit 1
+}
+
+[ $# -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 2 ] ||
+	usage 'Too many arguments.'
+
+repo="$1"; shift
+from0="$1"; shift
+
+printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$repo: invalid NEW-REPO-NAME specified"
+cd "$from0" &&
+from="$(pwd -P)" && 
+id=$(sed -n 's/^task \([1-9][0-9]*\)$/\1/p;q' files/list/task.info) &&
+[ "$id" -gt 0 ] 2>/dev/null &&
+su -l repo -s /bin/sh -c "cat -- '$from/files/list/task.info' > /dev/null" ||
+	fatal "$from0: invalid FROM-REPO-DIR specified"
+
+cd "$STATE_DIR"
+[ ! -e repo/$repo ] ||
+	fatal "repo/$repo already exists"
+[ ! -e tasks/index/$repo ] ||
+	fatal "tasks/index/$repo already exists"
+[ ! -e acl/list.packages.$repo ] ||
+	fatal "acl/list.packages.$repo already exists"
+[ ! -e acl/list.groups.$repo ] ||
+	fatal "acl/list.groups.$repo already exists"
+
+cp -al -- "$from/files/list/task.info" repo/$repo &&
+rm -f repo/$repo || exit
+	
+install -m644 -o acl -g acl /dev/null acl/list.packages.$repo
+install -m644 -o acl -g acl /dev/null acl/list.groups.$repo
+install -d -m755 -o root -g root tasks/index/$repo
+install -d -m2775 -o root -g tasks tasks/index/$repo/{awaiting,building,committing,done,eperm,failed,failure,new,pending,postponed,tested}
+install -d -m755 -o root -g root repo/$repo
+install -d -m775 -o root -g repo repo/$repo/task
+install -d -m775 -o root -g repo repo/$repo/task/archive
+install -d -m775 -o root -g bull repo/$repo/release
+su -l repo -s /bin/sh -c "cp -al -- '$from' '$STATE_DIR/repo/$repo/task/$id'"
+ln -s ../task/$id repo/$repo/release/latest

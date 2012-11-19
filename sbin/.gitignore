@@ -3,6 +3,7 @@ girar-auth-add
 girar-auth-zero
 girar-build-disable
 girar-build-enable
+girar-clone-repo
 girar-del
 girar-disable
 girar-enable
