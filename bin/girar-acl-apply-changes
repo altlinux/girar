@@ -122,7 +122,8 @@ check_new_members()
 	local i qi
 	for i; do
 		if [ "${i#@}" = "$i" ]; then
-			[ -d "$PEOPLE_DIR/${i##*/}" ] ||
+			getent group "$TASKS_GROUP" |cut -d: -f4 |tr , '\n' |
+			grep -Fxqse "$USER_PREFIX$i" ||
 				abort "$i: Login name not found"
 		elif [ "$i" != '@everybody' ]; then
 			quote_sed_regexp_variable qi "$i"
