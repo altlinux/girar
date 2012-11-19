@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# chkconfig: - 95 05
+# chkconfig: 3 95 05
 # description: \
 #	The girar @RUN_AS@ proxy daemon.
 #
