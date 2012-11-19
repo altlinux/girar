@@ -88,8 +88,8 @@ fi
 %dir %attr(775,root,bull) %_localstatedir/%name/gears/
 %dir %attr(775,root,bull) %_localstatedir/%name/srpms/
 %dir %attr(3775,bull,tasks) %_localstatedir/%name/tasks/
-%dir %attr(2755,bull,tasks) %_localstatedir/%name/tasks/archive/
-%dir %attr(2755,bull,tasks) %_localstatedir/%name/tasks/archive/done/
+%dir %attr(775,root,bull) %_localstatedir/%name/tasks/archive/
+%dir %attr(775,root,bull) %_localstatedir/%name/tasks/archive/done/
 %dir %attr(755,root,root) %_localstatedir/%name/tasks/index/
 %attr(664,cow,tasks) %config(noreplace) %_localstatedir/%name/tasks/.max-task-id
 %_localstatedir/%name/email/
