@@ -85,7 +85,7 @@ bind_address(const char *address)
 	if (fd < 0)
 		error(EXIT_FAILURE, errno, "socket");
 
-	umask(0);
+	umask(0111);
 
 	if (bind(fd, (struct sockaddr *) &sun, sizeof(sun)))
 	{
