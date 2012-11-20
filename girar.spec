@@ -16,6 +16,8 @@ Requires: bash-builtin-lockf >= 0:0.2
 Requires: git-core >= 0:1.5.1
 # due to girar-task-add
 Requires: gear
+# due to gb-sh-rpmhdrcache
+Requires: memcached rpmhdrmemcache
 
 %description
 This package contains server engine initially developed for git.alt,
