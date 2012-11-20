@@ -96,7 +96,7 @@ validate_tag_name()
 	userid="$(printf %s "$tag_author" |
 		LANG=C sed -n 's/^[^<]\+<[[:space:]]*\([a-z][a-z0-9_-]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\).*$/\1/p' |
 		tr '[:upper:]' '[:lower:]' |tr - _)"
-	[ -n "$userid" -a -d "$PEOPLE_DIR/$userid" ] ||
+	[ -n "$userid" ] ||
 		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
