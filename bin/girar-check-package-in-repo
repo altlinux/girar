@@ -31,7 +31,6 @@ if [ -s "$conf" ]; then
 	. "$conf"
 fi
 
-[ -d "${GIRAR_REPO_DIR-}" ] ||
-	fatal 'GIRAR_REPO_DIR is either undefined or invalid'
+cd "$STATE_DIR/repo/$repository/release/latest"
 
-[ -n "$(printf %s "$package" |join -j1 -o1.1 - $GIRAR_REPO_DIR/files/list/src.list)" ]
+[ -n "$(printf %s "$package" |join -j1 -o1.1 - files/list/src.list)" ]

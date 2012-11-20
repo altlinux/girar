@@ -32,8 +32,7 @@ if [ -s "$conf" ]; then
 	. "$conf"
 fi
 
-[ -d "${GIRAR_REPO_DIR-}" ] ||
-	fatal 'GIRAR_REPO_DIR is either undefined or invalid'
+cd "$STATE_DIR/repo/$repository/release/latest"
 
-r_evr="$(printf %s "$package" |join -j1 -o2.2 - $GIRAR_REPO_DIR/files/list/src.list)" || exit 0
+r_evr="$(printf %s "$package" |join -j1 -o2.2 - files/list/src.list)" || exit 0
 [ "$(rpmevrcmp "$r_evr" "$evr")" -lt 0 ]
