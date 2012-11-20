@@ -12,7 +12,7 @@ rfile="$(readlink -ev -- "$file")"
 
 set +e
 result="$(printf '%s\n' "$rfile" |
-		netcat -U "$GB_DEPOT_SOCKET_DIR/depot" -e \
+		netcat -U "$GB_SOCKET_DIR/depot/socket" -e \
 			'cat <&3 && cat >&4' 3<&0 4>&1)"
 set -e
 

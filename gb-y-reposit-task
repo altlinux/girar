@@ -8,7 +8,7 @@ task="$1"; shift
 
 set +e
 result="$(printf '%s %s\n' "$repo" "$task" |
-		netcat -U "$GB_DEPOT_SOCKET_DIR/repo" -e \
+		netcat -U "$GB_SOCKET_DIR/repo/socket" -e \
 			'cat <&3 && cat >&4' 3<&0 4>&1)"
 set -e
 
