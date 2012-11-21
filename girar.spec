@@ -95,7 +95,7 @@ fi
 %dir %attr(3775,root,bull) /var/lib/%name/tasks/archive/
 %dir %attr(775,root,bull) /var/lib/%name/tasks/archive/*
 %dir %attr(755,root,root) /var/lib/%name/tasks/index/
-%config(noreplace) %attr(664,cow,tasks) /var/lib/%name/tasks/.max-task-id
+%config(noreplace) %attr(664,bull,tasks) /var/lib/%name/tasks/.max-task-id
 
 %dir %attr(750,root,girar) /var/lib/%name/email/
 %dir %attr(755,root,root) /var/lib/%name/email/*
