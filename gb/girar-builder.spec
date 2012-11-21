@@ -37,4 +37,3 @@ cd tests
 
 * Wed Nov 14 2012 Gleb F-Malinovskiy <glebfm@altlinux.org> 0.1-alt1
 - initial spec
-

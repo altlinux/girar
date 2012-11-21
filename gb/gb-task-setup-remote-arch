@@ -30,4 +30,3 @@ else
 	# Need to copy.
 	gb-x-rsync-loop -a "$GB_TMP_REPO_DIR"/{$arch,noarch} "$remote_host:gb-repo/"
 fi
-

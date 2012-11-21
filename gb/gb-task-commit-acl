@@ -52,4 +52,3 @@ while read -r N EVR F; do
 		continue
 	stamp_echo >&2 "ACL for old project \`$N' removed"
 done <"$tmpdir"/rm
-

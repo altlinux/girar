@@ -79,4 +79,3 @@ TASK_ID/install/$package/$arch/id		unique id of $package-%version-%release.$arch
 TASK_ID/install/$package/$arch/chroot_base	hsh --initroot packages
 TASK_ID/install/$package/$arch/chroot_install	requirements installed on top of hsh --initroot
 TASK_ID/install/$package/$arch/warnings		warnings generated during the install test
-

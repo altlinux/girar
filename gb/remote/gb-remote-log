@@ -8,7 +8,7 @@ size_time_regression()
 {
 	find "$@" -type f -print0 |xargs -r0 gzip -cdfq |
 		LC_ALL=C awk 'NF==2 && /^Installing .*[.]src[.]rpm$/ { pkg=$2 }
-			NF>4 && $1~/user$/ && $2~/system$/ && 
+			NF>4 && $1~/user$/ && $2~/system$/ &&
 				$3~/elapsed$/ && $4~/CPU$/ {
 					if (match($3, /^([0-9]+):([0-9]+[.][0-9]+)/, a))
 						print pkg "\t" int(a[1]*60+a[2]+0.5) }' |
@@ -155,5 +155,3 @@ Error while parsing
 idle time limit
 __EOF__
 }
-
-
