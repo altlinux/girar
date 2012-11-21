@@ -27,7 +27,7 @@ from0="$1"; shift
 printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
 	fatal "$repo: invalid NEW-REPO-NAME specified"
 cd "$from0" &&
-from="$(pwd -P)" && 
+from="$(pwd -P)" &&
 id=$(sed -n 's/^task \([1-9][0-9]*\)$/\1/p;q' files/list/task.info) &&
 [ "$id" -gt 0 ] 2>/dev/null &&
 su -l repo -s /bin/sh -c "cat -- '$from/files/list/task.info' > /dev/null" ||
@@ -45,7 +45,7 @@ cd "$STATE_DIR"
 
 cp -al -- "$from/files/list/task.info" repo/$repo &&
 rm -f repo/$repo || exit
-	
+
 install -m644 -o acl -g acl /dev/null acl/list.packages.$repo
 install -m644 -o acl -g acl /dev/null acl/list.groups.$repo
 install -d -m755 -o root -g root tasks/index/$repo
