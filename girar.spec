@@ -78,7 +78,7 @@ fi
 
 %defattr(-,root,girar,750)
 
-%dir %attr(755,root,girar) /var/lib/%name/
+%dir %attr(755,root,root) /var/lib/%name/
 %dir %attr(2775,root,acl) /var/lib/%name/acl/
 %dir %attr(755,root,root) /var/lib/%name/depot/
 %dir %attr(770,root,depot) /var/lib/%name/depot/.tmp/
