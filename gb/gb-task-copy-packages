@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+for i in $(copy_nums); do
+	gb-task-copy-packages-i "$i"
+done
+
+# Do not stamp final OK because each subtask is already stamped.
+exit 0

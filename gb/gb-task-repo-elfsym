@@ -1,0 +1,70 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+# This check does not apply to noarch packages.
+fgrep -qs -xv noarch plan/change-arch || exit 0
+
+repo1="$GB_REPO_DIR"
+
+# Reuse our temporary repo.
+repo2="$GB_TMP_REPO_DIR"
+
+. gb-sh-tmpdir
+cd "$tmpdir"
+
+. gb-sh-rpmhdrcache
+
+for arch in $GB_ARCH; do
+	# Assume that the only component worth checking is "classic".
+	bad_elf_symbols_dircmp.pl {"$repo1","$repo2"}/$arch/RPMS.classic >$arch-bes.plus 3>$arch-bes.minus ||
+		echo $? >>FAIL &
+done
+wait
+if [ -s FAIL ]; then
+	if fgrep -qsx 12 FAIL; then
+		halt_build_queue
+	fi
+	stamp_echo >&2 "ELF symbols check FAILED"
+	exit 1
+fi
+
+rc=0 text=OK
+
+for arch in $GB_ARCH; do
+	if [ -s $arch-bes.plus ]; then
+		echo "	$arch: NEW bad_elf_symbols detected:"
+		cat $arch-bes.plus
+		rc=1 text=FAILED
+	fi >&2
+	if [ -s $arch-bes.minus ]; then
+		echo "	$arch: old bad_elf_symbols resolved:"
+		cat $arch-bes.minus
+	fi >&2
+done
+
+if [ "$rc" = 1 ]; then
+	# This list should include only proprietry binary drivers.
+	cat >allow-bad-p <<'EOF'
+^fglrx_glx(-legacy)?-[[:digit:]][^[:space:]]+[[:space:]]+(/usr/lib(64)?/(X11/(fglrx/lib(dri|glx)|modules/(drivers/fglrx_drv|amdxmm|glesx))|libatiadlxx)\.so|/usr/lib/libAMDXvBA\.so\.1\.0)[[:space:]]
+^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
+^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
+EOF
+	too_bad=
+	for arch in $GB_ARCH; do
+		# Bad symbols which are not part of allow-bad-p?
+		if egrep -qs -v -f allow-bad-p -- $arch-bes.plus; then
+			too_bad=1
+			break
+		fi
+	done
+	if [ -z "$too_bad" ]; then
+		# Only bad symbols which are part of allow-bad-p.
+		rc=0 text=COND-OK
+	fi
+fi
+
+stamp_echo >&2 "ELF symbols check $text"
+exit $rc

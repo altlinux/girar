@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+# Each packaged file is mapped to its package name.
+Q1='[%{FILENAMES}\t%{NAME}\t%{SHA1HEADER}\n]'
+
+# Alternatives-like virtual paths should map to themselves.
+Q2='[%{PROVIDENAME}\t%{PROVIDENAME}\t%{SHA1HEADER}\n]'
+
+cd "$1"
+export LC_ALL=C
+
+find -mindepth 1 -maxdepth 1 -name '*.rpm' -exec \
+	rpmquery --qf "$Q1$Q2" -p -- '{}' '+' |
+	# Exclude non-path provides and filenames with tabs.
+	egrep $'^/[^\t]+\t[^\t]+\t[0-9a-f]+$' |
+	# Files kill provides, except for virutal paths.
+	sort -t$'\t' -u -k1,1 -k3,3 |
+	# Discard SHA1HEADER.
+	cut -f1,2 |
+	# Fold identical records.
+	sort -u |
+	# Exclude special provides with parentheses.
+	fgrep -v $')\t/' ||
+		{
+			echo "${0##*/}: $PWD: empty contents index"
+			exit 1
+		} >&2

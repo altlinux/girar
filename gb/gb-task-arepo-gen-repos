@@ -1,0 +1,11 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+gb-task-arepo-gen-task-repo "$(cat task/id)"
+
+# Use a fixed path so that genpkglist md5cache works.
+rm -rf "$GB_AREPO_DIR"
+mkdir "$GB_AREPO_DIR"
+
+gb-task-arepo-gen-next-repo

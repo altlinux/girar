@@ -1,0 +1,83 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+. shell-quote
+qgroups="$(quote_sed_regexp "$GB_EMAIL_DOMAIN_GROUPS")"
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+if [ -f task/skip ]; then
+	exit 0
+fi
+
+state="$(cat task/state)"
+try="$(cat task/try)"
+iter="$(cat task/iter)"
+repo="$(cat task/repo)"
+owner="$(cat task/owner)"
+if [ "$state" = DONE ]; then
+	k="_$(($id/1024))"
+	url="$GB_SITE$GB_TASKS_DONE_DIR/$k/$id/"
+else
+	url="$GB_SITE$GB_TASKS_DIR/$id/"
+fi
+
+cc="$((set +f; cat report/acl-addressees gears/*/userid;
+       [ -f task/test-only ] || cat report/unmet-addressees) |
+      grep ^. | sort -u | join -v1 - task/owner)"
+
+summary="$(cat report/summary ||:)"
+[ -n "$summary" ] || summary=' empty'
+stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
+[ "$stripped_summary" = "$summary" ] ||
+	stripped_summary="$stripped_summary ..."
+
+if [ $try -gt 1 ]; then
+	stry=" (try $try)"
+else
+	stry=
+fi
+
+if [ "$repo" != sisyphus ]; then
+	srepo=" $repo"
+else
+	srepo=
+fi
+
+log_file="logs/events.$try.$iter.log"
+log_size="$(du -bk "$log_file" |cut -f1)"
+
+logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter status=$state"
+
+. gb-sh-tmpdir
+
+cat >"$tmpdir/draft" <<__EOF
+To: git_$owner
+Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
+	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
+	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
+Reply-To: $owner@$GB_EMAIL_DOMAIN_PEOPLE
+Mail-Followup-To: $USER
+X-girar-task-id: $id
+X-girar-task-owner: $owner
+X-girar-task-cc: $(printf %s "$cc" |tr -s '\n' , |sed 's/,/, /g')
+X-girar-task-repo: $repo
+X-girar-task-try: $try
+X-girar-task-iter: $iter
+X-girar-task-status: $state
+X-girar-task-URL: $url
+X-girar-task-log: $log_file
+X-girar-task-summary: [#$id]$srepo $state$stry$summary
+Subject: [#$id]$srepo $state$stry$stripped_summary
+
+$url$log_file
+
+__EOF
+
+if [ "$log_size" -le 256 ]; then
+	cat -- "$log_file" >>"$tmpdir/draft"
+fi
+
+mutt -x -H "$tmpdir/draft" </dev/null

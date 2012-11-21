@@ -1,0 +1,95 @@
+#!/bin/sh -efu
+
+. shell-quote
+
+arch="$1" i="$2"; shift 2
+
+. gb-sh-functions
+
+if [ -f task/abort ]; then
+	stamp_echo >&2 "[$arch] task processing ABORTED"
+	exit 1
+fi
+
+userid="$(cat gears/$i/userid)"
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	from="${dir##*/}"
+	src=pkg.tar
+	tag_name="$(cat "gears/$i/tag_name")"
+	tag_author="$(cat "gears/$i/tag_author")"
+	I="[$arch] #$i $from $tag_name:"
+elif [ -s "gears/$i/srpm" ]; then
+	from="$(cat "gears/$i/srpm")"
+	src="$from"
+	tag_name=
+	tag_author=
+	I="[$arch] #$i $src:"
+else
+	stamp_echo >&2 "#$i: source not found"
+	exit 1
+fi
+
+stamp_echo >&2 "$I build start"
+
+# copy source package and accompanying build data to remote side
+gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:tmp/"
+(umask 002; mkdir -p "build/$i/$arch") || false
+touch "build/$i/$arch/log"
+gb-x-rsync-loop -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
+
+swift=
+if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chroot_BR" ] &&
+   [ -n "$(set +f && ls "build/$i/$arch/srpm"/*.src.rpm 2>/dev/null)" ]; then
+	swift=swift
+fi
+
+# run the build on remote side
+gb-x-ssh "$remote_host" ./gb-remote-build \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell "$from")\"" \
+	"\"$(quote_shell "$tag_name")\"" \
+	"\"$(quote_shell "$tag_author")\"" \
+	$swift ||
+		{ stamp_echo >&2 "$I build FAILED";
+		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
+		  exit 1; }
+
+# copy build result from remote side
+gb-x-rsync-loop -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
+find "build/$i/$arch/" -type d -print0 |
+	xargs -r0 chmod 775 --
+
+if [ -s "build/$i/$arch/excluded" ]; then
+	stamp_echo >&2 "$I build SKIPPED"
+	exit 0
+fi
+
+# copy some build warnings from the build log to the task log
+grep -EHs 'WARNING: [^ ]+ is not yet (set-versioned|debuginfo-enabled)' "build/$i/$arch/log" ||:
+
+if [ -n "$swift" ]; then
+	stamp_echo >&2 "$I build swiftly SKIPPED"
+	exit 0
+fi
+
+sign()
+{
+	local dir="$1" out; shift
+
+	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
+		printf '%s\n' "$out"
+		stamp_echo >&2 "$I $dir rpmsign FAILED"
+		exit 1
+	fi
+}
+
+if [ -s "gears/$i/srpm" ]; then
+	ln -f -- "gears/$i/$src" "build/$i/$arch/srpm/"
+else
+	sign srpm
+fi
+
+sign rpms
+
+stamp_echo >&2 "$I build OK"

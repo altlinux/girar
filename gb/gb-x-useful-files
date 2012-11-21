@@ -1,0 +1,10 @@
+#!/bin/sh -efu
+
+LANG=C
+LC_ALL=C
+export LANG LC_ALL
+
+find -H "$@" -mindepth 1 -maxdepth 1 -name '*.rpm' -execdir \
+	rpmquery --qf '[%{REQUIRENAME}\n][%{PROVIDENAME}\n][%{CONFLICTNAME}\n][%{OBSOLETENAME}\n]' -p -- '{}' + |
+	grep -x '/[^()]\+' |
+	sort -u

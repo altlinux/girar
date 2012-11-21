@@ -1,0 +1,16 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+[ -n "${GB_AREPO_ARCH-}" ] || exit 0
+
+# This stage does not apply to noarch-only tasks.
+grep -Fqsxv noarch plan/change-arch || exit 0
+
+fail_if_task_abort_requested
+
+$0-plan
+$0-build
+$0-gen-repos
+$0-unmets
+$0-save

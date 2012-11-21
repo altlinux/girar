@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+state="$1"; shift
+[ "$state" = pending ] || exit 0
+
+. gb-sh-functions
+
+repo_cur="$(readlink -e -- "$GB_REPO_DIR")" &&
+repo_prev="$(readlink -e -- build/repo/prev)" &&
+[ "$repo_cur" = "$repo_prev" ] && exit ||
+gb-task-queue-rebuild
+
+exit 1

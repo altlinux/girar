@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+for i in $(gear_nums); do
+	rm -f gears/$i/pkg.tar
+done
+
+for arch in $GB_ARCH noarch; do
+	rm -rf -- build/repo/$arch/base.{prev,next}
+done
+
+for arch in ${GB_AREPO_ARCH-}; do
+	rm -rf -- arepo/$arch/base
+	rm -f -- arepo/$arch/pkg.list
+	rm -f -- plan/arepo-{pkg,table}-$arch
+done
+
+rm -f -- plan/next.{src,bin}

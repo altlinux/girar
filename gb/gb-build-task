@@ -1,0 +1,128 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+
+cd "$GB_TASKS_DIR/$id"
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
+builtin lockf -v .
+
+if [ "$(cat task/state)" != BUILDING ]; then
+	echo >&2 "Task $id is not selected for build"
+	exit 1
+fi
+
+# find out who is the filesystem owner of the task
+fsowner="$(stat -c %U .)"
+
+# obtain an exclusive lock on the per-fsowner-and-state file,
+# if the lock cannot be immediately acquired, requeue the test
+if ! builtin lockf -n "$GB_LOCK_PEOPLE_DIR/$fsowner.BUILDING"; then
+	gb-x-girar task-change-state "$id" AWAITING
+	exit 1
+fi
+
+try=$(cat task/try)
+iter=$(cat task/iter)
+log="logs/events.$try.$iter.log"
+gb-task-set-summary
+
+(umask 002 && > report/acl-addressees && > report/unmet-addressees) || exit
+
+(
+	exec >>"$log" 2>&1
+	task_prefix=
+	if [ -f task/test-only ]; then
+		task_prefix="${task_prefix}test-only "
+	fi
+	if [ -f task/swift ]; then
+		task_prefix="${task_prefix}swift "
+	fi
+	task_prefix="${task_prefix}$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
+	[ "$try" = 1 ] && text=started || text=resumed
+	run_by="$(cat task/run ||:)"
+	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $run_by:"
+	gb-task-show
+
+	# check for pkg.tar files
+	gb-task-pkgtar
+
+	# wait for committer if any
+	(
+		lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
+		if ! builtin lockf -sn "$lockdir"; then
+			stamp_echo "waiting for a shared lock on $GB_REPO_NAME"
+			builtin lockf -sv "$lockdir"
+			stamp_echo "acquired a shared lock on $GB_REPO_NAME"
+		fi
+	)
+
+	GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
+	export GB_REPO_DIR
+
+	# obtain a shared lock on the $GB_REPO_DIR
+	builtin lockf -sv "$GB_REPO_DIR"
+
+	# prepare changes
+	gb-task-gen-buildrepo
+	gb-task-setup-remote
+	gb-task-copy-packages
+	gb-task-build
+	fail_if_task_abort_requested
+	gb-x-girar task-make-index-html "$id" ||:
+
+	# run basic tests
+	gb-task-check-build
+	gb-task-check-noarch
+	gb-task-repo-plan
+	gb-task-repo-vercheck
+
+	# generate task and "next" repos
+	gb-task-gen-task-repo "$id"
+	gb-task-gen-next-repo
+
+	# run expensive tests
+	gb-task-repo-unmets
+	gb-task-repo-elfsym
+	gb-task-check-install
+
+	# build and test arepo packages
+	gb-task-arepo
+
+	# run surmountable tests
+	gb-task-check-girar
+	gb-task-check-lastchange
+	gb-task-check-acl
+
+	gb-task-find-closed-bugs
+
+	# apply local policy enforcement
+	gb-task-local-policy
+
+	# save generated "next" repo for commit
+	gb-task-gen-ci
+	gb-task-save-repo
+
+	fail_if_task_abort_requested
+)
+
+rc=$?
+state="$(cat task/state)"
+case "$state" in
+	EPERM|POSTPONED) rc=1 ;;
+	BUILDING) [ "$rc" = 0 ] && state=TESTED || state=FAILED ;;
+	*) rc=1; state=FAILED ;;
+esac
+
+stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
+
+if [ "$state" != TESTED -o -f task/test-only ]; then
+	gb-x-girar task-change-state "$id" "$state"
+	gb-task-send-email "$id"
+else
+	gb-x-girar task-change-state "$id" PENDING
+fi
+
+exit $rc

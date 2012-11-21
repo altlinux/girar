@@ -1,0 +1,57 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+# Use a fixed path so that genpkglist md5cache works.
+rm -rf "$GB_TMP_REPO_DIR"
+
+# Hackaround for file-level dependencies.  Packages are getting built
+# with intermediate RPMS.hasher overlay (--with-stuff mode):
+#
+#	RPMS.hasher
+#	  |
+#	  v
+#	RPMS.classic (stripped)
+#
+# Since RPMS.classic repo is stripped, packages from RPMS.hasher overlay
+# might not be installable, which can break consecutive package builds.
+# Therefore, it is required to regen the repo with --bloat option.
+
+need_regen=
+
+src_nums=$(src_nums)
+copy_nums=$(copy_nums)
+
+if [ -n "$src_nums" ] && [ -n "$copy_nums" ]; then
+	# Building goes after copying, and packages that's
+	# been copied might be required for build.
+	need_regen=1
+elif set -- $src_nums && [ $# -gt 1 ]; then
+	# Consequent builds.
+	need_regen=1
+fi
+
+if [ -z "$need_regen" ]; then
+	ln -s -- "$GB_REPO_DIR" "$GB_TMP_REPO_DIR"
+	# That was fast, no need to stamp.
+	exit 0
+fi
+
+# Create skeleton and make RPMS.* symlinks.
+for a in $GB_ARCH noarch; do
+	mkdir -p -- "$GB_TMP_REPO_DIR"/$a/base
+	for d in $(set +f && ls -d "$GB_REPO_DIR"/$a/RPMS.?*); do
+		[ -d "$d" ]
+		ln -s -- "$d" "$GB_TMP_REPO_DIR"/$a/
+	done
+done
+
+# SRPMS not needed for build.
+# contents_index not needed for build.
+
+# Regen.
+gb-y-repo-regen-basedir --bloat "$GB_TMP_REPO_DIR"
+
+stamp_echo >&2 'created build repo'

@@ -1,0 +1,14 @@
+(Closes: 1) (closes 2)
+(cLoSeS : #17, #18)
+- Does not matter (closes: #19,#20,#21).
+- Not important (Closes: 22, #23, 24, #25).
+(ALT#1234)
+(  cLoSeS : #176  )
+( ALT 1)
+(ALT BUG 0)
+(alt bug #16)
+
+(alt: #17)
+(Girar Builder; closes: #13579)
+(Wrong #Author; closes: #24680)
+- something: Fixed bugs.

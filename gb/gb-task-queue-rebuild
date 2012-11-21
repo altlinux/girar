@@ -1,0 +1,23 @@
+#!/bin/sh -efu
+
+id=$(cat task/id)
+try=$(cat task/try)
+iter0=$(cat task/iter)
+
+log0="logs/events.$try.$iter0.log"
+if [ -s "$log0" ]; then
+	iter=$(($iter0+1))
+else
+	iter=$iter0
+fi
+
+(umask 002 && touch "logs/events.$try.$iter.log")
+
+[ "$iter" = "$iter0" ] ||
+	echo $iter > task/iter
+
+gb-x-girar task-change-state "$id" AWAITING
+
+if [ -s "$log0" ]; then
+	echo "task rebuild is necessary before commit, iteration #$try.$iter queued" >> "$log0"
+fi

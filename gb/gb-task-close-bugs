@@ -1,0 +1,14 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+closed_bugs()
+{
+	find bugmail -mindepth 1 -maxdepth 1 -name '[1-9]*' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
+}
+
+for id in $(closed_bugs); do
+	(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "bugmail/$id") |
+		/usr/sbin/sendmail -i -t
+done

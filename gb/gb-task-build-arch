@@ -1,0 +1,11 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-functions
+
+rm -rf "build/repo/$arch"
+
+for i in $(src_nums); do
+	$0-i "$arch" "$i"
+done

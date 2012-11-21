@@ -1,0 +1,88 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+repo1="$GB_REPO_DIR"
+repo2="$GB_TMP_REPO_DIR"
+topdir="$PWD"
+
+. gb-sh-tmpdir
+cd "$tmpdir"
+
+dump_unmets()
+{
+	local comp="${1-}"
+	for age in old new; do
+		for arch in $GB_ARCH; do
+			[ $age = old ] && repo=$repo1 || repo=$repo2
+			> $arch-$comp-unmets.$age
+			[ -z "$comp" -o -f "$repo/$arch/base/release.$comp" ] ||
+				continue
+			cat >$age-$arch-$comp-sources.list <<-EOF
+				rpm file:$repo $arch classic $comp
+				rpm file:$repo noarch classic
+			EOF
+			$arch unmets -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
+				echo 1 >>FAIL &
+		done
+	done
+
+	wait
+	if [ -s FAIL ]; then
+		exit 1
+	fi
+}
+
+dump_unmets
+dump_unmets debuginfo
+
+rc=0
+> unmets.bin
+> unmets.acl
+
+# compare unmets
+for arch in $GB_ARCH; do
+	for comp in '' debuginfo; do
+		comm -13 $arch-$comp-unmets.{old,new}
+	done >$arch-unmets.plus
+	sort -u -o $arch-unmets.plus{,}
+	for comp in '' debuginfo; do
+		comm -23 $arch-$comp-unmets.{old,new}
+	done >$arch-unmets.minus
+	sort -u -o $arch-unmets.minus{,}
+	if [ -s $arch-unmets.plus ]; then
+		echo "	$arch: NEW unmet dependencies detected:"
+		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.plus
+		cut -f1 < $arch-unmets.plus | cut -d'#' -f1 >> unmets.bin
+		rc=1
+	fi >&2
+	if [ -s $arch-unmets.minus ]; then
+		echo "	$arch: old unmet dependencies resolved:"
+		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.minus
+	fi >&2
+done
+
+sort -u -o unmets.bin{,}
+join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
+sort -u -o unmets.srpms{,}
+sort -k3,3 "$topdir"/plan/next.src |
+	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
+sort -u -o unmets.src{,}
+join -v1 unmets.src "$topdir"/plan/add-src > unmets-new.src
+
+while read -r src; do
+	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
+	list_notifiable_pkg_acl_members "$src"
+done < unmets-new.src > "$topdir"/report/unmet-addressees
+sort -u -o "$topdir"/report/unmet-addressees{,}
+
+if [ -s unmets.acl ]; then
+	echo '	ACLs of affected packages:'
+	cat unmets.acl
+fi
+
+[ "$rc" = 0 ] && text=OK || text=FAILED
+stamp_echo >&2 "dependencies check $text"
+exit $rc

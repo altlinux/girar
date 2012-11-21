@@ -1,0 +1,36 @@
+#!/bin/sh -efu
+
+. gb-sh-conf-site
+: ${GB_REPO_NAME:?}
+. gb-sh-conf-$GB_REPO_NAME
+
+: ${GB_REPO_NAME:?} ${GB_REPO_ROOT:?}
+: ${GB_REPO_SIGNER:?} ${GB_REPO_CODENAME:?} ${GB_REPO_EMAIL:?}
+: ${GB_REPO_RPMARGS?}
+: ${GB_REPO_UP_NAME?} ${GB_REPO_DOWN_NAME?}
+: ${GB_REPO_REL_SUFF_MUST_NOT?} ${GB_REPO_REL_SUFF_MUST_HAVE?}
+: ${GB_GEARS_DIR:?} ${GB_SRPMS_DIR:?}
+: ${GB_TASKS_DIR:?} ${GB_TASKS_DONE_DIR:?}
+: ${GB_SOCKET_DIR:?}
+
+: ${GB_BUGZILLA_FROM:?}
+: ${GB_BUGZILLA_TO:?}
+: ${GB_BUGZILLA_KEY:?}
+
+: ${GB_EMAIL_DOMAIN_PEOPLE:?}
+: ${GB_EMAIL_DOMAIN_GROUPS:?}
+
+: ${GB_ACL_ADDON?}
+
+: ${GB_STOP_FILE:?}
+: ${GB_LOCK_PEOPLE_DIR:?}
+
+: ${GB_REPO_DIR:=$GB_REPO_ROOT/$GB_REPO_NAME/release/latest}
+GB_TMP_REPO_DIR="$TMPDIR/gb-repo-$USER-$GB_REPO_NAME"
+GB_AREPO_DIR="$TMPDIR/gb-arepo-$USER-$GB_REPO_NAME"
+
+[ -n "${GB_ARCH-}" ] ||
+	GB_ARCH='i586 x86_64'
+
+[ -z "${arch-}" ] ||
+	remote_host="build-$USER-$GB_REPO_NAME-$arch"

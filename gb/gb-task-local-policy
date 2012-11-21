@@ -1,0 +1,9 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+if type -p $0-$GB_REPO_NAME >/dev/null; then
+	exec $0-$GB_REPO_NAME
+fi

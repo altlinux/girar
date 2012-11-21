@@ -1,0 +1,54 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+[ -z "${GB_DISABLE_ACL_UPDATE-}" ] ||
+	exit 0
+
+while read -r N EVR F P I; do
+	gb-x-girar check-orphaned "$N" "$GB_REPO_NAME" ||
+		continue
+	u="$(cat gears/$I/userid)"
+	for r in ${GB_ROBOT_USERS-}; do
+		if [ "$u" = "$r" ]; then
+			continue 2
+		fi
+	done
+	GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" add "$u" ${GB_ACL_ADDON-} ||
+		continue
+	stamp_echo >&2 "ACL for orphaned project \`$N' assigned to user \`$u'"
+done <plan/add-src
+
+. gb-sh-tmpdir
+
+join -v1 plan/add-src plan/rm-src > "$tmpdir"/add
+join -v2 plan/add-src plan/rm-src > "$tmpdir"/rm
+
+while read -r N EVR F P I; do
+	u="$(cat gears/$I/userid)"
+	p="$(rpmquery -p --qf '%{packager}' -- "$P")"
+	o=
+	if [ -z "${p##*@packages.*>}" ]; then
+		g="${p%@packages.*>}"; g="${g##*<}"
+		if [ -n "$g" ] && [ -n "$(gb-x-girar acl-show "$GB_REPO_NAME" "@$g")" ]; then
+			o="@$g"
+		fi
+	fi
+	GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" create "$u" $o ${GB_ACL_ADDON-} ||
+		continue
+	for r in ${GB_ROBOT_USERS-}; do
+		if [ "$u" = "$r" ]; then
+			GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" del $u ||
+				continue
+			stamp_echo >&2 "ACL for new project \`$N' assigned to nobody${o:+ and group \"$g\"}"
+			continue 2
+		fi
+	done
+	stamp_echo >&2 "ACL for new project \`$N' assigned to user \`$u'${o:+ and group \"$g\"}"
+done <"$tmpdir"/add
+
+while read -r N EVR F; do
+	GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" delete ||
+		continue
+	stamp_echo >&2 "ACL for old project \`$N' removed"
+done <"$tmpdir"/rm

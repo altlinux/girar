@@ -1,0 +1,72 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+
+cd "$GB_TASKS_DIR/$id"
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the TASKS structure
+builtin lockf -v .
+
+if [ "$(cat task/state)" != COMMITTING ]; then
+	echo >&2 "Task #$id is not selected for commit"
+	exit 1
+fi
+
+if [ -f task/test-only ]; then
+	echo >&2 "Task #$id is a test only task"
+	exit 1
+fi
+
+try=$(cat task/try)
+iter=$(cat task/iter)
+log="logs/events.$try.$iter.log"
+
+(
+	exec >>"$log" 2>&1
+
+	gb-task-validate-state pending || exit 0
+
+	# obtain a shared lock on the $GB_REPO_DIR
+	builtin lockf -sv "$GB_REPO_DIR"
+
+	# obtain an excludive lock on the $lockdir
+	lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
+	builtin lockf -v "$lockdir"
+
+	stamp_echo 'task is ready for commit'
+
+	gb-task-commit-repo
+	gb-task-commit-girar
+	gb-task-commit-acl
+)
+
+rc=$?
+if [ "$(cat task/state)" != COMMITTING ]; then
+	exit $rc
+fi
+
+if [ "$rc" = 0 ]; then
+	state=DONE
+else
+	state=FAILURE
+fi
+
+stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
+gb-x-girar task-change-state "$id" "$state"
+
+if [ "$rc" != 0 ]; then
+	gb-task-send-email "$id"
+	exit $rc
+fi
+
+gb-task-close-bugs ||:
+gb-task-cleanup ||:
+gb-task-send-email "$id"
+gb-task-archive "$id"
+
+# hook up a general archive cleanup
+gb-y-archive-stale-tasks ||:
+
+exit $rc

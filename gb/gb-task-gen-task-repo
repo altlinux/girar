@@ -1,0 +1,18 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+id="$1"; shift
+
+for arch in $GB_ARCH noarch; do
+	rm -rf "build/repo/$arch"
+done
+
+gb-task-gen-task-repo-skel
+
+GB_REPO_COMPONENT_NAMES=task GB_REPO_ARCHIVE="task $id" GB_REPO_DESCRIPTION="task $id" GB_REPO_LABEL="task $id" GB_REPO_SUITE="task $id" GB_REPO_VERSION="task $id" \
+	gb-y-repo-regen-basedir --bloat build/repo
+
+#stamp_echo >&2 'task repo generation OK'

@@ -1,0 +1,81 @@
+Define task directory structure.
+
+# When the task is first created.
+TASK_ID/task/id			TASK_ID==id
+TASK_ID/task/owner		GIRAR_USER
+TASK_ID/task/repo		4.0, 4.1, 5.0, p5, 5.1, p6, 6.0 or Sisyphus
+
+# Task state files.
+TASK_ID/task/state		task state identifier
+TASK_ID/task/try		task try number
+TASK_ID/task/iter		task iteration number
+TASK_ID/task/run		girar user id started the latest try
+TASK_ID/task/test-only		test-only flag
+TASK_ID/task/depends		list of done task numbers the task depends on
+
+# Task logs.
+TASK_ID/logs/events.$try.$iter.log	log of important events during $try.$iter stage
+TASK_ID/logs/commit.log			log of gb-y-task-commit-packages
+
+# Task report data.
+TASK_ID/report/summary		report summary
+TASK_ID/report/acl-addressees	list of acl addressees, one id per line
+TASK_ID/report/unmet-addressees	list of unmet addressees, one id per line
+
+# Email sent to bugzilla to close bugs.
+TASK_ID/bugmail/$bug_id  	bugmail contents for bug $bug_id
+
+# After the build is successful, there is a plan to upgrade the repo.
+# packages going to be added
+TASK_ID/plan/add-src+bin	src-N src-EVR src-F bin-N bin-EVR bin-A bin-F
+TASK_ID/plan/add-src		src-N src-EVR src-F src-P src-I
+TASK_ID/plan/add-srpm2arch	src-F src-P bin-A
+TASK_ID/plan/add-bin		bin-N bin-EVR bin-A bin-F bin-P bin-I
+# packages going to be removed
+TASK_ID/plan/rm-src+bin	src-N src-EVR src-F bin-N bin-EVR bin-A bin-F
+TASK_ID/plan/rm-src		src-N src-EVR src-F
+TASK_ID/plan/rm-srpm2arch	src-F bin-A
+TASK_ID/plan/rm-bin		bin-N bin-EVR bin-A bin-F
+# packages going to be replaced
+TASK_ID/plan/oldsrc2newsrpm	src1-N src2-F
+# arches to be changed
+TASK_ID/plan/change-arch	bin-A
+# new lists
+TASK_ID/plan/next.src		src.list to be committed
+TASK_ID/plan/next.bin		bin.list to be committed
+TASK_ID/plan/src.list.diff	diff -u $GB_REPO_DIR/files/list/src.list plan/next.src
+TASK_ID/plan/bin.list.diff	diff -u $GB_REPO_DIR/files/list/bin.list plan/next.bin
+
+# Task "has-a" list of sources for build.
+TASK_ID/gears/$i/userid		girar user id, e.g. joe
+# gear subtask specific files
+TASK_ID/gears/$i/dir		GIT_DIR, e.g. /people/GIRAR_USER/packages/${dir##*/}.git
+TASK_ID/gears/$i/tag_name	git tag name, e.g. 1.0-alt1
+TASK_ID/gears/$i/tag_id		git tag id, i.e. SHA1 hex
+TASK_ID/gears/$i/tag_author	git tag author, e.g. Joe Hacker <joe@altlinux.org>
+TASK_ID/gears/$i/pkg.tar	pkg.tar file generated from tag_name
+# srpm subtask specific files
+TASK_ID/gears/$i/srpm		srpm file name, e.g. foo-1.0-alt.src.rpm
+TASK_ID/gears/$i/$srpm		srpm file
+# copy subtask specific files
+TASK_ID/gears/$i/copy_repo	package repository to copy from, e.g. sisyphus
+TASK_ID/gears/$i/package	package name, e.g. foo
+
+# NMU approvals acl/$i/ is 1-1 to gears/$i/
+TASK_ID/acl/$i/USER		USER@altlinux.org approved gears/$i/
+
+# Build results build/$i/ is 1-1 to gears/$i/, with per-arch subdirs.
+TASK_ID/build/$i/$arch/chroot_base	hsh --initroot packages
+TASK_ID/build/$i/$arch/chroot_BR	BuildRequires packages
+# packages built with hasher
+TASK_ID/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
+TASK_ID/build/$i/$arch/rpms/*.rpm	1+ *.$arch.rpm or *.noarch.rpm
+
+# Task repository generated when basic tests are passed.
+TASK_ID/build/repo		http://git.altlinux.org/repo/TASK_ID $arch task
+
+# Package test install files, with per-binary-package per-arch subdirs.
+TASK_ID/install/$package/$arch/id		unique id of $package-%version-%release.$arch.rpm
+TASK_ID/install/$package/$arch/chroot_base	hsh --initroot packages
+TASK_ID/install/$package/$arch/chroot_install	requirements installed on top of hsh --initroot
+TASK_ID/install/$package/$arch/warnings		warnings generated during the install test

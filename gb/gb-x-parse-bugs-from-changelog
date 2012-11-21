@@ -1,0 +1,17 @@
+#!/bin/sh -efu
+
+#
+# Accepts the following strings:
+# opening parenthesis, then
+# optional author name finished by semicolon, then
+# "Closes" or "ALT" or "ALT bug", then
+# optional ":", then
+# comma-separated list of bugs with optional '#' prepended, then
+# closing parenthesis.
+# Case-insensitive.
+#
+sed -e 's/(/\n&/g' -e 's/)/&\n/g' |
+sed -n '/(.*)/ s/(\([^;:#()]\+;\)\?[[:space:]]*\(closes\|alt\([[:space:]]\+bug\)\?\)[[:space:]]*:\?[[:space:]]*\(\(#\?[[:digit:]]\+[,[:space:]]*\)\+\)).*/\4/Ipg' |
+tr -s '[:space:]#,' '\n' |
+egrep -x '[[:digit:]]+' ||:
+exit 0

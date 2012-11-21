@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use strict;
+use RPM::Header;
+
+my $f = shift;
+tie my %hdr, "RPM::Header", $f or die "$f: $RPM::err\n";
+print "$hdr{NAME} - $hdr{SUMMARY}\n";
+
+my $once;
+
+for my $i (0 .. $#{$hdr{CHANGELOGTIME}}) {
+	use Date::Format qw(time2str);
+	my $year = time2str("%Y", $hdr{CHANGELOGTIME}[$i]);
+	last if $year < 2007 && $once++;
+	my $date = time2str("%a %b %d %Y", $hdr{CHANGELOGTIME}[$i]);
+	my $info = "* $date $hdr{CHANGELOGNAME}[$i]";
+	my $guy;
+	$info =~ s{(?<=<)([^<>]+?)(?=>)}{
+		local $_ = $1;
+		s/ at /@/g; s/ dot /./g;
+		s/@([-\w._]+)[.]\w+\z/\@$1/;
+		$guy = $_;
+	}e;
+	print "\n";
+	print "$info\n";
+	print "$hdr{CHANGELOGTEXT}[$i]\n";
+}

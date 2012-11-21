@@ -1,0 +1,114 @@
+#!/bin/sh -efu
+
+owner="$1"; shift
+GB_REPO_NAME="$1"; shift
+dir="$1"; shift
+arch="$1"; shift
+comps="$1"; shift
+
+owner=$(printf %s "$owner" |tr . _)
+repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
+
+cd
+
+# recreate $TMPDIR/tmp
+# recreate ~/tmp as symlink to $TMPDIR/tmp
+tmpdir="$TMPDIR/tmp"
+rm -rf -- "$tmpdir"
+mkdir -p -- "$tmpdir"
+rm -rf tmp
+ln -s -- "$tmpdir"
+
+# recreate $TMPDIR/build
+# recreate ~/build as symlink to $TMPDIR/build
+build="$TMPDIR/build"
+rm -rf -- "$build"
+mkdir -p -- "$build"
+rm -rf build
+ln -s -- "$build"
+
+# recreate $TMPDIR/install
+# recreate ~/install as symlink to $TMPDIR/install
+install="$TMPDIR/install"
+rm -rf -- "$install"
+mkdir -p -- "$install"
+rm -rf install
+ln -s -- "$install"
+
+# create $TMPDIR/hasher if necessary
+# recreate ~/hasher as symlink to $TMPDIR/hasher
+workdir="$TMPDIR/hasher"
+mkdir -p -- "$workdir"
+rm -rf hasher
+ln -s -- "$workdir"
+
+# store pkglists outside of aptbox
+rm -rf -- "$workdir/lists"
+mkdir -p -- "$workdir/lists/partial"
+
+# support for full private repo
+gb_repo="$TMPDIR/gb-repo"
+rm -rf -- "$gb_repo"
+mkdir -p -- "$gb_repo"
+rm -rf gb-repo
+ln -s -- "$gb_repo"
+
+# store hasher build repo outside of workdir
+rm -rf hasher_repo
+mkdir -p hasher_repo
+
+# recreate hasher config file
+mkdir -p -- .hasher
+cat >.hasher/config <<EOF
+workdir="\$TMPDIR/hasher"
+apt_config="\$workdir/apt.conf"
+def_target="$arch"
+def_repo="\$HOME/hasher_repo"
+nprocs=1
+known_mountpoints=/proc,/dev/pts
+USER="$owner-$repo_name"
+EOF
+
+# pass remaining command line arguments (if any) to .hasher/config
+for arg; do
+	printf '%s\n' "$arg"
+done >>.hasher/config
+
+# recreate apt config files
+cat >"$workdir/apt.conf" <<EOF
+Dir::Etc::main "/dev/null";
+Dir::Etc::parts "/var/empty";
+Dir::Etc::sourceparts "/var/empty";
+Dir::Etc::sourcelist "$workdir/sources.list";
+Dir::State::lists "$workdir/lists";
+Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
+Debug::pkgMarkInstall "true";
+Debug::pkgProblemResolver "true";
+APT::Cache-Limit "50331648";
+EOF
+cat >"$workdir/sources.list" <<EOF
+rpm file:$dir $arch $comps
+rpm file:$dir noarch classic
+EOF
+cat >"$workdir/pkgpriorities" <<EOF
+Important:
+  basesystem
+Required:
+  apt
+Standard:
+  kernel-doc
+  libpam0
+  libpam0-devel
+  maxima-bin-gcl
+  postfix
+  python-dev
+  python-modules-tkinter
+  altlinux-release-$GB_REPO_NAME
+  branding-altlinux-office-server-alterator
+  branding-altlinux-office-server-bootloader
+  branding-altlinux-office-server-bootsplash
+  branding-altlinux-office-server-graphics
+  branding-altlinux-office-server-indexhtml
+  branding-altlinux-office-server-notes
+  branding-altlinux-office-server-slideshow
+EOF

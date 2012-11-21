@@ -1,0 +1,80 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+# Use a fixed path so that genpkglist md5cache works.
+rm -rf "$GB_TMP_REPO_DIR"
+mkdir "$GB_TMP_REPO_DIR"
+
+# Prepare skeleton.
+for arch in $GB_ARCH noarch; do
+	mkdir $GB_TMP_REPO_DIR/$arch
+	# Copy base directory, except for contents_index.
+	rsync -a --exclude contents_index \
+		$GB_REPO_DIR/$arch/base $GB_TMP_REPO_DIR/$arch/
+	# Deal with RPMS and SRPMS.
+	for d in $GB_REPO_DIR/$arch/SRPMS.classic \
+		 $(set +f && ls -d $GB_REPO_DIR/$arch/RPMS.?*); do
+		[ -d "$d" ]
+		if fgrep -qsx "$arch" plan/change-arch; then
+			# Need to copy directory structure (using symlinks).
+			cp -prs "$d" $GB_TMP_REPO_DIR/$arch/
+		else
+			# Arch packages unchanged, no need to copy directory structure.
+			ln -s "$d" $GB_TMP_REPO_DIR/$arch/
+		fi
+	done
+done
+
+# Commit packages.  This is a light-weight reimplementation
+# of gb-y-task-commit-packages.  For tmprepo, we omit files/
+# and update only RPMS.classic components.
+while read -r N EVR A F; do
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $GB_TMP_REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	rm -- $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+done <plan/rm-bin
+while read -r N EVR A F P I; do
+	comp=classic
+	if [ -z "${N##*-debuginfo}" -a -d $GB_TMP_REPO_DIR/$A/RPMS.debuginfo ]; then
+		comp=debuginfo
+	fi
+	# NB: copy here, so that the repo is rsyncable to remotes.
+	cp -p -- $P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+done <plan/add-bin
+
+# SRPMS.classic is also updated here, since we want to reuse
+# test repo base directories later in gb-task-commit-repo.
+while read -r F A; do
+	rm -- $GB_TMP_REPO_DIR/$A/SRPMS.classic/$F
+done <plan/rm-srpm2arch
+while read -r F P A; do
+	# NB: copying is not needed here.
+	ln -s -- $PWD/$P $GB_TMP_REPO_DIR/$A/SRPMS.classic/$F
+done <plan/add-srpm2arch
+
+# Regen repo.
+gb-y-repo-regen-basedir "$GB_TMP_REPO_DIR"
+
+# basedir ok, SRPMS no longer needed
+for arch in $GB_ARCH noarch; do
+	rm -r $GB_TMP_REPO_DIR/$arch/SRPMS.classic
+done
+
+# Optimize even more: the whole arch component can be turned into symlink.
+for arch in $GB_ARCH noarch; do
+	if fgrep -qsx "$arch" plan/change-arch; then
+		# Arch packages changed, cannot optimize.
+		continue
+	fi
+	if cmp -s {$GB_REPO_DIR,$GB_TMP_REPO_DIR}/$arch/base/pkglist.classic.xz; then
+		rm -r $GB_TMP_REPO_DIR/$arch
+		ln -s $GB_REPO_DIR/$arch $GB_TMP_REPO_DIR/
+	fi
+done
+
+stamp_echo >&2 'created next repo'

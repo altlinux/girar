@@ -1,0 +1,152 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+enable -f /usr/lib/bash/lockf lockf
+# Obtain a shared lock on the $GB_GEARS_DIR.
+builtin lockf -v -s "$GB_GEARS_DIR"
+
+text=OK
+
+fail()
+{
+	echo >&2 "error: $*"
+	text=FAILED
+}
+
+warn()
+{
+	echo >&2 "warning: $*"
+	[ "$text" = FAILED ] ||
+		text=COND-OK
+}
+
+is_git_inheritance_check_relaxed()
+{
+	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
+		local owner="$(stat -c %U "check-git-inheritance/$i")"
+		owner="${owner#git_}"
+		echo >&2 "$N: git inheritance check relaxed by $owner"
+		return 0
+	fi
+	return 1
+}
+
+update_git_inheritance_data()
+{
+	local id="$1"; shift
+	(umask 002; mkdir -p check-git-inheritance)
+	(umask 077; echo "$id" > "check-git-inheritance/.$i")
+}
+
+cond1_fail()
+{
+	if is_git_inheritance_check_relaxed; then
+		warn "$@"
+	else
+		fail "$@"
+	fi
+}
+
+cond2_fail()
+{
+	if is_check_failure_tolerated; then
+		warn "$@"
+	else
+		cond1_fail "$@"
+	fi
+}
+
+check_inheritance()
+{
+	local new_id="$1"; shift
+	local old_id="$1"; shift
+
+	if [ -z "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
+		rm -f "check-git-inheritance/.$i"
+		return 0
+	else
+		update_git_inheritance_data "$old_id"
+		return 1
+	fi
+}
+
+girar_check_git()
+{
+	local new_tag_id tag_name old_tag_id
+	new_tag_id="$(cat "gears/$i/tag_id")"
+	tag_name="$(cat "gears/$i/tag_name")"
+	old_tag_id="$(git rev-parse --tags="[${tag_name:0:1}]${tag_name:1}")"
+	if [ -n "$old_tag_id" ]; then
+		[ "$old_tag_id" = "$new_tag_id" ] ||
+			{ fail "$GIT_DIR already contains different tag \`$tag_name'"; return; }
+	fi
+
+	local dir new_commit_id
+	dir="$(cat "gears/$i/dir")"
+	new_commit_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$new_tag_id^{commit}")"
+	[ "$old_commit_id" != "$new_commit_id" ] ||
+		{ fail "${dir##*/} tag \`$tag_name' refers to the same commit as $GIT_DIR branch \`$GB_REPO_NAME'"; return; }
+	check_inheritance "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
+		cond1_fail "${dir##*/} tag \`$tag_name' is not inherited from $GIT_DIR branch \`$GB_REPO_NAME'"
+}
+
+girar_check_srpm()
+{
+	update_git_inheritance_data "$old_commit_id"
+	if is_git_inheritance_check_relaxed; then
+		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
+	else
+		fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
+	fi
+}
+
+girar_check_copy()
+{
+	local copy_repo copy_commit_id
+	copy_repo="$(cat gears/$i/copy_repo)"
+	copy_commit_id="$(git_get_branch_id "$copy_repo")"
+	if [ -z "$copy_commit_id" ]; then
+		warn "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
+		girar_check_srpm
+		return
+	fi
+	check_inheritance "$copy_commit_id" "$old_commit_id" ||
+		cond2_fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
+}
+
+girar_check()
+{
+	local N="$1" i="$2"; shift 2
+	local GIT_DIR old_commit_id
+
+	set_GIT_DIR "$GB_GEARS_DIR" "$N"
+
+	old_commit_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" &&
+	[ -n "$old_commit_id" ] ||
+		return 0	# first time push to this branch
+
+	# update of existing commit, check inheritance
+
+	if [ -s "gears/$i/dir" ]; then
+		# build from gear
+		girar_check_git
+	elif [ -s "gears/$i/srpm" ]; then
+		# build from srpm
+		girar_check_srpm
+	elif [ -s "gears/$i/copy_repo" ]; then
+		# copy from another branch
+		girar_check_copy
+	else
+		fail "#$i: source not found"
+	fi
+}
+
+while read -r N EVR F P I; do
+	girar_check "$N" "$I"
+done <plan/add-src
+
+stamp_echo >&2 "gears inheritance check $text"
+[ "$text" != FAILED ] || exit 1

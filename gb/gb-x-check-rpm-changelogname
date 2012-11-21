@@ -1,0 +1,32 @@
+#!/bin/sh -efu
+
+expected_id="$1"; shift
+
+rc=0
+fail()
+{
+	printf '%s\n' "$*" >&2
+	rc=1
+}
+
+check()
+{
+	local f="$1"; shift
+	local name id
+	name="$(rpmquery -p --qf '%{changelogname}' -- "$f")"
+	id="$(printf %s "$name" |
+		sed -n 's/^[^<]\+<[[:space:]]*\([^@>[:space:]]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\|-at-\).*$/\1/p' |
+		tr '[:upper:]' '[:lower:]' |
+		tr - _)"
+	if [ -z "$id" ]; then
+		fail "${f##*/}: Invalid changelog name"
+	elif [ "$id" != "$expected_id" ]; then
+		fail "${f##*/}: changelog name ($id@) does not match expected name ($expected_id@)"
+	fi
+}
+
+for f; do
+	check "$f"
+done
+
+exit $rc

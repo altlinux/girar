@@ -1,0 +1,12 @@
+#!/bin/sh
+
+tmpdir=
+cleanup_tmpdir()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup_tmpdir $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM

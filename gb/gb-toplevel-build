@@ -1,0 +1,54 @@
+#!/bin/sh -efu
+
+# Toplevel cron select-task/run-task runner.
+
+GB_REPO_NAME="$1"; shift
+export GB_REPO_NAME
+
+# Ensure that only one instance is running for the given repo.
+lockdir="$HOME/.lockdir/$USER-$GB_REPO_NAME"
+mkdir -p "$lockdir"
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -n "$lockdir" || exit 0
+exec >> "$lockdir/log" 2>&1
+
+# Set cwd to directory with scripts and configs.
+GB_HOME="${0%/*}"
+[ "$GB_HOME" != "$0" ]
+cd "$GB_HOME"
+export GB_HOME
+
+# Add path to scripts to $PATH.
+PATH="$PWD:$PATH"
+
+. gb-sh-functions
+
+pid=
+while :; do
+	# Check for global cutout switches.
+	[ ! -f STOP ] || exit 0
+	[ ! -f "$GB_STOP_FILE" ] || exit 0
+
+	if [ -z "$pid" ]; then
+		inotifywait -q -t 60 -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/awaiting" &
+		pid=$!
+		stamp_echo "forked $pid"
+	fi
+	stamp_echo selecting
+	id="$(gb-y-select-task AWAITING BUILDING 0)" ||
+		id=
+	if [ -n "$id" ]; then
+		stamp_echo "task $id"
+		gb-build-task "$id" ||:
+		# give gb-toplevel-commit a chance to win the race
+		sleep 1
+		continue
+	fi
+	stamp_echo waiting
+	wait $pid ||
+	{
+		[ $? -eq 2 ] || exit
+		stamp_echo timeout
+	}
+	pid=
+done

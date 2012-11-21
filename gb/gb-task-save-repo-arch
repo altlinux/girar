@@ -1,0 +1,14 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+
+. gb-sh-functions
+
+umask 002
+mkdir -p "build/repo/$arch/base.next"
+umask 022
+rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
+
+# Paranoia: ensure that no files has disappeared from tmpfs.
+cd "build/repo/$arch/base.next"
+cat release release.classic pkglist.classic.xz > /dev/null

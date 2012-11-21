@@ -1,0 +1,276 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+i=$1
+cd build/$i
+
+rc=0
+
+#
+# 1. The same set of noarch packages must be obtained on i586 and x86_64.
+#
+is_excluded()
+{
+	local arch="$1"
+	if [ -s $arch/excluded -a ! -d $arch/srpm -a ! -d $arch/rpms ]; then
+		return 0
+	fi
+	return 1
+}
+
+has_noarch=
+for arch in $GB_ARCH; do
+	(set +f && cd $arch/rpms && ls *.noarch.rpm) >$tmpdir/$arch.noarch 2>/dev/null
+	if [ -s $tmpdir/$arch.noarch ]; then
+		has_noarch=1
+	fi
+done
+
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	# only check against architectures that follow arch1
+	shift
+	if [ -z "$has_noarch" ]; then
+		continue
+	fi
+	if is_excluded "$arch1"; then
+		echo >&2 "warning ($i): $arch1: non-verifiable noarch packages, due to ExclusiveArch"
+		continue
+	fi
+	for arch2 in "$@"; do
+		if is_excluded "$arch2"; then
+			# warning already issued
+			continue
+		fi
+		if ! (cd "$tmpdir" && diff -U1 {$arch1,$arch2}.noarch ); then
+			echo >&2 "error (#$i): different set of noarch packages"
+			rc=1
+		fi
+	done
+done
+
+#
+# 2. Noarch packages obtained on i586 and x86_64 must be identical.
+#
+dump_rpmfile()
+{
+	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
+	[ -s $tmpdir/files ] || return 0
+	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek -n "$1" \
+		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] ||
+		{ echo >&2 "${1##*/}: unpack failed"; return 1; }
+	sed -i 's/, last modified: [^,]\+//' $tmpdir/types
+	sed -i 's/\(PNG image\), [1-9][^,]\+/\1/' $tmpdir/types
+	sed -i 's/\(GIF image data, version 89a\), [1-9][0-9]* x [1-9][0-9]*/\1/' $tmpdir/types
+	sed -i 's/\(TeX DVI file \)(TeX output .*/\1/' $tmpdir/types
+	sed -i 's/\(DBase 3 data file \)([0-9]* records)/\1/' $tmpdir/types
+	sed -i 's/broken symbolic link /symbolic link /' $tmpdir/types
+	paste $tmpdir/files $tmpdir/types
+}
+
+dump_deps()
+{
+	R='[Requires: %{REQUIRENAME} %{REQUIREFLAGS:depflags} %{REQUIREVERSION}\n]'
+	P='[Provides: %{PROVIDENAME} %{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}\n]'
+	O='[Obsoletes: %{OBSOLETENAME} %{OBSOLETEFLAGS:depflags} %{OBSOLETEVERSION}\n]'
+	C='[Conflicts: %{CONFLICTNAME} %{CONFLICTFLAGS:depflags} %{CONFLICTVERSION}\n]'
+	rpmquery --qf "$R$P$O$C" -p "$1"
+}
+
+dump_noarch()
+{
+	dump_rpmfile "$1"
+	dump_deps "$1"
+}
+
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	shift
+	if [ -z "$has_noarch" ]; then
+		continue
+	fi
+	for arch2 in "$@"; do
+		join         $tmpdir/{$arch1,$arch2}.noarch  >$tmpdir/both.noarch
+		join -v1 -v2 $tmpdir/{$arch1,$arch2}.noarch >>$tmpdir/only.noarch
+		while read -r rpm; do
+			dump_noarch $arch1/rpms/"$rpm" >$tmpdir/$rpm.$arch1 </dev/null
+			dump_noarch $arch2/rpms/"$rpm" >$tmpdir/$rpm.$arch2 </dev/null
+			if ! (cd "$tmpdir" && diff -U1 $rpm.{$arch1,$arch2} ); then
+				echo >&2 "error (#$i): non-identical noarch packages"
+				rc=1
+			fi
+		done <$tmpdir/both.noarch
+	done
+done
+
+#
+# 3. /usr/share part of i586 and x86_64 packages should be indentical.
+#
+find_arch()
+{
+	(set +f && cd "$1" && ls *.rpm) 2>/dev/null |
+	while read -r rpm; do
+		case $rpm in
+			*.src.rpm | *.noarch.rpm) continue ;;
+		esac
+		N=$(rpmquery --qf '%{NAME}' -p $1/"$rpm")
+		printf '%s\t%s\n' "$N" "$rpm"
+	done |
+	sort -u
+}
+
+has_arch=
+for arch in $GB_ARCH; do
+	find_arch $arch/rpms >$tmpdir/$arch.arch
+	if [ -s $tmpdir/$arch.arch ]; then
+		has_arch=1
+	fi
+done
+
+dump_share()
+{
+	dump_rpmfile "$1" |
+		LC_ALL=C grep '^/usr/share/' || [ $? -eq 1 ]
+}
+
+set -- $GB_ARCH
+for arch1 in "$@"; do
+	shift
+	if [ -z "$has_arch" ]; then
+		continue
+	fi
+	for arch2 in "$@"; do
+		join         $tmpdir/{$arch1,$arch2}.arch  >$tmpdir/both.arch
+		join -v1 -v2 $tmpdir/{$arch1,$arch2}.arch >>$tmpdir/only.arch
+		while read -r N rpm1 rpm2; do
+			dump_share $arch1/rpms/"$rpm1" >$tmpdir/$rpm1.share </dev/null
+			dump_share $arch2/rpms/"$rpm2" >$tmpdir/$rpm2.share </dev/null
+			if ! (cd "$tmpdir" && diff -U1 {$rpm1,$rpm2}.share ); then
+				echo >&2 "warning (#$i): non-identical /usr/share part"
+			fi
+		done <$tmpdir/both.arch
+	done
+done
+
+#
+# 4. Identical i586 and x86_64 packages should be noarch.
+#
+f1= f2=
+>$tmpdir/all.arch
+for arch in $GB_ARCH; do
+	if [ -z "$f1" ]; then
+		f1=$tmpdir/$arch.arch
+		continue
+	fi
+	f2=$tmpdir/$arch.arch
+	join "$f1" "$f2" >$tmpdir/$$
+	f1=$tmpdir/all.arch
+	mv -f $tmpdir/$$ "$f1"
+done
+
+dump_arch()
+{
+	F='[%{FILENAMES}\t%{FILEMODES:octal}\t%{FILEMD5S}%{FILELINKTOS}\n]'
+	rpmquery --qf "$F" -p "$1" |
+		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 1 ]
+	dump_deps "$1"
+}
+
+srcN=
+realArch=
+while read -r N rpms; do
+	set -- $rpms
+	rpm1=$1; shift
+	arch1=$(suffix_arch "$rpm1")
+	if [ -z "$srcN" ]; then
+		arch=$(suffix_arch "$1")
+		srcN=$(rpmquery --qf '%{SOURCERPM}' -p $arch1/rpms/$rpm1)
+		srcN=${srcN%-*}
+		srcN=${srcN%-*}
+	fi
+	if [ "$N" = "$srcN" ]; then
+		# Toplevel package to be checked later.
+		continue
+	fi
+	diff=
+	dump_arch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.arch
+	for rpm2 in $rpms; do
+		arch2=$(suffix_arch "$rpm2")
+		dump_arch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.arch
+		if ! cmp -s $tmpdir/{$rpm1,$rpm2}.arch; then
+			diff=1
+			break
+		fi
+	done
+	if [ -z "$diff" ]; then
+		echo >&2 "warning (#$i): $rpm1 should be .noarch.rpm"
+	else
+		realArch=1
+	fi
+done <$tmpdir/all.arch
+
+fullNoarch=
+while read -r N rpms; do
+	# Check toplevel package.
+	[ "$N" = "$srcN" ] || continue
+	set -- $rpms
+	rpm1=$1; shift
+	arch1=$(suffix_arch "$rpm1")
+	diff=
+	dump_arch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.arch
+	for rpm2 in $rpms; do
+		arch2=$(suffix_arch "$rpm2")
+		dump_arch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.arch
+		if ! cmp -s $tmpdir/{$rpm1,$rpm2}.arch; then
+			diff=1
+			break
+		fi
+	done
+	if [ -z "$diff" ]; then
+		if [ -n "$realArch" ] || [ -s $tmpdir/only.arch ]; then
+			# We have either real-arch or per-arch subpackages.
+			# Due to rpm limitations, toplevel package cannot be made noarch.
+			:
+		else
+			echo >&2 "warning (#$i): $rpm1 should be .noarch.rpm"
+			fullNoarch=1
+		fi
+	else
+		realArch=1
+	fi
+done <$tmpdir/all.arch
+
+if [ -n "$fullNoarch" ]; then
+	# Recheck if the whole package can be made noarch by our own standards.
+	while read -r N rpms; do
+		set -- $rpms
+		rpm1=$1; shift
+		arch1=$(suffix_arch "$rpm1")
+		dump_noarch $arch1/rpms/$rpm1 >$tmpdir/$rpm1.noarch
+		for rpm2 in $rpms; do
+			arch2=$(suffix_arch "$rpm2")
+			dump_noarch $arch2/rpms/$rpm2 >$tmpdir/$rpm2.noarch
+			if cmp -s $tmpdir/{$rpm1,$rpm2}.noarch; then
+				# Extra check for -m32 packages like cpuburn.
+				if sed -n '/^\/usr\/share\//d;/^\//p' $tmpdir/$rpm2.noarch |
+				   grep 'ELF 32-bit .* Intel 80386,'; then
+					echo "warning (#$i): $rpm2 is biarch"
+					fullNoarch=
+					break
+				fi
+			else
+				fullNoarch=
+				break
+			fi
+		done
+	done <$tmpdir/all.arch
+	# Force noarch.
+	if [ -n "$fullNoarch" ]; then
+		echo >&2 "error (#$i): the whole $srcN source package should be made noarch"
+		rc=1
+	fi
+fi
+
+exit $rc

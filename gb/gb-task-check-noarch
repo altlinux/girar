@@ -1,0 +1,15 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+rc=0 text=OK
+
+for i in $(src_nums) $(copy_nums); do
+	$0-i "$i" ||
+		rc=1 text=FAILED
+done
+
+stamp_echo >&2 "noarch check $text"
+exit $rc

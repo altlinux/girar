@@ -1,0 +1,97 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+i="$1"; shift
+
+handle_build_arch()
+{
+	local srpm="$1"; shift
+	local arch="$1"; shift
+	local exclude_arch exclusive_arch
+
+	exclude_arch="$(rpmquery --qf '[%{excludearch}\n]' -p "$srpm")"
+	if [ -n "$exclude_arch" ] && printf '%s\n' "$exclude_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is excluded: %s\n" "${srpm##*/}" "$arch" >excluded
+		return
+	fi
+
+	exclusive_arch="$(rpmquery --qf '[%{exclusivearch}\n]' -p "$srpm")"
+	if [ -n "$exclusive_arch" ] && ! printf '%s\n' "$exclusive_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is not included: %s\n" "${srpm##*/}" "$arch" >excluded
+		return
+	fi
+}
+
+. gb-sh-tmpdir
+
+repo="$(cat gears/$i/copy_repo)"
+repo_dir="$GB_REPO_ROOT/$repo/release/latest"
+cd "$tmpdir"
+make_repo_table "$repo"
+cd - >/dev/null
+
+# output: src-F  bin-A  bin-F
+join -t$'\t' -o '1.3 1.6 1.7' -- "$tmpdir/$repo" "gears/$i/package" >"$tmpdir/copy"
+sort -u -o "$tmpdir/copy"{,}
+if [ ! -s "$tmpdir/copy" ]; then
+	stamp_echo >&2 "package \`$(cat "gears/$i/package")' not found in \`$repo', copy FAILED"
+	exit 1
+fi
+cut -f1 "$tmpdir/copy" |sort -u >"$tmpdir/copy.src"
+cut -f3 "$tmpdir/copy" |sort -u >"$tmpdir/copy.bin"
+
+# remove previously copied packages if any
+rm -rf "build/$i"
+
+while read -r S; do
+	for arch in $GB_ARCH; do
+		(umask 002; mkdir -p "build/$i/$arch") || false
+		cd "build/$i/$arch"
+		rm -f excluded
+		handle_build_arch "$repo_dir/files/SRPMS/$S" "$arch"
+		cd - >/dev/null
+	done
+done <"$tmpdir/copy.src"
+
+while read -r S A B; do
+	a="$A"
+	if [ "$A" = 'noarch' ]; then
+		a="$GB_ARCH"
+	fi
+	for arch in $a; do
+		cd "build/$i/$arch"
+		if [ ! -s excluded ]; then
+			s="$(readlink -ev "$repo_dir/files/SRPMS/$S")"
+			b="$(readlink -ev "$repo_dir/files/$A/RPMS/$B")"
+			(umask 002; mkdir -p srpm rpms) || false
+			cp -v -p "$s" srpm/ >>log 2>&1
+			cp -v -p "$b" rpms/ >>log 2>&1
+		fi
+		cd - >/dev/null
+	done
+done <"$tmpdir/copy"
+
+for arch in ${GB_AREPO_ARCH-}; do
+	a="$repo_dir/files/list/arepo-$arch.list"
+	[ -s "$a" ] || continue
+	sort -k4,4 "$a" > "$tmpdir/arepo.list"
+	join -t$'\t' -1 1 -2 4 -o 2.1,2.3 "$tmpdir/copy.bin" "$tmpdir/arepo.list" > "$tmpdir/copy.arepo"
+	[ -s "$tmpdir/copy.arepo" ] || continue
+	(umask 002; mkdir "build/$i/$arch" "build/$i/$arch/rpms") || false
+	cd "build/$i/$arch"
+	sort -u "$tmpdir/copy.arepo" > copy.list
+	while read -r N B; do
+		b="$(readlink -ev "$repo_dir/files/$arch/RPMS/$B")"
+		cp -v -p "$b" rpms/ >> log 2>&1
+	done < copy.list
+	cd - >/dev/null
+done
+
+for a in $GB_ARCH; do
+	gb-task-copy-remote-arch-i $a $i
+done
+
+stamp_echo >&2 "copy from \`$repo': $(join -t$'\t' -o 1.3 -- "$tmpdir/$repo" "gears/$i/package" |sort -u)"

@@ -1,0 +1,204 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+i="$1"; shift
+
+I="#$i"
+Fatal()
+{
+	stamp_echo >&2 "$I: $*"
+	exit 1
+}
+
+get_sig_uid()
+{
+	local userid
+	userid="$(printf %s "$*" |
+		sed -n 's/^[^<]\+<[[:space:]]*\([a-z][a-z0-9_-]\+\)\([[:space:]]*@\|[[:space:]]\+at[[:space:]]\+\).*$/\1/p' |
+		tr '[:upper:]' '[:lower:]' |tr - _)"
+	[ -n "$userid" ] ||
+		Fatal "$*: unacceptable signature"
+	printf %s "$userid"
+}
+
+built=
+srpm=
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	I="${dir##*/} $(cat "gears/$i/tag_name")"
+	tag_author="$(cat "gears/$i/tag_author")"
+	userid="$(get_sig_uid "$tag_author")"
+	built=1
+elif [ -s "gears/$i/srpm" ]; then
+	srpm="$(cat "gears/$i/srpm")"
+	I="$I: $srpm"
+	sig_text="$(rpmsign -Kv "gears/$i/$srpm")" ||
+		Fatal 'signature not found'
+	fpr="$(printf %s "$sig_text" |
+		sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
+	[ -n "$fpr" ] ||
+		Fatal 'gpg fingerprint not found'
+	tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
+		sed '/^uid[[:space:]]\+/!d;s///;q')"
+	[ -n "$tag_author" ] ||
+		Fatal 'gpg uid not found'
+	userid="$(get_sig_uid "$tag_author")"
+	built=1
+elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
+	I="$I: $(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
+else
+	Fatal 'source not found'
+fi
+
+cd build/$i
+
+check_srpms()
+{
+	local arch f found=
+	for arch in $GB_ARCH; do
+		[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
+		f="$(find "$arch/srpm/" -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f -printf '%f\n')"
+		cd "$arch/srpm"
+		if [ -z "$f" ]; then
+			Fatal "no $arch source package"
+		elif [ -f "$f" ]; then
+			printf '%s\n' "$f"
+			found=1
+		else
+			Fatal "multiple $arch source packages:" "$f"
+		fi
+		cd - >/dev/null
+	done
+	[ -n "$found" ] ||
+		Fatal "no source package"
+}
+
+srpms=$(check_srpms)
+srpmsu=$(echo "$srpms" |sort -u)
+n=$(echo "$srpmsu" | wc -l)
+
+[ "$n" -eq 1 ] ||
+	Fatal 'different per-arch srpms:' "$srpms"
+if [ -n "$srpm" ]; then
+	[ "$srpm" = "$srpmsu" ] ||
+		Fatal "source package \`$srpm' changed its name to \`$(echo "$srpms" |sort -u)' after build"
+fi
+
+check_brpms()
+{
+	local arch f found=
+	for arch in $GB_ARCH; do
+		[ -d "$arch/rpms" -o ! -s "$arch/excluded" ] || continue
+		f="$(find "$arch/rpms/" -mindepth 1 -maxdepth 1 -name '*.rpm' -type f -printf '%f\n')"
+		[ -n "$f" ] ||
+			Fatal "no $arch binary package"
+		found=1
+	done
+	[ -n "$found" ] ||
+		Fatal 'no binary package'
+}
+check_brpms
+
+. gb-sh-tmpdir
+
+for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
+	cd "$tmpdir"
+	make_repo_table $r
+	sort -k1,1 -o $r.src{,}
+	sort -k1,1 -o $r.bin{,}
+	cd - >/dev/null
+done
+
+check_release_name()
+{
+	local r="$1"; shift
+	local s
+
+	for s in $GB_REPO_REL_SUFF_MUST_NOT; do
+		[ -n "${r##$s}" ] ||
+			Fatal "release name $r contains $s suffix"
+	done
+	for s in $GB_REPO_REL_SUFF_MUST_HAVE; do
+		[ -z "${r##$s}" ] ||
+			Fatal "release name $r does not contain $s suffix"
+	done
+}
+
+check_nevr()
+{
+	local t="$1"; shift
+	local n="$1"; shift
+	local evr="$1"; shift
+	local a="$1"; shift
+	local r evr0 a0
+
+	for r in $GB_REPO_UP_NAME; do
+		printf '%s\t%s\n' "$n" "$evr" |
+			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
+			sort -u > "$tmpdir/evra"
+		while read -r evr0 a0; do
+			[ -z "$a" -o "$a" = "$a0" ] || continue
+			vercheck "$evr" "$evr0" ||
+				Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
+		done < "$tmpdir/evra"
+	done
+	for r in $GB_REPO_DOWN_NAME; do
+		printf '%s\t%s\n' "$n" "$evr" |
+			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
+			sort -u > "$tmpdir/evra"
+		while read -r evr0 a0; do
+			[ -z "$a" -o "$a" = "$a0" ] || continue
+			vercheck "$evr0" "$evr" ||
+				Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
+		done < "$tmpdir/evra"
+	done
+}
+
+for arch in $GB_ARCH; do
+	for d in $arch/srpm $arch/rpms; do
+		if [ ! -d "$d" -a -s "$arch/excluded" ]; then
+			continue
+		fi
+		sisyphus_check "$d" && continue
+		if is_check_failure_tolerated; then
+			echo >&2 "$I: the most essential build check failed, but \`$GB_REPO_NAME' is so neglected a repository that nobody cares about such trifles as this."
+			stamp_echo >&2 "$I: sisyphus_check COND-OK"
+		else
+			Fatal 'sisyphus_check FAILED'
+		fi
+	done
+
+	# additional checks for built packages
+	[ -n "$built" ] || continue
+
+	# check changelog name
+	find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
+		Fatal 'changelog name check FAILED'
+
+	# check release name
+	if [ -d "$arch/srpm" -o ! -s "$arch/excluded" ]; then
+		qsrc "$arch/srpm/" >"$tmpdir/new.src"
+		while read -r N EVR F; do
+			check_release_name "${EVR##*-}"
+			check_nevr src "$N" "$EVR" ''
+		done <"$tmpdir/new.src"
+	fi
+
+	if [ -d "$arch/rpms" -o ! -s "$arch/excluded" ]; then
+		qbin "$arch/rpms/" >"$tmpdir/new.bin"
+		while read -r N EVR A F src_F; do
+			check_release_name "${EVR##*-}"
+			check_nevr bin "$N" "$EVR" "$arch"
+		done <"$tmpdir/new.bin"
+	fi
+done
+
+for arch in $GB_ARCH; do
+	[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
+	f="$arch/srpm/$srpmsu"
+	[ -f "$f" ] || continue
+	built_pkgname="$(rpmquery --qf '%{name}' -p -- "$f")"
+	echo "$built_pkgname" > pkgname
+	break
+done

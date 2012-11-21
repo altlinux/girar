@@ -1,0 +1,206 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+# Drop old plan if any.
+find plan -type f -delete
+
+fail()
+{
+	stamp_echo >&2 "$*"
+	exit 1
+}
+
+# Make a plan for upgrade: assuming that all new packages go
+# into the repo, find out the existing packages which should
+# be replaced or removed.
+
+. gb-sh-tmpdir
+
+for i in $(build_nums); do
+	for arch in $GB_ARCH; do
+		dir=build/$i/$arch/srpm
+		[ -d "$dir" -o ! -s "build/$i/$arch/excluded" ] ||
+			continue
+		find $dir/ -mindepth 1 -maxdepth 1 \
+			-name '*.src.rpm' -type f \
+			-printf '%f\t%p\t'$i'\n' # filename pathname subtask
+	done
+done > $tmpdir/i-src
+
+# sort by filename to filter out duplicates
+sort -u -k1,1 -o $tmpdir/i-src{,}
+cut -f2 $tmpdir/i-src > $tmpdir/i-src-P
+sort -o $tmpdir/i-src-P{,}
+xargs -r rpmquery --qf "$qf_src" -p -- < $tmpdir/i-src-P > $tmpdir/new.src
+
+for i in $(build_nums); do
+	for arch in $GB_ARCH; do
+		dir=build/$i/$arch/rpms
+		[ -d "dir" -o ! -s "build/$i/$arch/excluded" ] ||
+			continue
+		find $dir/ -mindepth 1 -maxdepth 1 \
+			-name '*.rpm' -not -name '*.src.rpm' -type f \
+			-printf '%f\t%p\t'$i'\n' # filename pathname subtask
+	done
+done > $tmpdir/i-bin
+# sort by filename to filter out duplicates
+sort -u -k1,1 -o $tmpdir/i-bin{,}
+cut -f2 $tmpdir/i-bin > $tmpdir/i-bin-P
+sort -o $tmpdir/i-bin-P{,}
+xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-P > $tmpdir/new.bin
+
+for i in $(package_nums); do
+	[ -s gears/$i/copy_repo ] ||
+		cat gears/$i/package
+done >$tmpdir/del.pkg
+
+cd "$tmpdir"
+
+sort -u -o new.src{,}
+sort -u -o new.bin{,}
+sort -u -o del.pkg{,}
+
+make_repo_table '' old
+
+# check del.pkg consistency
+sort -k1,1 -o old.src{,}
+join -v1 del.pkg old.src >del.missing
+if [ -s del.missing ]; then
+	fail "FAILED to delete non-existent packages: $(cat del.missing)"
+fi
+sort -k1,1 -o new.src{,}
+join -o 1.1 del.pkg new.src >del.new
+if [ -s del.new ]; then
+	fail "FAILED to delete just built packages: $(cat del.new)"
+fi
+
+mktable new
+
+# Tuples are replaced
+# 1) by explicit delete request
+O='1.1 1.2 1.3 1.4 1.5 1.6 1.7'
+join -t$'\t' -o "$O" -j 1 old del.pkg >rm-by-del
+sort -u -o rm-by-del{,}
+
+# 2) by explicit src-N match (src->bin+);
+join -t$'\t' -o "$O" -j 1 old new >rm-by-src
+sort -u -o rm-by-src{,}
+
+# 3) by implicit bin-N match (src<-bin).
+sort -k4,4 -o old{,}
+sort -k4,4 -o new{,}
+join -t$'\t' -o "$O" -j 4 old new >rm-by-bin
+sort -u -o rm-by-bin{,}
+
+# Implicit match can be wrong, so issue a warning.
+comm -23 rm-by-{bin,src} >rm-by-bin-only
+if [ -s rm-by-bin-only ]; then
+	echo ' *** Warning: existing src.rpm kicked by new non-matching rpm'
+	cut -f3,4 <rm-by-bin-only |sort -u
+fi >&2
+
+# Implicit (src<-bin) match should be propagated to (src->bin+).
+sort -u -o old{,}
+sort -u -o rm-by-bin{,}
+join -t$'\t' -o "$O" -j 1 old rm-by-bin >rm-by-bin+
+
+# Replaced tuples.
+sort -u rm-by-{del,src,bin+} >rm
+
+# Save pairs: old src-N, their new non-matching src-F replacers
+sort -k4,4 -o rm-by-bin-only{,}
+# join by bin-N, output: src1-N  src2-F
+join -t$'\t' -o '1.1 2.3' -j 4 rm-by-bin-only new >oldsrc2newsrpm
+sort -u -o oldsrc2newsrpm{,}
+sort -k2,2 -o oldsrc2newsrpm{,}
+
+# Prepare new repo lists to update old.src/old.bin
+
+# Apply add-src and rm-src changes to old.src
+# sort by src-F
+cat old.src >old+add.src
+cut -f1-3 <new |sort -u >>old+add.src
+sort -u -o old+add.src{,}
+sort -k3,3 -o old+add.src{,}
+cut -f3 <rm |sort -u >rm.src
+# join by src-F
+join -t$'\t' -o '1.1 1.2 1.3' -v1 -1 3 -2 1 old+add.src rm.src >next.src
+
+# Apply add-bin and rm-bin changes to old.bin
+cat old.bin >old+add.bin
+# reorder columns to make src-F a last one
+cut -f3-7 <new |sort -u |join -t$'\t' -o '1.2 1.3 1.4 1.5 1.1' -v1 - /dev/null >>old+add.bin
+sort -u -o old+add.bin{,}
+# sort by bin-F
+sort -k4,4 -o old+add.bin{,}
+cut -f7 <rm |sort -u >rm.bin
+# join by bin-F
+join -t$'\t' -o '1.1 1.2 1.3 1.4 1.5' -v1 -1 4 -2 1 old+add.bin rm.bin >next.bin
+
+# Guess what.  The plan is actually about moving some files around.
+cd - >/dev/null
+
+# src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
+cut -f1-7 <$tmpdir/new |sort -u >plan/add-src+bin
+# src-N  src-EVR  src-F
+cut -f1-3 <$tmpdir/new |sort -u >plan/add-src
+# src-F  bin-A
+cut -f3,6 <$tmpdir/new |sort -u >plan/add-srpm2arch
+# bin-N  bin-EVR  bin-A  bin-F
+cut -f4-7 <$tmpdir/new |sort -u >plan/add-bin
+
+cut -f1-7 <$tmpdir/rm |sort -u >plan/rm-src+bin
+cut -f1-3 <$tmpdir/rm |sort -u >plan/rm-src
+cut -f3,6 <$tmpdir/rm |sort -u >plan/rm-srpm2arch
+cut -f4-7 <$tmpdir/rm |sort -u >plan/rm-bin
+
+sort -u "$tmpdir/next.src" >plan/next.src
+if [ -s "$GB_REPO_DIR/files/list/src.list" ]; then
+	diff -u "$GB_REPO_DIR/files/list/src.list" plan/next.src >plan/src.list.diff ||:
+fi
+sort -u "$tmpdir/next.bin" >plan/next.bin
+if [ -s "$GB_REPO_DIR/files/list/bin.list" ]; then
+	diff -u "$GB_REPO_DIR/files/list/bin.list" plan/next.bin >plan/bin.list.diff ||:
+fi
+
+cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
+
+# do some consistency checks, just in case
+[ -s plan/change-arch ] ||
+	fail 'cowardly refusing to create an empty plan'
+
+# join add-src with i-src by src-F
+sort -k3,3 plan/add-src |
+	join -t$'\t' -1 3 -2 1 -o 1.1,1.2,1.3,2.2,2.3 - $tmpdir/i-src > $tmpdir/add-src
+sort $tmpdir/add-src > plan/add-src
+
+# join add-bin with i-bin by bin-F
+sort -k4,4 plan/add-bin |
+	join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,2.2,2.3 - $tmpdir/i-bin > $tmpdir/add-bin
+sort $tmpdir/add-bin > plan/add-bin
+
+# join oldsrc2newsrpm with i-src by src-F
+join -t$'\t' -1 2 -2 1 -o 1.1,1.2,2.3 $tmpdir/oldsrc2newsrpm $tmpdir/i-src > plan/oldsrc2newsrpm
+sort -o plan/oldsrc2newsrpm{,}
+
+# join add-srpm2arch with i-src by src-F
+join -t$'\t' -j 1 -o 1.1,2.2,1.2 plan/add-srpm2arch $tmpdir/i-src > $tmpdir/add-srpm2arch
+sort $tmpdir/add-srpm2arch > plan/add-srpm2arch
+
+n_add=$(cat plan/add-src |wc -l)
+n_rm=$(cat plan/rm-src |wc -l)
+n_all=$(cat plan/next.src |wc -l)
+plan="src +$n_add -$n_rm =$n_all"
+
+while read -r arch; do
+	n_add=$(cut -f3 plan/add-bin | grep -Fx "$arch" |wc -l)
+	n_rm=$(cut -f3 plan/rm-bin | grep -Fx "$arch" |wc -l)
+	n_all=$(cut -f3 plan/next.bin | grep -Fx "$arch" |wc -l)
+
+	plan="$plan, $arch +$n_add -$n_rm =$n_all"
+done < plan/change-arch
+
+stamp_echo >&2 "plan: $plan"

@@ -1,0 +1,223 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+from="$1"; shift
+tag_name="$1"; shift
+tag_author="$1"; shift
+swift=
+if [ "${1-}" = swift ]; then
+	swift="$1"; shift
+fi
+
+if [ -z "${from##*.src.rpm}" ]; then
+	src="$from"
+else
+	src=pkg.tar
+fi
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+}
+
+I="[$arch] $from${tag_name:+ $tag_name}: remote"
+
+Fatal()
+{
+	stamp_echo >&2 "$I: $*"
+	exit 1
+}
+
+examine_excludearch_exclusivearch()
+{
+	local srpm exclude_arch exclusive_arch
+	srpm="$1"; shift
+
+	exclude_arch="$(rpmquery --qf '[%{excludearch}\n]' -p "$srpm")"
+	if [ -n "$exclude_arch" ] && printf '%s\n' "$exclude_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is excluded: %s\n" "${srpm##*/}" "$arch" >build/excluded
+		exit 0
+	fi
+
+	exclusive_arch="$(rpmquery --qf '[%{exclusivearch}\n]' -p "$srpm")"
+	if [ -n "$exclusive_arch" ] && ! printf '%s\n' "$exclusive_arch" |fgrep -qx "$arch"; then
+		printf "%s: Architecture is not included: %s\n" "${srpm##*/}" "$arch" >build/excluded
+		exit 0
+	fi
+}
+
+# If source is src.rpm, examine ExcludeArch and ExclusiveArch early.
+rm -f build/excluded
+if [ "$from" = "$src" ]; then
+	examine_excludearch_exclusivearch tmp/"$src"
+fi
+
+if [ -n "$swift" -a -s build/chroot_base -a -f build/chroot_BR ]; then
+	mkdir -p hasher_repo/$arch/RPMS.hasher hasher_repo/SRPMS.hasher
+	(set +f
+	 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+	 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
+		Fatal 'failed to obtain packages from previous run'
+	stamp_echo >&2 "$I: too swift to rebuild"
+	exit 0
+fi
+
+tmpdir=
+cleanup()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+
+# Step 1: initialize and query hasher chroot.
+setarch "$arch" -- \
+hsh --init ${tag_author:+--packager="$tag_author"} >"$tmpdir"/out 2>&1 ||
+	{ cat "$tmpdir"/out; Fatal 'initroot failed'; } >&2
+
+q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
+hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
+sort -u -o "$tmpdir"/chroot_base{,}
+
+# Step 1a: check if rebuild is needed at all.
+# When earlier src.rpm is available, it is *almost* okay to reuse its BuildRequires
+# to calculate the list of packages that *would* have been installed into chroot.
+if cmp -s {build,"$tmpdir"}/chroot_base; then
+	build_deps=$(set +f; rpmquery -pR build/srpm/*.rpm)
+	build_deps=$(printf %s "$build_deps" |grep -v '^rpmlib(' |tr -d [[:blank:]])
+	(set +u
+	    . hsh-sh-functions
+	    set_workdir
+	    print_uris $build_deps 2>/dev/null ) |
+	xargs -r0 --delimiter='\n' \
+		rpmquery --qf "$q_bin" -p -- |
+		sort -u >"$tmpdir"/chroot_BR
+	if cmp -s {build,"$tmpdir"}/chroot_BR; then
+		(set +f
+		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
+			Fatal 'failed to obtain packages from previous run'
+		stamp_echo >&2 "$I: no need to rebuild"
+		exit 0
+	fi
+fi
+
+# Step 2: build src.rpm (without sisyphus_check).
+# This will also install all BuildRequires packages.
+cat >"$tmpdir"/save_srpm <<'EOF'
+#!/bin/sh -efu
+mkdir ~/SRPMS
+ln --target-directory ~/SRPMS/ -- "$@"
+EOF
+
+hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check tmp/"$src" \
+	>build/srpm.log 2>&1 ||
+	{
+		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
+			egrep '^error: Architecture is (excluded|not included): ' \
+				build/srpm.log >build/excluded
+			exit 0
+		fi
+		cat build/srpm.log
+		Fatal 'cannot build src.rpm'
+	} >&2
+
+srpm="$(find hasher/chroot/usr/src/SRPMS -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f)" &&
+	srpm_name="$(rpmquery --qf '%{name}' -p "$srpm")" ||
+		Fatal 'cannot build valid src.rpm'
+
+# Examine ExcludeArch and ExclusiveArch.
+examine_excludearch_exclusivearch "$srpm"
+
+# Step 3: examine BuildRequires.
+hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
+sort -u -o "$tmpdir"/chroot_base{,}
+sort -u -o "$tmpdir"/chroot_BR{,}
+comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
+mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
+
+# Step 4: check if rebuild is needed at all.
+if cmp -s {build,"$tmpdir"}/chroot_base; then
+	if cmp -s {build,"$tmpdir"}/chroot_BR; then
+		(set +f
+		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
+		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
+			Fatal 'failed to obtain packages from previous run'
+		stamp_echo >&2 "$I: no need to rebuild"
+		exit 0
+	fi
+fi
+
+# Step 5: examine repo/ contents before build.
+find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/srpm1
+sort -o "$tmpdir"/srpm1{,}
+
+find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms1
+sort -o "$tmpdir"/rpms1{,}
+
+# Step 6: build.
+hsh-rebuild tmp/"$src" >build/log 2>&1 ||
+	{ . gb-remote-log; buildlog_errors build/log;
+		  Fatal 'build failed'; } >&2
+hsh-rmchroot
+
+# Step 5: examine repo/ contents after build.
+find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/srpm2
+sort -o "$tmpdir"/srpm2{,}
+
+find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms2
+sort -o "$tmpdir"/rpms2{,}
+
+comm -23 "$tmpdir"/rpms{1,2} |cut -f1 >"$tmpdir"/out
+if [ -s "$tmpdir"/out ]; then
+	cat "$tmpdir"/out
+	Fatal 'attempt to replace binary packages'
+fi >&2
+comm -23 "$tmpdir"/srpm{1,2} |cut -f1 >"$tmpdir"/out
+if [ -s "$tmpdir"/out ]; then
+	cat "$tmpdir"/out
+	Fatal 'attempt to replace source packages'
+fi >&2
+
+# Step 8: save results.
+comm -23 "$tmpdir"/rpms{2,1} |cut -f1 >"$tmpdir"/add-bin
+[ -s "$tmpdir"/add-bin ] || Fatal 'no binary packages'
+
+comm -23 "$tmpdir"/srpm{2,1} |cut -f1 >"$tmpdir"/add-src
+[ -s "$tmpdir"/add-src ] || Fatal 'no source package'
+
+# Check that we've got (src,bin+) tuple.
+n=$(wc -l <"$tmpdir"/add-src)
+if [ "$n" -ne 1 ]; then
+	cat "$tmpdir"/add-src
+	Fatal 'multiple source packages'
+fi >&2
+
+(cd hasher_repo/$arch/RPMS.hasher
+ xargs -r <"$tmpdir"/add-bin \
+	rpmquery --qf '%{SOURCERPM}\n' -p ) >"$tmpdir"/ref-src || false
+sort -u -o "$tmpdir"/ref-src{,}
+(cd "$tmpdir" && diff -U1 {add,ref}-src ) ||
+	Fatal 'binary packages refer wrong %{SOURCERPM}'
+
+# Copyout.
+rm -rf build/rpms
+mkdir -p build/rpms
+tar -C hasher_repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
+tar -C build/rpms -xf -
+
+rm -rf build/srpm
+mkdir -p build/srpm
+tar -C hasher_repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
+tar -C build/srpm -xf -
+
+# Meta copyout.
+cp -p "$tmpdir"/chroot_base build/chroot_base
+cp -p "$tmpdir"/chroot_BR build/chroot_BR

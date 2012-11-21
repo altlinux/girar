@@ -1,0 +1,46 @@
+#!/bin/sh -e
+
+. gb-sh-functions
+
+template="$GB_HOME/template"
+
+mkidx()
+{
+	local type="$1"; shift
+	local opts="$1"; shift
+	local darklight=dark
+
+	sed -e "s|@SITE@|$GB_SITE|g" -e "s|@DIR@|$PWD|g" <"$template/git-header-$type.html.in" >"$tmpdir/file"
+
+	ls $opts |while read -r f; do
+		name="${f%.git}"
+		[ "$name" != "$f" ] || continue
+		date="$(LANG=C date +%F -r "$f")"
+		sed -e "s|@DIR@|$PWD|g" -e "s|@NAME@|$name|g" -e "s|@DATE@|$date|g" -e "s|@DARKLIGHT@|$darklight|g" \
+			<"$template/git-entry.html.in"
+		if [ "$darklight" = dark ]; then
+			darklight=light
+		else
+			darklight=dark
+		fi
+	done >>"$tmpdir/file"
+
+	cat <"$template/git-footer.html" >>"$tmpdir/file"
+
+	cmp -s "index-$type.html" "$tmpdir/file" ||
+		mv "$tmpdir/file" "index-$type.html"
+}
+
+. gb-sh-tmpdir
+
+for d; do
+	[ -d "$d" ] || continue
+	cd "$d"
+	mkidx name ''
+	mkidx date -t
+	[ -L index.html ] ||
+		ln -snf index-name.html index.html
+	cd - >/dev/null
+done
+
+#stamp_echo >&2 'gears dir index update OK'

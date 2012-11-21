@@ -1,0 +1,87 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+find_state="$1"; shift
+next_state="$1"; shift
+min_iter="$1"; shift
+
+canon_find="$(printf %s "$find_state" |tr '[:upper:]' '[:lower:]')"
+[ -n "$canon_find" ]
+canon_next="$(printf %s "$next_state" |tr '[:upper:]' '[:lower:]')"
+[ -n "$canon_next" ]
+
+cd "$GB_TASKS_DIR"
+enable -f /usr/lib/bash/lockf lockf
+
+repo_tasks()
+{
+	local not
+	not="$(find -L index/"$GB_REPO_NAME/$canon_next" -mindepth 1 -maxdepth 1 \
+		-type d -name '[1-9]*' -printf '-not -user %u\n' |sort -u)"
+
+	cd index/"$GB_REPO_NAME/$canon_find"
+	find -L -mindepth 1 -maxdepth 1 -type d -name '[1-9]*' $not -printf '%f\n' |
+		sort -n
+}
+
+nums()
+{
+	find gears -mindepth 2 -maxdepth 2 \( -path 'gears/[1-7]*/dir' -or -path 'gears/[1-7]*/srpm' -or -path 'gears/[1-7]*/package' \) -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
+}
+
+select_task()
+{
+	local id="$1"; shift
+	local find_state="$1"; shift
+	local next_state="$1"; shift
+	cd "$id" 2>/dev/null || exit
+	# obtain an exclusive lock on the TASKS structure
+	# if the lock cannot be immediately acquired, fail
+	builtin lockf -n . || exit 3
+
+	# if skip flag is set, fail
+	[ ! -f task/skip ] || exit
+
+	# if task state doesn't match, fail
+	[ "$(cat task/state)" = "$find_state" ] || exit
+
+	gb-task-validate-state "$canon_find" || exit
+
+	# if task iteration number is less than required minimum, fail
+	local iter
+	iter="$(grep -h '^[1-9][0-9]*$' task/iter)" || exit
+	[ "$iter" -ge "$min_iter" ] || exit
+
+	# find out who is the real owner of the task
+	owner="$(stat -c %U .)" || exit
+
+	# create the per-owner-and-state file
+	(umask 002 && touch "$GB_LOCK_PEOPLE_DIR/$owner.$next_state") || exit
+
+	# obtain an exclusive lock on the per-owner-and-state file,
+	# if the lock cannot be immediately acquired, fail
+	builtin lockf -n "$GB_LOCK_PEOPLE_DIR/$owner.$next_state" || exit
+
+	# if no non-empty subtasks found, fail
+	set -- $(nums)
+	[ $# -ge 1 ] || exit
+
+	gb-x-girar task-change-state "$id" "$next_state" ||
+		halt_build_queue
+}
+
+retry=1
+while [ -n "$retry" ]; do
+	retry=
+	for id in $(repo_tasks); do
+		(select_task "$id" "$find_state" "$next_state") ||
+		{
+			[ $? -ne 3 ] || retry=1
+			continue
+		}
+		echo "$id"
+		exit
+	done
+done
