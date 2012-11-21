@@ -1,3 +1,4 @@
 #!/bin/sh -efu
 
-exec rpmsign --addsign -- "$@" </dev/null >/dev/null 2>&1
+gpg_name="$1"; shift
+exec rpmsign --define "_gpg_name $gpg_name" --addsign -- "$@" </dev/null >/dev/null 2>&1

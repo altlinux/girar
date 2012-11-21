@@ -77,7 +77,7 @@ sign()
 {
 	local dir="$1" out; shift
 
-	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign '{}' '+'); then
+	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
 		printf '%s\n' "$out"
 		stamp_echo >&2 "$I $dir rpmsign FAILED"
 		exit 1
