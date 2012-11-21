@@ -32,8 +32,8 @@ subscription support and config files.
 
 %install
 %makeinstall_std
-echo 0 >%buildroot/var/lib/%name/tasks/.max-task-id
-mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
+echo 0 >%buildroot/var/lib/girar/tasks/.max-task-id
+mksock %buildroot/var/run/girar/{acl,depot,repo}/socket
 
 %pre
 %_sbindir/groupadd -r -f girar
@@ -46,7 +46,7 @@ for u in acl depot repo; do
 done
 for u in bull cow; do
 	%_sbindir/groupadd -r -f $u
-	%_sbindir/useradd -r -g $u -G girar,tasks -d /var/lib/%name/$u -c "Girar $u robot" -n $u ||:
+	%_sbindir/useradd -r -g $u -G girar,tasks -d /var/lib/girar/$u -c "Girar $u robot" -n $u ||:
 done
 
 %post
@@ -70,45 +70,45 @@ fi
 
 %files
 %config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
-%_sysconfdir/%name/
-%_usr/libexec/%name/
-%_datadir/%name/
+/etc/girar/
+/usr/libexec/girar/
+%_datadir/girar/
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
 
 # all the rest should be listed explicitly
 %defattr(0,0,0,0)
 
-%dir %attr(755,root,root) /var/lib/%name/
-%dir %attr(2775,root,acl) /var/lib/%name/acl/
-%dir %attr(770,root,bull) /var/lib/%name/bull/
-%dir %attr(770,root,cow) /var/lib/%name/cow/
-%dir %attr(755,root,root) /var/lib/%name/depot/
-%dir %attr(770,root,depot) /var/lib/%name/depot/.tmp/
-%dir %attr(775,root,depot) /var/lib/%name/depot/??/
-%dir %attr(755,root,root) /var/lib/%name/repo/
-%dir %attr(755,root,root) /var/lib/%name/people/
-%dir %attr(775,root,bull) /var/lib/%name/gears/
-%dir %attr(775,root,bull) /var/lib/%name/srpms/
+%dir %attr(755,root,root) /var/lib/girar/
+%dir %attr(2775,root,acl) /var/lib/girar/acl/
+%dir %attr(770,root,bull) /var/lib/girar/bull/
+%dir %attr(770,root,cow) /var/lib/girar/cow/
+%dir %attr(755,root,root) /var/lib/girar/depot/
+%dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
+%dir %attr(775,root,depot) /var/lib/girar/depot/??/
+%dir %attr(755,root,root) /var/lib/girar/repo/
+%dir %attr(755,root,root) /var/lib/girar/people/
+%dir %attr(775,root,bull) /var/lib/girar/gears/
+%dir %attr(775,root,bull) /var/lib/girar/srpms/
 
-%dir %attr(3775,bull,tasks) /var/lib/%name/tasks/
-%dir %attr(3775,root,bull) /var/lib/%name/tasks/archive/
-%dir %attr(775,root,bull) /var/lib/%name/tasks/archive/*
-%dir %attr(755,root,root) /var/lib/%name/tasks/index/
-%config(noreplace) %attr(664,bull,tasks) /var/lib/%name/tasks/.max-task-id
+%dir %attr(3775,bull,tasks) /var/lib/girar/tasks/
+%dir %attr(3775,root,bull) /var/lib/girar/tasks/archive/
+%dir %attr(775,root,bull) /var/lib/girar/tasks/archive/*
+%dir %attr(755,root,root) /var/lib/girar/tasks/index/
+%config(noreplace) %attr(664,bull,tasks) /var/lib/girar/tasks/.max-task-id
 
-%dir %attr(750,root,girar) /var/lib/%name/email/
-%dir %attr(755,root,root) /var/lib/%name/email/*
+%dir %attr(750,root,girar) /var/lib/girar/email/
+%dir %attr(755,root,root) /var/lib/girar/email/*
 
-%dir %attr(750,root,girar) /var/lock/%name/
-%dir %attr(770,root,bull) /var/lock/%name/bull/
-%dir %attr(770,root,cow) /var/lock/%name/cow/
+%dir %attr(750,root,girar) /var/lock/girar/
+%dir %attr(770,root,bull) /var/lock/girar/bull/
+%dir %attr(770,root,cow) /var/lock/girar/cow/
 
-%dir %attr(750,root,girar) /var/run/%name/
-%dir %attr(710,root,girar) /var/run/%name/acl/
-%dir %attr(710,root,bull) /var/run/%name/depot/
-%dir %attr(710,root,bull) /var/run/%name/repo/
-%ghost %attr(666,root,root) /var/run/%name/*/socket
+%dir %attr(750,root,girar) /var/run/girar/
+%dir %attr(710,root,girar) /var/run/girar/acl/
+%dir %attr(710,root,bull) /var/run/girar/depot/
+%dir %attr(710,root,bull) /var/run/girar/repo/
+%ghost %attr(666,root,root) /var/run/girar/*/socket
 
 %changelog
 * Fri Nov 16 2012 Dmitry V. Levin <ldv@altlinux.org> 0.4-alt1
