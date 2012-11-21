@@ -76,10 +76,13 @@ fi
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
 
-%defattr(-,root,girar,750)
+# all the rest should be listed explicitly
+%defattr(0,0,0,0)
 
 %dir %attr(755,root,root) /var/lib/%name/
 %dir %attr(2775,root,acl) /var/lib/%name/acl/
+%dir %attr(770,root,bull) /var/lib/%name/bull/
+%dir %attr(770,root,cow) /var/lib/%name/cow/
 %dir %attr(755,root,root) /var/lib/%name/depot/
 %dir %attr(770,root,depot) /var/lib/%name/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/%name/depot/??/
@@ -87,23 +90,25 @@ fi
 %dir %attr(755,root,root) /var/lib/%name/people/
 %dir %attr(775,root,bull) /var/lib/%name/gears/
 %dir %attr(775,root,bull) /var/lib/%name/srpms/
+
 %dir %attr(3775,bull,tasks) /var/lib/%name/tasks/
 %dir %attr(3775,root,bull) /var/lib/%name/tasks/archive/
 %dir %attr(775,root,bull) /var/lib/%name/tasks/archive/*
 %dir %attr(755,root,root) /var/lib/%name/tasks/index/
-%attr(664,cow,tasks) %config(noreplace) /var/lib/%name/tasks/.max-task-id
-%dir /var/lib/%name/email/
+%config(noreplace) %attr(664,cow,tasks) /var/lib/%name/tasks/.max-task-id
+
+%dir %attr(750,root,girar) /var/lib/%name/email/
 %dir %attr(755,root,root) /var/lib/%name/email/*
 
-%dir /var/run/%name/
+%dir %attr(750,root,girar) /var/lock/%name/
+%dir %attr(770,root,bull) /var/lock/%name/bull/
+%dir %attr(770,root,cow) /var/lock/%name/cow/
+
+%dir %attr(750,root,girar) /var/run/%name/
 %dir %attr(710,root,girar) /var/run/%name/acl/
 %dir %attr(710,root,bull) /var/run/%name/depot/
 %dir %attr(710,root,bull) /var/run/%name/repo/
 %ghost %attr(666,root,root) /var/run/%name/*/socket
-
-%dir /var/l*/girar/
-%attr(770,root,bull) /var/l*/girar/bull/
-%attr(770,root,cow) /var/l*/girar/cow/
 
 %changelog
 * Fri Nov 16 2012 Dmitry V. Levin <ldv@altlinux.org> 0.4-alt1
