@@ -32,7 +32,7 @@ subscription support and config files.
 
 %install
 %makeinstall_std
-echo 0 >%buildroot%_localstatedir/%name/tasks/.max-task-id
+echo 0 >%buildroot/var/lib/%name/tasks/.max-task-id
 mksock %buildroot/var/run/%name/{acl,depot,repo}/socket
 
 %pre
@@ -78,21 +78,21 @@ fi
 
 %defattr(-,root,girar,750)
 
-%dir %attr(755,root,girar) %_localstatedir/%name/
-%dir %attr(2775,root,acl) %_localstatedir/%name/acl/
-%dir %attr(755,root,root) %_localstatedir/%name/depot/
-%dir %attr(770,root,depot) %_localstatedir/%name/depot/.tmp/
-%dir %attr(775,root,depot) %_localstatedir/%name/depot/??/
-%dir %attr(755,root,root) %_localstatedir/%name/repo/
-%dir %attr(755,root,root) %_localstatedir/%name/people/
-%dir %attr(775,root,bull) %_localstatedir/%name/gears/
-%dir %attr(775,root,bull) %_localstatedir/%name/srpms/
-%dir %attr(3775,bull,tasks) %_localstatedir/%name/tasks/
-%dir %attr(3775,root,bull) %_localstatedir/%name/tasks/archive/
-%dir %attr(775,root,bull) %_localstatedir/%name/tasks/archive/*
-%dir %attr(755,root,root) %_localstatedir/%name/tasks/index/
-%attr(664,cow,tasks) %config(noreplace) %_localstatedir/%name/tasks/.max-task-id
-%_localstatedir/%name/email/
+%dir %attr(755,root,girar) /var/lib/%name/
+%dir %attr(2775,root,acl) /var/lib/%name/acl/
+%dir %attr(755,root,root) /var/lib/%name/depot/
+%dir %attr(770,root,depot) /var/lib/%name/depot/.tmp/
+%dir %attr(775,root,depot) /var/lib/%name/depot/??/
+%dir %attr(755,root,root) /var/lib/%name/repo/
+%dir %attr(755,root,root) /var/lib/%name/people/
+%dir %attr(775,root,bull) /var/lib/%name/gears/
+%dir %attr(775,root,bull) /var/lib/%name/srpms/
+%dir %attr(3775,bull,tasks) /var/lib/%name/tasks/
+%dir %attr(3775,root,bull) /var/lib/%name/tasks/archive/
+%dir %attr(775,root,bull) /var/lib/%name/tasks/archive/*
+%dir %attr(755,root,root) /var/lib/%name/tasks/index/
+%attr(664,cow,tasks) %config(noreplace) /var/lib/%name/tasks/.max-task-id
+/var/lib/%name/email/
 
 %dir /var/run/%name/
 %dir %attr(710,root,girar) /var/run/%name/acl/
