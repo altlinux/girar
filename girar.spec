@@ -61,6 +61,11 @@ if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi
+	for u in bull cow; do
+		crontab -u $u - <<-'EOF'
+		40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
+		EOF
+	done
 fi
 
 %preun
