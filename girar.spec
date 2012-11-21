@@ -75,6 +75,7 @@ fi
 
 %files
 %config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
+%config(noreplace) /etc/sisyphus_check/check.d/*
 /etc/girar/
 /usr/libexec/girar/
 %_datadir/girar/

@@ -1,0 +1,23 @@
+#!/bin/sh -efu
+
+rpm_name="${rpm_name?RPM name required}"
+prefix='i586-'
+
+# check for valid nvr
+check_arepo()
+{
+	local f="$1" && shift || return 1
+
+	[ -z "${rpm_name##${prefix}*}" ] ||
+		return 0
+
+	FileError "invalid package NAME: $rpm_name" "$f"
+	return 1
+}
+
+run_check() {
+	if ! check_arepo "$1"; then
+		CheckError "package name starts with '$prefix' which is reserved for arepoized packages"
+		return 1
+	fi
+}

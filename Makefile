@@ -1,4 +1,5 @@
 DESTDIR =
+check_dir = /etc/sisyphus_check/check.d
 datadir = /usr/share
 libexecdir = /usr/libexec
 localstatedir = /var/lib
@@ -112,6 +113,8 @@ bin_TARGETS = \
 	bin/girar-task-update-queues \
 	#
 
+check_TARGETS = check/091-check-arepo check/101-check-policydeps
+
 hooks_TARGETS = \
 	hooks/post-receive \
 	hooks/post-update \
@@ -154,20 +157,24 @@ TARGETS = ${bin_TARGETS} ${hooks_TARGETS} ${hooks_receive_TARGETS} \
 	${hooks_update_TARGETS} ${init_TARGETS} ${lib_TARGETS} \
 	${sbin_TARGETS} ${sudoers_TARGETS}
 
-.PHONY: all clean install install-bin install-data install-init install-lib \
-	install-sbin install-sudoers install-var
+.PHONY: all clean install install-bin install-check install-data install-init \
+	install-lib install-sbin install-sudoers install-var
 
 all: ${TARGETS}
 
 clean:
 	${RM} ${bin_auto_TARGETS} ${init_TARGETS} ${lib_TARGETS} ${sbin_TARGETS}
 
-install: install-bin install-data install-init install-lib \
+install: install-bin install-check install-data install-init install-lib \
 	install-sbin install-sudoers install-var
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${CMD_DIR}
 	install -pm755 $^ ${DESTDIR}${CMD_DIR}/
+
+install-check: ${check_TARGETS}
+	install -d -m755 ${DESTDIR}${check_dir}
+	install -pm644 $^ ${DESTDIR}${check_dir}/
 
 install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
 	install -d -m750 \
