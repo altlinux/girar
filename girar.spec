@@ -1,9 +1,9 @@
 Name: girar
-Version: 0.4
+Version: 0.5
 Release: alt1
 
 Summary: git.alt server engine
-License: GPL
+License: GPLv2+
 Group: System/Servers
 Packager: Dmitry V. Levin <ldv@altlinux.org>
 
@@ -18,6 +18,10 @@ Requires: git-core >= 0:1.5.1
 Requires: gear
 # due to gb-sh-rpmhdrcache
 Requires: memcached rpmhdrmemcache
+
+Obsoletes: girar-builder
+
+BuildRequires: perl(RPM.pm) perl(Date/Format.pm)
 
 %description
 This package contains server engine initially developed for git.alt,
@@ -34,6 +38,14 @@ subscription support and config files.
 %makeinstall_std
 echo 0 >%buildroot/var/lib/girar/tasks/.max-task-id
 mksock %buildroot/var/run/girar/{acl,depot,repo}/socket
+
+mkdir -p %buildroot/usr/libexec/girar-builder
+cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
+%add_findreq_skiplist /usr/libexec/girar-builder/remote/*
+
+%check
+cd gb/tests
+./run
 
 %pre
 %_sbindir/groupadd -r -f girar
@@ -82,6 +94,10 @@ fi
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
 
+/usr/libexec/girar-builder/*
+
+%doc LICENSE TASK gb/conf/
+
 # all the rest should be listed explicitly
 %defattr(0,0,0,0)
 
@@ -117,6 +133,9 @@ fi
 %ghost %attr(666,root,root) /var/run/girar/*/socket
 
 %changelog
+* Wed Nov 21 2012 Dmitry V. Levin <ldv@altlinux.org> 0.5-alt1
+- Imported girar-builder.
+
 * Fri Nov 16 2012 Dmitry V. Levin <ldv@altlinux.org> 0.4-alt1
 - Imported gb-depot.
 
