@@ -90,11 +90,10 @@ fi
 %config(noreplace) /etc/sisyphus_check/check.d/*
 /etc/girar/
 /usr/libexec/girar/
+/usr/libexec/girar-builder/
 %_datadir/girar/
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
-
-/usr/libexec/girar-builder/*
 
 %doc LICENSE TASK gb/conf/
 
