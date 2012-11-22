@@ -40,6 +40,8 @@ subscription support and config files.
 %makeinstall_std
 echo 0 >%buildroot/var/lib/girar/tasks/.max-task-id
 mksock %buildroot/var/run/girar/{acl,depot,repo}/socket
+mkdir -p %buildroot/var/spool/cron
+touch %buildroot/var/spool/cron/{bull,cow}
 
 mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
@@ -131,6 +133,9 @@ fi
 %dir %attr(710,root,bull) /var/run/girar/depot/
 %dir %attr(710,root,bull) /var/run/girar/repo/
 %ghost %attr(666,root,root) /var/run/girar/*/socket
+
+%config(noreplace) %ghost %attr(600,bull,crontab) /var/spool/cron/bull
+%config(noreplace) %ghost %attr(600,cow,crontab) /var/spool/cron/cow
 
 %changelog
 * Wed Nov 21 2012 Dmitry V. Levin <ldv@altlinux.org> 0.5-alt1
