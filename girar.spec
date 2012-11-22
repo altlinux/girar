@@ -18,6 +18,8 @@ Requires: git-core >= 0:1.5.1
 Requires: gear
 # due to gb-sh-rpmhdrcache
 Requires: memcached rpmhdrmemcache
+# due to cron jobs
+Requires: stmpclean
 
 Obsoletes: girar-builder
 
@@ -73,11 +75,9 @@ if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi
-	for u in bull cow; do
-		crontab -u $u - <<-'EOF'
-		40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
-		EOF
-	done
+	crontab -u cow - <<-'EOF'
+	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
+	EOF
 fi
 
 %preun
@@ -105,6 +105,7 @@ fi
 %dir %attr(2775,root,acl) /var/lib/girar/acl/
 %dir %attr(770,root,bull) /var/lib/girar/bull/
 %dir %attr(770,root,cow) /var/lib/girar/cow/
+%dir %attr(770,root,cow) /var/lib/girar/cow/.cache/
 %dir %attr(755,root,root) /var/lib/girar/depot/
 %dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/girar/depot/??/

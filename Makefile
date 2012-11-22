@@ -219,6 +219,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/acl \
 		${DESTDIR}${STATE_DIR}/bull \
 		${DESTDIR}${STATE_DIR}/cow \
+		${DESTDIR}${STATE_DIR}/cow/.cache \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
