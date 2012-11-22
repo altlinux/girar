@@ -50,8 +50,9 @@ for dest in packages private public; do
 
 	git add $files
 	git commit -q -a -m "Add templates for $files"
+	git repack -q -a -d
 
-	git clone -q --bare "$tmpdir" "$dest" &&
+	git clone -q --bare --template=/var/empty "$tmpdir" "$dest" &&
 		printf %s\\n "$PROG: $dest: Creation complete" ||
 		printf %s\\n "$PROG: $dest: Creation failed!"
 
