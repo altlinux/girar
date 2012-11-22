@@ -77,7 +77,11 @@ if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi
+	crontab -u bull - <<-'EOF'
+	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-commit sisyphus
+	EOF
 	crontab -u cow - <<-'EOF'
+	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
 	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
 	EOF
 fi
