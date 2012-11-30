@@ -7,8 +7,10 @@ fail_if_task_abort_requested
 . gb-sh-tmpdir
 
 for arch in $GB_AREPO_ARCH; do
-	$0-arch "$arch" "$@" ||
-		stamp_echo "[$arch] ${0#gb-task-arepo-} FAILED" >>"$tmpdir"/FAIL &
+	$0-arch "$arch" "$@" || {
+		me=${0##*/}
+		stamp_echo "[$arch] ${me#gb-task-arepo-} FAILED" >>"$tmpdir"/FAIL
+	} &
 done
 
 wait
