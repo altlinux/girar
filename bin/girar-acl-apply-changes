@@ -237,6 +237,14 @@ do_create()
 		return
 	fi
 
+	if [ "${item#@}" = "$item" ]; then
+		printf %s "$item" |grep -Exqs '[A-Za-z0-9][A-Za-z0-9._+-]*[A-Za-z0-9+]' ||
+			abort "$item: Invalid package name"
+	else
+		printf %s "$item" |grep -Exqs '@[a-z][a-z0-9_]*[a-z0-9]' ||
+			abort "$item: Invalid group name"
+	fi
+
 	check_new_members $new_owners
 
 	girar-check-superuser "$repository" ||
