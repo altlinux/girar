@@ -65,11 +65,9 @@ for i in $nums; do
 		else
 			printf ' %s:%s=%s\n' "$i" "${dir##*/}" "$tag_name"
 		fi
-	fi
-	if [ -s "gears/$i/srpm" ]; then
+	elif [ -s "gears/$i/srpm" ]; then
 		printf ' %s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
-	fi
-	if [ -s "gears/$i/package" ]; then
+	elif [ -s "gears/$i/package" ]; then
 		if [ -s "gears/$i/copy_repo" ]; then
 			[ -z "$brief" ] &&
 				printf ' %s:copy_repo=%s\n' "$i" "$(cat "gears/$i/copy_repo")" ||

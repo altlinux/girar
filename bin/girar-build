@@ -13,7 +13,8 @@ Usage: $PROG [--test-only] [-b <binary_repository_name>] [--deps <deps>] <build_
 where \`<binary_repository_name>' is a valid binary package repository name,
 \`<deps> is a comma-separated list of required task id numbers, and
 \`<build_source> <build_name>' pair is either \`<gear_repo> <gear_tag>'
-or \`srpm <srpm_file>' or \`del <package_name>' or \`copy <package_name>'.
+or \`srpm <srpm_file>' or \`rebuild <package_name>'
+or \`del <package_name>' or \`copy <package_name>'.
 EOF
 	exit 1
 }
@@ -72,7 +73,7 @@ while [ $# -gt 0 ]; do
 	dir="$1" tag="$2"
 	shift 2
 	case "$dir" in
-		copy|del|srpm) girar-task add "$id" "$dir" "$tag"
+		copy|del|rebuild|srpm) girar-task add "$id" "$dir" "$tag"
 			;;
 		*) girar-task add "$id" repo "$dir" "$tag"
 			;;

@@ -99,7 +99,7 @@ check_copy_del()
 {
 	local i package action a_repo rc=0
 	for i in $nums; do
-		[ -s gears/$i/package ] || continue
+		[ -s gears/$i/package -a ! -s gears/$i/dir ] || continue
 		package="$(cat gears/$i/package)"
 		if [ -s gears/$i/copy_repo ]; then
 			action=copy

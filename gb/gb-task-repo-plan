@@ -53,7 +53,7 @@ sort -o $tmpdir/i-bin-P{,}
 xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-P > $tmpdir/new.bin
 
 for i in $(package_nums); do
-	[ -s gears/$i/copy_repo ] ||
+	[ -s gears/$i/copy_repo -o -s gears/$i/dir ] ||
 		cat gears/$i/package
 done >$tmpdir/del.pkg
 

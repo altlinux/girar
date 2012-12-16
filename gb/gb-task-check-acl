@@ -53,7 +53,7 @@ done < plan/oldsrc2newsrpm
 
 # Deal with explicitly removed packages.
 for i in $(package_nums); do
-	[ -s gears/$i/copy_repo ] ||
+	[ -s gears/$i/copy_repo -o -s gears/$i/dir ] ||
 		printf '%s\t%s\n' "$i" "$(cat "gears/$i/package")" >> $tmpdir/check_acl
 done
 
