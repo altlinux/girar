@@ -13,6 +13,7 @@ Usage: $PROG [<task_id> [<before_subtask_id>]] repo <gear_repo> <gear_tag>
    or: $PROG [<task_id> [<before_subtask_id>]] del <package>
    or: $PROG [<task_id> [<before_subtask_id>]] rebuild <package>
    or: $PROG [<task_id> [<before_subtask_id>]] copy <package> [<binary_repository_name>]
+   or: $PROG [<task_id>] kmodules <kflavour>
 EOF
 	exit 1
 }
@@ -29,7 +30,7 @@ subtask_id=
 case "$1" in
 	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 		case "$1" in
-			repo|srpm|del|rebuild|copy) ;;
+			repo|srpm|del|rebuild|kmodules|copy) ;;
 			[1-7]*) subtask_id="$1"; shift ;;
 			*) usage "Invalid action: $1" ;;
 		esac ;;
@@ -153,6 +154,24 @@ validate_srpm()
 	popd >/dev/null
 }
 
+handle_kmodules()
+{
+	local kimage qkflavour
+	kimage="kernel-image-$kflavour"
+
+	girar-check-package-in-repo "$kimage" "$repo" ||
+		fatal "package \`$kimage' not found in \`$repo'"
+
+	cd "$STATE_DIR/repo/$repo/release/latest/files/list"
+
+	quote_sed_regexp_variable qkflavour "$kflavour"
+	set -- $(sed -n "s/^\\(kernel-modules-[^[:space:]]\\+-$qkflavour\\)[[:space:]].*/\1/p" src.list)
+	for m; do
+		girar-task-add "$id" rebuild "$m"
+	done
+	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
+}
+
 case "$action" in
 	repo)
 	[ "$#" -eq 2 ] || usage 'Not enough arguments.'
@@ -163,6 +182,13 @@ case "$action" in
 	[ "$#" -le 1 ] || usage 'Too many arguments.'
 	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
 	package="$1"; shift
+	;;
+	kmodules)
+	[ "$#" -le 1 ] || usage 'Too many arguments.'
+	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	[ -z "$subtask_id" ] ||
+		usage "subtask #$subtask_id is not supported for \`$action' action"
+	kflavour="$1"; shift
 	;;
 	copy)
 	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
@@ -183,9 +209,12 @@ case "$action" in
 esac
 
 cd "$TASKS_DIR/$id"
-# obtain an exclusive lock on the TASKS structure
-builtin lockf -n . ||
-	fatal "task #$id is locked"
+if [ "${GIRAR_TASK_LOCKED-}" != "$id" ]; then
+	# obtain an exclusive lock on the TASKS structure
+	builtin lockf -n . ||
+		fatal "task #$id is locked"
+	export GIRAR_TASK_LOCKED="$id"
+fi
 
 repo="$(cat task/repo)"
 case "$action" in
@@ -204,6 +233,10 @@ case "$action" in
 	girar-check-package-in-repo "$package" "$repo" ||
 		fatal "Invalid request to rebuild a nonexistent package \`$package' in \`$repo'"
 	validate_rebuild_dir
+	;;
+	kmodules)
+	handle_kmodules
+	exit 0
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
