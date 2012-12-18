@@ -23,7 +23,11 @@ elif [ -s "gears/$i/srpm" ]; then
 	from="$(cat "gears/$i/srpm")"
 	src="$from"
 	tag_name=
-	tag_author=
+	if [ -s "gears/$i/tag_author" ]; then
+		tag_author="$(cat "gears/$i/tag_author")"
+	else
+		tag_author=
+	fi
 	I="[$arch] #$i $src:"
 else
 	stamp_echo >&2 "#$i: source not found"
