@@ -59,6 +59,15 @@ cond2_fail()
 	fi
 }
 
+specsubst_cond_fail()
+{
+	if [ -n "${N##kernel-modules-*}" ]; then
+		warn "$@"
+	else
+		fail "$@"
+	fi
+}
+
 check_inheritance()
 {
 	local new_id="$1"; shift
@@ -71,6 +80,17 @@ check_inheritance()
 		update_git_inheritance_data "$old_id"
 		return 1
 	fi
+}
+
+check_specsubst_policy()
+{
+	local new_id="$1"; shift
+	local old_id="$1"; shift
+
+	GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" gear --describe -t "$new_id" >/dev/null 2>&1 ||
+		return 0
+	GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" gear --describe -t "$old_id" >/dev/null 2>&1 ||
+		return 1
 }
 
 girar_check_git()
@@ -89,6 +109,8 @@ girar_check_git()
 	new_commit_id="$(git --git-dir="gears/$i/git" rev-parse --verify "$new_tag_id^{commit}")"
 	check_inheritance "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
 		cond1_fail "${dir##*/} tag \`$tag_name' is not inherited from $GIT_DIR branch \`$GB_REPO_NAME'"
+	check_specsubst_policy "$new_commit_id" "$old_commit_id" "gears/$i/git/objects" ||
+		specsubst_cond_fail "${dir##*/} tag \`$tag_name' no longer uses specsubst"
 }
 
 girar_check_srpm()
@@ -113,6 +135,8 @@ girar_check_copy()
 	fi
 	check_inheritance "$copy_commit_id" "$old_commit_id" ||
 		cond2_fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
+	check_specsubst_policy "$copy_commit_id" "$old_commit_id" ||
+		specsubst_cond_fail "$GIT_DIR branch \`$GB_REPO_NAME': specsubst would have been lost"
 }
 
 girar_check()
