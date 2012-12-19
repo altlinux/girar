@@ -106,7 +106,7 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 fi
 
 # initialize %package_signer before parsing spec.
-printf '%s\t%s\n' '%package_signer' "$package_signer" |
+printf '%s\t%s\n' '%package_signer' "${package_signer:-%packager}" |
 	hsh-run -- sh -c 'cat >> ~/.rpmmacros'
 
 # Step 2: build src.rpm (without sisyphus_check).
