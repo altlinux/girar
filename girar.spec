@@ -24,6 +24,8 @@ Requires: stmpclean
 Requires: glibc-i18ndata
 # due to gb-task-repo-unmets
 Requires: qa-robot >= 0.3.4-alt1
+# due to gb-y-repo-regen-basedir
+Requires: deepsolver-repo >= 0.3.3-alt1
 
 Obsoletes: girar-builder
 

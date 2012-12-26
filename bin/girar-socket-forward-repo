@@ -63,6 +63,7 @@ for d in $(set +f && echo ??*); do
 		logger -t "$PROG" "$repo/task/$t -> $repo/task/archive/$k/$t"
 		set +f
 		rm -f "archive/$k/$t"/*/base/contents_index
+		rm -f "archive/$k/$t"/*/base/ds.*/.rpms.complete.data
 		set -f
 	done
 	exit

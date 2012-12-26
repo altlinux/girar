@@ -9,6 +9,10 @@ mkdir -p "build/repo/$arch/base.next"
 umask 022
 rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
 
+set +f
+chmod g+w "build/repo/$arch/base.next/"ds.*
+set -f
+
 # Paranoia: ensure that no files has disappeared from tmpfs.
 cd "build/repo/$arch/base.next"
 cat release release.classic pkglist.classic.xz > /dev/null
