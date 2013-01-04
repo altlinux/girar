@@ -9,7 +9,7 @@ while read -r N EVR F P I; do
 	gb-x-girar check-orphaned "$N" "$GB_REPO_NAME" ||
 		continue
 	u="$(cat gears/$I/userid)"
-	for r in ${GB_ROBOT_USERS-}; do
+	for r in ${GB_ACL_NOAUTOASSIGN_USERS-}; do
 		if [ "$u" = "$r" ]; then
 			continue 2
 		fi
@@ -36,7 +36,7 @@ while read -r N EVR F P I; do
 	fi
 	GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" create "$u" $o ${GB_ACL_ADDON-} ||
 		continue
-	for r in ${GB_ROBOT_USERS-}; do
+	for r in ${GB_ACL_NOAUTOASSIGN_USERS-}; do
 		if [ "$u" = "$r" ]; then
 			GIRAR_USER=root gb-x-girar acl --quiet "$GB_REPO_NAME" "$N" del $u ||
 				continue
