@@ -32,13 +32,14 @@ owner="$(cat task/owner)"
 	girar-check-superuser "$repo" ||
 		fatal "task #$id belongs to $owner"
 
-schedule_abort()
+request_abort()
 {
 	if [ -f task/abort ]; then
-		local aowner
+		local aowner awhen
 		aowner="$(stat -c %U task/abort)"
 		aowner="${aowner#git_}"
-		fatal "task #$id abort already requested by $aowner"
+		awhen="$(stat -c %y task/abort)"
+		fatal "task #$id abort already requested by $aowner at $awhen"
 	fi
 	touch task/abort
 	local try iter log
@@ -46,7 +47,7 @@ schedule_abort()
 	iter=$(cat task/iter)
 	log="logs/events.$try.$iter.log"
 	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: task abort requested by $GIRAR_USER." >> "$log"
-	message "task #$id scheduled for abort"
+	message "task #$id abort requested"
 }
 
 do_abort()
@@ -79,5 +80,5 @@ enable -f /usr/lib/bash/lockf lockf
 if builtin lockf -n .; then
 	try_abort
 else
-	schedule_abort
+	request_abort
 fi
