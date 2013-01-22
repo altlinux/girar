@@ -9,6 +9,7 @@ __included_girar_sh_functions=1
 . shell-error
 . girar-sh-config
 
+# If $1 contains no "/" symbol, prefix it with "packages/".
 prefix_packages()
 {
 	local fmt='%s' dirname="${1%/*}"
@@ -17,6 +18,7 @@ prefix_packages()
 	printf "$fmt" "$1"
 }
 
+# If $1 doesn't end with ".git", append ".git" suffix.
 add_git_suffix()
 {
 	local arg="$1"
@@ -27,15 +29,18 @@ add_git_suffix()
 
 validate_packages_dir()
 {
-	local dir0 dirname dir
+	local dir0 dirname proj
 	dir0="$(prefix_packages "$1")"; shift
 	dirname="${dir0%/*}"
 	[ "$dirname" = 'packages' -o "$dirname" = 'private' -o "$dirname" = 'public' ] ||
 		fatal "$dir0: invalid directory name"
-	dir="$(printf %s "${dir0##*/}" |sed -e 's,/\+$,,' -e 's,\.git$,,')"
-	printf %s "$dir" |egrep -qs "$PROJECT_NAME_REGEXP" ||
+	proj="$dir0"
+	proj="${proj%%/}"
+	proj="${proj##*/}"
+	proj="${proj%.git}"
+	printf %s "$proj" |grep -Eqse "$PROJECT_NAME_REGEXP" ||
 		fatal "$dir0: invalid directory name"
-	printf %s\\n "$dirname/$dir"
+	printf '%s\n' "$dirname/$proj"
 }
 
 gear_nums()
