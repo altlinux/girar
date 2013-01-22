@@ -21,30 +21,22 @@ fi
 cd "$TASKS_DIR"
 
 id=$(PROG="$PROG" girar-task-find-current "$@")
+cd "$id"
 
-[ -O "$id" -a -w "$id" ] ||
+[ -O . -a -w . ] ||
 	fatal "failed to remove task #$id: Permission denied"
 
 enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -n "$id" ||
+builtin lockf -n . ||
 	fatal "task #$id is locked"
 
-state=$(cat "$id"/task/state)
-case "$state" in
-	NEW|AWAITING|EPERM|TESTED|PENDING|POSTPONED|FAILED)
-		;;
-	BUILDING|COMMITTING)
-		fatal "task #$id is a work in progress" ;;
-	DONE)
-		fatal "task #$id is already successfully processed" ;;
-	*)
-		fatal "task #$id is in unrecognized state \"$state\"" ;;
-esac
-
-logger -t "$PROG" "user=$GIRAR_USER task=$id state=$state"
+check_task_modifiable
+state=$(cat task/state)
 
 echo >&2 -n "removing task #$id ... "
+logger -t "$PROG" "user=$GIRAR_USER task=$id state=$state"
 girar-task-update-queues  "$id" "$state" ''
+cd - >/dev/null
 rm -rf -- "$id"/
 echo >&2 done
