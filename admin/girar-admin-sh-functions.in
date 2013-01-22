@@ -61,7 +61,7 @@ set_name()
 	NAME="$1"; shift
 	[ -n "$NAME" ] ||
 		usage 'not specified: NAME'
-	printf %s "$NAME" |grep -Eqse "$USER_NAME_REGEXP" ||
+	printf %s "$NAME" |grep -Exqse "$USER_NAME_REGEXP" ||
 		fatal "$NAME: invalid NAME specified"
 	IT_NAME="$USER_PREFIX$NAME"
 }

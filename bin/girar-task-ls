@@ -113,7 +113,7 @@ esac
 
 [ -n "$user" ] ||
 	user="$GIRAR_USER"
-printf %s "$user" |grep -qs '^[a-z][a-z_0-9]\+$' ||
+printf %s "$user" |grep -Exqs "$USER_NAME_REGEXP" ||
 	show_usage 'invalid user name'
 
 case "$user" in

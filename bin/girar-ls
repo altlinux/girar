@@ -25,7 +25,7 @@ cd
 
 if [ "$#" -ge 1 ]; then
 	dir="$1"; shift
-	printf %s "$dir" |egrep -qs '^[A-Za-z0-9/][-A-Za-z0-9_./]+$' ||
+	printf %s "$dir" |grep -Exqs "/*$PROJECT_NAME_REGEXP(/+$PROJECT_NAME_REGEXP)*/*" ||
 		fatal "$dir: directory name contains unacceptable symbols"
 else
 	dir=.

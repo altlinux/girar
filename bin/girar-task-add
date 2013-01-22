@@ -50,13 +50,14 @@ validate_repo_dir()
 	local dir0="$dir"
 
 	cd
+	dir="${dir%%/}"
 	dir="$(printf %s "$dir" |tr -s /)"
 	dir="$(prefix_packages "$dir")"
 	dir="$(add_git_suffix "$dir")"
 	[ "${dir#/}" != "$dir" ] ||
 		dir="$PEOPLE_DIR/$GIRAR_USER/$dir"
 	[ "${dir#$PEOPLE_DIR/}" != "$dir" ] &&
-	printf '%s' "$dir" |egrep -qs "^$PEOPLE_DIR/"'[a-z][a-z_0-9]+/packages/[A-Za-z0-9][-A-Za-z0-9_.]+[.]git$' ||
+	printf '%s' "$dir" |grep -Exqse "$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\.git' ||
 		fatal "$dir0: path to git repository does not belong to allowed directory tree"
 
 	[ -d "$dir" ] ||

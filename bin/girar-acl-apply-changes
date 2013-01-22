@@ -312,7 +312,7 @@ while read item action new_owners; do
 	[ -z "$(printf %s "$new_owners" |LANG=C tr -d '[@a-z_0-9[:space:]]')" ] ||
 		abort "$item $action: $new_owners: Invalid argument(s)"
 	for a in $new_owners; do
-		printf %s "$a" |egrep -qs '^@?[a-z_0-9]+$' ||
+		printf %s "$a" |grep -Exqs '@?[a-z_0-9]+' ||
 			abort "$item $action: $new_owners: Invalid argument(s)"
 	done
 

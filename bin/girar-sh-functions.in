@@ -38,7 +38,7 @@ validate_packages_dir()
 	proj="${proj%%/}"
 	proj="${proj##*/}"
 	proj="${proj%.git}"
-	printf %s "$proj" |grep -Eqse "$PROJECT_NAME_REGEXP" ||
+	printf %s "$proj" |grep -Exqse "$PROJECT_NAME_REGEXP" ||
 		fatal "$dir0: invalid directory name"
 	printf '%s\n' "$dirname/$proj"
 }
