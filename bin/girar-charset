@@ -16,8 +16,7 @@ usage()
 
 cd
 
-dir="$(validate_packages_dir "$1")"; shift
-dir="$(add_git_suffix "$dir")"
+dir="$(validate_project_dir "$1")"; shift
 cd "$dir"
 
 if [ "$#" -eq 0 ]; then

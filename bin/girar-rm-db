@@ -19,8 +19,7 @@ usage()
 cd
 
 dir0="$1"; shift
-dir="$(validate_packages_dir "$dir0")"
-dir="$(add_git_suffix "$dir")"
+dir="$(validate_project_dir "$dir0")"
 [ -d "$dir" ] ||
 	fatal "$dir0: directory not available"
 cd "$dir"

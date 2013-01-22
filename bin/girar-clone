@@ -28,7 +28,7 @@ cd
 repo0="$1"; shift
 repo=
 p_repo="$(prefix_packages "$repo0")"
-p_repo="$(add_git_suffix "$p_repo")"
+p_repo="${p_repo%.git}.git"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$PEOPLE_DIR")"
@@ -52,8 +52,7 @@ else
 	dir0="${repo0##*/}"
 fi
 
-dir="$(validate_packages_dir "$dir0")"
-dir="$(add_git_suffix "$dir")"
+dir="$(validate_project_dir "$dir0")"
 [ ! -e "$dir" ] ||
 	fatal "$dir0: destination already exists"
 

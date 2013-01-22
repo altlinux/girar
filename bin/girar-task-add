@@ -53,7 +53,7 @@ validate_repo_dir()
 	dir="${dir%%/}"
 	dir="$(printf %s "$dir" |tr -s /)"
 	dir="$(prefix_packages "$dir")"
-	dir="$(add_git_suffix "$dir")"
+	dir="${dir%.git}.git"
 	[ "${dir#/}" != "$dir" ] ||
 		dir="$PEOPLE_DIR/$GIRAR_USER/$dir"
 	[ "${dir#$PEOPLE_DIR/}" != "$dir" ] &&

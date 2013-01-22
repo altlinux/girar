@@ -18,16 +18,7 @@ prefix_packages()
 	printf "$fmt" "$1"
 }
 
-# If $1 doesn't end with ".git", append ".git" suffix.
-add_git_suffix()
-{
-	local arg="$1"
-	[ -z "${arg##*.git}" ] ||
-		arg="$arg.git"
-	printf %s "$arg"
-}
-
-validate_packages_dir()
+validate_project_dir()
 {
 	local dir0 dirname proj
 	dir0="$(prefix_packages "$1")"; shift
@@ -40,7 +31,7 @@ validate_packages_dir()
 	proj="${proj%.git}"
 	printf %s "$proj" |grep -Exqse "$PROJECT_NAME_REGEXP" ||
 		fatal "$dir0: invalid directory name"
-	printf '%s\n' "$dirname/$proj"
+	printf %s.git "$dirname/$proj"
 }
 
 gear_nums()

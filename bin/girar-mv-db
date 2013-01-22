@@ -17,12 +17,10 @@ usage()
 cd
 
 srcdir0="$1"; shift
-srcdir="$(validate_packages_dir "$srcdir0")"
-srcdir="$(add_git_suffix "$srcdir")"
+srcdir="$(validate_project_dir "$srcdir0")"
 
 dstdir0="$1"; shift
-dstdir="$(validate_packages_dir "$dstdir0")"
-dstdir="$(add_git_suffix "$dstdir")"
+dstdir="$(validate_project_dir "$dstdir0")"
 
 [ -d "$srcdir" ] ||
 	fatal "$srcdir0: source directory not available"
