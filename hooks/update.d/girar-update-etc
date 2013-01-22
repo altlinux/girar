@@ -17,8 +17,8 @@ validate_distribution_subscription()
 		fatal "$where: unexpected field: $rest"
 
 	[ "$p" = '*' ] ||
-	printf %s "$p" |egrep -qs "$project_name_regexp" ||
-	printf %s "${p%\*}" |egrep -qs "$project_name_regexp" ||
+	printf %s "$p" |grep -Eqse "$PROJECT_NAME_REGEXP" ||
+	printf %s "${p%\*}" |grep -Eqse "$PROJECT_NAME_REGEXP" ||
 		fatal "$where: invalid package pattern: $p"
 	case "$t" in
 		\*|head|tag|remote) ;;
@@ -73,7 +73,7 @@ validate_email_subscription()
 			"$p" "$t" "$n" "$rest"
 		[ "$u" != '*' ] ||
 			continue
-		printf %s "$u" |egrep -qs "$user_name_regexp" ||
+		printf %s "$u" |grep -Eqse "$USER_NAME_REGEXP" ||
 			fatal "$where: invalid user name: $u"
 		[ -d "$PEOPLE_DIR/$u" ] ||
 			fatal "$where: unknown user name: $u"

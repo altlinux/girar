@@ -1,0 +1,67 @@
+#!/bin/sh
+
+# exports: $PROG
+. shell-error
+
+. "@CMD_DIR@/girar-sh-config"
+
+sudo_init()
+{
+	[ -n "${SUDO_USER-}" ] ||
+		fatal 'Environment variable $SUDO_USER not found'
+
+	SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
+		fatal "sudo user '$SUDO_USER' not found"
+
+	SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
+	[ -d "$SUDO_HOME" ] ||
+		fatal "sudo user \`$SUDO_USER' home directory \`$SUDO_HOME' not available"
+}
+
+# exports: $IDENTITY
+load_identity()
+{
+	local IDFILE="$1"; shift
+
+	[ -n "$IDFILE" ] ||
+		usage 'not specified: IDENTITY FILE'
+
+	IDFILE="$(readlink -ev "$IDFILE")" ||
+		fatal "identity file '$IDFILE' not available"
+
+	[ -z "${IDFILE##$SUDO_HOME/*}" ] ||
+		fatal "identity file '$IDFILE' out of directory range"
+
+	IDENTITY=$(cat "$IDFILE") ||
+		fatal "$IDFILE: error reading identity file"
+
+	local type
+	type="$(printf %s "$IDENTITY" |head -c7)"
+	case "$type" in
+		ssh-dss|ssh-rsa) ;;
+		*) fatal "$IDFILE: invalid identity file: unrecognized key type" ;;
+	esac
+	[ "$(echo "$IDENTITY" |wc -l)" = 1 ] ||
+		fatal "$IDFILE: invalid identity file: too many lines"
+
+	local size
+	size="$(ssh-keygen -l -f "$IDFILE")"
+	size="${size%% *}"
+	case "$type" in
+		ssh-dss) [ "$size" = 1024 -o "$size" = 2048 -o "$size" = 4096 ] ||
+				fatal "$IDFILE: invalid $type key size: $size" ;;
+		ssh-rsa) [ "$size" = 2048 -o "$size" = 4096 ] ||
+				fatal "$IDFILE: invalid $type key size: $size" ;;
+	esac
+}
+
+# exports: $NAME $IT_NAME
+set_name()
+{
+	NAME="$1"; shift
+	[ -n "$NAME" ] ||
+		usage 'not specified: NAME'
+	printf %s "$NAME" |grep -Eqse "$USER_NAME_REGEXP" ||
+		fatal "$NAME: invalid NAME specified"
+	IT_NAME="$USER_PREFIX$NAME"
+}

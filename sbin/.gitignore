@@ -1,13 +1,3 @@
-girar-add
-girar-auth-add
-girar-auth-zero
-girar-build-disable
-girar-build-enable
-girar-clone-repo
-girar-del
-girar-disable
-girar-enable
-girar-make-template-repos
 girar-proxyd-acl
 girar-proxyd-depot
 girar-proxyd-repo

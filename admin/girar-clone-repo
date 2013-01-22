@@ -5,7 +5,7 @@ export IFS='
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
 
-. "@CMD_DIR@/girar-sh-functions"
+. girar-admin-sh-functions
 
 sudo_init
 

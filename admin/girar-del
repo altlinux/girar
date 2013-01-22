@@ -4,7 +4,7 @@ export IFS='
 '
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-. "@CMD_DIR@/girar-sh-functions"
+. girar-admin-sh-functions
 . shell-quote
 
 usage()
@@ -17,10 +17,9 @@ usage()
 set_name "$1"
 shift
 
-IT_NAME="@USER_PREFIX@$NAME"
-REAL_HOME="@PEOPLE_DIR@/$NAME"
+REAL_HOME="$PEOPLE_DIR/$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
-email_dir="@EMAIL_DIR@/packages/$NAME"
+email_dir="$EMAIL_DIR/packages/$NAME"
 
 userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
@@ -35,7 +34,8 @@ done
 
 quote_sed_regexp_variable Q_IT_NAME "$IT_NAME"
 quote_sed_regexp_variable Q_NAME "$NAME"
+quote_sed_regexp_variable Q_EMAIL_DOMAIN "$EMAIL_DOMAIN"
 
-subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@@EMAIL_DOMAIN@.*\$/d" "@EMAIL_ALIASES@" &&
+subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@$Q_EMAIL_DOMAIN.*\$/d" "$EMAIL_ALIASES" &&
 	newaliases ||
 	message "$IT_NAME: failed to remove email alias"

@@ -5,13 +5,13 @@ export IFS='
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 umask 022
 
-. "@CMD_DIR@/girar-sh-functions"
+. girar-admin-sh-functions
 
 sudo_init
 
 # Validate template repositories.
 for n in packages private public; do
-	GIT_DIR="@CONF_DIR@/$n.git" git rev-parse --git-dir >/dev/null
+	GIT_DIR="$CONF_DIR/$n.git" git rev-parse --git-dir >/dev/null
 done
 
 usage()
@@ -35,9 +35,7 @@ GECOS="$*"
 [ -n "${GECOS//*:*/}" ] ||
 	fatal "$NAME: invalid GECOS specified"
 
-IT_NAME="@USER_PREFIX@$NAME"
-IT_SHELL="@CMD_DIR@/girar-sh"
-PEOPLE_DIR="@PEOPLE_DIR@"
+IT_SHELL="$CMD_DIR/girar-sh"
 REAL_HOME="$PEOPLE_DIR/$NAME"
 
 [ -d "$PEOPLE_DIR" ] ||
@@ -47,10 +45,10 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
 	fatal "error adding $NAME: authorized keys file '$AUTH' already exists"
 
-useradd -c "$GECOS" -d /var/empty -g '@USERS_GROUP@' -G 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
+useradd -c "$GECOS" -d /var/empty -g "$USERS_GROUP" -G 'girar' -M -s "$IT_SHELL" "$IT_NAME" ||
 	fatal "$IT_NAME: error adding user"
 
-printf '%s:\t%s@@EMAIL_DOMAIN@\n' "$IT_NAME" "$NAME" >>"@EMAIL_ALIASES@" &&
+printf '%s:\t%s@%s\n' "$IT_NAME" "$NAME" "$EMAIL_DOMAIN" >>"$EMAIL_ALIASES" &&
 	newaliases ||
 	fatal "$IT_NAME: error adding email alias"
 
@@ -77,16 +75,16 @@ for d in "$REAL_HOME/etc" "$REAL_HOME/incoming"; do
 done
 
 for n in packages private public; do
-	email_dir="@EMAIL_DIR@/$n"
+	email_dir="$EMAIL_DIR/$n"
 	mkdir -p "$email_dir"
 	install -d -o "$IT_NAME" -g girar -m755 "$email_dir/$NAME" ||
 		fatal "$IT_NAME: failed to create $email_dir/$NAME"
 done
 
 for n in packages private public; do
-	src="@CONF_DIR@/$n.git"
+	src="$CONF_DIR/$n.git"
 	dst="$REAL_HOME/etc/$n.git"
 	su -l "$IT_NAME" -s /bin/sh -c \
-		"git clone --bare --template=@GIT_TEMPLATE_DIR@ '$src' '$dst'" ||
+		"git clone --bare --template='$GIT_TEMPLATE_DIR' '$src' '$dst'" ||
 	fatal "$IT_NAME: failed to setup $dst"
 done

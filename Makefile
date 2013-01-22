@@ -53,14 +53,7 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -O2
 
-bin_auto_TARGETS = \
-	bin/girar-sh \
-	bin/girar-sh-config \
-	bin/girar-sh-functions \
-	#
-
 bin_TARGETS = \
-	${bin_auto_TARGETS} \
 	bin/find-subscribers \
 	bin/girar-acl \
 	bin/girar-acl-apply-changes \
@@ -90,6 +83,9 @@ bin_TARGETS = \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
 	bin/girar-rm-db \
+	bin/girar-sh \
+	bin/girar-sh-config \
+	bin/girar-sh-functions \
 	bin/girar-sh-tmpdir \
 	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
@@ -135,17 +131,21 @@ init_TARGETS = init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-r
 
 lib_TARGETS = lib/rsync.so
 
+admin_TARGETS = \
+	admin/girar-add \
+	admin/girar-admin-sh-functions \
+	admin/girar-auth-add \
+	admin/girar-auth-zero \
+	admin/girar-build-disable \
+	admin/girar-build-enable \
+	admin/girar-clone-repo \
+	admin/girar-del \
+	admin/girar-disable \
+	admin/girar-enable \
+	admin/girar-make-template-repos \
+	#
+
 sbin_TARGETS = \
-	sbin/girar-add \
-	sbin/girar-auth-add \
-	sbin/girar-auth-zero \
-	sbin/girar-build-disable \
-	sbin/girar-build-enable \
-	sbin/girar-clone-repo \
-	sbin/girar-del \
-	sbin/girar-disable \
-	sbin/girar-enable \
-	sbin/girar-make-template-repos \
 	sbin/girar-proxyd-acl \
 	sbin/girar-proxyd-depot \
 	sbin/girar-proxyd-repo \
@@ -153,17 +153,22 @@ sbin_TARGETS = \
 
 sudoers_TARGETS = sudoers/girar
 
-TARGETS = ${bin_TARGETS} ${hooks_TARGETS} ${hooks_receive_TARGETS} \
-	${hooks_update_TARGETS} ${init_TARGETS} ${lib_TARGETS} \
-	${sbin_TARGETS} ${sudoers_TARGETS}
+TARGETS = \
+	${admin_TARGETS} \
+	${bin_TARGETS} \
+	${hooks_TARGETS} \
+	${hooks_receive_TARGETS} \
+	${hooks_update_TARGETS} \
+	${init_TARGETS} \
+	${lib_TARGETS} \
+	${sbin_TARGETS} \
+	${sudoers_TARGETS} \
+	#
 
-.PHONY: all clean install install-bin install-check install-data install-init \
+.PHONY: all install install-bin install-check install-data install-init \
 	install-lib install-sbin install-sudoers install-var
 
 all: ${TARGETS}
-
-clean:
-	${RM} ${bin_auto_TARGETS} ${init_TARGETS} ${lib_TARGETS} ${sbin_TARGETS}
 
 install: install-bin install-check install-data install-init install-lib \
 	install-sbin install-sudoers install-var
@@ -201,7 +206,7 @@ install-lib: ${lib_TARGETS}
 	install -d -m750 ${DESTDIR}${PLUGIN_DIR}
 	install -pm644 $^ ${DESTDIR}${PLUGIN_DIR}/
 
-install-sbin: ${sbin_TARGETS}
+install-sbin: ${admin_TARGETS} ${sbin_TARGETS}
 	install -d -m755 ${DESTDIR}${girar_sbindir}
 	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
 

@@ -9,9 +9,6 @@ __included_girar_sh_functions=1
 . shell-error
 . girar-sh-config
 
-project_name_regexp='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
-user_name_regexp='^[a-z][a-z_0-9]+$'
-
 prefix_packages()
 {
 	local fmt='%s' dirname="${1%/*}"
@@ -36,67 +33,9 @@ validate_packages_dir()
 	[ "$dirname" = 'packages' -o "$dirname" = 'private' -o "$dirname" = 'public' ] ||
 		fatal "$dir0: invalid directory name"
 	dir="$(printf %s "${dir0##*/}" |sed -e 's,/\+$,,' -e 's,\.git$,,')"
-	printf %s "$dir" |egrep -qs "$project_name_regexp" ||
+	printf %s "$dir" |egrep -qs "$PROJECT_NAME_REGEXP" ||
 		fatal "$dir0: invalid directory name"
 	printf %s\\n "$dirname/$dir"
-}
-
-sudo_init()
-{
-	[ -n "${SUDO_USER-}" ] ||
-		fatal 'Environment variable $SUDO_USER not found'
-
-	SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
-		fatal "sudo user '$SUDO_USER' not found"
-
-	SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
-	[ -d "$SUDO_HOME" ] ||
-		fatal "sudo user \`$SUDO_USER' home directory \`$SUDO_HOME' not available"
-}
-
-load_identity()
-{
-	local IDFILE="$1"; shift
-
-	[ -n "$IDFILE" ] ||
-		usage 'not specified: IDENTITY FILE'
-
-	IDFILE="$(readlink -ev "$IDFILE")" ||
-		fatal "identity file '$IDFILE' not available"
-
-	[ -z "${IDFILE##$SUDO_HOME/*}" ] ||
-		fatal "identity file '$IDFILE' out of directory range"
-
-	IDENTITY=$(cat "$IDFILE") ||
-		fatal "$IDFILE: error reading identity file"
-
-	local type
-	type="$(printf %s "$IDENTITY" |head -c7)"
-	case "$type" in
-		ssh-dss|ssh-rsa) ;;
-		*) fatal "$IDFILE: invalid identity file: unrecognized key type" ;;
-	esac
-	[ "$(echo "$IDENTITY" |wc -l)" = 1 ] ||
-		fatal "$IDFILE: invalid identity file: too many lines"
-
-	local size
-	size="$(ssh-keygen -l -f "$IDFILE")"
-	size="${size%% *}"
-	case "$type" in
-		ssh-dss) [ "$size" = 1024 -o "$size" = 2048 -o "$size" = 4096 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
-		ssh-rsa) [ "$size" = 2048 -o "$size" = 4096 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
-	esac
-}
-
-set_name()
-{
-	NAME="$1"; shift
-	[ -n "$NAME" ] ||
-		usage 'not specified: NAME'
-	printf %s "$NAME" |egrep -qs "$user_name_regexp" ||
-		fatal "$NAME: invalid NAME specified"
 }
 
 gear_nums()

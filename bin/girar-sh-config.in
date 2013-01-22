@@ -20,7 +20,11 @@ SRPMS_DIR='@SRPMS_DIR@'
 STATE_DIR='@STATE_DIR@'
 TASKS_DIR='@TASKS_DIR@'
 TASKS_GROUP='@TASKS_GROUP@'
+USERS_GROUP='@USERS_GROUP@'
 USER_PREFIX='@USER_PREFIX@'
+
+PROJECT_NAME_REGEXP='^[A-Za-z0-9][-A-Za-z0-9_.]+$'
+USER_NAME_REGEXP='^[a-z][a-z_0-9]+$'
 
 if [ -s "$CONF_DIR/repo/.default" ]; then
 	. "$CONF_DIR/repo/.default"
