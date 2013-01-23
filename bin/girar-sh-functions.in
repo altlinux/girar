@@ -14,10 +14,9 @@ normalize_gitdir()
 	local name0 name
 	name0="$1"; shift
 
-	name="${name0%%/}"
-	[ -n "$name" ] ||
-		fatal "$name0: invalid directory name"
-	name="${name%.git}.git"
+	[ -n "${name0##/}" -a "$name0" = "${name0%/}" ] ||
+		fatal "$name0: invalid git repository directory name"
+	name="${name0%.git}.git"
 	if [ "${name%/*}" = "$name" ]; then
 		printf 'packages/%s' "$name"
 	else
@@ -34,10 +33,10 @@ validate_user_gitdir()
 	ndir="${ndir#$PEOPLE_DIR/$GIRAR_USER/}"
 	case "${ndir%/*}" in
 		packages|private|public) ;;
-		*) fatal "$dir0: invalid directory name" ;;
+		*) fatal "$dir0: invalid git repository directory name" ;;
 	esac
 	printf %s "${ndir##*/}" |grep -Exqse "$PROJECT_NAME_REGEXP\.git" ||
-		fatal "$dir0: invalid directory name"
+		fatal "$dir0: invalid git repository directory name"
 	printf %s "$ndir"
 }
 
