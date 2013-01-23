@@ -16,12 +16,9 @@ usage()
 [ "$#" -eq 1 ] ||
 	usage 'Too many arguments.'
 
+dir0="$1"; shift
+
 cd
 
-dir0="$1"; shift
-dir="$(validate_project_dir "$dir0")"
-[ -d "$dir" ] ||
-	fatal "$dir0: directory not available"
-cd "$dir"
-cd
+dir="$(validate_user_exported_gitdir "$dir0")"
 rm -rf -- "$dir"

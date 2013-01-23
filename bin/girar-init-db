@@ -16,7 +16,11 @@ usage()
 
 cd
 
-dir="$(validate_project_dir "$1")"; shift
+dir0="$1"; shift
+dir="$(validate_user_gitdir "$dir0")"
+if [ -e "$dir" ]; then
+	fatal "$dir0: git repository already exists"
+fi
 mkdir -- "$dir"
 cd "$dir"
 GIT_DIR=. git init --template="$GIT_TEMPLATE_DIR" >/dev/null

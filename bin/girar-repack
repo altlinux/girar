@@ -18,9 +18,7 @@ usage()
 
 cd
 
-dir="$(validate_project_dir "$1")"; shift
-[ -d "$dir" ] ||
-	fatal "$dir: Directory not available"
+dir="$(validate_user_exported_gitdir "$1")"; shift
 cd "$dir"
 
 if [ "$#" -eq 0 ]; then

@@ -49,15 +49,9 @@ validate_repo_dir()
 {
 	local dir0="$dir"
 
-	dir="$(normalize_gitdir "$dir")"
-	if [ "${dir#/}" = "$dir" ]; then
-		dir="$PEOPLE_DIR/$GIRAR_USER/$dir"
-	fi
+	dir="$(validate_local_exported_gitdir "$dir")"
 	printf '%s' "$dir" |grep -Exqse "$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\.git' ||
-		fatal "$dir0: path to git repository does not belong to allowed directory tree"
-
-	[ -d "$dir" ] ||
-		fatal "$dir0: directory not available"
+		fatal "$dir0: git repository does not belong to allowed directory tree"
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
@@ -106,8 +100,8 @@ validate_rebuild_dir()
 
 	sym="$(printf %s "$package" |cut -c1)"
 	dir="$STATE_DIR/gears/$sym/$package.git"
-	[ -d "$dir" ] ||
-		fatal "$dir: directory not available"
+	[ -f "$dir/git-daemon-export-ok" ] ||
+		fatal "$dir: git repository not available"
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.

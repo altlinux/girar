@@ -16,18 +16,13 @@ usage()
 
 cd
 
-srcdir0="$1"; shift
-srcdir="$(validate_project_dir "$srcdir0")"
+srcdir="$(validate_user_exported_gitdir "$1")"; shift
 
-dstdir0="$1"; shift
-dstdir="$(validate_project_dir "$dstdir0")"
+dstdir="$(validate_user_gitdir "$1")"
+if [ -e "$dstdir" ]; then
+	fatal "$1: destination directory already exists"
+fi
+shift
 
-[ -d "$srcdir" ] ||
-	fatal "$srcdir0: source directory not available"
-[ ! -e "$dstdir" ] ||
-	fatal "$dstdir0: destination directory already exists"
-
-cd "$srcdir"
-cd
 mkdir -- "$dstdir"
 mv -T -- "$srcdir" "$dstdir"

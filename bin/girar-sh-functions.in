@@ -25,7 +25,7 @@ normalize_gitdir()
 	fi
 }
 
-validate_project_dir()
+validate_user_gitdir()
 {
 	local dir0 ndir
 	dir0="$1"; shift
@@ -38,6 +38,31 @@ validate_project_dir()
 	esac
 	printf %s "${ndir##*/}" |grep -Exqse "$PROJECT_NAME_REGEXP\.git" ||
 		fatal "$dir0: invalid directory name"
+	printf %s "$ndir"
+}
+
+validate_user_exported_gitdir()
+{
+	local dir0 ndir
+	dir0="$1"; shift
+
+	ndir="$(validate_user_gitdir "$dir0")"
+	[ -f "$ndir/git-daemon-export-ok" ] ||
+		fatal "$dir0: git repository not available"
+	printf %s "$ndir"
+}
+
+validate_local_exported_gitdir()
+{
+	local dir0 ndir
+	dir0="$1"; shift
+
+	ndir="$(normalize_gitdir "$dir0")"
+	if [ "${ndir#/}" = "$ndir" ]; then
+		ndir="$PEOPLE_DIR/$GIRAR_USER/$ndir"
+	fi
+	[ -f "$ndir/git-daemon-export-ok" ] ||
+		fatal "$dir0: git repository not available"
 	printf %s "$ndir"
 }
 
