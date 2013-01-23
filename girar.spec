@@ -20,6 +20,8 @@ Requires: gear
 Requires: memcached rpmhdrmemcache
 # due to cron jobs
 Requires: stmpclean
+# due to "locale -m"
+Requires: glibc-i18ndata
 
 Obsoletes: girar-builder
 
