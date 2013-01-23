@@ -31,6 +31,7 @@ validate_project_dir()
 	dir0="$1"; shift
 
 	ndir="$(normalize_gitdir "$dir0")"
+	ndir="${ndir#$PEOPLE_DIR/$GIRAR_USER/}"
 	case "${ndir%/*}" in
 		packages|private|public) ;;
 		*) fatal "$dir0: invalid directory name" ;;
