@@ -9,29 +9,35 @@ __included_girar_sh_functions=1
 . shell-error
 . girar-sh-config
 
-# If $1 contains no "/" symbol, prefix it with "packages/".
-prefix_packages()
+normalize_gitdir()
 {
-	local fmt='%s' dirname="${1%/*}"
-	[ "$dirname" != "$1" ] ||
-		fmt='packages/%s'
-	printf "$fmt" "$1"
+	local name0 name
+	name0="$1"; shift
+
+	name="${name0%%/}"
+	[ -n "$name" ] ||
+		fatal "$name0: invalid directory name"
+	name="${name%.git}.git"
+	if [ "${name%/*}" = "$name" ]; then
+		printf 'packages/%s' "$name"
+	else
+		printf '%s' "$name" | tr -s /
+	fi
 }
 
 validate_project_dir()
 {
-	local dir0 dirname proj
-	dir0="$(prefix_packages "$1")"; shift
-	dirname="${dir0%/*}"
-	[ "$dirname" = 'packages' -o "$dirname" = 'private' -o "$dirname" = 'public' ] ||
+	local dir0 ndir
+	dir0="$1"; shift
+
+	ndir="$(normalize_gitdir "$dir0")"
+	case "${ndir%/*}" in
+		packages|private|public) ;;
+		*) fatal "$dir0: invalid directory name" ;;
+	esac
+	printf %s "${ndir##*/}" |grep -Exqse "$PROJECT_NAME_REGEXP\.git" ||
 		fatal "$dir0: invalid directory name"
-	proj="$dir0"
-	proj="${proj%%/}"
-	proj="${proj##*/}"
-	proj="${proj%.git}"
-	printf %s "$proj" |grep -Exqse "$PROJECT_NAME_REGEXP" ||
-		fatal "$dir0: invalid directory name"
-	printf %s.git "$dirname/$proj"
+	printf %s "$ndir"
 }
 
 gear_nums()

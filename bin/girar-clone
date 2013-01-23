@@ -27,8 +27,7 @@ cd
 
 repo0="$1"; shift
 repo=
-p_repo="$(prefix_packages "$repo0")"
-p_repo="${p_repo%.git}.git"
+p_repo="$(normalize_gitdir "$repo0")"
 if [ -e "$p_repo" ]; then
 	repo="$(readlink -ev "$p_repo")/"
 	people="$(readlink -ev "$PEOPLE_DIR")"

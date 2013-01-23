@@ -50,10 +50,7 @@ validate_repo_dir()
 	local dir0="$dir"
 
 	cd
-	dir="${dir%%/}"
-	dir="$(printf %s "$dir" |tr -s /)"
-	dir="$(prefix_packages "$dir")"
-	dir="${dir%.git}.git"
+	dir="$(normalize_gitdir "$dir")"
 	[ "${dir#/}" != "$dir" ] ||
 		dir="$PEOPLE_DIR/$GIRAR_USER/$dir"
 	[ "${dir#$PEOPLE_DIR/}" != "$dir" ] &&
