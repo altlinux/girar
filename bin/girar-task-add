@@ -65,6 +65,8 @@ validate_tag_name()
 		fatal "$tag_name: tag name not found"
 	tag_id="$(git rev-parse --verify "$tag_name")" ||
 		fatal "$tag_name: tag verification failure"
+	[ "$tag_name" = "$(git cat-file tag "$tag_id" | sed -n '/^tag /s///p')" ] ||
+		fatal "$tag_name: tag name verification failure"
 	if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git verify-tag "$tag_id" 2>&1)"; then
 		printf >&2 '%s\n' "$sig_text"
 		fatal "$tag_name: tag signature verification failure"
@@ -436,6 +438,11 @@ printf >&2 %s "fetching tag \"$tag_name\" from $dir... "
 git fetch -q "$dir" tag "$tag_name"
 echo >&2 done
 git branch master "tags/$tag_name"
+git tag -l --points-at master |
+	while read t; do
+		[ "$t" = "$tag_name" ] ||
+			git tag -d "$t"
+	done
 git pack-refs --all --prune
 find "$GIT_DIR/refs" -mindepth 1 -type d -delete ||:
 touch "$GIT_DIR/git-daemon-export-ok"
