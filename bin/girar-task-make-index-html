@@ -140,12 +140,12 @@ show_subtasks()
 	set -- $(gear_nums)
 	[ $# -ge 1 ] || return 0
 
-	local i userid print_userid= colspan=5 th_owner=
+	local i userid print_userid= colspan=6 th_owner=
 	for i; do
 		userid="$(cat "gears/$i/userid")" || continue
 		if [ "$userid" != "$owner" ]; then
 			print_userid=1
-			colspan=6
+			colspan=7
 			th_owner='<th>Owner</th>'
 			break
 		fi
@@ -154,7 +154,7 @@ show_subtasks()
 	echo '<table border="1">'
 	printf '<tr><th colspan="%s"><h2>Subtasks</h2></th></tr>\n' \
 		"$colspan"
-	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="2">Build results</th></tr>\n' \
+	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="3">Build results</th></tr>\n' \
 		"$th_owner"
 
 	for i; do
