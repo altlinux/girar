@@ -22,6 +22,8 @@ Requires: memcached rpmhdrmemcache
 Requires: stmpclean
 # due to "locale -m"
 Requires: glibc-i18ndata
+# due to gb-task-repo-unmets
+Requires: qa-robot >= 0.3.4-alt1
 
 Obsoletes: girar-builder
 

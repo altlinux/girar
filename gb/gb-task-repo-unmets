@@ -24,7 +24,9 @@ dump_unmets()
 				rpm file:$repo $arch classic $comp
 				rpm file:$repo noarch classic
 			EOF
-			$arch unmets -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
+			setarch $arch >/dev/null 2>&1 && native_arch=1 || native_arch=
+			${native_arch:+setarch $arch} \
+			unmets -a $arch -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
 				echo 1 >>FAIL &
 		done
 	done
