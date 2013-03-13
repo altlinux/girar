@@ -50,7 +50,7 @@ validate_repo_dir()
 	local dir0="$dir"
 
 	dir="$(validate_local_exported_gitdir "$dir")"
-	printf '%s' "$dir" |grep -Exqse "$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\.git' ||
+	printf '%s' "$dir" |grep -Exqse "$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\.git" ||
 		fatal "$dir0: git repository does not belong to allowed directory tree"
 
 	cd "$dir"
