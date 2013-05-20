@@ -7,15 +7,23 @@ native_arch="${arepo_arch%%-*}"
 arch="${arepo_arch##*-}"
 
 . gb-sh-functions
+. gb-sh-tmpdir
 
 if [ -s plan/arepo-copy-$arepo_arch -a \
-   ! -s arepo/$arepo_arch/todo.list -a \
-   ! -d arepo/$arepo_arch/rpms ]; then
-	(umask 002; mkdir arepo/$arepo_arch/rpms) || false
-	# copy what needs to be copied
-	while read -r N B P; do
-		ln "$P" arepo/$arepo_arch/rpms/
-	done < plan/arepo-copy-$arepo_arch
+   ! -s arepo/$arepo_arch/todo.list ]; then
+	(umask 002; mkdir -p arepo/$arepo_arch/rpms) || false
+	# remove stale copies
+	find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -printf '%f\n' > "$tmpdir"/out
+	sort -u -o "$tmpdir"/out{,}
+	cut -f3 plan/arepo-add-$arepo_arch > "$tmpdir"/all
+	sort -u -o "$tmpdir"/all{,}
+	join -v1 "$tmpdir"/out "$tmpdir"/all > "$tmpdir"/rm
+	xargs -ri rm -f -- arepo/$arepo_arch/rpms/'{}' < "$tmpdir"/rm
+
+	# copy what remains to be copied
+	sort -k2,2 plan/arepo-copy-$arepo_arch > "$tmpdir"/all
+	join -12 -21 -v1 -o1.3 "$tmpdir"/all "$tmpdir"/out > "$tmpdir"/cp
+	xargs -r ln -t arepo/$arepo_arch/rpms < "$tmpdir"/cp
 fi
 
 [ -s arepo/$arepo_arch/todo.list ] || exit 0
@@ -73,7 +81,6 @@ gb-x-rsync-loop -qrlt -- "$remote_host:build/" arepo/$arepo_arch/
 gb-x-rsync-loop -a --delete /var/empty/ "$remote_host:gb-repo/"
 
 # check the result
-. gb-sh-tmpdir
 find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -printf '%f\n' > "$tmpdir"/out
 sort -o "$tmpdir"/out{,}
 join -v1 -o1.3 plan/arepo-add-$arepo_arch plan/arepo-copy-$arepo_arch > "$tmpdir"/in
