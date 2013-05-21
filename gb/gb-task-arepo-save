@@ -14,6 +14,8 @@ for arch in ${GB_AREPO_ARCH-}; do
 	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || continue
 	(umask 002; mkdir -p arepo/$arch/base) || fail
 	rsync -rlt "$GB_AREPO_DIR/$arch/base/" arepo/$arch/base/ || fail
+	find "arepo/$arch/base/" -mindepth 1 -maxdepth 1 \
+		-type d -name "ds.*" -exec chmod g+w -- {} \;
 done
 
 #stamp_echo >&2 'arepo save OK'
