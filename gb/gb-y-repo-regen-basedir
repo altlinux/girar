@@ -119,10 +119,6 @@ for arch in $GB_ARCH noarch; do
 	PROVIDES_FROM_DIRS=/bin:/sbin:/usr/bin:/usr/sbin
 	for comp in $comps; do
 		if [ -n "$bloat" -o ! -d "$REPO_DIR/$arch/base/ds.$comp" ]; then
-			umask 002
-			mkdir -p "$REPO_DIR/$arch/base/ds.$comp"
-			umask 022
-
 			if [ -n "$bloat" ]; then
 				ds-repo -q -c gzip \
 					--no-requires $tmpdir/ds-ignore \
