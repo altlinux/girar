@@ -87,4 +87,10 @@ check_task_modifiable()
 	esac
 }
 
+valid_repositories()
+{
+	repositories="$(ls -- "$STATE_DIR/repo/")"
+	printf %s "$repositories" | tr '\n' ' '
+}
+
 fi #__included_girar_sh_functions

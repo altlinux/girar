@@ -17,7 +17,7 @@ Usage: $PROG --list
    or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository>
-Valid repositories are: $(ls -- "$repo_dir/")
+Valid repositories are: $(valid_repositories)
 If no package is given, read commands from stdin, one command per line.
 See http://www.altlinux.org/Incoming/acl for details.
 EOF

@@ -24,4 +24,4 @@ repo_dir="$STATE_DIR/repo"
 # Fail if requested binary repository does not exist.
 [ -n "$repository" ] &&
 ls -- "$repo_dir/" | grep -Fixse "$repository" ||
-	fatal "Invalid repository \`$repository', valid repositories are: $(ls -- "$repo_dir/")"
+	fatal "Invalid repository \`$repository', valid repositories are: $(valid_repositories)"

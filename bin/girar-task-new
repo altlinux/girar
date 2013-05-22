@@ -8,7 +8,7 @@ usage()
 	[ -z "$*" ] || message "$*"
 	cat >&2 <<EOF
 usage: $PROG [<binary_repository_name>]
-Valid repositories are: $(ls -- "$STATE_DIR/repo/")
+Valid repositories are: $(valid_repositories)
 EOF
 	exit 1
 }
