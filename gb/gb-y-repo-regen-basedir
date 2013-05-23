@@ -120,6 +120,8 @@ for arch in $GB_ARCH noarch; do
 	for comp in $comps; do
 		if [ -n "$bloat" -o ! -d "$REPO_DIR/$arch/base/ds.$comp" ]; then
 			if [ -n "$bloat" ]; then
+				(umask 002; mkdir -p "$REPO_DIR/$arch/base/ds.$comp") || false
+
 				ds-repo -q -c gzip \
 					--no-requires $tmpdir/ds-ignore \
 					$REPO_DIR/$arch/base/ds.$comp $REPO_DIR/$arch/RPMS.$comp || echo 1 >> "$tmpdir"/FAIL &
