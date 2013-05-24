@@ -4,9 +4,7 @@ arch="$1"; shift
 
 . gb-sh-functions
 
-umask 002
-mkdir -p "build/repo/$arch/base.next"
-umask 022
+(umask 002; mkdir -p "build/repo/$arch/base.next") || exit
 rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
 
 find "build/repo/$arch/base.next/" -mindepth 1 -maxdepth 1 \
