@@ -69,7 +69,7 @@ while read -r N EVR F from_F from_SHA1 mode to_F to_SHA1; do
 	echo "Arepoizing $from_F"
 	hsh-run -- /.host/arepoize "$mode" "$from_F" "$to_F" "$F" 2>&1 ||
 		Fatal "failed to build $F"
-	ln -- hasher/chroot/.out/"$F" build/rpms/
+	mv -- hasher/chroot/.out/"$F" build/rpms/
 done < tmp/todo.list >> build/arepo.log
 
 hsh-rmchroot
