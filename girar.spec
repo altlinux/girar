@@ -62,6 +62,7 @@ cd gb/tests
 %_sbindir/groupadd -r -f girar-users
 %_sbindir/groupadd -r -f girar-admin
 %_sbindir/groupadd -r -f tasks
+%_sbindir/groupadd -r -f maintainers
 for u in acl depot repo; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:

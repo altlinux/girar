@@ -31,6 +31,7 @@ SRPMS_DIR = ${STATE_DIR}/srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = ${STATE_DIR}/tasks
 TASKS_GROUP = tasks
+MAINTAINERS_GROUP = maintainers
 USERS_GROUP = girar-users
 USER_PREFIX = git_
 girar_datadir = ${datadir}/girar
@@ -136,8 +137,8 @@ admin_TARGETS = \
 	admin/girar-admin-sh-functions \
 	admin/girar-auth-add \
 	admin/girar-auth-zero \
-	admin/girar-build-disable \
-	admin/girar-build-enable \
+	admin/girar-maintainer-add \
+	admin/girar-maintainer-del \
 	admin/girar-clone-repo \
 	admin/girar-del \
 	admin/girar-disable \
@@ -292,6 +293,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@STATE_DIR@,${STATE_DIR},g' \
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \
 	    -e 's,@TASKS_GROUP@,${TASKS_GROUP},g' \
+	    -e 's,@MAINTAINERS_GROUP@,${MAINTAINERS_GROUP},g' \
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 		<$< >$@

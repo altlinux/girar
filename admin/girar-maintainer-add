@@ -16,5 +16,5 @@ usage()
 set_name "$1"
 shift
 
-gpasswd -d "$IT_NAME" "$TASKS_GROUP" ||
-	fatal "error disabling girar build permissions for user $IT_NAME"
+gpasswd -a "$IT_NAME" "$MAINTAINERS_GROUP" ||
+	fatal "error adding girar user $IT_NAME to maintainers group"
