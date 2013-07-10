@@ -101,7 +101,7 @@ validate_rebuild_dir()
 	local sym id
 
 	sym="$(printf %s "$package" |cut -c1)"
-	dir="$STATE_DIR/gears/$sym/$package.git"
+	dir="$GEARS_DIR/$sym/$package.git"
 	[ -f "$dir/git-daemon-export-ok" ] ||
 		fatal "$dir: git repository not available"
 

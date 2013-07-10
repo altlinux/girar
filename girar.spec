@@ -1,3 +1,5 @@
+# --no-sisyphus-check-out=fhs
+
 Name: girar
 Version: 0.5
 Release: alt1
@@ -122,9 +124,9 @@ fi
 %dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/girar/depot/??/
 %dir %attr(755,root,root) /var/lib/girar/repo/
-%dir %attr(755,root,root) /var/lib/girar/people/
-%dir %attr(775,root,pender) /var/lib/girar/gears/
-%dir %attr(775,root,pender) /var/lib/girar/srpms/
+%dir %attr(755,root,root) /people/
+%dir %attr(775,root,pender) /gears/
+%dir %attr(775,root,pender) /srpms/
 
 %dir %attr(3775,pender,tasks) /var/lib/girar/tasks/
 %dir %attr(3775,root,pender) /var/lib/girar/tasks/archive/

@@ -1,7 +1,7 @@
 GB_TASKS_DIR=/var/lib/girar/tasks
 GB_TASKS_DONE_DIR="$GB_TASKS_DIR/archive/done"
-GB_GEARS_DIR=/var/lib/girar/gears
-GB_SRPMS_DIR=/var/lib/girar/srpms
+GB_GEARS_DIR=/gears
+GB_SRPMS_DIR=/srpms
 GB_REPO_ROOT=/var/lib/girar/repo
 GB_SOCKET_DIR=/var/run/girar
 GB_SITE='http://git.altlinux.org'

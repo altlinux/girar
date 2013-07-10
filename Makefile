@@ -16,18 +16,18 @@ CONF_DIR = ${sysconfdir}/girar
 EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DIR = ${STATE_DIR}/email
 EMAIL_DOMAIN = altlinux.org
-GEARS_DIR = ${STATE_DIR}/gears
+GEARS_DIR = /gears
 GITWEB_URL = http://git.altlinux.org
 GIT_TEMPLATE_DIR = ${girar_datadir}/templates
 HOOKS_DIR = ${girar_datadir}/hooks
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
-PEOPLE_DIR = ${STATE_DIR}/people
+PEOPLE_DIR = /people
 PLUGIN_DIR = ${libexecdir}/girar
 RUNTIME_DIR = ${runtimedir}/girar
 RUN_AS = @RUN_AS@
 SOCKDIR = @SOCKDIR@
 SOCKGRP = @SOCKGRP@
-SRPMS_DIR = ${STATE_DIR}/srpms
+SRPMS_DIR = /srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = ${STATE_DIR}/tasks
 TASKS_GROUP = tasks
@@ -221,29 +221,30 @@ install-var:
 		${DESTDIR}${EMAIL_DIR}/packages \
 		${DESTDIR}${EMAIL_DIR}/private \
 		${DESTDIR}${EMAIL_DIR}/public \
+		${DESTDIR}${RUNTIME_DIR} \
+		${DESTDIR}${RUNTIME_DIR}/acl \
+		${DESTDIR}${RUNTIME_DIR}/depot \
+		${DESTDIR}${RUNTIME_DIR}/repo \
 		${DESTDIR}${STATE_DIR} \
 		${DESTDIR}${STATE_DIR}/acl \
-		${DESTDIR}${STATE_DIR}/pender \
 		${DESTDIR}${STATE_DIR}/awaiter \
 		${DESTDIR}${STATE_DIR}/awaiter/.cache \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
-		${DESTDIR}${STATE_DIR}/gears \
-		${DESTDIR}${STATE_DIR}/people \
+		${DESTDIR}${STATE_DIR}/pender \
 		${DESTDIR}${STATE_DIR}/repo \
-		${DESTDIR}${STATE_DIR}/srpms \
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${STATE_DIR}/tasks/archive \
 		${DESTDIR}${STATE_DIR}/tasks/archive/{done,eperm,failed,failure,new,postponed,tested} \
 		${DESTDIR}${STATE_DIR}/tasks/index \
-		${DESTDIR}${RUNTIME_DIR} \
-		${DESTDIR}${RUNTIME_DIR}/acl \
-		${DESTDIR}${RUNTIME_DIR}/depot \
-		${DESTDIR}${RUNTIME_DIR}/repo \
 		${DESTDIR}${girar_lockdir} \
-		${DESTDIR}${girar_lockdir}/pender \
 		${DESTDIR}${girar_lockdir}/awaiter \
+		${DESTDIR}${girar_lockdir}/pender \
+		${DESTDIR}/gears \
+		${DESTDIR}/people \
+		${DESTDIR}/srpms \
+		#
 
 init/girar-proxyd-acl: SOCKGRP = girar
 init/girar-proxyd-depot init/girar-proxyd-repo: SOCKGRP = pender
