@@ -39,6 +39,10 @@ if [ "$1" = '-b' ]; then
 	shift 2
 fi
 
+if [ $# -lt 2 ]; then
+	usage "not enough arguments"
+fi
+
 deps=
 if [ "$1" = '--deps' ]; then
 	deps="$2"
