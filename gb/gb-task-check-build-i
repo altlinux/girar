@@ -131,6 +131,7 @@ check_nevr()
 	local n="$1"; shift
 	local evr="$1"; shift
 	local a="$1"; shift
+	local built="${1-}"; shift
 	local r evr0 a0
 
 	for r in $GB_REPO_UP_NAME; do
@@ -139,8 +140,13 @@ check_nevr()
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
 			[ -z "$a" -o "$a" = "$a0" ] || continue
-			is_ver1_lt_ver2 "$evr" "$evr0" ||
-				Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
+			if [ -n "$built" ]; then
+				is_ver1_lt_ver2 "$evr" "$evr0" ||
+					Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
+			else
+				is_ver1_le_ver2 "$evr" "$evr0" ||
+					Fatal "${a:-$t} package \`$n' version \`$evr' is greater than its version \`$evr0' in \`$r'"
+			fi
 		done < "$tmpdir/evra"
 	done
 	for r in $GB_REPO_DOWN_NAME; do
@@ -149,8 +155,13 @@ check_nevr()
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
 			[ -z "$a" -o "$a" = "$a0" ] || continue
-			is_ver1_lt_ver2 "$evr0" "$evr" ||
-				Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
+			if [ -n "$built" ]; then
+				is_ver1_lt_ver2 "$evr0" "$evr" ||
+					Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
+			else
+				is_ver1_le_ver2 "$evr0" "$evr" ||
+					Fatal "${a:-$t} package \`$n' version \`$evr' is lesser than its version \`$evr0' in \`$r'"
+			fi
 		done < "$tmpdir/evra"
 	done
 }
@@ -169,27 +180,26 @@ for arch in $GB_ARCH; do
 		fi
 	done
 
-	# additional checks for built packages
-	[ -n "$built" ] || continue
-
 	# check changelog name
-	find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
-		Fatal 'changelog name check FAILED'
+	if [ -n "$built" ]; then
+		find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
+			Fatal 'changelog name check FAILED'
+	fi
 
 	# check release name
 	if [ -d "$arch/srpm" -o ! -s "$arch/excluded" ]; then
 		qsrc "$arch/srpm/" >"$tmpdir/new.src"
 		while read -r N EVR F; do
-			check_release_name "${EVR##*-}"
-			check_nevr src "$N" "$EVR" ''
+			[ -z "$built" ] || check_release_name "${EVR##*-}"
+			check_nevr src "$N" "$EVR" '' "$built"
 		done <"$tmpdir/new.src"
 	fi
 
 	if [ -d "$arch/rpms" -o ! -s "$arch/excluded" ]; then
 		qbin "$arch/rpms/" >"$tmpdir/new.bin"
 		while read -r N EVR A F src_F; do
-			check_release_name "${EVR##*-}"
-			check_nevr bin "$N" "$EVR" "$arch"
+			[ -z "$built" ] || check_release_name "${EVR##*-}"
+			check_nevr bin "$N" "$EVR" "$arch" "$built"
 		done <"$tmpdir/new.bin"
 	fi
 done
