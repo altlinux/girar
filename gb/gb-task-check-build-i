@@ -139,7 +139,7 @@ check_nevr()
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
 			[ -z "$a" -o "$a" = "$a0" ] || continue
-			vercheck "$evr" "$evr0" ||
+			is_ver1_lt_ver2 "$evr" "$evr0" ||
 				Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
 		done < "$tmpdir/evra"
 	done
@@ -149,7 +149,7 @@ check_nevr()
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
 			[ -z "$a" -o "$a" = "$a0" ] || continue
-			vercheck "$evr0" "$evr" ||
+			is_ver1_lt_ver2 "$evr0" "$evr" ||
 				Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
 		done < "$tmpdir/evra"
 	done

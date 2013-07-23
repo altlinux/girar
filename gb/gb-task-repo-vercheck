@@ -23,7 +23,7 @@ while read -r N EVR1 F1 EVR2 F2; do
 		rc=1
 		continue
 	fi >&2
-	if ! vercheck "$EVR1" "$EVR2"; then
+	if ! is_ver1_lt_ver2 "$EVR1" "$EVR2"; then
 		echo ' *** source package version is either the same or older than existing'
 		printf '%s\t%s\t%s\n' "$N" "$EVR1" "$EVR2"
 		rc=1
@@ -42,7 +42,7 @@ while read -r N EVR1 A1 F1 EVR2 A2 F2; do
 		rc=1
 	fi >&2
 	[ "$A1" = "$A2" ] || [ "$A1" = noarch ] || [ "$A2" = noarch ] || continue
-	if ! vercheck "$EVR1" "$EVR2"; then
+	if ! is_ver1_lt_ver2 "$EVR1" "$EVR2"; then
 		echo ' *** binary package version is either the same or older than existing'
 		printf '%s\t%s\t%s\n' "$N" "$EVR1" "$EVR2"
 		rc=1

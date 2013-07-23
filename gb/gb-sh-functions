@@ -160,7 +160,7 @@ git_get_branch_id()
 }
 
 # When replacing packages, versions must increase.
-vercheck()
+is_ver1_lt_ver2()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -lt 0 ] || return 1
