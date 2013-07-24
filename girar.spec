@@ -47,7 +47,7 @@ subscription support and config files.
 echo 0 >%buildroot/var/lib/girar/tasks/.max-task-id
 mksock %buildroot/var/run/girar/{acl,depot,repo}/socket
 mkdir -p %buildroot/var/spool/cron
-touch %buildroot/var/spool/cron/{bull,cow}
+touch %buildroot/var/spool/cron/{pender,awaiter}
 
 mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
@@ -67,7 +67,7 @@ for u in acl depot repo; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
-for u in bull cow; do
+for u in pender awaiter; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar,tasks -d /var/lib/girar/$u -c "Girar $u robot" -n $u ||:
 done
@@ -84,10 +84,10 @@ if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi
-	crontab -u bull - <<-'EOF'
+	crontab -u pender - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-commit sisyphus
 	EOF
-	crontab -u cow - <<-'EOF'
+	crontab -u awaiter - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
 	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
 	EOF
@@ -115,38 +115,38 @@ fi
 
 %dir %attr(755,root,root) /var/lib/girar/
 %dir %attr(2775,root,acl) /var/lib/girar/acl/
-%dir %attr(770,root,bull) /var/lib/girar/bull/
-%dir %attr(770,root,cow) /var/lib/girar/cow/
-%dir %attr(770,root,cow) /var/lib/girar/cow/.cache/
+%dir %attr(770,root,pender) /var/lib/girar/pender/
+%dir %attr(770,root,awaiter) /var/lib/girar/awaiter/
+%dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.cache/
 %dir %attr(755,root,root) /var/lib/girar/depot/
 %dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/girar/depot/??/
 %dir %attr(755,root,root) /var/lib/girar/repo/
 %dir %attr(755,root,root) /var/lib/girar/people/
-%dir %attr(775,root,bull) /var/lib/girar/gears/
-%dir %attr(775,root,bull) /var/lib/girar/srpms/
+%dir %attr(775,root,pender) /var/lib/girar/gears/
+%dir %attr(775,root,pender) /var/lib/girar/srpms/
 
-%dir %attr(3775,bull,tasks) /var/lib/girar/tasks/
-%dir %attr(3775,root,bull) /var/lib/girar/tasks/archive/
-%dir %attr(775,root,bull) /var/lib/girar/tasks/archive/*
+%dir %attr(3775,pender,tasks) /var/lib/girar/tasks/
+%dir %attr(3775,root,pender) /var/lib/girar/tasks/archive/
+%dir %attr(775,root,pender) /var/lib/girar/tasks/archive/*
 %dir %attr(755,root,root) /var/lib/girar/tasks/index/
-%config(noreplace) %attr(664,bull,tasks) /var/lib/girar/tasks/.max-task-id
+%config(noreplace) %attr(664,pender,tasks) /var/lib/girar/tasks/.max-task-id
 
 %dir %attr(750,root,girar) /var/lib/girar/email/
 %dir %attr(755,root,root) /var/lib/girar/email/*
 
 %dir %attr(750,root,girar) /var/lock/girar/
-%dir %attr(770,root,bull) /var/lock/girar/bull/
-%dir %attr(770,root,cow) /var/lock/girar/cow/
+%dir %attr(770,root,pender) /var/lock/girar/pender/
+%dir %attr(770,root,awaiter) /var/lock/girar/awaiter/
 
 %dir %attr(750,root,girar) /var/run/girar/
 %dir %attr(710,root,girar) /var/run/girar/acl/
-%dir %attr(710,root,bull) /var/run/girar/depot/
-%dir %attr(710,root,bull) /var/run/girar/repo/
+%dir %attr(710,root,pender) /var/run/girar/depot/
+%dir %attr(710,root,pender) /var/run/girar/repo/
 %ghost %attr(666,root,root) /var/run/girar/*/socket
 
-%config(noreplace) %ghost %attr(600,bull,crontab) /var/spool/cron/bull
-%config(noreplace) %ghost %attr(600,cow,crontab) /var/spool/cron/cow
+%config(noreplace) %ghost %attr(600,pender,crontab) /var/spool/cron/pender
+%config(noreplace) %ghost %attr(600,awaiter,crontab) /var/spool/cron/awaiter
 
 %changelog
 * Wed Nov 21 2012 Dmitry V. Levin <ldv@altlinux.org> 0.5-alt1

@@ -223,9 +223,9 @@ install-var:
 		${DESTDIR}${EMAIL_DIR}/public \
 		${DESTDIR}${STATE_DIR} \
 		${DESTDIR}${STATE_DIR}/acl \
-		${DESTDIR}${STATE_DIR}/bull \
-		${DESTDIR}${STATE_DIR}/cow \
-		${DESTDIR}${STATE_DIR}/cow/.cache \
+		${DESTDIR}${STATE_DIR}/pender \
+		${DESTDIR}${STATE_DIR}/awaiter \
+		${DESTDIR}${STATE_DIR}/awaiter/.cache \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
@@ -242,11 +242,11 @@ install-var:
 		${DESTDIR}${RUNTIME_DIR}/depot \
 		${DESTDIR}${RUNTIME_DIR}/repo \
 		${DESTDIR}${girar_lockdir} \
-		${DESTDIR}${girar_lockdir}/bull \
-		${DESTDIR}${girar_lockdir}/cow \
+		${DESTDIR}${girar_lockdir}/pender \
+		${DESTDIR}${girar_lockdir}/awaiter \
 
 init/girar-proxyd-acl: SOCKGRP = girar
-init/girar-proxyd-depot init/girar-proxyd-repo: SOCKGRP = bull
+init/girar-proxyd-depot init/girar-proxyd-repo: SOCKGRP = pender
 
 init/girar-proxyd-acl sbin/girar-proxyd-acl: RUN_AS = acl
 init/girar-proxyd-depot sbin/girar-proxyd-depot: RUN_AS = depot
