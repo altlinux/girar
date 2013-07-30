@@ -20,7 +20,9 @@ GEARS_DIR = /gears
 GITWEB_URL = http://git.altlinux.org
 GIT_TEMPLATE_DIR = ${girar_datadir}/templates
 HOOKS_DIR = ${girar_datadir}/hooks
+MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
+CACHE_DIR = ${STATE_DIR}/cache
 PEOPLE_DIR = /people
 PLUGIN_DIR = ${libexecdir}/girar
 RUNTIME_DIR = ${runtimedir}/girar
@@ -31,7 +33,6 @@ SRPMS_DIR = /srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = ${STATE_DIR}/tasks
 TASKS_GROUP = tasks
-MAINTAINERS_GROUP = maintainers
 USERS_GROUP = girar-users
 USER_PREFIX = git_
 girar_datadir = ${datadir}/girar
@@ -73,6 +74,7 @@ bin_TARGETS = \
 	bin/girar-clone \
 	bin/girar-default-branch \
 	bin/girar-find \
+	bin/girar-gen-people-packages-list \
 	bin/girar-get-email-address \
 	bin/girar-hooks-sh-functions \
 	bin/girar-init-db \
@@ -233,6 +235,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
 		${DESTDIR}${STATE_DIR}/pender \
+		${DESTDIR}${STATE_DIR}/cache \
 		${DESTDIR}${STATE_DIR}/repo \
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${STATE_DIR}/tasks/archive \
@@ -286,6 +289,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@GIT_TEMPLATE_DIR@,${GIT_TEMPLATE_DIR},g' \
 	    -e 's,@HOOKS_DIR@,${HOOKS_DIR},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
+	    -e 's,@CACHE_DIR@,${CACHE_DIR},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
 	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \

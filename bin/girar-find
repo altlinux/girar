@@ -3,7 +3,7 @@
 . girar-sh-functions
 . shell-quote
 
-packages_list="$STATE_DIR/people-packages-list"
+packages_list="$STATE_DIR/cache/people-packages-list"
 
 usage()
 {

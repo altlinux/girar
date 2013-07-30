@@ -54,6 +54,7 @@ touch %buildroot/var/spool/cron/{pender,awaiter}
 mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
 %add_findreq_skiplist /usr/libexec/girar-builder/remote/*
+touch %buildroot/var/lib/girar/cache/people-packages-list
 
 %check
 cd gb/tests
@@ -65,7 +66,7 @@ cd gb/tests
 %_sbindir/groupadd -r -f girar-admin
 %_sbindir/groupadd -r -f tasks
 %_sbindir/groupadd -r -f maintainers
-for u in acl depot repo; do
+for u in acl depot repo cacher; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
@@ -92,6 +93,9 @@ if [ $1 -eq 1 ]; then
 	crontab -u awaiter - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
 	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
+	EOF
+	crontab -u cacher - <<-'EOF'
+	#20	*	*	*	*	/usr/libexec/girar/girar-gen-people-packages-list
 	EOF
 fi
 
@@ -133,6 +137,9 @@ fi
 %dir %attr(775,root,pender) /var/lib/girar/tasks/archive/*
 %dir %attr(755,root,root) /var/lib/girar/tasks/index/
 %config(noreplace) %attr(664,pender,tasks) /var/lib/girar/tasks/.max-task-id
+
+%dir %attr(1771,root,cacher) /var/lib/girar/cache
+%config(noreplace) %attr(644,cacher,cacher) /var/lib/girar/cache/people-packages-list
 
 %dir %attr(750,root,girar) /var/lib/girar/email/
 %dir %attr(755,root,root) /var/lib/girar/email/*
