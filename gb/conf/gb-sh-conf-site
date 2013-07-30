@@ -16,3 +16,4 @@ GB_ROBOT_USERS='repocop'
 GB_LIST_OF_CHECKS_ALLOWED_TO_FAIL='gb-task-check-girar gb-task-check-lastchange'
 GB_STOP_FILE="$HOME/STOP"
 GB_LOCK_PEOPLE_DIR=/var/lock/girar/$LOGNAME
+GB_TRUST_GPG_NAMES="incominger updates"

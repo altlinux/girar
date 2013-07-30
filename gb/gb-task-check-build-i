@@ -171,7 +171,7 @@ for arch in $GB_ARCH; do
 		if [ ! -d "$d" -a -s "$arch/excluded" ]; then
 			continue
 		fi
-		sisyphus_check "$d" && continue
+		sisyphus_check ${GB_TRUST_GPG_NAMES:+--trust-gpg-names="$GB_TRUST_GPG_NAMES"} "$d" && continue
 		if is_check_failure_tolerated; then
 			echo >&2 "$I: the most essential build check failed, but \`$GB_REPO_NAME' is so neglected a repository that nobody cares about such trifles as this."
 			stamp_echo >&2 "$I: sisyphus_check COND-OK"
