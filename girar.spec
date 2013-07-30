@@ -55,6 +55,7 @@ mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
 %add_findreq_skiplist /usr/libexec/girar-builder/remote/*
 touch %buildroot/var/lib/girar/cache/people-packages-list
+touch %buildroot/etc/girar/aliases
 
 %check
 cd gb/tests
@@ -107,6 +108,7 @@ fi
 %files
 %config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
 %config(noreplace) /etc/sisyphus_check/check.d/*
+%config(noreplace) /etc/girar/aliases
 /etc/girar/
 /usr/libexec/girar/
 /usr/libexec/girar-builder/
