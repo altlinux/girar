@@ -122,7 +122,8 @@ check_new_members()
 	local i qi
 	for i; do
 		if [ "${i#@}" = "$i" ]; then
-			getent group "$USERS_GROUP" |cut -d: -f4 |tr , '\n' |
+			gid="$(getent group "$USERS_GROUP" | cut -d: -f3)"
+			getent passwd | sed -n 's/^\([^:]\+\):x:[0-9]\+:'"$gid"':.*/\1/p' |
 			grep -Fxqse "$USER_PREFIX$i" ||
 				abort "$i: Login name not found"
 		elif [ "$i" != '@everybody' ]; then
