@@ -151,6 +151,12 @@ girar_commit_copy()
 		if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
 			girar_obsolete "$GB_GEARS_DIR" "$N"
 		fi
+		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
+		[ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ] &&
+			text=updated || text=created
+		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
+		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
+		update_git_timestamp
 	fi
 }
 
