@@ -1,0 +1,16 @@
+#!/bin/sh -efu
+
+cd @TASKS_DIR@/archive
+
+pushd .trash >/dev/null
+popd >/dev/null
+
+for d in new failed eperm tested; do
+	pushd $d >/dev/null || continue
+	find -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d \
+	     -mtime +14 -printf '%h\n' | cut -d/ -f2 |
+		while read n; do
+			mv -- "./$n" ../.trash/ ||:
+		done
+	popd >/dev/null
+done

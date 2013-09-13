@@ -86,6 +86,7 @@ bin_TARGETS = \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
 	bin/girar-rm-db \
+	bin/girar-scrap-archived-tasks \
 	bin/girar-sh \
 	bin/girar-sh-config \
 	bin/girar-sh-functions \
@@ -239,7 +240,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/repo \
 		${DESTDIR}${STATE_DIR}/tasks \
 		${DESTDIR}${STATE_DIR}/tasks/archive \
-		${DESTDIR}${STATE_DIR}/tasks/archive/{done,eperm,failed,failure,new,postponed,tested} \
+		${DESTDIR}${STATE_DIR}/tasks/archive/{.trash,done,eperm,failed,failure,new,postponed,tested} \
 		${DESTDIR}${STATE_DIR}/tasks/index \
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/awaiter \
