@@ -95,6 +95,32 @@ if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi
+	if [ -f /etc/postfix/main.cf ]; then
+		postconf=postconf
+		if [ -z "$(postconf -h recipient_canonical_maps)" ]; then
+			f=/etc/postfix/recipient_canonical_regexp
+			if [ ! -f "$f" ]; then
+				domain="$(. /usr/libexec/girar/girar-sh-config && echo "$EMAIL_DOMAIN" ||:)"
+				[ -z "$domain" ] ||
+					echo "/$domain/	root" > "$f"
+			fi
+			$postconf -e "recipient_canonical_maps = regexp:$f"
+		fi
+		alias_database="$(postconf -h alias_database ||:)"
+		if ! printf %%s "$alias_database" | grep -qs /etc/girar/aliases; then
+			[ -n "$alias_database" ] &&
+				alias_database="$alias_database, cdb:/etc/girar/aliases" ||
+				alias_database="cdb:/etc/girar/aliases"
+			$postconf -e "alias_database = $alias_database"
+		fi
+		alias_maps="$(postconf -h alias_maps ||:)"
+		if ! printf %%s "$alias_maps" | grep -qs /etc/girar/aliases; then
+			[ -n "$alias_maps" ] &&
+				alias_maps="$alias_maps, cdb:/etc/girar/aliases" ||
+				alias_maps="cdb:/etc/girar/aliases"
+			$postconf -e "alias_maps = $alias_maps"
+		fi
+	fi
 	crontab -u pender - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-commit sisyphus
 	40	1	*	*	*	/usr/libexec/girar/girar-scrap-archived-tasks
