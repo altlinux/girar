@@ -55,7 +55,14 @@ mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
 %add_findreq_skiplist /usr/libexec/girar-builder/remote/*
 touch %buildroot/var/lib/girar/cache/people-packages-list
-touch %buildroot/etc/girar/aliases
+cat > %buildroot/etc/girar/aliases <<'EOF'
+git-update-subscribers: /dev/null
+acl:		root
+awaiter:	root
+depot:		root
+pender:		root
+repo:		root
+EOF
 
 %check
 cd gb/tests
