@@ -25,7 +25,7 @@ Requires: stmpclean
 # due to "locale -m"
 Requires: glibc-i18ndata
 # due to gb-task-repo-unmets
-Requires: qa-robot >= 0.3.4-alt1
+Requires: qa-robot >= 0.3.5-alt1
 # due to gb-y-repo-regen-basedir
 Requires: deepsolver-repo >= 0.3.3-alt1
 

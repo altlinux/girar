@@ -26,7 +26,7 @@ dump_unmets()
 			EOF
 			setarch $arch >/dev/null 2>&1 && native_arch=1 || native_arch=
 			${native_arch:+setarch $arch} \
-			unmets -a $arch -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
+			unmets -a $arch -l 134217728 -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
 				echo 1 >>FAIL &
 		done
 	done
