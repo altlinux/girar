@@ -134,6 +134,8 @@ fi
 %dir %attr(770,root,pender) /var/lib/girar/pender/
 %dir %attr(770,root,awaiter) /var/lib/girar/awaiter/
 %dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.cache/
+%dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.qa-cache/
+%dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.qa-cache/rpmelfsym/
 %dir %attr(755,root,root) /var/lib/girar/depot/
 %dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/girar/depot/??/

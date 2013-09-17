@@ -232,6 +232,8 @@ install-var:
 		${DESTDIR}${STATE_DIR}/acl \
 		${DESTDIR}${STATE_DIR}/awaiter \
 		${DESTDIR}${STATE_DIR}/awaiter/.cache \
+		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache \
+		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache/rpmelfsym \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
