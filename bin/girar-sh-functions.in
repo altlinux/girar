@@ -89,7 +89,7 @@ check_task_modifiable()
 
 valid_repositories()
 {
-	repositories="$(ls -- "$STATE_DIR/repo/")"
+	repositories="$(ls -- "$CONF_DIR/repo/")"
 	printf %s "$repositories" | tr '\n' ' '
 }
 

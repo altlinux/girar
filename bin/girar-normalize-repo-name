@@ -19,7 +19,7 @@ repository="$1"; shift
 
 cd
 
-repo_dir="$STATE_DIR/repo"
+repo_dir="$CONF_DIR/repo"
 
 # Fail if requested binary repository does not exist.
 [ -n "$repository" ] &&

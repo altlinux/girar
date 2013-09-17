@@ -7,7 +7,7 @@
 [ -n "${GIRAR_USER-}" ] ||
 	fatal 'GIRAR_USER undefined'
 
-repo_dir="$STATE_DIR/repo"
+repo_dir="$CONF_DIR/repo"
 
 quiet=
 case "${1-}" in
