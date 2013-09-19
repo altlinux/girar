@@ -46,7 +46,7 @@ subscription support and config files.
 
 %install
 %makeinstall_std
-echo 0 >%buildroot/var/lib/girar/tasks/.max-task-id
+echo 0 >%buildroot/tasks/.max-task-id
 mksock %buildroot/var/run/girar/{acl,depot,repo}/socket
 mkdir -p %buildroot/var/spool/cron
 touch %buildroot/var/spool/cron/{pender,awaiter}
@@ -170,12 +170,12 @@ fi
 %dir %attr(775,root,pender) /gears/
 %dir %attr(775,root,pender) /srpms/
 
-%dir %attr(3775,pender,tasks) /var/lib/girar/tasks/
-%dir %attr(3775,root,pender) /var/lib/girar/tasks/archive/
-%dir %attr(700,pender,pender) /var/lib/girar/tasks/archive/.trash/
-%dir %attr(775,root,pender) /var/lib/girar/tasks/archive/*
-%dir %attr(755,root,root) /var/lib/girar/tasks/index/
-%config(noreplace) %attr(664,pender,tasks) /var/lib/girar/tasks/.max-task-id
+%dir %attr(3775,pender,tasks) /tasks/
+%dir %attr(3775,root,pender) /tasks/archive/
+%dir %attr(700,pender,pender) /tasks/archive/.trash/
+%dir %attr(775,root,pender) /tasks/archive/*
+%dir %attr(755,root,root) /tasks/index/
+%config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
 
 %dir %attr(1771,root,cacher) /var/lib/girar/cache
 %config(noreplace) %attr(644,cacher,cacher) /var/lib/girar/cache/people-packages-list
