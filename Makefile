@@ -240,10 +240,10 @@ install-var:
 		${DESTDIR}${STATE_DIR}/pender \
 		${DESTDIR}${STATE_DIR}/cache \
 		${DESTDIR}${STATE_DIR}/repo \
-		${DESTDIR}${STATE_DIR}/tasks \
-		${DESTDIR}${STATE_DIR}/tasks/archive \
-		${DESTDIR}${STATE_DIR}/tasks/archive/{.trash,done,eperm,failed,failure,new,postponed,tested} \
-		${DESTDIR}${STATE_DIR}/tasks/index \
+		${DESTDIR}${TASKS_DIR} \
+		${DESTDIR}${TASKS_DIR}/archive \
+		${DESTDIR}${TASKS_DIR}/archive/{.trash,done,eperm,failed,failure,new,postponed,tested} \
+		${DESTDIR}${TASKS_DIR}/index \
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/awaiter \
 		${DESTDIR}${girar_lockdir}/pender \
