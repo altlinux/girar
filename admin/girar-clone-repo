@@ -36,8 +36,8 @@ su -l repo -s /bin/sh -c "cat -- '$from/files/list/task.info' > /dev/null" ||
 cd "$STATE_DIR"
 [ ! -e repo/$repo ] ||
 	fatal "repo/$repo already exists"
-[ ! -e tasks/index/$repo ] ||
-	fatal "tasks/index/$repo already exists"
+[ ! -e "$TASKS_DIR/index/$repo" ] ||
+	fatal "$TASKS_DIR/index/$repo already exists"
 [ ! -e acl/list.packages.$repo ] ||
 	fatal "acl/list.packages.$repo already exists"
 [ ! -e acl/list.groups.$repo ] ||
@@ -48,8 +48,8 @@ rm -f repo/$repo || exit
 
 install -m644 -o acl -g acl /dev/null acl/list.packages.$repo
 install -m644 -o acl -g acl /dev/null acl/list.groups.$repo
-install -d -m755 -o root -g root tasks/index/$repo
-install -d -m2775 -o root -g tasks tasks/index/$repo/{awaiting,building,committing,done,eperm,failed,failure,new,pending,postponed,tested}
+install -d -m755 -o root -g root "$TASKS_DIR/index/$repo"
+install -d -m2775 -o root -g tasks "$TASKS_DIR/index/$repo"/{awaiting,building,committing,done,eperm,failed,failure,new,pending,postponed,tested}
 install -d -m755 -o root -g root repo/$repo
 install -d -m775 -o root -g repo repo/$repo/task
 install -d -m775 -o root -g repo repo/$repo/task/archive
