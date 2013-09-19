@@ -56,3 +56,6 @@ install -d -m775 -o root -g repo repo/$repo/task/archive
 install -d -m775 -o root -g pender repo/$repo/release
 su -l repo -s /bin/sh -c "cp -al -- '$from' '$STATE_DIR/repo/$repo/task/$id'"
 ln -s ../task/$id repo/$repo/release/latest
+
+# make $repo available for girar-acl and girar-task
+touch "$CONF_DIR/repo/$repo"
