@@ -127,6 +127,10 @@ sort -k2,2 -o oldsrc2newsrpm{,}
 # join with i-src by src-F,
 # output: old_src-N  new_src-F  new_src-I
 join -t$'\t' -1 2 -2 1 -o 1.1,1.2,2.3 oldsrc2newsrpm i-src > oldsrc2newsrpm-i
+# output: old_src-N  new_src-I
+cut -f1,3 oldsrc2newsrpm-i > replace-src-N-I
+# sort -u by old_src-N
+sort -k1,1 -u -o replace-src-N-I{,}
 
 # Implicit match can be wrong, so issue a warning.
 while read -r N F I; do
@@ -235,6 +239,19 @@ cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
 # do some consistency checks, just in case
 [ -s plan/change-arch ] ||
 	fail 'cowardly refusing to create an empty plan'
+
+# Prepare $GB_REPO_ROOT/$GB_REPO_NAME/index/ update.
+{
+	# updated: N, EVR, I
+	join -t$'\t' -o 1.1,1.2,1.5 plan/add-src plan/rm-src
+	# added: N, EVR, I
+	join -t$'\t' -v1 -o 1.1,1.2,1.5 plan/add-src plan/rm-src
+	# replaced: N, -, I
+	# deleted: N, -, I
+	sed 's/\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)$/\1\t-\t\2/' \
+		$tmpdir/replace-src-N-I plan/del-src-N-I
+} > $tmpdir/rip-src
+sort -k1,1 -u $tmpdir/rip-src > plan/rip-src
 
 # diagnostics
 n_add=$(cat plan/add-src | wc -l)
