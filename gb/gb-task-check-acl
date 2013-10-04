@@ -52,10 +52,7 @@ while read -r N F I; do
 done < plan/oldsrc2newsrpm
 
 # Deal with explicitly removed packages.
-for i in $(package_nums); do
-	[ -s gears/$i/copy_repo -o -s gears/$i/dir ] ||
-		printf '%s\t%s\n' "$i" "$(cat "gears/$i/package")" >> $tmpdir/check_acl
-done
+join -t$'\t' -o 1.2,1.1 -v1 plan/del-src-N-I /dev/null >> $tmpdir/check_acl
 
 sort -u -k1,1n -k2 < $tmpdir/check_acl > plan/check_acl
 while read -r i N; do
