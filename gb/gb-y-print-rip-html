@@ -1,0 +1,43 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+repo="$1"; shift
+N="$1"; shift
+input="$1"; shift
+sym="$(printf %s "$N" |cut -c1)"
+
+cat <<__EOF__
+<html>
+<head><title>Index of $repo/index/src/$sym/$N/</title></head>
+<body>
+<h1>Index of source package <i>$N</i> in <i>$repo</i></h1>
+<table border="1">
+<tr><th>Date</th><th>Version</th><th>Task</th><th>Subtask</th></tr>
+__EOF__
+
+while read -r D T S V; do
+	G="_$(($T/1024))"
+	date="$(TZ=UTC date -d "1970-01-01 $D seconds" '+%F %H:%M')"
+
+	if [ "$S" = - ]; then
+		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;%s&nbsp;</th><th align="right">&nbsp;%s&nbsp;</th></tr>\n' \
+			"$G" "$T" "$date" \
+			"$V" \
+			"$T" \
+			"$S"
+	else
+		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/">%s</a>&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/#s%s">%s</a>&nbsp;</th></tr>\n' \
+			"$G" "$T" "$date" \
+			"$V" \
+			"$GB_SITE" "$G" "$T" "$T" \
+			"$GB_SITE" "$G" "$T" "$S" "$S"
+	fi
+done < "$input"
+
+cat <<__EOF__
+</table>
+<h4><a href="../">Back to $repo source index</a></h4>
+</body>
+</html>
+__EOF__
