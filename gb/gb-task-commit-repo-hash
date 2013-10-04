@@ -58,7 +58,7 @@ done < plan/change-arch
 for arch in ${GB_AREPO_ARCH-}; do
 	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] ||
 		continue
-	if [ ! -s $GB_REPO_DIR/files/list/$arch.hash ]; then
+	if [ -s $GB_REPO_DIR/files/list/$arch.hash ]; then
 		join -1 1 -2 2 -v2 -o 2.1,2.2 plan/arepo-rm-$arch $GB_REPO_DIR/files/list/$arch.hash \
 			> $tmpdir/$arch.hash
 		sed -i 's/ /  /' $tmpdir/$arch.hash
