@@ -7,8 +7,9 @@
 cut -f3 < plan/rm-src > $tmpdir/rm-src-F
 sort -o $tmpdir/rm-src-F{,}
 
-if [ -s $GB_REPO_DIR/files/list/src.hash ]; then
-	join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-src-F $GB_REPO_DIR/files/list/src.hash \
+hash_file=$GB_REPO_DIR/files/list/src.hash
+if [ -s $hash_file ]; then
+	join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-src-F $hash_file \
 		> $tmpdir/src.hash
 	sed -i 's/ /  /' $tmpdir/src.hash
 
@@ -25,14 +26,15 @@ else
 	done < $GB_REPO_DIR/files/list/src.list > $tmpdir/src.hash
 fi
 sort -k2,2 -o $tmpdir/src.hash{,}
-install -pm644 -- $tmpdir/src.hash $GB_REPO_DIR/files/list/src.hash
+install -pm644 -- $tmpdir/src.hash $hash_file
 
 # update $arch.hash files
 cut -f4 < plan/rm-bin > $tmpdir/rm-bin-F
 sort -o $tmpdir/rm-bin-F{,}
 while read -r arch; do
-	if [ -s $GB_REPO_DIR/files/list/$arch.hash ]; then
-		join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-bin-F $GB_REPO_DIR/files/list/$arch.hash \
+	hash_file=$GB_REPO_DIR/files/list/$arch.hash
+	if [ -s $hash_file ]; then
+		join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-bin-F $hash_file \
 			> $tmpdir/$arch.hash
 		sed -i 's/ /  /' $tmpdir/$arch.hash
 
@@ -49,17 +51,18 @@ while read -r arch; do
 			hash="${hash%% *}"
 			printf '%s  %s\n' "$hash" "$F"
 		done < $GB_REPO_DIR/files/list/bin.list > $tmpdir/$arch.hash
-fi
+	fi
 	sort -k2,2 -o $tmpdir/$arch.hash{,}
-	install -pm644 -- $tmpdir/$arch.hash $GB_REPO_DIR/files/list/$arch.hash
+	install -pm644 -- $tmpdir/$arch.hash $hash_file
 done < plan/change-arch
 
 # update arepo $arch.hash files
 for arch in ${GB_AREPO_ARCH-}; do
 	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] ||
 		continue
-	if [ -s $GB_REPO_DIR/files/list/$arch.hash ]; then
-		join -1 1 -2 2 -v2 -o 2.1,2.2 plan/arepo-rm-$arch $GB_REPO_DIR/files/list/$arch.hash \
+	hash_file=$GB_REPO_DIR/files/list/$arch.hash
+	if [ -s $hash_file ]; then
+		join -1 1 -2 2 -v2 -o 2.1,2.2 plan/arepo-rm-$arch $hash_file \
 			> $tmpdir/$arch.hash
 		sed -i 's/ /  /' $tmpdir/$arch.hash
 
@@ -77,5 +80,5 @@ for arch in ${GB_AREPO_ARCH-}; do
 		done < "$GB_REPO_DIR/files/list/arepo-$arch.list" > $tmpdir/$arch.hash
 	fi
 	sort -k2,2 -o $tmpdir/$arch.hash{,}
-	install -pm644 -- $tmpdir/$arch.hash $GB_REPO_DIR/files/list/$arch.hash
+	install -pm644 -- $tmpdir/$arch.hash $hash_file
 done
