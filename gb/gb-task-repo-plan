@@ -57,31 +57,30 @@ sort -o $tmpdir/i-bin-P{,}
 # output: bin-N  bin-EVR  bin-A  bin-F  src-F
 xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-P > $tmpdir/new.bin
 
-# output: src-N
+# output: src-N  src-I
 for i in $(package_nums); do
-	[ -s gears/$i/copy_repo -o -s gears/$i/dir ] ||
-		cat gears/$i/package
-done > $tmpdir/del.pkg
+	if [ ! -s gears/$i/copy_repo -a ! -s gears/$i/dir ]; then
+		package="$(cat gears/$i/package)"
+		printf '%s\t%s\n' "$package" "$i"
+	fi
+done > $tmpdir/del-src-N-I
 
 cd "$tmpdir"
 
 sort -u -o new.src{,}
 sort -u -o new.bin{,}
-sort -u -o del.pkg{,}
+sort -u -k1,1 -o del-src-N-I{,}
 
 # output: old.src  old.bin  old
 make_repo_table '' old
 
-# check del.pkg consistency
+# Check that all source packages explicitly requested for deletion exist.
 sort -k1,1 -o old.src{,}
-join -v1 del.pkg old.src > del.missing
+join -v1 -o 1.1,1.2 del-src-N-I old.src > del.missing
 if [ -s del.missing ]; then
-	fail "FAILED to delete non-existent packages: $(cat del.missing)"
-fi
-sort -k1,1 -o new.src{,}
-join -o 1.1 del.pkg new.src > del.new
-if [ -s del.new ]; then
-	fail "FAILED to delete just built packages: $(cat del.new)"
+	sed -n < del.missing >&2 \
+		's/^\([^[:space:]]\+\)[[:space:]]\([^[:space:]]\+\)$/#\2: cannot delete source package "\1" because it does not exist/p'
+	fail "FAILED to delete non-existent packages: $(cut -f1 del.missing)"
 fi
 
 # output: new.src  new.bin  new
@@ -92,7 +91,7 @@ mktable new
 O='1.1 1.2 1.3 1.4 1.5 1.6 1.7'
 
 # 1) by explicit delete request
-join -t$'\t' -o "$O" old del.pkg > rm-by-del
+join -t$'\t' -o "$O" old del-src-N-I > rm-by-del
 sort -u -o rm-by-del{,}
 
 # 2) by explicit src-N match (src->bin+);
@@ -156,6 +155,17 @@ sort -k4,4 -o add-bin{,}
 # output: bin-N  bin-EVR  bin-A  bin-F  bin-P  bin-I
 join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,2.2,2.3 add-bin i-bin > add-bin-i
 
+# Check that no source packages explicitly requested for deletion
+# have been built within this task.
+sort -k1,1 -o add-src-i{,}
+# output: del_src-N  del_src-I  new_src-I
+join -o 1.1,1.2,2.5 del-src-N-I add-src-i > del.new
+if [ -s del.new ]; then
+	sed -n < del.new >&2 \
+		's/^\([^[:space:]]\+\)[[:space:]]\([^[:space:]]\+\)[[:space:]]\([^[:space:]]\+\)$/#\2: cannot delete source package "\1" because it has been built in subtask #\3/p'
+	fail "FAILED to delete just built packages: $(cut -f1 del.new)"
+fi
+
 ### Prepare new repo lists to update old.src/old.bin
 
 # prepare next.src by applying add-src and rm-src changes to old.src
@@ -204,6 +214,9 @@ cut -f1-3 < $tmpdir/rm | sort -u > plan/rm-src
 cut -f3,6 < $tmpdir/rm | sort -u > plan/rm-srpm2arch
 # output: bin-N  bin-EVR  bin-A  bin-F
 cut -f4-7 < $tmpdir/rm | sort -u > plan/rm-bin
+
+# output: src-N  src-I
+cat $tmpdir/del-src-N-I > plan/del-src-N-I
 
 # output: src-N  src-EVR  src-F
 sort -u "$tmpdir/next.src" > plan/next.src
