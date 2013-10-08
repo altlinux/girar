@@ -23,6 +23,7 @@ HOOKS_DIR = ${girar_datadir}/hooks
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 CACHE_DIR = ${STATE_DIR}/cache
+UPLOAD_DIR = ${STATE_DIR}/upload
 PEOPLE_DIR = /people
 PLUGIN_DIR = ${libexecdir}/girar
 RUNTIME_DIR = ${runtimedir}/girar
@@ -234,12 +235,13 @@ install-var:
 		${DESTDIR}${STATE_DIR}/awaiter/.cache \
 		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache \
 		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache/rpmelfsym \
+		${DESTDIR}${STATE_DIR}/cache \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
 		${DESTDIR}${STATE_DIR}/pender \
-		${DESTDIR}${STATE_DIR}/cache \
 		${DESTDIR}${STATE_DIR}/repo \
+		${DESTDIR}${STATE_DIR}/upload/{copy,lockdir,log} \
 		${DESTDIR}${TASKS_DIR} \
 		${DESTDIR}${TASKS_DIR}/archive \
 		${DESTDIR}${TASKS_DIR}/archive/{.trash,done,eperm,failed,failure,new,postponed,tested} \
@@ -302,6 +304,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \
 	    -e 's,@TASKS_GROUP@,${TASKS_GROUP},g' \
 	    -e 's,@MAINTAINERS_GROUP@,${MAINTAINERS_GROUP},g' \
+	    -e 's,@UPLOAD_DIR@,${UPLOAD_DIR},g' \
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 		<$< >$@

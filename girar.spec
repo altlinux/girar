@@ -74,7 +74,7 @@ cd gb/tests
 %_sbindir/groupadd -r -f girar-admin
 %_sbindir/groupadd -r -f tasks
 %_sbindir/groupadd -r -f maintainers
-for u in acl depot repo cacher; do
+for u in acl depot repo cacher upload; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
@@ -179,6 +179,11 @@ fi
 
 %dir %attr(1771,root,cacher) /var/lib/girar/cache
 %config(noreplace) %attr(644,cacher,cacher) /var/lib/girar/cache/people-packages-list
+
+%dir %attr(755,root,root) /var/lib/girar/upload
+%dir %attr(1771,root,upload) /var/lib/girar/upload/copy
+%dir %attr(1771,root,upload) /var/lib/girar/upload/lockdir
+%dir %attr(1771,root,upload) /var/lib/girar/upload/log
 
 %dir %attr(750,root,girar) /var/lib/girar/email/
 %dir %attr(755,root,root) /var/lib/girar/email/*
