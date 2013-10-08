@@ -53,7 +53,7 @@ install -d -m2775 -o root -g tasks "$TASKS_DIR/index/$repo"/{awaiting,building,c
 install -d -m755 -o root -g root repo/$repo
 install -d -m775 -o root -g repo repo/$repo/task
 install -d -m775 -o root -g repo repo/$repo/task/archive
-install -d -m775 -o root -g pender repo/$repo/release
+install -d -m775 -o root -g pender repo/$repo/{index,release}
 su -l repo -s /bin/sh -c "cp -al -- '$from' '$STATE_DIR/repo/$repo/task/$id'"
 ln -s ../task/$id repo/$repo/release/latest
 
