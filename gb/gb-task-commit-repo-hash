@@ -10,23 +10,23 @@ sort -o $tmpdir/rm-src-F{,}
 hash_file=$GB_REPO_DIR/files/list/src.hash
 if [ -s $hash_file ]; then
 	join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-src-F $hash_file \
-		> $tmpdir/src.hash
-	sed -i 's/ /  /' $tmpdir/src.hash
+		> $tmpdir/out.hash
+	sed -i 's/ /  /' $tmpdir/out.hash
 
 	while read -r N EVR F P I; do
 		hash="$(sha256sum "$P")"
 		hash="${hash%% *}"
 		printf '%s  %s\n' "$hash" "$F"
-	done < plan/add-src >> $tmpdir/src.hash
+	done < plan/add-src >> $tmpdir/out.hash
 else
 	while read -r N EVR F; do
 		hash="$(sha256sum "$GB_REPO_DIR/files/SRPMS/$F")"
 		hash="${hash%% *}"
 		printf '%s  %s\n' "$hash" "$F"
-	done < $GB_REPO_DIR/files/list/src.list > $tmpdir/src.hash
+	done < $GB_REPO_DIR/files/list/src.list > $tmpdir/out.hash
 fi
-sort -k2,2 -o $tmpdir/src.hash{,}
-install -pm644 -- $tmpdir/src.hash $hash_file
+sort -k2,2 -o $tmpdir/out.hash{,}
+install -pm644 -- $tmpdir/out.hash $hash_file
 
 # update $arch.hash files
 cut -f4 < plan/rm-bin > $tmpdir/rm-bin-F
@@ -35,25 +35,25 @@ while read -r arch; do
 	hash_file=$GB_REPO_DIR/files/list/$arch.hash
 	if [ -s $hash_file ]; then
 		join -1 1 -2 2 -v2 -o 2.1,2.2 $tmpdir/rm-bin-F $hash_file \
-			> $tmpdir/$arch.hash
-		sed -i 's/ /  /' $tmpdir/$arch.hash
+			> $tmpdir/out.hash
+		sed -i 's/ /  /' $tmpdir/out.hash
 
 		while read -r N EVR A F P I; do
 			[ "$A" = "$arch" ] || continue
 			hash="$(sha256sum "$P")"
 			hash="${hash%% *}"
 			printf '%s  %s\n' "$hash" "$F"
-		done < plan/add-bin >> $tmpdir/$arch.hash
+		done < plan/add-bin >> $tmpdir/out.hash
 	else
 		while read -r N EVR A F S; do
 			[ "$A" = "$arch" ] || continue
 			hash="$(sha256sum "$GB_REPO_DIR/files/$A/RPMS/$F")"
 			hash="${hash%% *}"
 			printf '%s  %s\n' "$hash" "$F"
-		done < $GB_REPO_DIR/files/list/bin.list > $tmpdir/$arch.hash
+		done < $GB_REPO_DIR/files/list/bin.list > $tmpdir/out.hash
 	fi
-	sort -k2,2 -o $tmpdir/$arch.hash{,}
-	install -pm644 -- $tmpdir/$arch.hash $hash_file
+	sort -k2,2 -o $tmpdir/out.hash{,}
+	install -pm644 -- $tmpdir/out.hash $hash_file
 done < plan/change-arch
 
 # update arepo $arch.hash files
@@ -63,22 +63,22 @@ for arch in ${GB_AREPO_ARCH-}; do
 	hash_file=$GB_REPO_DIR/files/list/$arch.hash
 	if [ -s $hash_file ]; then
 		join -1 1 -2 2 -v2 -o 2.1,2.2 plan/arepo-rm-$arch $hash_file \
-			> $tmpdir/$arch.hash
-		sed -i 's/ /  /' $tmpdir/$arch.hash
+			> $tmpdir/out.hash
+		sed -i 's/ /  /' $tmpdir/out.hash
 
 		while read -r N EVR F dummy; do
 			P="arepo/$arch/rpms/$F"
 			hash="$(sha256sum "$P")"
 			hash="${hash%% *}"
 			printf '%s  %s\n' "$hash" "$F"
-		done < plan/arepo-add-$arch >> $tmpdir/$arch.hash
+		done < plan/arepo-add-$arch >> $tmpdir/out.hash
 	else
 		while read -r N EVR F dummy; do
 			hash="$(sha256sum "$GB_REPO_DIR/files/$arch/RPMS/$F")"
 			hash="${hash%% *}"
 			printf '%s  %s\n' "$hash" "$F"
-		done < "$GB_REPO_DIR/files/list/arepo-$arch.list" > $tmpdir/$arch.hash
+		done < "$GB_REPO_DIR/files/list/arepo-$arch.list" > $tmpdir/out.hash
 	fi
-	sort -k2,2 -o $tmpdir/$arch.hash{,}
-	install -pm644 -- $tmpdir/$arch.hash $hash_file
+	sort -k2,2 -o $tmpdir/out.hash{,}
+	install -pm644 -- $tmpdir/out.hash $hash_file
 done
