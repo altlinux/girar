@@ -1,11 +1,9 @@
 GB_REPO_NAME=c6
-GB_REPO_UP_NAME=
+GB_REPO_UP_NAME=c7
 GB_REPO_DOWN_NAME='5.1 p5 5.0 4.1 4.0'
 GB_REPO_REL_SUFF_MUST_NOT='*.M[457-9][0-9]* *.M6[1-9]* *.M60.* *.M60[^CPT].*'
 GB_REPO_REL_SUFF_MUST_HAVE='*.M60C.*'
 GB_REPO_LABEL=${GB_REPO_NAME}
-GB_REPO_RPMARGS="--define '_binary_payload w5.lzdio' --define '_debuginfo_payload w7.lzdio' --define '_source_payload w7.lzdio'"
 GB_REPO_SIGNER=64032F109FD0C4331F572CC0DC9E95C2231114B3
-GB_REPO_CODENAME=Ziziphora
 GB_REPO_EMAIL='girar-builder-c6@altlinux.org'
 GB_DISABLE_ACL_UPDATE=1

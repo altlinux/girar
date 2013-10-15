@@ -1,12 +1,10 @@
 GB_REPO_NAME=t6
-GB_REPO_UP_NAME=sisyphus
+GB_REPO_UP_NAME='sisyphus t7'
 GB_REPO_DOWN_NAME='5.1 p5 5.0 4.1 4.0'
 GB_REPO_REL_SUFF_MUST_NOT='*.M[457-9][0-9]* *.M6[1-9]* *.M60.* *.M60[^PT].*'
 GB_REPO_REL_SUFF_MUST_HAVE='*.M60T.*'
 GB_REPO_LABEL=${GB_REPO_NAME}
-GB_REPO_RPMARGS="--define '_binary_payload w5.lzdio' --define '_debuginfo_payload w7.lzdio' --define '_source_payload w7.lzdio'"
 GB_REPO_SIGNER=64032F109FD0C4331F572CC0DC9E95C2231114B3
-GB_REPO_CODENAME=Ziziphora
 GB_REPO_EMAIL='sisyphus-incominger@lists.altlinux.org'
 GB_AREPO_ARCH=x86_64-i586
 GB_ACL_ADDON='@everybody'
