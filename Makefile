@@ -144,12 +144,13 @@ admin_TARGETS = \
 	admin/girar-admin-sh-functions \
 	admin/girar-auth-add \
 	admin/girar-auth-zero \
-	admin/girar-maintainer-add \
-	admin/girar-maintainer-del \
+	admin/girar-branch-gears \
 	admin/girar-clone-repo \
 	admin/girar-del \
 	admin/girar-disable \
 	admin/girar-enable \
+	admin/girar-maintainer-add \
+	admin/girar-maintainer-del \
 	admin/girar-make-template-repos \
 	#
 
