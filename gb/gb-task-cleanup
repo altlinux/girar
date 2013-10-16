@@ -16,4 +16,8 @@ for arch in ${GB_AREPO_ARCH-}; do
 	rm -f -- plan/arepo-{pkg,table}-$arch
 done
 
+for arch in src noarch $GB_ARCH ${GB_AREPO_ARCH-}; do
+	rm -f -- plan/$arch.hash.xz
+done
+
 rm -f -- plan/next.{src,bin}

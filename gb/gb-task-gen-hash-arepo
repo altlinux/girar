@@ -1,0 +1,23 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+for arch in ${GB_AREPO_ARCH-}; do
+	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] ||
+		continue
+
+	$0-arch "$arch" ||
+		stamp_echo "[$arch] FAILED to create hash file" >> "$tmpdir"/FAIL &
+done
+
+wait
+
+# Fail if at least one subcommand failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi

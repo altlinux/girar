@@ -1,0 +1,23 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+arch="$1"; shift
+
+. gb-sh-tmpdir
+
+cut -f3 < plan/arepo-add-$arch > "$tmpdir"/add-F
+sed "s|^|arepo/$arch/rpms/|" < "$tmpdir"/add-F > "$tmpdir"/add-P
+
+cut -f3 < "$GB_REPO_DIR/files/list/arepo-$arch.list" > "$tmpdir"/list-F
+
+gb-y-repo-gen-hash \
+	"$GB_REPO_DIR/files/list/$arch.hash" \
+	"plan/$arch.hash" \
+	"plan/arepo-rm-$arch" \
+	"$tmpdir"/add-P \
+	"$tmpdir"/list-F \
+	"$GB_REPO_DIR/files/$arch/RPMS" \
+	#

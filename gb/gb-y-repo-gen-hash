@@ -1,0 +1,40 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+in_hash_file="$1"; shift
+out_hash_file="$1"; shift
+rm_file="$1"; shift
+add_file="$1"; shift
+list_file="$1"; shift
+files_dir="$1"; shift
+
+if [ -s "$in_hash_file".xz ]; then
+	xz -cd "$in_hash_file".xz > "$tmpdir"/in.hash
+	in_hash_file="$tmpdir"/in.hash
+fi
+
+if [ -s "$in_hash_file" ]; then
+	join -1 1 -2 2 -v2 -o 2.1,2.2 "$rm_file" "$in_hash_file" \
+		> "$tmpdir"/new.hash
+	sed -i 's/ /  /' "$tmpdir"/new.hash
+
+	while read -r P; do
+		cd "${P%/*}"
+		sha256sum "${P##*/}"
+		cd - > /dev/null
+	done < "$add_file" >> "$tmpdir"/new.hash
+else
+	cd "$files_dir"
+	xargs -r sha256sum -- < "$list_file" > "$tmpdir"/new.hash
+	cd - > /dev/null
+fi
+
+sort -k2,2 -o "$tmpdir"/new.hash{,}
+xz -c9 "$tmpdir"/new.hash > "$out_hash_file".xz
+
+if [ -s "$in_hash_file" ]; then
+	diff -u -- "$in_hash_file" "$tmpdir"/new.hash > "$tmpdir"/hash.diff || :
+	sed '0,/^@/ s|/.*/||' < "$tmpdir"/hash.diff > "$out_hash_file".diff
+fi

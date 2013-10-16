@@ -1,0 +1,29 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+cut -f4 < plan/rm-bin > "$tmpdir"/rm-F
+sort -o "$tmpdir"/rm-F{,}
+
+cut -f3,5 < plan/add-bin > "$tmpdir"/add-A-P
+sort -k1,1 -o "$tmpdir"/add-A-P{,}
+
+cut -f3,4 < $GB_REPO_DIR/files/list/bin.list > "$tmpdir"/list-A-F
+sort -k1,1 -o "$tmpdir"/list-A-F{,}
+
+while read -r arch; do
+	$0-arch "$arch" "$tmpdir"/rm-F "$tmpdir"/add-A-P "$tmpdir"/list-A-F ||
+		stamp_echo "[$arch] FAILED to create hash file" >> "$tmpdir"/FAIL &
+done < plan/change-arch
+
+wait
+
+# Fail if at least one arch failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi

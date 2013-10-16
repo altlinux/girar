@@ -1,0 +1,23 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+cut -f3 < plan/rm-src > "$tmpdir"/rm-F
+sort -o "$tmpdir"/rm-F{,}
+
+cut -f4 < plan/add-src > "$tmpdir"/add-P
+
+cut -f3 < "$GB_REPO_DIR/files/list/src.list" > "$tmpdir"/list-F
+
+gb-y-repo-gen-hash \
+	"$GB_REPO_DIR/files/list/src.hash" \
+	plan/src.hash \
+	"$tmpdir"/rm-F \
+	"$tmpdir"/add-P \
+	"$tmpdir"/list-F \
+	"$GB_REPO_DIR/files/SRPMS" \
+	#

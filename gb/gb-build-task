@@ -103,6 +103,7 @@ gb-task-set-summary
 
 	# save generated "next" repo for commit
 	gb-task-gen-ci
+	gb-task-gen-hash
 	gb-task-save-repo
 
 	fail_if_task_abort_requested

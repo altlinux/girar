@@ -1,0 +1,24 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+arch="$1"; shift
+rm_f="$1"; shift
+add_a_p="$1"; shift
+list_a_f="$1"; shift
+
+echo "$arch" | join -o 2.2 - "$add_a_p" > "$tmpdir"/add-P
+echo "$arch" | join -o 2.2 - "$list_a_f" > "$tmpdir"/list-F
+
+gb-y-repo-gen-hash \
+	"$GB_REPO_DIR/files/list/$arch.hash" \
+	"plan/$arch.hash" \
+	"$rm_f" \
+	"$tmpdir"/add-P \
+	"$tmpdir"/list-F \
+	"$GB_REPO_DIR/files/$arch/RPMS" \
+	#

@@ -1,0 +1,29 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+# src hash file
+$0-src ||
+	stamp_echo "[src] FAILED to create hash file" >> "$tmpdir"/FAIL &
+
+# arch hash files
+$0-bin ||
+	stamp_echo "[bin] FAILED to create hash files" >> "$tmpdir"/FAIL &
+
+# arepo hash files
+$0-arepo ||
+	stamp_echo "[arepo] FAILED to create hash files" >> "$tmpdir"/FAIL &
+
+wait
+
+# Fail if at least one subcommand failed.
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
+
+stamp_echo >&2 "created hash files: $(cd plan && set +f && ls *.hash.xz |sed 's/\.hash\.xz$//')"
