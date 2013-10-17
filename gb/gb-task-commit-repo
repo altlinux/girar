@@ -22,6 +22,8 @@ stamp_echo >&2 'packages update OK'
 # Update lists.
 install -pm644 -- plan/next.src "$GB_REPO_DIR/files/list/src.list"
 install -pm644 -- plan/next.bin "$GB_REPO_DIR/files/list/bin.list"
+install -pm644 -- plan/next.src.xz "$GB_REPO_DIR/files/list/src.list.xz"
+install -pm644 -- plan/next.bin.xz "$GB_REPO_DIR/files/list/bin.list.xz"
 
 # Reuse base directories from our prepared repo.
 updated=

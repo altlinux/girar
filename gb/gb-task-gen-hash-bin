@@ -27,3 +27,5 @@ if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
 	exit 1
 fi
+
+xz -k9 plan/next.bin

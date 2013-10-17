@@ -13,11 +13,11 @@ done
 for arch in ${GB_AREPO_ARCH-}; do
 	rm -rf -- arepo/$arch/base
 	rm -f -- arepo/$arch/pkg.list
-	rm -f -- plan/arepo-{pkg,table}-$arch
+	rm -f -- plan/arepo-{pkg,table}-$arch plan/arepo-table-$arch.xz
 done
 
 for arch in src noarch $GB_ARCH ${GB_AREPO_ARCH-}; do
 	rm -f -- plan/$arch.hash.xz
 done
 
-rm -f -- plan/next.{src,bin}
+rm -f -- plan/next.{src,bin}{,.xz}

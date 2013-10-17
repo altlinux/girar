@@ -64,6 +64,10 @@ for d in $(set +f && echo ??*); do
 		set +f
 		rm -f "archive/$k/$t"/*/base/contents_index
 		rm -rf "archive/$k/$t"/*/base/ds.*
+		for f in "archive/$k/$t"/files/list/*.list.xz; do
+			[ -f "$f" ] || continue
+			rm -f -- "${f%.xz}"
+		done
 		set -f
 	done
 	exit

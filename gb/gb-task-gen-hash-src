@@ -21,3 +21,5 @@ gb-y-repo-gen-hash \
 	"$tmpdir"/list-F \
 	"$GB_REPO_DIR/files/SRPMS" \
 	#
+
+xz -k9 plan/next.src

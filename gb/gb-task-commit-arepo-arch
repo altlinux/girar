@@ -37,6 +37,8 @@ done < plan/arepo-add-$arch >> logs/commit-$arch.log
 
 install -pm644 -- plan/arepo-table-$arch \
 	"$GB_REPO_DIR/files/list/arepo-$arch.list"
+install -pm644 -- plan/arepo-table-$arch.xz \
+	"$GB_REPO_DIR/files/list/arepo-$arch.list.xz"
 
 rsync -rlt arepo/$arch/base/ "$GB_REPO_DIR"/$arch/base/
 
