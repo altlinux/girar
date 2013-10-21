@@ -172,7 +172,7 @@ fi
 
 %dir %attr(3775,pender,tasks) /tasks/
 %dir %attr(3775,root,pender) /tasks/archive/
-%dir %attr(700,pender,pender) /tasks/archive/.trash/
+%dir %attr(1770,root,pender) /tasks/archive/.trash/
 %dir %attr(775,root,pender) /tasks/archive/*
 %dir %attr(755,root,root) /tasks/index/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
