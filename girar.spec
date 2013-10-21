@@ -132,6 +132,10 @@ if [ $1 -eq 1 ]; then
 	crontab -u cacher - <<-'EOF'
 	#20	*	*	*	*	/usr/libexec/girar/girar-gen-people-packages-list
 	EOF
+	crontab -u repo - <<-'EOF'
+	PATH=/usr/libexec/girar:/bin:/usr/bin
+	50	1	*	*	*	/usr/libexec/girar/girar-squeeze-archive
+	EOF
 fi
 
 %preun

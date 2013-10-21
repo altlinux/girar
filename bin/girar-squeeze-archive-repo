@@ -1,0 +1,25 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+repo="$1"; shift
+
+task_list="$STATE_DIR/repo/$repo/index/task.list"
+squeeze_list="$STATE_DIR/repo/$repo/task/squeeze.list"
+upload_list="$STATE_DIR/upload/log/snapshot/$repo.log"
+[ -f "$task_list" ] || exit 0
+[ -f "$squeeze_list" ] || exit 0
+[ -f "$upload_list" ] || exit 0
+
+. girar-sh-tmpdir
+cd "$tmpdir"
+
+tail -n +2 "$task_list" > task.list
+sort -u -o task.list{,}
+
+sort -u "$squeeze_list" "$upload_list" > skip.list
+
+comm -23 task.list skip.list > todo.list
+sort -n -o todo.list{,}
+
+xargs -rn1 "$0-task" "$repo" < todo.list

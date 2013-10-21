@@ -95,6 +95,9 @@ bin_TARGETS = \
 	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
 	bin/girar-socket-forward-repo \
+	bin/girar-squeeze-archive \
+	bin/girar-squeeze-archive-repo \
+	bin/girar-squeeze-archive-repo-task \
 	bin/girar-task \
 	bin/girar-task-abort \
 	bin/girar-task-add \
