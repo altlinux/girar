@@ -21,3 +21,25 @@ for arch in src noarch $GB_ARCH ${GB_AREPO_ARCH-}; do
 done
 
 rm -f -- plan/next.{src,bin}{,.xz}
+
+while read -r N EVR F P I; do
+	[ -L "$P" ] || continue
+	t="gears/$I/$F"
+	if [ -f "$t" -a ! -L "$t" ]; then
+		cp -afl -- "$P" "$t" ||:
+	fi
+	for arch in $GB_ARCH; do
+		t="build/$I/$arch/srpm/$F"
+		[ -f "$t" -a ! -L "$t" ] || continue
+		cp -afl -- "$P" "$t" ||:
+	done
+done < plan/add-src
+
+while read -r N EVR A F P I; do
+	[ -L "$P" ] || continue
+	for arch in $GB_ARCH; do
+		t="build/$I/$arch/rpms/$F"
+		[ "$P" != "$t" ] && [ -f "$t" -a ! -L "$t" ] || continue
+		cp -afl -- "$P" "$t" ||:
+	done
+done < plan/add-bin
