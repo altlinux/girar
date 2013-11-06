@@ -28,7 +28,7 @@ num="$1"; shift
 cd "$TASKS_DIR/$id"
 
 for i in $(gear_nums); do
-	[ -d "acl/$i" -a 'all' = "$num" -o "$i" = "$num" ] ||
+	[ -d "acl/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
 		continue
 	touch "acl/$i/$GIRAR_USER"
 	[ 'all' = "$num" ] ||
