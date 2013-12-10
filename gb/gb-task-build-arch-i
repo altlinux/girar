@@ -5,6 +5,7 @@
 arch="$1" i="$2"; shift 2
 
 . gb-sh-functions
+. gb-sh-tmpdir
 
 if [ -f task/abort ]; then
 	stamp_echo >&2 "[$arch] task processing ABORTED"
@@ -41,7 +42,7 @@ gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:tmp/"
 (umask 002; mkdir -p "build/$i/$arch") || false
 [ -f "build/$i/$arch/log" ] ||
 	touch "build/$i/$arch/log"
-gb-x-rsync-loop -qrlt --delete -- "build/$i/$arch/" "$remote_host:build/"
+gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "build/$i/$arch/" "$remote_host:build/"
 
 swift=
 if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chroot_BR" ] &&
@@ -61,7 +62,7 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 		  exit 1; }
 
 # copy build result from remote side
-gb-x-rsync-loop -qrlt --delete -- "$remote_host:build/" "build/$i/$arch/"
+gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "$remote_host:build/" "build/$i/$arch/"
 find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 
@@ -78,23 +79,32 @@ if [ -n "$swift" ]; then
 	exit 0
 fi
 
-sign()
+rpmsign()
 {
 	local dir="$1" out; shift
+
+	find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+		-execdir rpmquery --qf '%{sha1header}\n' -p '{}' '+' > $tmpdir/$dir-hash
+	sort -o $tmpdir/$dir-hash{,}
+
+	if cmp -s "build/$i/$arch"/$dir.signed $tmpdir/$dir-hash; then
+		return 0
+	fi
 
 	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
 		printf '%s\n' "$out"
 		stamp_echo >&2 "$I $dir rpmsign FAILED"
 		exit 1
 	fi
+	mv $tmpdir/$dir-hash "build/$i/$arch"/$dir.signed
 }
 
 if [ -s "gears/$i/srpm" ]; then
 	ln -f -- "gears/$i/$src" "build/$i/$arch/srpm/"
 else
-	sign srpm
+	rpmsign srpm
 fi
 
-sign rpms
+rpmsign rpms
 
 stamp_echo >&2 "$I build OK"
