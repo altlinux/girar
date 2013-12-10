@@ -1,0 +1,15 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+# files that define 'prog' mode
+REGEXP="${GB_PESIGN_REGEXP:-/boot/vmlinuz-.*|/usr/lib64/efi/.*\.efi}"
+
+. gb-sh-tmpdir
+
+for file; do
+	rpmquery -l -p "$file" > "$tmpdir"/list
+	if grep -Exqse "$REGEXP" "$tmpdir"/list; then
+		echo "${file##*/}"
+	fi
+done

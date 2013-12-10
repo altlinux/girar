@@ -1,0 +1,81 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+i="$1"; shift
+
+. gb-sh-functions
+
+# pesigning requires a certificate name
+[ -n "${GB_PESIGN_CERT_NAME-}" ] || exit 0
+
+# skip unsupported architectures
+GB_PESIGN_ARCH=" ${GB_PESIGN_ARCH-} "
+[ -z "${GB_PESIGN_ARCH##* $arch *}" ] || exit 0
+
+. gb-sh-tmpdir
+
+# build the list of pesignable packages
+find "build/$i/$arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
+	-execdir gb-y-pesign-identify '{}' '+' > $tmpdir/list
+[ -s $tmpdir/list ] || exit 0
+
+# determine and lock remote node
+remote_host="${GB_PESIGN_HOST-}"
+[ -n "$remote_host" ] || exit 0
+lockdir="$HOME/.lockdir/remote_host-$remote_host"
+mkdir -p "$lockdir"
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -v "$lockdir"
+
+. shell-quote
+qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
+
+# Setup remote node to build $arch packages for $GB_REPO_NAME repository.
+# Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
+gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
+remote_home=$(ssh "$remote_host" pwd)
+gb-x-ssh "$remote_host" ./gb-remote-plant \
+	"\"$(quote_shell "$(cat task/owner)")\"" \
+	"\"$(quote_shell "$GB_REPO_NAME")\"" \
+	"\"$(quote_shell "$remote_home/gb-repo")\"" \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell classic)\"" \
+	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\""
+
+# Clever hack: simply change gb-repo symlink.  Note that we
+# do not want to pass $GB_REPO_DIR to remote-plant because
+# that would invalidate hasher's chroot cache.
+gb-x-ssh "$remote_host" rm gb-repo
+gb-x-ssh "$remote_host" \
+	ln -s -- "\"$(quote_shell "$GB_REPO_DIR")\"" gb-repo
+
+# Stupid hack: remote node does not support these features yet.
+gb-x-ssh "$remote_host" 'echo export share_ipc=1 share_network=1 share_uts=1 >> .hasher/config'
+
+fail()
+{
+	stamp_echo >&2 "[$arch] #$i: $*"
+	exit 1
+}
+
+# copy input list
+gb-x-rsync-loop -q -- $tmpdir/list "$remote_host:tmp/"
+
+# copy input packages
+gb-x-rsync-loop -qt --files-from=$tmpdir/list -- \
+	"build/$i/$arch/rpms/" "$remote_host:tmp/"
+
+# run pesign on remote side
+gb-x-ssh "$remote_host" ./gb-remote-pesign \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell "$GB_PESIGN_CERT_NAME")\"" || {
+		rsync -qt -- "$remote_host:tmp/pesign.log" "build/$i/$arch/" ||:
+		fail 'remote pesign FAILED'
+	}
+
+# copy the log and signed packages from remote side
+gb-x-rsync-loop -qt -- "$remote_host:tmp/pesign.log" "build/$i/$arch/"
+gb-x-rsync-loop -qt --files-from=$tmpdir/list -- \
+	"$remote_host:build/rpms/" "build/$i/$arch/rpms/"
+
+stamp_echo >&2 "[$arch] #$i: pesign OK"

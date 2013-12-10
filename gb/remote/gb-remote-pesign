@@ -1,0 +1,63 @@
+#!/bin/sh -efu
+
+exec > tmp/pesign.log
+arch="$1"; shift
+cert="$1"; shift
+
+. shell-quote
+quote_shell_variable qcert "$cert"
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+}
+
+I="[$arch] remote pesign"
+
+Fatal()
+{
+	stamp_echo >&2 "$I: $*"
+	exit 1
+}
+
+tmpdir=
+cleanup()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	exit "$@"
+}
+
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+
+# initialize hasher chroot
+time setarch "$arch" -- \
+hsh --init --without-stuff --no-contents-ind \
+    --pkg-build-list=+rpmrebuild-pesign 2>&1 ||
+	Fatal 'initroot failed'
+
+cat > hasher/chroot/.host/pesign << EOF
+#!/bin/sh -efu
+PESIGN=pesign-client
+PECERT="$qcert"
+export PESIGN PECERT
+
+package=\$1; shift
+time rpmrebuild --include pesign.plug -np \
+	--define='__find_scriptlet_requires %nil' \
+	--define '__find_debuginfo_files %nil' \$package
+ln --target-directory /.out \$HOME/RPM/RPMS/$arch/\$package
+EOF
+chmod a+rx hasher/chroot/.host/pesign
+
+mkdir -p build/rpms
+
+while read -r F; do
+	ln -- "tmp/$F" hasher/chroot/.in/
+	hsh-run --mount=/var/run/pesign/socketdir -- "/.host/pesign" "$F" 2>&1 ||
+		Fatal "failed to pesign $F"
+	mv -- hasher/chroot/.out/"$F" build/rpms/
+done < tmp/list
+
+hsh-rmchroot
