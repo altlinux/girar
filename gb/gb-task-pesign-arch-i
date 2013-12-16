@@ -35,32 +35,20 @@ find "build/$i/$arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 [ -s $tmpdir/list ] || exit 0
 
 # check acl access
-check_acl()
-{
-	local user group
-
-	group="@${GB_PESIGN_GROUP-pesign}"
-	# check author permissions
-	user="$(cat gears/$i/userid)"
-	if GIRAR_USER="$user" gb-x-girar check-perms "$group" "$GB_REPO_NAME" >$tmpdir/perms 2>&1; then
-		return 0
-	fi
-
-	# check approver permissions
-	for user in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
-		if GIRAR_USER="$user" gb-x-girar check-perms "$group" "$GB_REPO_NAME" >$tmpdir/perms 2>&1; then
-			stamp_echo >&2 "[$arch] #$i: pesign approved by $user"
-			return 0
-		fi
-	done
-
-	# author is not permitted and nobody approved
-	return 1
-}
-check_acl || {
+approved_by=
+pesign_group="@${GB_PESIGN_GROUP-pesign}"
+for user in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
+	GIRAR_USER="$user" gb-x-girar check-perms "$pesign_group" "$GB_REPO_NAME" >/dev/null 2>&1 ||
+		continue
+	approved_by="$user"
+	break
+done
+if [ -n "$approved_by" ]; then
+	stamp_echo >&2 "[$arch] #$i: pesign approved by $approved_by"
+else
 	stamp_echo >&2 "[$arch] #$i: pesign not attempted"
 	exit 0
-}
+fi
 
 # lock the remote node
 lockdir="$HOME/.lockdir/remote_host-$remote_host"
