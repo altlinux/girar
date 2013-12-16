@@ -79,32 +79,6 @@ if [ -n "$swift" ]; then
 	exit 0
 fi
 
-pesign()
-{
-	local old_hash new_hash
-	old_hash="build/$i/$arch/pe.signed"
-	new_hash="$tmpdir/pe-hash"
-
-	find "build/$i/$arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-		-execdir rpmquery --qf '%{sha1header}\n' -p '{}' '+' > "$new_hash"
-	sort -o "$new_hash"{,}
-
-	if cmp -s -- "$old_hash" "$new_hash"; then
-		return 0
-	fi
-
-	if ! gb-task-pesign-arch-i "$arch" "$i"; then
-		stamp_echo >&2 "$I pesign FAILED"
-		exit 1
-	fi
-
-	find "build/$i/$arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
-		-execdir rpmquery --qf '%{sha1header}\n' -p '{}' '+' > "$new_hash"
-	sort -o "$new_hash"{,}
-
-	mv -- "$new_hash" "$old_hash"
-}
-
 rpmsign()
 {
 	local dir="$1" out; shift
@@ -131,7 +105,10 @@ else
 	rpmsign srpm
 fi
 
-pesign
+gb-task-pesign-arch-i "$arch" "$i" || {
+	stamp_echo >&2 "$I pesign FAILED"
+	exit 1
+}
 rpmsign rpms
 
 stamp_echo >&2 "$I build OK"
