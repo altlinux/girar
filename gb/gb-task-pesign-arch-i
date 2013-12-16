@@ -113,4 +113,4 @@ sort -o "$new_hash"{,}
 
 mv -- "$new_hash" "$old_hash"
 
-stamp_echo >&2 "[$arch] #$i: pesign OK"
+stamp_echo >&2 "[$arch] #$i: $(sed -r 's/(-[^-]+){2}$//' "$tmpdir/list"): pesign OK"
