@@ -44,9 +44,9 @@ for user in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]
 	break
 done
 if [ -n "$approved_by" ]; then
-	stamp_echo >&2 "[$arch] #$i: pesign approved by $approved_by"
+	stamp_echo >&2 "[$arch] #$i: pesigning approved by $approved_by"
 else
-	stamp_echo >&2 "[$arch] #$i: pesign not attempted"
+	stamp_echo >&2 "[$arch] #$i: pesigning not attempted"
 	exit 0
 fi
 
@@ -99,7 +99,7 @@ gb-x-ssh "$remote_host" ./gb-remote-pesign \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$GB_PESIGN_CERT_NAME")\"" || {
 		rsync -qt -- "$remote_host:tmp/pesign.log" "build/$i/$arch/" ||:
-		fail 'remote pesign FAILED'
+		fail 'remote pesigning FAILED'
 	}
 
 # copy the log and signed packages from remote side
