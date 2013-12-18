@@ -42,7 +42,7 @@ xargs -r rpmquery --qf "$qf_src" -p -- < $tmpdir/i-src-P > $tmpdir/new.src
 for i in $(build_nums); do
 	for arch in $GB_ARCH; do
 		dir=build/$i/$arch/rpms
-		[ -d "dir" -o ! -s "build/$i/$arch/excluded" ] ||
+		[ -d "$dir" -o ! -s "build/$i/$arch/excluded" ] ||
 			continue
 		find $dir/ -mindepth 1 -maxdepth 1 \
 			-name '*.rpm' -not -name '*.src.rpm' -type f \
