@@ -1,0 +1,85 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task-make-info-json'
+
+id="$1"; shift
+cd "$TASKS_DIR/$id"
+
+. girar-sh-tmpdir
+
+exec > "$tmpdir"/info.json
+
+printf '{\n'
+printf ' "taskid": %d,\n' "$id"
+printf ' "shared": %s,\n' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w \
+	-printf true -or -printf false 2>/dev/null || echo false)"
+printf ' "test_only": %s,\n' "$(test -f task/test-only && echo true || echo false)"
+if [ -f task/swift ]; then
+	printf '" swift": true,\n'
+fi
+if [ -f task/abort ]; then
+	aowner="$(stat -c %U task/abort)"
+	aowner="${aowner#git_}"
+	printf ' "aborted_by": "%s",\n' "$aowner"
+fi
+printf ' "repo": "%s",\n' "$(cat task/repo)"
+printf ' "state": "%s",\n' "$(cat task/state)"
+[ ! -s task/try ] || printf ' "try": %s,\n' "$(cat task/try)"
+[ ! -s task/iter ] || printf ' "iter": %s,\n' "$(cat task/iter)"
+[ ! -s task/depends ] ||
+	printf ' "depends": [%s],\n' "$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+printf ' "owner": "%s"' "$(cat task/owner)"
+
+nums="$(gear_nums)"
+if [ -n "$nums" ]; then
+	printf ',\n'
+	printf ' "subtasks": {\n'
+	t=
+	for i in $nums; do
+		[ -z "$t" ] || printf ',\n'
+		t=1
+		printf '  "%s": {\n' "$i"
+		if [ -s "gears/$i/dir" ]; then
+			dir="$(cat "gears/$i/dir")"
+			tag_name="$(cat "gears/$i/tag_name")"
+			printf '   "dir": "%s",\n' "$dir"
+			printf '   "tag_name": "%s",\n' "$tag_name"
+			printf '   "tag_id": "%s",\n' "$(cat "gears/$i/tag_id")"
+			printf '   "tag_author": "%s",\n' "$(cat "gears/$i/tag_author")"
+			printf '   "type": "repo",\n'
+		elif [ -s "gears/$i/srpm" ]; then
+			printf '   "srpm": "%s",\n' "$(cat "gears/$i/srpm")"
+			printf '   "type": "srpm",\n'
+		elif [ -s "gears/$i/package" ]; then
+			if [ -s "gears/$i/copy_repo" ]; then
+				printf '   "copy_repo": "%s",\n' "$(cat "gears/$i/copy_repo")"
+				printf '   "type": "copy",\n'
+			else
+				printf '   "type": "delete",\n'
+			fi
+			package="$(cat "gears/$i/package")"
+			printf '   "package": "%s",\n' "$package"
+		fi
+		if [ -d "acl/$i" ]; then
+			approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '"%f",' |
+					sed 's/,$//')"
+			[ -z "$approved_by" ] ||
+				printf '   "approved_by": [%s],\n' "$approved_by"
+		fi
+		if [ -f "build/$i/pkgname" ]; then
+			printf '   "pkgname": "%s",\n' "$(cat "build/$i/pkgname")"
+		fi
+		if [ -f "check-git-inheritance/$i" ]; then
+			printf '   "relax_git_inheritance_check_for_commit": "%s",\n' \
+				"$(cat "check-git-inheritance/$i")"
+		fi
+		printf '   "userid": "%s"\n' "$(cat "gears/$i/userid")"
+		printf '  }'
+	done
+	printf '\n }'
+fi
+printf '\n}\n'
+
+umask 002
+cat "$tmpdir/info.json" > info.json

@@ -109,6 +109,7 @@ bin_TARGETS = \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \
 	bin/girar-task-make-index-html \
+	bin/girar-task-make-info-json \
 	bin/girar-task-new \
 	bin/girar-task-rm \
 	bin/girar-task-run \
