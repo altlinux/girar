@@ -51,6 +51,7 @@ if [ "$rc" = 1 ]; then
 ^fglrx_glx(-legacy)?-[[:digit:]][^[:space:]]+[[:space:]]+(/usr/lib(64)?/(X11/(fglrx/lib(dri|glx)|modules/(drivers/fglrx_drv|amdxmm|glesx))|libatiadlxx)\.so|/usr/lib/libAMDXvBA\.so\.1\.0)[[:space:]]
 ^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
 ^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
+^citrix-client-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib/ICAClient/((VDHSSPI|VDMM)\.DLL|(libctxssl|lib/libkcph)\.so)[[:space:]]
 EOF
 	too_bad=
 	for arch in $GB_ARCH; do
