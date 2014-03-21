@@ -21,7 +21,7 @@ PROG_PKGNAME_REGEXP="${GB_AREPO_PROG_PKGNAME_REGEXP:-^wine$|^wine-vanilla$|^mozi
 PROG_FILE_REGEXP="${GB_AREPO_PROG_FILE_REGEXP:-^(/usr)?/s?bin/}"
 
 # files to arepoize in 'lib' mode
-LIB_FILE_REGEXP="${GB_AREPO_LIB_FILE_REGEXP:-^/lib/[^/]+\.so|^/usr/lib/[^/]+\.[ao]$|^/usr/lib/.+\.so|^/usr/(include|lib/(gcc|gconv|pango|pkgconfig|wine))/|^/etc/X11/lib$}"
+LIB_FILE_REGEXP="${GB_AREPO_LIB_FILE_REGEXP:-^/lib/[^/]+\.so|^/usr/lib/[^/]+\.[ao]$|^/usr/lib/.+\.so|^/usr/(include|lib/(gcc|gconv|gdk-pixbuf-[[:digit:].]+|pango|pkgconfig|wine))/|^/etc/X11/lib$}"
 
 # files to skip
 SKIP_FILE_REGEXP="${GB_AREPO_SKIP_FILE_REGEXP:-^$}"
