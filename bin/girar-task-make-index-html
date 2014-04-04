@@ -205,4 +205,4 @@ show > "$tmpdir/index.html"
 umask 002
 cat "$tmpdir/index.html" > index.html
 
-exec girar-task-make-info-json "$id"
+girar-task-make-info-json "$id"
