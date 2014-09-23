@@ -5,6 +5,10 @@ GB_REPO_NAME="$1"; shift
 dir="$1"; shift
 arch="$1"; shift
 comps="$1"; shift
+GB_APT_CACHE_LIMIT="$1"; shift
+
+# a simple sanity check
+[ "$GB_APT_CACHE_LIMIT" -gt 1048576 ]
 
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
@@ -84,7 +88,7 @@ Dir::State::lists "$workdir/lists";
 Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
-APT::Cache-Limit "134217728";
+APT::Cache-Limit "$GB_APT_CACHE_LIMIT";
 EOF
 cat >"$workdir/sources.list" <<EOF
 rpm file:$dir $arch $comps

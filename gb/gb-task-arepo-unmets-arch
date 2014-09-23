@@ -17,7 +17,7 @@ rpm file:$GB_TMP_REPO_DIR $arch_to classic
 rpm file:$GB_TMP_REPO_DIR noarch classic
 rpm file:$GB_AREPO_DIR $arch $acomp
 EOF
-unmets -s sources.list > unmets
+unmets ${GB_APT_CACHE_LIMIT:+-l $GB_APT_CACHE_LIMIT} -s sources.list > unmets
 
 if [ -s unmets ]; then
 	echo "  $arch: NEW unmet dependencies detected:"
