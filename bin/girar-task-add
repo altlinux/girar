@@ -443,6 +443,15 @@ git tag -l --points-at master |
 		[ "$t" = "$tag_name" ] ||
 			git tag -d "$t"
 	done
+if git cat-file tag "$tag_id" | grep -Eqs '^X-(gear|girar)-specsubst:'; then
+	git tag -l | grep -Fxve "$tag_name" |
+	while read t; do
+		git cat-file tag "$t" |
+		   grep -Eqs '^X-(gear|girar)-specsubst:' ||
+			   continue
+		git tag -d "$t"
+	done
+fi
 git pack-refs --all --prune
 find "$GIT_DIR/refs" -mindepth 1 -type d -delete ||:
 touch "$GIT_DIR/git-daemon-export-ok"
