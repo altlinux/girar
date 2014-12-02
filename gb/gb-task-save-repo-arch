@@ -7,9 +7,6 @@ arch="$1"; shift
 (umask 002; mkdir -p "build/repo/$arch/base.next") || exit
 rsync -rlt "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
 
-find "build/repo/$arch/base.next/" -mindepth 1 -maxdepth 1 \
-	-type d -name "ds.*" -exec chmod g+w -- {} \;
-
 # Paranoia: ensure that no files has disappeared from tmpfs.
 cd "build/repo/$arch/base.next"
 cat release release.classic pkglist.classic.xz > /dev/null

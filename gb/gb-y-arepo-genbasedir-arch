@@ -12,7 +12,6 @@ if [ "${1-}" = '--bloat' ]; then
 fi
 
 . gb-sh-rpmhdrcache
-. gb-sh-tmpdir
 
 if [ -n "$bloat" ]; then
 	# temporary repo: use 'xz --fast' mode
@@ -49,39 +48,3 @@ genbasedir "$@" \
 
 [ -n "$bloat" ] || stamp_echo "[$arch] generated apt indices"
 # The end of apt story.
-
-cat > $tmpdir/ds-ignore << @@@
-rpmlib(.*)
-@@@
-
-PROVIDES_FROM_DIRS=/bin:/sbin:/usr/bin:/usr/sbin
-
-if [ -n "$bloat" -o ! -d "$dir/$arch/base/ds.$comp" ]; then
-	if [ -n "$bloat" ]; then
-		ds-repo -q -c gzip \
-			--no-requires $tmpdir/ds-ignore \
-			$dir/$arch/base/ds.$comp $dir/$arch/RPMS.$comp
-	else
-		ds-repo -q -c gzip \
-			--references \
-			--dirs "$PROVIDES_FROM_DIRS" \
-			--no-requires $tmpdir/ds-ignore \
-			$dir/$arch/base/ds.$comp $dir/$arch/RPMS.$comp
-	fi
-else
-	cut -f3 plan/arepo-add-$arch | sed "s|^|$dir/$arch/RPMS.$comp/|" > $tmpdir/ds-to-add-$arch-$comp
-	cp plan/arepo-rm-$arch $tmpdir/ds-to-delete-$arch-$comp
-
-	ds-patch -q \
-		$dir/$arch/base/ds.$comp \
-		--add-list $tmpdir/ds-to-add-$arch-$comp \
-		--del-list $tmpdir/ds-to-delete-$arch-$comp
-
-	ds-provides -q \
-		--ref-sources "$dir/$arch/base/ds.$comp" $dir/$arch/base/ds.$comp
-
-fi
-
-if [ -n "$bloat" ]; then
-	rm -f $dir/$arch/base/ds.$comp/.rpms.complete.data
-fi
