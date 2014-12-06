@@ -13,7 +13,7 @@ fail()
 for arch in ${GB_AREPO_ARCH-}; do
 	[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || continue
 	(umask 002; mkdir -p arepo/$arch/base) || fail
-	rsync -rlt "$GB_AREPO_DIR/$arch/base/" arepo/$arch/base/ || fail
+	rsync -rlt --exclude='ds.*' "$GB_AREPO_DIR/$arch/base/" arepo/$arch/base/ || fail
 done
 
 #stamp_echo >&2 'arepo save OK'
