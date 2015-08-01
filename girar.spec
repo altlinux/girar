@@ -31,6 +31,8 @@ Obsoletes: girar-builder
 
 BuildRequires: perl(RPM.pm) perl(Date/Format.pm)
 
+%define _unpackaged_files_terminate_build 1
+
 %description
 This package contains server engine initially developed for git.alt,
 including administration and user utilities, git hooks, email
