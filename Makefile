@@ -255,7 +255,6 @@ install-var:
 		${DESTDIR}${girar_lockdir}/awaiter \
 		${DESTDIR}${girar_lockdir}/pender \
 		${DESTDIR}/gears \
-		${DESTDIR}/people \
 		${DESTDIR}/srpms \
 		#
 

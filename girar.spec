@@ -170,7 +170,6 @@ fi
 %dir %attr(770,root,depot) /var/lib/girar/depot/.tmp/
 %dir %attr(775,root,depot) /var/lib/girar/depot/??/
 %dir %attr(755,root,root) /var/lib/girar/repo/
-%dir %attr(755,root,root) /people/
 %dir %attr(775,root,pender) /gears/
 %dir %attr(775,root,pender) /srpms/
 
