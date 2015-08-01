@@ -37,23 +37,13 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"charset", "girar-charset", " <path to git repository> [<charset>]"},
-	{"clone", "girar-clone", " <path to git repository> [<path to directory>]"},
-	{"default-branch", "girar-default-branch", " <path to git repository> [<branch>]"},
-	{"find-package", "girar-find", " <pattern>"},
-	{"init-db", "girar-init-db", " <path to directory>"},
-	{"ls", "girar-ls", " [<path to directory>]"},
-	{"mv-db", "girar-mv-db", " <path to source directory> <path to destination directory>"},
-	{"quota", "girar-quota", ""},
-	{"repack", "girar-repack", " <path to git repository> [<value>]"},
-	{"rm-db", "girar-rm-db", " <path to git repository>"},
-	{"task", "girar-task", " {--help|ls|show|new|add|delsub|run|share|approve|rm} ..."},
 	{"build", "girar-build", " [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."},
+	{"task", "girar-task", " {--help|ls|show|new|add|delsub|run|share|approve|rm} ..."},
 	{"acl", "girar-acl", " {--help|<binary_repository_name> ...}"},
+	{"ls", "girar-ls", " [<path to directory>]"},
+	{"quota", "girar-quota", ""},
 };
 
-static const char git_receive_pack[] = "git-receive-pack";
-static const char git_upload_pack[] = "git-upload-pack";
 static const char rsync_server[] = "rsync --server";
 
 static void
@@ -162,19 +152,8 @@ shell (char *av[])
 	if (!strcmp("help", cmd) || !strcmp("--help", cmd))
 		show_help(EXIT_SUCCESS);
 
-	if (is_command_match(cmd, git_receive_pack, sizeof(git_receive_pack) - 1) ||
-	    is_command_match(cmd, git_upload_pack, sizeof(git_upload_pack) - 1))
-	{
-		av[0] = (char *) "git-shell";
-		execv("/usr/bin/git-shell", av);
-		error(EXIT_FAILURE, errno, "execv: %s", av[0]);
-	}
-
 	if (is_command_match(cmd, rsync_server, sizeof(rsync_server) - 1))
 		exec_rsync(cmd);
-
-	if (!strncmp(cmd, "git-", 4))
-		cmd += 4;
 
 	unsigned i;
 	for (i = 0; i < sizeof(commands)/sizeof(commands[0]); ++i)

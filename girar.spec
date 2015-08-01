@@ -54,7 +54,6 @@ touch %buildroot/var/spool/cron/{pender,awaiter}
 mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
 %add_findreq_skiplist /usr/libexec/girar-builder/remote/*
-touch %buildroot/var/lib/girar/cache/people-packages-list
 cat > %buildroot/etc/girar/aliases <<'EOF'
 git-update-subscribers: /dev/null
 acl:		root
@@ -74,7 +73,7 @@ cd gb/tests
 %_sbindir/groupadd -r -f girar-admin
 %_sbindir/groupadd -r -f tasks
 %_sbindir/groupadd -r -f maintainers
-for u in acl depot repo cacher upload; do
+for u in acl depot repo upload; do
 	%_sbindir/groupadd -r -f $u
 	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
 done
@@ -87,7 +86,6 @@ done
 %post_service girar-proxyd-acl
 %post_service girar-proxyd-depot
 %post_service girar-proxyd-repo
-%_sbindir/girar-make-template-repos
 if [ $1 -eq 1 ]; then
 	if grep -Fxqs 'EXTRAOPTIONS=' /etc/sysconfig/memcached; then
 		sed -i 's/^EXTRAOPTIONS=$/&"-m 2048"/' /etc/sysconfig/memcached
@@ -129,9 +127,6 @@ if [ $1 -eq 1 ]; then
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
 	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
 	EOF
-	crontab -u cacher - <<-'EOF'
-	#20	*	*	*	*	/usr/libexec/girar/girar-gen-people-packages-list
-	EOF
 	crontab -u repo - <<-'EOF'
 	PATH=/usr/libexec/girar:/bin:/usr/bin
 	50	1	*	*	*	/usr/libexec/girar/girar-squeeze-archive
@@ -150,7 +145,6 @@ fi
 /etc/girar/
 /usr/libexec/girar/
 /usr/libexec/girar-builder/
-%_datadir/girar/
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
 
@@ -180,16 +174,10 @@ fi
 %dir %attr(755,root,root) /tasks/index/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
 
-%dir %attr(1771,root,cacher) /var/lib/girar/cache
-%config(noreplace) %attr(644,cacher,cacher) /var/lib/girar/cache/people-packages-list
-
 %dir %attr(755,root,root) /var/lib/girar/upload
 %dir %attr(1771,root,upload) /var/lib/girar/upload/copy
 %dir %attr(1771,root,upload) /var/lib/girar/upload/lockdir
 %dir %attr(1771,root,upload) /var/lib/girar/upload/log
-
-%dir %attr(750,root,girar) /var/lib/girar/email/
-%dir %attr(755,root,root) /var/lib/girar/email/*
 
 %dir %attr(750,root,girar) /var/lib/girar/incoming/
 

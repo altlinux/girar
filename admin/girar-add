@@ -9,11 +9,6 @@ umask 022
 
 sudo_init
 
-# Validate template repositories.
-for n in packages private public; do
-	GIT_DIR="$CONF_DIR/$n.git" git rev-parse --git-dir >/dev/null
-done
-
 usage()
 {
 	echo "$PROG: $*" >&2
@@ -34,10 +29,6 @@ GECOS="$*"
 	fatal "$NAME: invalid GECOS specified"
 
 IT_SHELL="$CMD_DIR/girar-sh"
-REAL_HOME="$PEOPLE_DIR/$NAME"
-
-[ -d "$PEOPLE_DIR" ] ||
-	fatal "error adding $NAME: directory $PEOPLE_DIR not available"
 
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ ! -e "$AUTH" ] ||
@@ -53,40 +44,11 @@ printf '%s:\t%s@%s\n' "$IT_NAME" "$NAME" "$EMAIL_DOMAIN" >>"$EMAIL_ALIASES" &&
 echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $IDENTITY" >"$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
-PEOPLE_MOUNT="$(df -P "$PEOPLE_DIR" |awk '{dir=$6} END{print dir}')"
-setquota "$IT_NAME" 1000000 1500000 100000 150000 "$PEOPLE_MOUNT" ||
-	message "$IT_NAME: failed to set disk quota on $PEOPLE_MOUNT"
-
 INCOMING_MOUNT="$(df -P "$INCOMING_DIR" |awk '{dir=$6} END{print dir}')"
 setquota "$IT_NAME" 1048576 1310720 1024 1280 "$INCOMING_MOUNT" ||
 	message "$IT_NAME: failed to set disk quota on $INCOMING_MOUNT"
 
-for d in "$REAL_HOME" "$REAL_HOME/packages" "$REAL_HOME/public"; do
-	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
-		fatal "$IT_NAME: failed to create $d"
-done
-
-for d in "$REAL_HOME/private"; do
-	install -d -o "$IT_NAME" -g girar-admin -m751 "$d" ||
-		fatal "$IT_NAME: failed to create $d"
-done
-
-for d in "$REAL_HOME/etc" "$INCOMING_DIR/$NAME"; do
+for d in "$INCOMING_DIR/$NAME"; do
 	install -d -o "$IT_NAME" -g girar-admin -m750 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
-done
-
-for n in packages private public; do
-	email_dir="$EMAIL_DIR/$n"
-	mkdir -p "$email_dir"
-	install -d -o "$IT_NAME" -g girar -m755 "$email_dir/$NAME" ||
-		fatal "$IT_NAME: failed to create $email_dir/$NAME"
-done
-
-for n in packages private public; do
-	src="$CONF_DIR/$n.git"
-	dst="$REAL_HOME/etc/$n.git"
-	su -l "$IT_NAME" -s /bin/sh -c \
-		"git clone --bare --template='$GIT_TEMPLATE_DIR' '$src' '$dst'" ||
-	fatal "$IT_NAME: failed to setup $dst"
 done

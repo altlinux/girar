@@ -1,9 +1,0 @@
-#!/bin/sh -eu
-
-m=32
-n=$(wc -l)
-[ "$n" -le "$m" ] ||
-	{
-		echo >&2 "Sorry, TOO MANY REFS ($n) at once could not be accepted, consider using remote clone"
-		exit 1
-	}

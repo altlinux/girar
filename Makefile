@@ -1,6 +1,5 @@
 DESTDIR =
 check_dir = /etc/sisyphus_check/check.d
-datadir = /usr/share
 libexecdir = /usr/libexec
 localstatedir = /var/lib
 lockdir = /var/lock
@@ -14,16 +13,12 @@ ACL_DIR = ${STATE_DIR}/acl
 CMD_DIR = ${libexecdir}/girar
 CONF_DIR = ${sysconfdir}/girar
 EMAIL_ALIASES = ${CONF_DIR}/aliases
-EMAIL_DIR = ${STATE_DIR}/email
 EMAIL_DOMAIN = altlinux.org
 GEARS_DIR = /gears
 GITWEB_URL = http://git.altlinux.org
-GIT_TEMPLATE_DIR = ${girar_datadir}/templates
-HOOKS_DIR = ${girar_datadir}/hooks
 INCOMING_DIR = ${STATE_DIR}/incoming
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
-CACHE_DIR = ${STATE_DIR}/cache
 UPLOAD_DIR = ${STATE_DIR}/upload
 PEOPLE_DIR = /people
 PLUGIN_DIR = ${libexecdir}/girar
@@ -37,7 +32,6 @@ TASKS_DIR = /tasks
 TASKS_GROUP = tasks
 USERS_GROUP = girar-users
 USER_PREFIX = git_
-girar_datadir = ${datadir}/girar
 girar_lockdir = ${lockdir}/girar
 girar_sbindir = ${sbindir}
 
@@ -59,14 +53,12 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 CFLAGS = -pipe -O2
 
 bin_TARGETS = \
-	bin/find-subscribers \
 	bin/girar-acl \
 	bin/girar-acl-apply-changes \
 	bin/girar-acl-merge-changes \
 	bin/girar-acl-notify-changes \
 	bin/girar-acl-show \
 	bin/girar-build \
-	bin/girar-charset \
 	bin/girar-check-acl-item \
 	bin/girar-check-acl-leader \
 	bin/girar-check-nevr-in-repo \
@@ -74,21 +66,12 @@ bin_TARGETS = \
 	bin/girar-check-package-in-repo \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
-	bin/girar-clone \
-	bin/girar-default-branch \
-	bin/girar-find \
-	bin/girar-gen-people-packages-list \
 	bin/girar-get-email-address \
-	bin/girar-hooks-sh-functions \
-	bin/girar-init-db \
 	bin/girar-ls \
-	bin/girar-mv-db \
 	bin/girar-normalize-repo-name \
 	bin/girar-quota \
-	bin/girar-repack \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
-	bin/girar-rm-db \
 	bin/girar-scrap-archived-tasks \
 	bin/girar-sh \
 	bin/girar-sh-config \
@@ -122,22 +105,6 @@ bin_TARGETS = \
 
 check_TARGETS = check/091-check-arepo check/101-check-policydeps
 
-hooks_TARGETS = \
-	hooks/post-receive \
-	hooks/post-update \
-	hooks/update \
-	#
-
-hooks_update_TARGETS = \
-	hooks/update.d/girar-update-check-refs \
-	hooks/update.d/girar-update-etc \
-	#
-
-hooks_receive_TARGETS = \
-	hooks/post-receive.d/girar-etc \
-	hooks/post-receive.d/girar-sendmail \
-	#
-
 init_TARGETS = init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo
 
 lib_TARGETS = lib/rsync.so
@@ -154,7 +121,6 @@ admin_TARGETS = \
 	admin/girar-enable \
 	admin/girar-maintainer-add \
 	admin/girar-maintainer-del \
-	admin/girar-make-template-repos \
 	#
 
 sbin_TARGETS = \
@@ -168,9 +134,6 @@ sudoers_TARGETS = sudoers/girar
 TARGETS = \
 	${admin_TARGETS} \
 	${bin_TARGETS} \
-	${hooks_TARGETS} \
-	${hooks_receive_TARGETS} \
-	${hooks_update_TARGETS} \
 	${init_TARGETS} \
 	${lib_TARGETS} \
 	${sbin_TARGETS} \
@@ -192,19 +155,6 @@ install-bin: ${bin_TARGETS}
 install-check: ${check_TARGETS}
 	install -d -m755 ${DESTDIR}${check_dir}
 	install -pm644 $^ ${DESTDIR}${check_dir}/
-
-install-data: ${hooks_TARGETS} ${hooks_update_TARGETS} ${hooks_receive_TARGETS}
-	install -d -m750 \
-		${DESTDIR}${girar_datadir} \
-		${DESTDIR}${HOOKS_DIR} \
-		${DESTDIR}${HOOKS_DIR}/update.d \
-		${DESTDIR}${HOOKS_DIR}/post-receive.d \
-		${DESTDIR}${GIT_TEMPLATE_DIR} \
-		#
-	install -pm750 ${hooks_TARGETS} ${DESTDIR}${HOOKS_DIR}/
-	install -pm750 ${hooks_update_TARGETS} ${DESTDIR}${HOOKS_DIR}/update.d/
-	install -pm750 ${hooks_receive_TARGETS} ${DESTDIR}${HOOKS_DIR}/post-receive.d/
-	ln -snf ${HOOKS_DIR} ${DESTDIR}${GIT_TEMPLATE_DIR}/hooks
 
 install-init: ${init_TARGETS}
 	install -d -m750 \
@@ -228,10 +178,6 @@ install-sudoers: ${sudoers_TARGETS}
 
 install-var:
 	install -d -m750 \
-		${DESTDIR}${EMAIL_DIR} \
-		${DESTDIR}${EMAIL_DIR}/packages \
-		${DESTDIR}${EMAIL_DIR}/private \
-		${DESTDIR}${EMAIL_DIR}/public \
 		${DESTDIR}${INCOMING_DIR} \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
@@ -243,7 +189,6 @@ install-var:
 		${DESTDIR}${STATE_DIR}/awaiter/.cache \
 		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache \
 		${DESTDIR}${STATE_DIR}/awaiter/.qa-cache/rpmelfsym \
-		${DESTDIR}${STATE_DIR}/cache \
 		${DESTDIR}${STATE_DIR}/depot \
 		${DESTDIR}${STATE_DIR}/depot/.tmp \
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
@@ -294,15 +239,11 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \
-	    -e 's,@EMAIL_DIR@,${EMAIL_DIR},g' \
 	    -e 's,@EMAIL_DOMAIN@,${EMAIL_DOMAIN},g' \
 	    -e 's,@GEARS_DIR@,${GEARS_DIR},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
-	    -e 's,@GIT_TEMPLATE_DIR@,${GIT_TEMPLATE_DIR},g' \
-	    -e 's,@HOOKS_DIR@,${HOOKS_DIR},g' \
 	    -e 's,@INCOMING_DIR@,${INCOMING_DIR},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
-	    -e 's,@CACHE_DIR@,${CACHE_DIR},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
 	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \

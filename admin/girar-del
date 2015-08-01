@@ -17,20 +17,13 @@ usage()
 set_name "$1"
 shift
 
-REAL_HOME="$PEOPLE_DIR/$NAME"
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
-email_dir="$EMAIL_DIR/packages/$NAME"
 
 userdel -- "$IT_NAME" ||
 	fatal "$IT_NAME: failed to remove user"
 
 rm -f -- "$AUTH" ||
 	message "$IT_NAME: failed to remove authorized keys file '$AUTH'"
-
-for d in "$REAL_HOME" "$email_dir"; do
-	rm -rf -- "$d" ||
-		message "$IT_NAME: failed to remove $d"
-done
 
 quote_sed_regexp_variable Q_IT_NAME "$IT_NAME"
 quote_sed_regexp_variable Q_NAME "$NAME"
