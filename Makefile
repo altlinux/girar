@@ -20,6 +20,7 @@ GEARS_DIR = /gears
 GITWEB_URL = http://git.altlinux.org
 GIT_TEMPLATE_DIR = ${girar_datadir}/templates
 HOOKS_DIR = ${girar_datadir}/hooks
+INCOMING_DIR = ${STATE_DIR}/incoming
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
 CACHE_DIR = ${STATE_DIR}/cache
@@ -48,6 +49,7 @@ WARNINGS = -W -Wall -Waggregate-return -Wcast-align -Wconversion \
 CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DCMD_DIR=\"${CMD_DIR}\" \
 	-DGEARS_DIR=\"${GEARS_DIR}\" \
+	-DINCOMING_DIR=\"${INCOMING_DIR}\" \
 	-DPEOPLE_DIR=\"${PEOPLE_DIR}\" \
 	-DPLUGIN_DIR=\"${PLUGIN_DIR}\" \
 	-DSRPMS_DIR=\"${SRPMS_DIR}\" \
@@ -230,6 +232,7 @@ install-var:
 		${DESTDIR}${EMAIL_DIR}/packages \
 		${DESTDIR}${EMAIL_DIR}/private \
 		${DESTDIR}${EMAIL_DIR}/public \
+		${DESTDIR}${INCOMING_DIR} \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
 		${DESTDIR}${RUNTIME_DIR}/depot \
@@ -297,6 +300,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@GIT_TEMPLATE_DIR@,${GIT_TEMPLATE_DIR},g' \
 	    -e 's,@HOOKS_DIR@,${HOOKS_DIR},g' \
+	    -e 's,@INCOMING_DIR@,${INCOMING_DIR},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@CACHE_DIR@,${CACHE_DIR},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \

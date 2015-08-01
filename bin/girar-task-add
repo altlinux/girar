@@ -123,7 +123,7 @@ validate_srpm()
 {
 	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
 		fatal "$srpm: Invalid path"
-	pushd "$HOME/incoming" >/dev/null
+	pushd "$INCOMING_DIR/$GIRAR_USER" >/dev/null
 	[ -f "$srpm" ] ||
 		fatal "$srpm: File not found"
 
@@ -408,7 +408,7 @@ case "$action" in
 	exit 0
 	;;
 	srpm)
-	mv -- "$HOME/incoming/tmp/$srpm" gears/$i/
+	mv -- "$INCOMING_DIR/$GIRAR_USER/tmp/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr

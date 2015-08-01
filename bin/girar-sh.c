@@ -127,10 +127,10 @@ exec_rsync(char *str)
 	}
 	args[i] = 0;
 
-	const char *old_home = getenv("HOME");
+	const char *girar_user = getenv("GIRAR_USER");
 	char   *home;
 
-	if (asprintf(&home, "%s/incoming", old_home) < 0)
+	if (asprintf(&home, "%s/%s", INCOMING_DIR, girar_user) < 0)
 		error(EXIT_FAILURE, errno, "asprintf");
 	if (chdir(home) < 0)
 		error(EXIT_FAILURE, errno, "chdir");
@@ -230,6 +230,7 @@ main (int ac, char *av[])
 	    (setenv("PATH", CMD_DIR ":/bin:/usr/bin", 1) < 0) ||
 	    (setenv("SRPMS_DIR", SRPMS_DIR, 1) < 0) ||
 	    (setenv("GEARS_DIR", GEARS_DIR, 1) < 0) ||
+	    (setenv("INCOMING_DIR", INCOMING_DIR, 1) < 0) ||
 	    (setenv("PEOPLE_DIR", PEOPLE_DIR, 1) < 0) ||
 	    (setenv("GIRAR_USER", girar_user, 1) < 0) ||
 	    (setenv("GIRAR_USER_PREFIX", USER_PREFIX, 1) < 0) ||

@@ -57,6 +57,10 @@ PEOPLE_MOUNT="$(df -P "$PEOPLE_DIR" |awk '{dir=$6} END{print dir}')"
 setquota "$IT_NAME" 1000000 1500000 100000 150000 "$PEOPLE_MOUNT" ||
 	message "$IT_NAME: failed to set disk quota on $PEOPLE_MOUNT"
 
+INCOMING_MOUNT="$(df -P "$INCOMING_DIR" |awk '{dir=$6} END{print dir}')"
+setquota "$IT_NAME" 1048576 1310720 1024 1280 "$INCOMING_MOUNT" ||
+	message "$IT_NAME: failed to set disk quota on $INCOMING_MOUNT"
+
 for d in "$REAL_HOME" "$REAL_HOME/packages" "$REAL_HOME/public"; do
 	install -d -o "$IT_NAME" -g girar -m755 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
@@ -67,7 +71,7 @@ for d in "$REAL_HOME/private"; do
 		fatal "$IT_NAME: failed to create $d"
 done
 
-for d in "$REAL_HOME/etc" "$REAL_HOME/incoming"; do
+for d in "$REAL_HOME/etc" "$INCOMING_DIR/$NAME"; do
 	install -d -o "$IT_NAME" -g girar-admin -m750 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done

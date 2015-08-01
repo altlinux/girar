@@ -191,6 +191,8 @@ fi
 %dir %attr(750,root,girar) /var/lib/girar/email/
 %dir %attr(755,root,root) /var/lib/girar/email/*
 
+%dir %attr(750,root,girar) /var/lib/girar/incoming/
+
 %dir %attr(750,root,girar) /var/lock/girar/
 %dir %attr(770,root,pender) /var/lock/girar/pender/
 %dir %attr(770,root,awaiter) /var/lock/girar/awaiter/
