@@ -441,7 +441,7 @@ git branch master "tags/$tag_name"
 git tag -l --points-at master |
 	while read t; do
 		[ "$t" = "$tag_name" ] ||
-			git tag -d "$t"
+			git tag -d "$t" > /dev/null
 	done
 if git cat-file tag "$tag_id" | grep -Eqs '^X-(gear|girar)-specsubst:'; then
 	git tag -l | grep -Fxve "$tag_name" |
@@ -449,7 +449,7 @@ if git cat-file tag "$tag_id" | grep -Eqs '^X-(gear|girar)-specsubst:'; then
 		git cat-file tag "$t" |
 		   grep -Eqs '^X-(gear|girar)-specsubst:' ||
 			   continue
-		git tag -d "$t"
+		git tag -d "$t" > /dev/null
 	done
 fi
 git pack-refs --all --prune
