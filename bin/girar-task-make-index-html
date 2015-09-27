@@ -54,15 +54,28 @@ show_time()
 	[ -f "$log" ] || exit 0
 	local ts
 	ts="$(date -r "$log" '+%Y-%b-%d %T')"
-	printf ' at %s' "$ts"
+	printf '<dt>Build time:</dt><dd>%s</dd>\n' "$ts"
 }
 
 show_status()
 {
-	find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' shared' 2>/dev/null ||:
-	if [ -f task/test-only ]; then
-		printf ' test-only'
-	fi
+	find gears -maxdepth 0 -path gears -type d -perm -g=w \
+		-printf ' <span class="label label-default">shared</span>' 2>/dev/null ||:
+	[ ! -f task/test-only ] ||
+		printf ' <span class="label label-default">test-only</span>'
+
+	local label=
+	case "$state" in
+		NEW)
+			label="label-default" ;;
+		AWAITING|POSTPONED|BUILDING|PENDING|COMMITTING)
+			label="label-info" ;;
+		EPERM|FAILED)
+			label="label-danger" ;;
+		TESTED|DONE)
+			label='label-success' ;;
+	esac
+
 	if [ -f "$log" ]; then
 		local stry=
 		if [ "$try.$iter" != 1.1 ]; then
@@ -70,10 +83,9 @@ show_status()
 				stry="try $try " ||
 				stry="try $try.$iter "
 		fi
-		printf ' <a href="%s">%s%s</a>' "$log" "$stry" "$state"
-		show_time
+		printf ' <a href="%s" class="label %s">%s%s</a>' "$log" "$label" "$stry" "$state"
 	else
-		printf ' %s' "$state"
+		printf ' <span class="label %s">%s</span>' "$label" "$state"
 	fi
 }
 
@@ -82,7 +94,7 @@ show_iterations()
 	[ -f "$log" ] || return 0
 	set -- $(set +f && ls logs/events.*.*.log 2>/dev/null | sort -t. -rnk2,3 | fgrep -vx "$log")
 	[ $# -ge 1 ] || return 0
-	printf '<h3>Previous iterations: '
+	printf '<dt>Previous iterations:<dt><dd>'
 	local i n been=
 	for i; do
 		[ -z "$been" ] || printf ', '
@@ -92,7 +104,7 @@ show_iterations()
 		printf '<a href="%s">%s</a>' "$i" "$n"
 		been=1
 	done
-	printf '.</h3>'
+	printf '.</dd>\n'
 }
 
 show_subtask()
@@ -151,8 +163,8 @@ show_subtasks()
 		fi
 	done
 
-	echo '<table border="1">'
-	printf '<tr><th colspan="%s"><h2>Subtasks</h2></th></tr>\n' \
+	printf '<table class="table table-striped table-bordered">\n'
+	printf '<tr><th colspan="%s"><h4>Subtasks</h4></th></tr>\n' \
 		"$colspan"
 	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="3">Build results</th></tr>\n' \
 		"$th_owner"
@@ -185,15 +197,40 @@ show()
 	cat <<__EOF__
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
-<head>
-<meta name="robots" content="index, nofollow"/>
-<title>Task #$id for $repo by $owner</title>
-</head>
+  <head>
+    <meta name="robots" content="index, nofollow"/>
+    <link href="http://yastatic.net/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
+    <title>Task #$id for $repo by $owner</title>
+  </head>
 <body>
-<h1>Task #$id for <i>$repo</i> by <a href="$PEOPLE_DIR/$owner/packages/?o=age">$owner</a></h1>
-<h2>Status:$(show_status)</h2>
-$(show_iterations)
-$(show_subtasks)
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="https://en.altlinux.org">
+          <img alt="Brand" height="20" src="https://www.altlinux.org/images/b/ba/Logo_alt_company_small.png" />
+        </a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="https://en.altlinux.org/Git.alt_reference">Docs</a></li>
+          <li><a href="http://sisyphus.ru/">Sisyphus</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="page-header">
+      <h4>Task #$id for <i>$repo</i> by <a href="$PEOPLE_DIR/$owner/packages/?o=age">$owner</a></h4>
+    </div>
+    <div class="row">
+      <dl class="dl-horizontal">
+        <dt>Task status:</dt><dd>$(show_status)</dd>
+        $(show_time)
+        $(show_iterations)
+      </dl>
+    </div>
+    $(show_subtasks)
+  </div>
 </body>
 </html>
 __EOF__
