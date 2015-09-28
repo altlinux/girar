@@ -52,6 +52,7 @@ if [ "$rc" = 1 ]; then
 ^nvidia_glx_[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/nvidia_[[:digit:]][^[:space:]/]+/[^[:space:]/]+\.so[[:space:]]
 ^xorg-drv-nvidia-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/X11/(libglx-nvidia|modules/drivers/nvidia_drv)\.so[[:space:]]
 ^citrix-client-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib/ICAClient/((VDHSSPI|VDMM)\.DLL|(libctxssl|lib/libkcph)\.so)[[:space:]]
+^golang-shared-[[:digit:]][^[:space:]]+[[:space:]]+/usr/lib(64)?/golang/pkg/linux_[^[:space:]/]+_dynlink/libstd\.so[[:space:]]+U[[:space:]]+main\.init[[:space:]]*$
 EOF
 	too_bad=
 	for arch in $GB_ARCH; do
