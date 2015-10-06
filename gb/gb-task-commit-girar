@@ -20,7 +20,7 @@ ${GIT_DIR%/*}"
 
 git_fetch()
 {
-	git fetch -q "$@"
+	git fetch -q --recurse-submodules=no "$@"
 	rm -f "$GIT_DIR/FETCH_HEAD"
 }
 

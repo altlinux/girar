@@ -435,7 +435,7 @@ if [ "$action" = rebuild ]; then
 	echo "$dir/objects" > "$GIT_DIR"/objects/info/alternates
 fi
 printf >&2 %s "fetching tag \"$tag_name\" from $dir... "
-git fetch -q "$dir" tag "$tag_name"
+git fetch -q --recurse-submodules=no "$dir" tag "$tag_name"
 echo >&2 done
 git branch master "tags/$tag_name"
 git tag -l --points-at master |
