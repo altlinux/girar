@@ -58,14 +58,14 @@ repository="$(girar-normalize-repo-name "$repo")" ||
 [ -f "$ACL_DIR/list.packages.$repository" ] ||
 	deny "acl file for repository \`$repository' not available"
 
-# Denied if user is not a maintainer
-getent group $MAINTAINERS_GROUP | cut -d: -f4 | tr , '\n' | grep -Fxqs "$USER_PREFIX$GIRAR_USER" ||
-	deny 'does not belong to maintainers list'
-
 # Allowed if $GIRAR_USER is superuser.
 if girar-check-superuser "$repository"; then
 	allow 'superuser'
 fi
+
+# Denied if user is not a maintainer
+getent group $MAINTAINERS_GROUP | cut -d: -f4 | tr , '\n' | grep -Fxqs "$USER_PREFIX$GIRAR_USER" ||
+	deny 'does not belong to maintainers list'
 
 # Source per-repository config file.
 conf="$CONF_DIR/repo/$repository"
