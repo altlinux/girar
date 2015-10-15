@@ -16,7 +16,7 @@ printf ' "shared": %s,\n' "$(find gears -maxdepth 0 -path gears -type d -perm -g
 	-printf true -or -printf false 2>/dev/null || echo false)"
 printf ' "test_only": %s,\n' "$(test -f task/test-only && echo true || echo false)"
 if [ -f task/swift ]; then
-	printf '" swift": true,\n'
+	printf '"swift": true,\n'
 fi
 if [ -f task/abort ]; then
 	aowner="$(stat -c %U task/abort)"
