@@ -40,7 +40,6 @@ static cmd_t commands[] = {
 	{"build", "girar-build", " [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."},
 	{"task", "girar-task", " {--help|ls|show|new|add|delsub|run|share|approve|rm} ..."},
 	{"acl", "girar-acl", " {--help|<binary_repository_name> ...}"},
-	{"ls", "girar-ls", " [<path to directory>]"},
 	{"quota", "girar-quota", ""},
 };
 
