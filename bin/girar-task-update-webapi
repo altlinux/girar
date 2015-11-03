@@ -39,7 +39,11 @@ for i in $nums; do
 	{
 		printf '{\n'
 		if [ -s "gears/$i/dir" ]; then
-			printf '"dir": "%s",\n' "$(cat "gears/$i/dir")"
+			dir="$(cat "gears/$i/dir")"
+			project="${dir##*/}"
+			project="${project%.git}"
+			printf '"dir": "%s",\n' "$dir"
+			printf '"project": "%s",\n' "$project"
 			printf '"tagname": "%s",\n' "$(cat "gears/$i/tag_name")"
 			printf '"tagid": "%s",\n' "$(cat "gears/$i/tag_id")"
 			printf '"tagauthor": "%s",\n' "$(cat "gears/$i/tag_author")"
