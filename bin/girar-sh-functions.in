@@ -93,4 +93,16 @@ valid_repositories()
 	printf %s "$repositories" | tr '\n' ' '
 }
 
+post_api()
+{
+	[ -z "${WEBAPI_URL}" ] ||
+		curl --retry 5 --retry-delay 1 -sS -X POST -d @- "$WEBAPI_URL/api/v1$1" ||:
+}
+
+delete_api()
+{
+	[ -z "${WEBAPI_URL}" ] ||
+		curl --retry 5 --retry-delay 1 -sS -X DELETE "$WEBAPI_URL/api/v1$1" ||:
+}
+
 fi #__included_girar_sh_functions

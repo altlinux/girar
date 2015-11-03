@@ -54,6 +54,9 @@ for i; do
 	rm -f gears/$i/pkg.tar
 
 	girar-task-change-state "$id" NEW
+
+	printf '{"status":"cancelled"}' | post_api "/tasks/$id/subtasks/$i"
+
 	trap - HUP INT QUIT PIPE TERM
 	echo >&2 "task #$id: removed subtask #$i"
 	exit

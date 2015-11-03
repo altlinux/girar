@@ -1,0 +1,67 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+PROG='girar-task-make-update-webapi'
+
+id="$1"; shift
+cd "$TASKS_DIR/$id"
+
+{
+	printf '{\n'
+
+	[ ! -s task/try ] ||
+		printf '"try":%s,\n' "$(cat task/try)"
+	[ ! -s task/iter ] ||
+		printf '"iter":%s,\n' "$(cat task/iter)"
+
+	printf '"shared":%s,\n' \
+		"$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf true -or -printf false 2>/dev/null || echo false)"
+	printf '"testonly":%s,\n' "$(test -f task/test-only && echo true || echo false)"
+
+	[ ! -f task/swift ] ||
+		printf '"swift":true,\n'
+
+	if [ -f task/abort ]; then
+		aowner="$(stat -c %U task/abort)"
+		aowner="${aowner#git_}"
+		printf '"aborted":"%s",\n' "$aowner"
+	fi
+
+	printf '"repo":"%s",\n' "$(cat task/repo)"
+	printf '"state":"%s",\n' "$(cat task/state)"
+	printf '"owner":"%s"\n' "$(cat task/owner)"
+	printf '}\n'
+} |
+	post_api "/tasks/$id"
+
+nums="$(gear_nums)"
+for i in $nums; do
+	{
+		printf '{\n'
+		if [ -s "gears/$i/dir" ]; then
+			printf '"dir": "%s",\n' "$(cat "gears/$i/dir")"
+			printf '"tagname": "%s",\n' "$(cat "gears/$i/tag_name")"
+			printf '"tagid": "%s",\n' "$(cat "gears/$i/tag_id")"
+			printf '"tagauthor": "%s",\n' "$(cat "gears/$i/tag_author")"
+			printf '"type": "repo",\n'
+		elif [ -s "gears/$i/srpm" ]; then
+			printf '"srpm": "%s",\n' "$(cat "gears/$i/srpm")"
+			printf '"type": "srpm",\n'
+		elif [ -s "gears/$i/package" ]; then
+			if [ -s "gears/$i/copy_repo" ]; then
+				printf '"copyrepo": "%s",\n' "$(cat "gears/$i/copy_repo")"
+				printf '"type": "copy",\n'
+			else
+				printf '"type": "delete",\n'
+			fi
+			printf '"package": "%s",\n' "$(cat "gears/$i/package")"
+		fi
+
+		[ ! -f "build/$i/pkgname" ] ||
+			printf '"pkgname": "%s",\n' "$(cat "build/$i/pkgname")"
+
+		printf '"owner":"%s"\n' "$(cat "gears/$i/userid")"
+		printf '}\n'
+	} |
+		post_api "/tasks/$id/subtasks/$i"
+done

@@ -60,6 +60,10 @@ mkdir "$id"
 builtin lockf -v "$id"
 trap atexit EXIT
 mkdir "$id"/task
+
+printf '{"taskid":%d,"owner":"%s","repo":"%s"}\n' "$id" "$GIRAR_USER" "$repo" |
+	post_api "/tasks"
+
 printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo

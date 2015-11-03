@@ -243,3 +243,4 @@ umask 002
 cat "$tmpdir/index.html" > index.html
 
 girar-task-make-info-json "$id"
+girar-task-update-webapi "$id"

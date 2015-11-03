@@ -16,6 +16,7 @@ EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DOMAIN = altlinux.org
 GEARS_DIR = /gears
 GITWEB_URL = http://git.altlinux.org
+WEBAPI_URL = http://194.107.17.12:680
 INCOMING_DIR = ${STATE_DIR}/incoming
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>

@@ -391,6 +391,19 @@ mkdir -m2775 gears/"$i"
 mkdir -m3775 acl/"$i"
 trap atexit EXIT
 
+{
+	printf '{'
+	printf '"subtaskid":%d,' "$i"
+	printf '"owner":"%s",' "$GIRAR_USER"
+	printf '"type":'
+	[ "$action" != del ] &&
+		printf '"%s",' "$action" ||
+		printf '"delete",'
+	printf '"status":"active"'
+	printf '}\n'
+} |
+	post_api "/tasks/$id/subtasks"
+
 case "$action" in
 	del)
 	printf '%s\n' "$package" >gears/$i/package
