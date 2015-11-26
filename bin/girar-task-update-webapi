@@ -6,30 +6,43 @@ PROG='girar-task-make-update-webapi'
 id="$1"; shift
 cd "$TASKS_DIR/$id"
 
+printFromFile() {
+	local field filename value quote=1 default=
+
+	filename="$1"; shift
+	field="$1"; shift
+	[ "$#" -eq 0 ] || { quote="$1"; shift; }
+	[ "$#" -eq 0 ] || { default="$1"; shift; }
+
+	[ -s "$filename" ] &&
+		value="$(cat "$filename")" ||
+		value="$default"
+
+	[ "$quote" != 1 ] ||
+		value="\"$value\""
+
+	printf '"%s":%s,\n' "$field" "$value"
+}
+
 {
 	printf '{\n'
-
-	[ ! -s task/try ] ||
-		printf '"try":%s,\n' "$(cat task/try)"
-	[ ! -s task/iter ] ||
-		printf '"iter":%s,\n' "$(cat task/iter)"
-
 	printf '"shared":%s,\n' \
 		"$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf true -or -printf false 2>/dev/null || echo false)"
 	printf '"testonly":%s,\n' "$(test -f task/test-only && echo true || echo false)"
+	printf '"swift":%s,\n' "$(test -f task/swift && echo true || echo false)"
 
-	[ ! -f task/swift ] ||
-		printf '"swift":true,\n'
-
+	aowner=
 	if [ -f task/abort ]; then
 		aowner="$(stat -c %U task/abort)"
 		aowner="${aowner#git_}"
-		printf '"aborted":"%s",\n' "$aowner"
 	fi
+	printf '"aborted":"%s",\n' "$aowner"
 
-	printf '"repo":"%s",\n' "$(cat task/repo)"
-	printf '"state":"%s",\n' "$(cat task/state)"
-	printf '"owner":"%s"\n' "$(cat task/owner)"
+	printFromFile task/try try 0 0
+	printFromFile task/iter iter 0 0
+	printFromFile task/repo repo
+	printFromFile task/state state
+	printFromFile task/owner owner
 	printf '}\n'
 } |
 	post_api "/tasks/$id"
@@ -38,34 +51,30 @@ nums="$(gear_nums)"
 for i in $nums; do
 	{
 		printf '{\n'
+		printFromFile "gears/$i/userid"     owner
+		printFromFile "gears/$i/dir"        dir
+		printFromFile "gears/$i/tag_name"   tagname
+		printFromFile "gears/$i/tag_id"     tagid
+		printFromFile "gears/$i/tag_author" tagauthor
+		printFromFile "gears/$i/srpm"       srpm
+		printFromFile "gears/$i/copy_repo"  copyrepo
+		printFromFile "gears/$i/package"    package
+		printFromFile "build/$i/pkgname"    pkgname
+
 		if [ -s "gears/$i/dir" ]; then
-			dir="$(cat "gears/$i/dir")"
-			project="${dir##*/}"
-			project="${project%.git}"
-			printf '"dir": "%s",\n' "$dir"
-			printf '"project": "%s",\n' "$project"
-			printf '"tagname": "%s",\n' "$(cat "gears/$i/tag_name")"
-			printf '"tagid": "%s",\n' "$(cat "gears/$i/tag_id")"
-			printf '"tagauthor": "%s",\n' "$(cat "gears/$i/tag_author")"
-			printf '"type": "repo",\n'
+			printf '"type":"repo"'
 		elif [ -s "gears/$i/srpm" ]; then
-			printf '"srpm": "%s",\n' "$(cat "gears/$i/srpm")"
-			printf '"type": "srpm",\n'
+			printf '"type":"srpm"'
 		elif [ -s "gears/$i/package" ]; then
 			if [ -s "gears/$i/copy_repo" ]; then
-				printf '"copyrepo": "%s",\n' "$(cat "gears/$i/copy_repo")"
-				printf '"type": "copy",\n'
+				printf '"type":"copy"'
 			else
-				printf '"type": "delete",\n'
+				printf '"type":"delete"'
 			fi
-			printf '"package": "%s",\n' "$(cat "gears/$i/package")"
+		else
+			printf '"type":"unknown"'
 		fi
-
-		[ ! -f "build/$i/pkgname" ] ||
-			printf '"pkgname": "%s",\n' "$(cat "build/$i/pkgname")"
-
-		printf '"owner":"%s"\n' "$(cat "gears/$i/userid")"
-		printf '}\n'
+		printf '\n}\n'
 	} |
 		post_api "/tasks/$id/subtasks/$i"
 done
