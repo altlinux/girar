@@ -101,6 +101,7 @@ bin_TARGETS = \
 	bin/girar-task-share \
 	bin/girar-task-show \
 	bin/girar-task-update-queues \
+	bin/girar-task-update-webapi \
 	#
 
 check_TARGETS = check/091-check-arepo check/101-check-policydeps
