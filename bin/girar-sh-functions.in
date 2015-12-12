@@ -95,8 +95,11 @@ valid_repositories()
 
 post_api()
 {
-	[ -z "${WEBAPI_URL}" ] ||
+	if [ -n "${WEBAPI_URL}" ]; then
 		curl --retry 5 --retry-delay 1 -sS -X POST -d @- "$WEBAPI_URL/api/v1$1" ||:
+	else
+		cat > /dev/null ||:
+	fi
 }
 
 delete_api()
