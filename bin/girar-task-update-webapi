@@ -31,18 +31,18 @@ printFromFile() {
 	printf '"testonly":%s,\n' "$(test -f task/test-only && echo true || echo false)"
 	printf '"swift":%s,\n' "$(test -f task/swift && echo true || echo false)"
 
-	aowner=
-	if [ -f task/abort ]; then
-		aowner="$(stat -c %U task/abort)"
-		aowner="${aowner#git_}"
-	fi
-	printf '"aborted":"%s",\n' "$aowner"
-
 	printFromFile task/try try 0 0
 	printFromFile task/iter iter 0 0
 	printFromFile task/repo repo
 	printFromFile task/state state
 	printFromFile task/owner owner
+
+	aowner=
+	if [ -f task/abort ]; then
+		aowner="$(stat -c %U task/abort)"
+		aowner="${aowner#git_}"
+	fi
+	printf '"aborted":"%s"\n' "$aowner"
 	printf '}\n'
 } |
 	post_api "/tasks/$id"
