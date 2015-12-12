@@ -257,5 +257,6 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@UPLOAD_DIR@,${UPLOAD_DIR},g' \
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
+	    -e 's,@WEBAPI_URL@,${WEBAPI_URL},g' \
 		<$< >$@
 	chmod --reference=$< $@
