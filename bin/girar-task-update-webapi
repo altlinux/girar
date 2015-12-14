@@ -72,7 +72,7 @@ for i in $nums; do
 				printf '"type":"delete"'
 			fi
 		else
-			printf '"type":"unknown"'
+			printf '"type":"cancelled"'
 		fi
 		printf '\n}\n'
 	} |
