@@ -391,24 +391,12 @@ mkdir -m2775 gears/"$i"
 mkdir -m3775 acl/"$i"
 trap atexit EXIT
 
-{
-	printf '{'
-	printf '"subtaskid":%d,' "$i"
-	printf '"owner":"%s",' "$GIRAR_USER"
-	printf '"type":'
-	[ "$action" != del ] &&
-		printf '"%s",' "$action" ||
-		printf '"delete",'
-	printf '"status":"active"'
-	printf '}\n'
-} |
-	post_api "/tasks/$id/subtasks"
-
 case "$action" in
 	del)
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	girar-task-change-state "$id" NEW
+	girar-task-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: delete package $package from $repo"
 	exit 0
 	;;
@@ -417,6 +405,7 @@ case "$action" in
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	girar-task-change-state "$id" NEW
+	girar-task-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
 	exit 0
 	;;
@@ -426,6 +415,7 @@ case "$action" in
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	girar-task-change-state "$id" NEW
+	girar-task-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
 	exit 0
 	;;
@@ -488,4 +478,6 @@ else
 fi
 
 girar-task-change-state "$id" NEW
+girar-task-webapi-subtask create "$id" "$i"
+
 echo >&2 "task #$id: added #$i: build tag \"$tag_name\" from $dir"

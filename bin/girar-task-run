@@ -217,5 +217,6 @@ trap '' HUP INT QUIT PIPE TERM
 echo $try > task/try
 echo 1 > task/iter
 girar-task-change-state "$id" "$next_state"
+girar-webapi-task update "$id"
 
 echo >&2 "task #$id: try #$try is $next_state, result will be emailed to $owner@$EMAIL_DOMAIN"

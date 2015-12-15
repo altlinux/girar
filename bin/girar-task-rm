@@ -41,4 +41,4 @@ cd - >/dev/null
 rm -rf -- "$id"/
 echo >&2 done
 
-delete_api "/tasks/$id"
+girar-webapi-task delete "$id"

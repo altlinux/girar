@@ -60,10 +60,6 @@ mkdir "$id"
 builtin lockf -v "$id"
 trap atexit EXIT
 mkdir "$id"/task
-
-printf '{"taskid":%d,"owner":"%s","repo":"%s","state":"new"}\n' "$id" "$GIRAR_USER" "$repo" |
-	post_api "/tasks"
-
 printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
@@ -71,6 +67,8 @@ touch "$id"/task/state "$id"/task/run
 girar-task-change-state "$id" NEW
 chmod g+w -- "$id"/task/state "$id"/task/run
 chmod g+rws,o+t -- "$id"/task "$id"
+
+girar-webapi-task create "$id"
 
 echo >&2 "new task #$id: owner=$GIRAR_USER repo=$repo"
 printf '%s\n' "$id"

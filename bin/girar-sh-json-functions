@@ -1,0 +1,33 @@
+#!/bin/sh -efu
+
+delim=
+print_json() {
+	local type name value
+
+	type="$1"; shift
+	name="$1"; shift
+	value="$1"; shift
+
+	if [ "$type" = 'string' ]; then
+		[ -n "${value##*[\"\\]*}" ] ||
+			value="$(printf '%s' "$value" |sed -e 's,[\"\\],\\&,g')"
+		value="$(printf '"%s"' "$value" |tr -s '[:space:]' ' ')"
+	fi
+
+	printf '%s"%s":%s\n' "$delim" "$name" "$value"
+	delim=','
+}
+
+print_json_file() {
+	local name filename value= default
+
+	type="$1"; shift
+	filename="$1"; shift
+	name="$1"; shift
+	default="${1-}"
+
+	[ ! -s "$filename" ] ||
+		value="$(cat "$filename")"
+
+	print_json "$type" "$name" "${value:-$default}"
+}

@@ -1,0 +1,63 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. girar-sh-json-functions
+PROG='girar-webapi-subtask'
+
+action="$1"; shift
+id="$1"; shift
+subid="$1"; shift
+
+create() {
+	print_json number "subtaskid" "$subid"
+	print_json string "status" "active"
+	print_json_file string "userid" "owner"
+}
+
+delete() {
+	print_json string "status" "cancelled"
+}
+
+update() {
+	type="unknown"
+
+	if [ -s "dir" ]; then
+		type="repo"
+	elif [ -s "srpm" ]; then
+		type="srpm"
+	elif [ -s "package" ]; then
+		[ -s "copy_repo" ] &&
+			type="copy" ||
+			type="delete"
+	fi
+
+	print_json string "status" "active"
+	print_json string "type" "$type"
+	print_json_file string "userid"     owner
+	print_json_file string "dir"        dir
+	print_json_file string "tag_name"   tagname
+	print_json_file string "tag_id"     tagid
+	print_json_file string "tag_author" tagauthor
+	print_json_file string "srpm"       srpm
+	print_json_file string "copy_repo"  copyrepo
+	print_json_file string "package"    package
+	print_json_file string "pkgname"    pkgname
+}
+
+cd "$TASKS_DIR/$id/gears/$subid"
+
+case "$action" in
+	create) url="/tasks/$id/subtasks" ;;
+	update) url="/tasks/$id/subtasks/$subid" ;;
+	delete) url="/tasks/$id/subtasks/$subid" ;;
+	*)
+		fatal "unknown action: '$action'"
+		;;
+esac
+
+{
+	printf '{'
+	$action
+	printf '}'
+} |
+	post_api "$url"

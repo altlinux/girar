@@ -73,6 +73,11 @@ gb-task-set-summary
 	fail_if_task_abort_requested
 	gb-x-girar task-make-index-html "$id" ||:
 
+	gb-x-girar webapi-task update "$id" ||:
+	for i in $(src_nums); do
+		gb-x-girar webapi-subtask update "$id" "$i" ||:
+	done
+
 	# run basic tests
 	gb-task-check-build
 	gb-task-check-noarch

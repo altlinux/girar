@@ -64,3 +64,4 @@ builtin lockf -n . ||
 
 chmod g${op}w gears acl
 girar-task-make-index-html "$id"
+girar-webapi-task share "$id"
