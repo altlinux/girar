@@ -76,6 +76,7 @@ bin_TARGETS = \
 	bin/girar-sh \
 	bin/girar-sh-config \
 	bin/girar-sh-functions \
+	bin/girar-sh-json-functions \
 	bin/girar-sh-tmpdir \
 	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
@@ -101,7 +102,8 @@ bin_TARGETS = \
 	bin/girar-task-share \
 	bin/girar-task-show \
 	bin/girar-task-update-queues \
-	bin/girar-task-update-webapi \
+	bin/girar-webapi-subtask \
+	bin/girar-webapi-task
 	#
 
 check_TARGETS = check/091-check-arepo check/101-check-policydeps
