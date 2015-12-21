@@ -15,7 +15,7 @@ old_state=$(cat task/state)
 [ "$old_state" = "$new_state" ] ||
 	echo "$new_state" > task/state
 [ "$old_state" = "$new_state" ] ||
-	girar-webapi-task state "$id"
+	girar-webapi-task state "$id" ||:
 girar-task-make-index-html "$id" ||:
 [ "$old_state" = "$new_state" ] ||
 	girar-task-update-queues  "$id" "$old_state" "$new_state"
