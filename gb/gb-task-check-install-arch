@@ -28,14 +28,20 @@ gb-x-rsync-loop -a --exclude '*list.*.bz2' \
 	"$GB_TMP_REPO_DIR"/{$arch,noarch} "$remote_host:gb-repo/"
 
 rc=0
+q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
+
+. gb-sh-tmpdir
 
 while read -r N EVR A F P I; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
 
 	if [ -f task/swift ]; then
 		if [ -f "install/$N/$arch/chroot_install" ]; then
-			stamp_echo >&2 "[$arch] #$I $N: install check swiftly skipped"
-			continue
+			rpmquery --qf "$q_bin" -p "$P" > "$tmpdir/id"
+			if cmp -s install/"$N/$arch"/id "$tmpdir"/id; then
+				stamp_echo >&2 "[$arch] #$I $N: install check swiftly skipped"
+				continue
+			fi
 		fi
 	fi
 
