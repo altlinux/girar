@@ -196,7 +196,7 @@ install-var:
 		${DESTDIR}${STATE_DIR}/upload/{copy,lockdir,log} \
 		${DESTDIR}${TASKS_DIR} \
 		${DESTDIR}${TASKS_DIR}/archive \
-		${DESTDIR}${TASKS_DIR}/archive/{.trash,done,eperm,failed,failure,new,postponed,tested} \
+		${DESTDIR}${TASKS_DIR}/archive/{.trash,done,eperm,failed,failure,new,postponed,swept,tested} \
 		${DESTDIR}${TASKS_DIR}/index \
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/awaiter \

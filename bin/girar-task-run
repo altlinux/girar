@@ -45,7 +45,7 @@ owner="$(cat task/owner)"
 state="$(cat task/state)"
 
 case "$state" in
-	NEW|TESTED|EPERM|FAILED)
+	NEW|SWEPT|TESTED|EPERM|FAILED)
 		;;
 	AWAITING|POSTPONED)
 		fatal "task #$id is already scheduled for run" ;;

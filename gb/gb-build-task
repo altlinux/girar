@@ -113,7 +113,16 @@ rc=$?
 state="$(cat task/state)"
 case "$state" in
 	EPERM|POSTPONED) rc=1 ;;
-	BUILDING) [ "$rc" = 0 ] && state=TESTED || state=FAILED ;;
+	BUILDING)
+		if [ "$rc" = 0 ]; then
+			if [ -f task/swift ]; then
+				state=SWEPT
+			else
+				state=TESTED
+			fi
+		else
+			state=FAILED
+		fi ;;
 	*) rc=1; state=FAILED ;;
 esac
 

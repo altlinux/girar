@@ -72,7 +72,7 @@ show_status()
 			label="label-info" ;;
 		EPERM|FAILED)
 			label="label-danger" ;;
-		TESTED|DONE)
+		SWEPT|TESTED|DONE)
 			label='label-success' ;;
 	esac
 

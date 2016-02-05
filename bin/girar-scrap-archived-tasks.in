@@ -5,7 +5,7 @@ cd @TASKS_DIR@/archive
 pushd .trash >/dev/null
 popd >/dev/null
 
-for d in new failed eperm tested; do
+for d in new failed eperm swept tested; do
 	pushd $d >/dev/null || continue
 	find -mindepth 2 -maxdepth 2 -path './[1-9]*/task' -type d \
 	     -mtime +14 -printf '%h\n' | cut -d/ -f2 |
