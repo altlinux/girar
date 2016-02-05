@@ -6,7 +6,7 @@ PROG='girar-task run'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--dry-run] [--test-only] [<task_id>]"
+	echo >&2 "usage: $PROG [--dry-run] [--test-only|--swift] [<task_id>]"
 	exit 1
 }
 
@@ -21,10 +21,16 @@ if [ "${1-}" = '--dry-run' ]; then
 fi
 
 test_only=
-if [ "${1-}" = '--test-only' ]; then
-	test_only=1
-	shift
-fi
+swift_only=
+case "${1-}" in
+	--test-only)
+		test_only=1
+		shift ;;
+	--swift)
+		test_only=1
+		swift_only=1
+		shift ;;
+esac
 
 if [ "$#" -gt 1 ]; then
 	usage 'Too many arguments.'
@@ -189,6 +195,15 @@ if [ -n "$test_only" ]; then
 else
 	[ ! -f task/test-only ] ||
 		rm task/test-only
+fi
+
+# set/remove swift flag
+if [ -n "$swift_only" ]; then
+	[ -f task/swift ] ||
+		touch task/swift
+else
+	[ ! -f task/swift ] ||
+		rm task/swift
 fi
 
 # remove "abort" flag
