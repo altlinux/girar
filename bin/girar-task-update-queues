@@ -28,7 +28,8 @@ canon_state()
 old_state="$(canon_state "$old_state")"
 new_state="$(canon_state "$new_state")"
 
-logger -t "$PROG" "user=${GIRAR_USER-} task=$id repo=$repo $old_state -> $new_state"
+logger -t "$PROG" \
+	"user=${GIRAR_USER-} task=$id repo=$repo ${old_state:-void} -> ${new_state:-void}"
 
 [ -z "$old_state" ] ||
 	rm -f index/"$repo/$old_state/$id"
