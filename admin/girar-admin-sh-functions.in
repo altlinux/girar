@@ -38,7 +38,9 @@ load_identity()
 	local type
 	type="$(printf %s "$IDENTITY" |head -c20 |cut -d' ' -f1)"
 	case "$type" in
-		ssh-dss|ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521) ;;
+		ssh-ed25519|ssh-rsa) ;;
+		ssh-dss|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
+			fatal "$IDFILE: invalid identity file: unsupported key type: $type" ;;
 		*) fatal "$IDFILE: invalid identity file: unrecognized key type" ;;
 	esac
 	[ "$(echo "$IDENTITY" |wc -l)" = 1 ] ||
@@ -48,17 +50,9 @@ load_identity()
 	size="$(ssh-keygen -l -f "$IDFILE")"
 	size="${size%% *}"
 	case "$type" in
-		ssh-dss) [ "$size" = 1024 -o "$size" = 2048 -o "$size" = 4096 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
 		ssh-rsa) [ "$size" = 2048 -o "$size" = 4096 -o "$size" = 8192 ] ||
 				fatal "$IDFILE: invalid $type key size: $size" ;;
 		ssh-ed25519) [ "$size" = 256 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
-		ecdsa-sha2-nistp256) [ "$size" = 256 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
-		ecdsa-sha2-nistp384) [ "$size" = 384 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
-		ecdsa-sha2-nistp521) [ "$size" = 521 ] ||
 				fatal "$IDFILE: invalid $type key size: $size" ;;
 	esac
 }
