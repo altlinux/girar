@@ -50,7 +50,7 @@ load_identity()
 	size="$(ssh-keygen -l -f "$IDFILE")"
 	size="${size%% *}"
 	case "$type" in
-		ssh-rsa) [ "$size" = 2048 -o "$size" = 4096 -o "$size" = 8192 ] ||
+		ssh-rsa) [ "$size" = 4096 -o "$size" = 8192 ] ||
 				fatal "$IDFILE: invalid $type key size: $size" ;;
 		ssh-ed25519) [ "$size" = 256 ] ||
 				fatal "$IDFILE: invalid $type key size: $size" ;;
