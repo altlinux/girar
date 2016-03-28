@@ -37,8 +37,7 @@ state=$(cat task/state)
 echo >&2 -n "removing task #$id ... "
 logger -t "$PROG" "user=$GIRAR_USER task=$id state=$state"
 girar-task-update-queues  "$id" "$state" ''
+girar-webapi-task delete "$id"
 cd - >/dev/null
 rm -rf -- "$id"/
 echo >&2 done
-
-girar-webapi-task delete "$id"
