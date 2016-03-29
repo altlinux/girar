@@ -36,7 +36,7 @@ update() {
 	print_json_file string "srpm"       srpm
 	print_json_file string "copy_repo"  copyrepo
 	print_json_file string "package"    package
-	print_json_file string "pkgname"    pkgname
+	print_json_file string "../../build/$subid/pkgname"    pkgname
 }
 
 cd "$TASKS_DIR/$id/gears/$subid"
