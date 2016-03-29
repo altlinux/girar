@@ -8,12 +8,6 @@ action="$1"; shift
 id="$1"; shift
 subid="$1"; shift
 
-create() {
-	print_json number "subtaskid" "$subid"
-	print_json string "status" "active"
-	print_json_file string "userid" "owner"
-}
-
 delete() {
 	print_json string "status" "cancelled"
 }
@@ -31,6 +25,7 @@ update() {
 			type="delete"
 	fi
 
+	print_json number "subtaskid" "$subid"
 	print_json string "status" "active"
 	print_json string "type" "$type"
 	print_json_file string "userid"     owner
@@ -46,10 +41,14 @@ update() {
 
 cd "$TASKS_DIR/$id/gears/$subid"
 
+handler='update'
 case "$action" in
 	create) url="/tasks/$id/subtasks" ;;
 	update) url="/tasks/$id/subtasks/$subid" ;;
-	delete) url="/tasks/$id/subtasks/$subid" ;;
+	delete)
+		url="/tasks/$id/subtasks/$subid"
+		handler='delete'
+		;;
 	*)
 		fatal "unknown action: '$action'"
 		;;
@@ -57,7 +56,7 @@ esac
 
 {
 	printf '{'
-	$action
+	$handler
 	printf '}'
 } |
 	post_api "$url"

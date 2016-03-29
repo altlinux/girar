@@ -7,13 +7,6 @@ PROG='girar-webapi-task'
 action="$1"; shift
 id="$1"; shift
 
-create() {
-	print_json string state new
-	print_json number taskid "$id"
-	print_json_file string task/owner owner
-	print_json_file string task/repo repo
-}
-
 delete() {
 	print_json string "state" "delete"
 }
@@ -31,6 +24,7 @@ update() {
 	share
 	state
 
+	print_json number taskid "$id"
 	print_json bool "testonly" "$(test -f task/test-only && echo true || echo false)"
 	print_json bool "swift" "$(test -f task/swift && echo true || echo false)"
 
@@ -50,9 +44,11 @@ update() {
 
 cd "$TASKS_DIR/$id"
 
+handler="$action"
 case "$action" in
 	create)
 		url="/tasks"
+		handler="update"
 		;;
 	delete|update|share)
 		url="/tasks/$id"
@@ -69,7 +65,7 @@ esac
 
 {
 	printf '{'
-	$action
+	$handler
 	printf '}'
 } |
 	post_api "$url"
