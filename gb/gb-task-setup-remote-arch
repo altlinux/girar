@@ -10,13 +10,12 @@ qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
 # Setup remote node to build $arch packages for $GB_REPO_NAME repository.
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
 gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
-remote_home=$(ssh "$remote_host" pwd)
 gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
-	"\"$(quote_shell "$remote_home/gb-repo")\"" \
+	gb-repo \
 	"\"$(quote_shell "$arch")\"" \
-	"\"$(quote_shell classic)\"" \
+	classic \
 	"\"$(quote_shell "$GB_APT_CACHE_LIMIT")\"" \
 	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\""
 
