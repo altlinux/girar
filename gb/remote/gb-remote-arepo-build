@@ -34,7 +34,7 @@ hsh --init --without-stuff --no-contents-ind \
 	Fatal 'initroot failed'
 
 # install pkg.list
-ln tmp/pkg.list hasher/chroot/.in/
+mv tmp/pkg.list hasher/chroot/.in/
 
 cat > hasher/chroot/.host/arepoize << EOF
 #!/bin/sh -efu
