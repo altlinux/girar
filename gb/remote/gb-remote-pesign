@@ -31,11 +31,6 @@ tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
 trap 'cleanup $?' EXIT
 trap 'exit 143' HUP INT QUIT PIPE TERM
 
-cd tmp
-xargs -r < list \
-	rpmquery --qf '%{sourcerpm}\n' -p > "$tmpdir/old-ref"
-cd - >/dev/null
-
 # initialize hasher chroot
 time setarch "$arch" -- \
 hsh --init --without-stuff --no-contents-ind \
@@ -58,17 +53,19 @@ chmod a+rx hasher/chroot/.host/pesign
 
 mkdir -p build/rpms
 
-while read -r F; do
-	ln -- "tmp/$F" hasher/chroot/.in/
+> "$tmpdir/old-ref"
+> "$tmpdir/new-ref"
+
+while read -r F; do {
+	rpmquery --qf '%{sourcerpm}\n' -p tmp/"$F" >> "$tmpdir/old-ref"
+
+	mv -- "tmp/$F" hasher/chroot/.in/
 	hsh-run --mount=/var/run/pesign/socketdir -- "/.host/pesign" "$F" 2>&1 ||
 		Fatal "failed to pesign $F"
 	mv -- hasher/chroot/.out/"$F" build/rpms/
-done < tmp/list
 
-cd build/rpms
-xargs -r < "$HOME"/tmp/list \
-	rpmquery --qf '%{sourcerpm}\n' -p > "$tmpdir/new-ref"
-cd - >/dev/null
+	rpmquery --qf '%{sourcerpm}\n' -p build/rpms/"$F" >> "$tmpdir/new-ref"
+} < /dev/null; done < tmp/list
 
 cd "$tmpdir"
 diff -U1 {old,new}-ref ||
