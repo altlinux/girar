@@ -34,8 +34,6 @@ nums()
 select_task()
 {
 	local id="$1"; shift
-	local find_state="$1"; shift
-	local next_state="$1"; shift
 	cd "$id" 2>/dev/null || exit
 	# obtain an exclusive lock on the TASKS structure
 	# if the lock cannot be immediately acquired, fail
@@ -76,7 +74,7 @@ retry=1
 while [ -n "$retry" ]; do
 	retry=
 	for id in $(repo_tasks); do
-		(select_task "$id" "$find_state" "$next_state") ||
+		(select_task "$id") ||
 		{
 			[ $? -ne 3 ] || retry=1
 			continue
