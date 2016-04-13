@@ -12,9 +12,11 @@ max_iter()
 	cd "$GB_TASKS_DIR/index/$GB_REPO_NAME/$state" ||
 		return
 
-	local n
-	n="$(find -L . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/iter' -print0 |
-		xargs -r0 grep -h '^[1-9][0-9]*$' -- | sort -rn | head -1)"
+	n="$(set +f; for d in [1-9]*; do
+		[ -f "$d"/task/iter -a ! -f "$d"/task/idle -a ! -f "$d"/task/test-only ] ||
+			continue
+		echo "$d"/task/iter
+	done | xargs -r grep -hx '[1-9][0-9]*' -- | sort -rn | head -1)"
 	[ -n "$n" ] && [ "$n" -gt 0 ] 2>/dev/null && echo "$n" ||
 		return
 }
