@@ -55,14 +55,14 @@ mkdir -p build/rpms
 while read -r N EVR F from_F from_SHA1 mode to_F to_SHA1; do
 	# assume that $from_F and $to_F packages are available via RPMS.classic
 	from_F_path="$(readlink -ev "gb-repo/$arch/RPMS.classic/$from_F")"
-	ln -- "$from_F_path" hasher/chroot/.in/
+	cp -p -- "$from_F_path" hasher/chroot/.in/
 
 	to_F_path=
 	if [ -n "$to_F" ]; then
 		native_arch="${to_F%.rpm}"
 		native_arch="${native_arch##*.}"
 		to_F_path="$(readlink -ev "gb-repo/$native_arch/RPMS.classic/$to_F")"
-		ln -- "$to_F_path" hasher/chroot/.in/
+		cp -p -- "$to_F_path" hasher/chroot/.in/
 	fi
 
 	echo
