@@ -64,6 +64,12 @@ printf '%s\n' "$id" >"$id"/task/id
 printf '%s\n' "$GIRAR_USER" >"$id"/task/owner
 printf '%s\n' "$repo" >"$id"/task/repo
 touch "$id"/task/state "$id"/task/run
+for u in ${GIRAR_LOW_PRIORITY_USERS-}; do
+	if [ "$u" = "$GIRAR_USER" ]; then
+		touch "$id"/task/idle
+		break
+	fi
+done
 girar-task-change-state "$id" NEW
 chmod g+w -- "$id"/task/state "$id"/task/run
 chmod g+rws,o+t -- "$id"/task "$id"
