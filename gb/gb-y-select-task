@@ -56,6 +56,12 @@ select_task()
 	iter="$(grep -h '^[1-9][0-9]*$' task/iter)" || exit
 	[ "$iter" -ge "$min_iter" ] || exit
 
+	# is the max iteration number in target queue greater than 1?
+	if [ "$max_target_iter" -gt 1 ]; then
+		# fail unless iteration number equals to 1 or greater than max
+		[ "$iter" -eq 1 -o "$iter" -gt "$max_target_iter" ] || exit
+	fi
+
 	# find out who is the real owner of the task
 	owner="$(stat -c %U .)" || exit
 
@@ -78,6 +84,13 @@ skip_idle_tasks="$min_iter"
 if [ "$skip_idle_tasks" = 0 ]; then
 	gb-y-queues-are-empty "$next_state" "$@" ||
 		skip_idle_tasks=1
+fi
+
+if [ "$min_iter" = 0 ]; then
+	max_target_iter="$(gb-y-calc-max-iter "$next_state")" ||
+		max_target_iter=0
+else
+	max_target_iter=0
 fi
 
 retry=1
