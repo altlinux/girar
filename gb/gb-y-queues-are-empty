@@ -1,0 +1,35 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+cd "$GB_TASKS_DIR"
+
+for state; do
+	state="$(printf %s "$state" |tr '[:upper:]' '[:lower:]')"
+
+	# missing directory -> empty queue
+	[ -n "$state" ] &&
+	cd "$GB_TASKS_DIR/index/$GB_REPO_NAME/$state" ||
+		continue
+
+	# empty directory -> empty queue
+	[ -z "$(find . -maxdepth 0 -empty -print -quit)" ] ||
+		continue
+
+	# something in the queue...
+	set +f
+	for d in [1-9]*; do
+		# skip obviously invalid findings
+		[ "$d"/task/iter ] ||
+			continue
+		# idle and test-only tasks do not count
+		if [ -f "$d"/task/idle -o -f "$d"/task/test-only ]; then
+			continue
+		fi
+		# found a task -> non-empty queue
+		exit 1
+	done
+	set -f
+done
+
+exit 0
