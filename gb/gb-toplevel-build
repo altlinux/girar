@@ -35,7 +35,7 @@ while :; do
 		stamp_echo "forked $pid"
 	fi
 	stamp_echo selecting
-	id="$(gb-y-select-task AWAITING BUILDING 0)" ||
+	id="$(gb-y-select-task AWAITING BUILDING 0 COMMITTING)" ||
 		id=
 	if [ -n "$id" ]; then
 		stamp_echo "task $id"
