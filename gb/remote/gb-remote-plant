@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+whatis="$1"; shift
 owner="$1"; shift
 GB_REPO_NAME="$1"; shift
 dir="$1"; shift
@@ -19,6 +20,10 @@ repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
 	dir="$HOME/$dir"
 
 cd
+
+# create cache directory
+cache_dir="cache/$repo_name/$arch/$whatis"
+mkdir -p -- "$cache_dir"
 
 # recreate $TMPDIR/tmp
 # recreate ~/tmp as symlink to $TMPDIR/tmp
@@ -73,6 +78,7 @@ workdir="\$TMPDIR/hasher"
 apt_config="\$workdir/apt.conf"
 def_target="$arch"
 def_repo="\$HOME/hasher_repo"
+cache_dir="\$HOME/$cache_dir"
 nprocs=1
 known_mountpoints=/proc,/dev/pts
 USER="$owner-$repo_name"
