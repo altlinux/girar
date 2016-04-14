@@ -25,61 +25,29 @@ cd
 cache_dir="cache/$repo_name/$arch/$whatis"
 mkdir -p -- "$cache_dir"
 
-# recreate generic input directory
-rm -rf -- in
-mkdir in
-
-# recreate $TMPDIR/tmp
-# recreate ~/tmp as symlink to $TMPDIR/tmp
-tmpdir="$TMPDIR/tmp"
-rm -rf -- "$tmpdir"
-mkdir -p -- "$tmpdir"
-rm -rf tmp
-ln -s -- "$tmpdir"
-
-# recreate $TMPDIR/build
-# recreate ~/build as symlink to $TMPDIR/build
-build="$TMPDIR/build"
-rm -rf -- "$build"
-mkdir -p -- "$build"
-rm -rf build
-ln -s -- "$build"
-
-# recreate $TMPDIR/install
-# recreate ~/install as symlink to $TMPDIR/install
-install="$TMPDIR/install"
-rm -rf -- "$install"
-mkdir -p -- "$install"
-rm -rf install
-ln -s -- "$install"
-
-# create $TMPDIR/hasher if necessary
-# recreate ~/hasher as symlink to $TMPDIR/hasher
-workdir="$TMPDIR/hasher"
-mkdir -p -- "$workdir"
-rm -rf hasher
-ln -s -- "$workdir"
+# recreate directories
+recreate_dirs='in apt build install base_repo hasher_repo lists'
+rm -rf -- $recreate_dirs
+mkdir -- $recreate_dirs
 
 # store pkglists outside of aptbox
-rm -rf -- "$workdir/lists"
-mkdir -p -- "$workdir/lists/partial"
+mkdir lists/partial
 
 # support for full private repo
-gb_repo="$TMPDIR/gb-repo"
-rm -rf -- "$gb_repo"
-mkdir -p -- "$gb_repo"
-rm -rf gb-repo
-ln -s -- "$gb_repo"
+rm -f gb-repo
+ln -s base_repo gb-repo
 
-# store hasher build repo outside of workdir
-rm -rf hasher_repo
-mkdir -p hasher_repo
+# recreate ~/hasher symlink
+rm -rf hasher
+ln -s -- "$TMPDIR/hasher"
 
 # recreate hasher config file
 mkdir -p -- .hasher
 cat >.hasher/config <<EOF
 workdir="\$TMPDIR/hasher"
-apt_config="\$workdir/apt.conf"
+mkdir -p -- "\$workdir"
+
+apt_config="\$HOME/apt/apt.conf"
 def_target="$arch"
 def_repo="\$HOME/hasher_repo"
 cache_dir="\$HOME/$cache_dir"
@@ -94,22 +62,22 @@ for arg; do
 done >>.hasher/config
 
 # recreate apt config files
-cat >"$workdir/apt.conf" <<EOF
+cat >apt/apt.conf <<EOF
 Dir::Etc::main "/dev/null";
 Dir::Etc::parts "/var/empty";
 Dir::Etc::sourceparts "/var/empty";
-Dir::Etc::sourcelist "$workdir/sources.list";
-Dir::State::lists "$workdir/lists";
-Dir::Etc::pkgpriorities "$workdir/pkgpriorities";
+Dir::Etc::sourcelist "$HOME/apt/sources.list";
+Dir::Etc::pkgpriorities "$HOME/apt/pkgpriorities";
+Dir::State::lists "$HOME/lists";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
 APT::Cache-Limit "$GB_APT_CACHE_LIMIT";
 EOF
-cat >"$workdir/sources.list" <<EOF
+cat >apt/sources.list <<EOF
 rpm file:$dir $arch $comps
 rpm file:$dir noarch classic
 EOF
-cat >"$workdir/pkgpriorities" <<EOF
+cat >apt/pkgpriorities <<EOF
 Important:
   basesystem
 Required:
@@ -130,4 +98,10 @@ Standard:
   branding-altlinux-office-server-indexhtml
   branding-altlinux-office-server-notes
   branding-altlinux-office-server-slideshow
+EOF
+
+# recreate ~/.rpmmacros
+cat >.rpmmacros <<EOF
+%_topdir	$HOME/RPM
+%_tmppath	$TMPDIR
 EOF
