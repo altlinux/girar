@@ -1,6 +1,8 @@
 #!/bin/sh -efu
 
-exec > tmp/pesign.log
+mkdir -p build/rpms
+exec > build/pesign.log
+
 arch="$1"; shift
 cert="$1"; shift
 
@@ -51,21 +53,19 @@ ln --target-directory /.out \$HOME/RPM/RPMS/$arch/\$package
 EOF
 chmod a+rx hasher/chroot/.host/pesign
 
-mkdir -p build/rpms
-
 > "$tmpdir/old-ref"
 > "$tmpdir/new-ref"
 
 while read -r F; do {
-	rpmquery --qf '%{sourcerpm}\n' -p tmp/"$F" >> "$tmpdir/old-ref"
+	rpmquery --qf '%{sourcerpm}\n' -p in/"$F" >> "$tmpdir/old-ref"
 
-	mv -- "tmp/$F" hasher/chroot/.in/
+	mv -- "in/$F" hasher/chroot/.in/
 	hsh-run --mount=/var/run/pesign/socketdir -- "/.host/pesign" "$F" 2>&1 ||
 		Fatal "failed to pesign $F"
 	mv -- hasher/chroot/.out/"$F" build/rpms/
 
 	rpmquery --qf '%{sourcerpm}\n' -p build/rpms/"$F" >> "$tmpdir/new-ref"
-} < /dev/null; done < tmp/list
+} < /dev/null; done < in/list
 
 cd "$tmpdir"
 diff -U1 {old,new}-ref ||

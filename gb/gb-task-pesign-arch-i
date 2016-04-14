@@ -90,22 +90,22 @@ fail()
 }
 
 # copy input list
-gb-x-rsync-loop -q -- $tmpdir/list "$remote_host:tmp/"
+gb-x-rsync-loop -q -- $tmpdir/list "$remote_host:in/"
 
 # copy input packages
 gb-x-rsync-loop -qt --files-from=$tmpdir/list -- \
-	"build/$i/$arch/rpms/" "$remote_host:tmp/"
+	"build/$i/$arch/rpms/" "$remote_host:in/"
 
 # run pesign on remote side
 gb-x-ssh "$remote_host" ./gb-remote-pesign \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$GB_PESIGN_CERT_NAME")\"" || {
-		rsync -qt -- "$remote_host:tmp/pesign.log" "build/$i/$arch/" ||:
+		rsync -qt -- "$remote_host:build/pesign.log" "build/$i/$arch/" ||:
 		fail 'remote pesigning FAILED'
 	}
 
 # copy the log and signed packages from remote side
-gb-x-rsync-loop -qt -- "$remote_host:tmp/pesign.log" "build/$i/$arch/"
+gb-x-rsync-loop -qt -- "$remote_host:build/pesign.log" "build/$i/$arch/"
 gb-x-rsync-loop -qt --files-from=$tmpdir/list -- \
 	"$remote_host:build/rpms/" "build/$i/$arch/rpms/"
 

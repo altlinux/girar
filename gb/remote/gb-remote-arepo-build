@@ -34,7 +34,7 @@ hsh --init --without-stuff --no-contents-ind \
 	Fatal 'initroot failed'
 
 # install pkg.list
-mv tmp/pkg.list hasher/chroot/.in/
+mv in/pkg.list hasher/chroot/.in/
 
 cat > hasher/chroot/.host/arepoize << EOF
 #!/bin/sh -efu
@@ -70,6 +70,6 @@ while read -r N EVR F from_F from_SHA1 mode to_F to_SHA1; do
 	hsh-run -- /.host/arepoize "$mode" "$from_F" "$to_F" "$F" 2>&1 ||
 		Fatal "failed to build $F"
 	mv -- hasher/chroot/.out/"$F" build/rpms/
-done < tmp/todo.list >> build/arepo.log
+done < in/todo.list >> build/arepo.log
 
 hsh-rmchroot

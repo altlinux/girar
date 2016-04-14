@@ -25,6 +25,10 @@ cd
 cache_dir="cache/$repo_name/$arch/$whatis"
 mkdir -p -- "$cache_dir"
 
+# recreate generic input directory
+rm -rf -- in
+mkdir in
+
 # recreate $TMPDIR/tmp
 # recreate ~/tmp as symlink to $TMPDIR/tmp
 tmpdir="$TMPDIR/tmp"

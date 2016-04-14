@@ -38,7 +38,7 @@ fi
 stamp_echo >&2 "$I build start"
 
 # copy source package and accompanying build data to remote side
-gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:tmp/"
+gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:in/"
 (umask 002; mkdir -p "build/$i/$arch") || false
 [ -f "build/$i/$arch/log" ] ||
 	touch "build/$i/$arch/log"
