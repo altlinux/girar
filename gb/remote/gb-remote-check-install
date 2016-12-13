@@ -177,7 +177,8 @@ rpmquery -a --provides >instprov
 sort -u -o instprov{,}
 
 hsh-run --rooter -- \
-rpmquery -al >instfiles
+rpmquery -al >instfiles 2>>warnings
+sed '/^(contains no files)$/d' -i warnings
 sort -u -o instfiles{,}
 
 sort -u instprov instfiles >instlist
