@@ -73,10 +73,25 @@ if [ -s "$conf" ]; then
 	. "$conf"
 fi
 
+unlisted_is_allowed()
+{
+	[ -n "${GIRAR_ACL_DENY_UNLISTED-}" ] ||
+		return 0
+
+	local u
+	for u in ${GIRAR_ACL_USERS_ALLOWED_UNLISTED-}; do
+		[ "$GIRAR_USER" = "$u" ] ||
+			continue
+		return 0
+	done
+
+	return 1
+}
+
 if [ -z "$is_group" ]; then
 	# Allowed if package is not listed in acl file.
 	if ! acl_line="$(grep "^$project_name[[:space:]]" "$ACL_DIR/list.packages.$repository")"; then
-		if [ -z "${GIRAR_ACL_DENY_UNLISTED-}" ]; then
+		if unlisted_is_allowed; then
 			exit=allow
 		else
 			exit=deny
