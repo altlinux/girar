@@ -216,3 +216,39 @@ suffix_arch()
 	shift $(($#-2))
 	echo $1
 }
+
+changelog_with_time()
+{
+	local s='[:space:]'
+	local q='[* %{CHANGELOGTIME} %{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\n]'
+	rpmquery --qf "$q" -p "$1" |
+	sed -r "s/(<[$s]*[^@>$s]+([$s]*@[$s]*|[$s]+at[$s]+)(packages[$s]*[.][$s]*)?altlinux)([$s]*[.][$s]*|[$s]+dot[$s]+)[[:alpha:]]+[$s]*>/\\1>/"
+}
+
+rpm_recent_changes()
+{
+	changelog_with_time "$1" |
+	awk -v time0="$(date -d '3 months ago' +%s)" '
+		/^\* [0-9]+ / {
+			if ($2 < time0 && printed) exit
+			sub(/ [0-9]+ /, " ")
+		}
+		{ print; printed++ }
+	'
+}
+
+rpm_changes_since()
+{
+	local time0 EVR0
+	time0=$(rpmquery --qf '%{CHANGELOGTIME}' -p "$2")
+	EVR0=$(rpmquery --qf '%|epoch?{%{epoch}:}|%{version}-%{release}' -p "$2")
+	changelog_with_time "$1" |
+	awk -v time0="$time0" -v EVR0="$EVR0" '
+		/^\* [0-9]+ / {
+			if ($NF == EVR0) exit
+			if ($2 < time0 && printed) exit
+			sub(/ [0-9]+ /, " ")
+		}
+		{ print; printed++ }
+	'
+}
