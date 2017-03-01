@@ -62,6 +62,7 @@ if [ "$rc" != 0 ]; then
 fi
 
 gb-task-close-bugs ||:
+gb-task-report-vulns ||:
 gb-task-cleanup ||:
 gb-task-send-email "$id"
 gb-task-archive "$id"

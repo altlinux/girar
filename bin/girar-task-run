@@ -182,7 +182,7 @@ if [ -n "$dry_run" ]; then
 fi
 
 # create group writable directories for build results
-mkdir -pm3775 bugmail install logs report
+mkdir -pm3775 install logs mail mail/bugmail mail/cvemail report
 mkdir -pm2775 arepo build plan
 
 # create group writable files required for build

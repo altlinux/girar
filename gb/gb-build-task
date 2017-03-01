@@ -102,6 +102,7 @@ gb-task-set-summary
 	gb-task-check-acl
 
 	gb-task-find-closed-bugs
+	gb-task-find-fixed-vulns
 
 	# apply local policy enforcement
 	gb-task-local-policy

@@ -1,0 +1,82 @@
+#!/usr/bin/gawk -f
+
+# Extracts identifiers of fixed vulnerabilities from a changelog.
+#
+# Accepts two formats, the first one is:
+# opening parenthesis, then
+# "Fixes", then
+# optional ":", then
+# comma- or space- or "and"-separated list of identifiers, then
+# closing parenthesis.
+#
+# The second one is:
+# "- Fixes" in the beginning of a line, then
+# optional ":", then
+# newline, then
+# possibly multiple lines of the form:
+## spaces, then
+## optional punctuation and spaces, then
+## identifier, then optionally:
+### optional ":", then
+### space(s), then
+### description of a vulnerability.
+#
+# Identifier has one of the following forms:
+# CVE-YYYY-XXXXXX, OVE-YYYYMMDD-XXXX, BDU:YYYY-XXXXX, MFSA-YYYY-XX
+#
+# Case-insensitive.
+
+BEGIN {
+    IGNORECASE = 1
+}
+
+function print_string(string, arr) {
+    gsub(",", " ", string)
+    gsub("and", " ", string)
+    split(string, arr)
+    print_array(arr)
+}
+
+function print_array(arr) {
+    for (i in arr) {
+        if (match(arr[i], "^CVE-[[:digit:]]{4}-[[:digit:]]{4,6}$") ||
+            match(arr[i], "^MFSA-[[:digit:]]{4}-[[:digit:]]{2}$") ||
+            match(arr[i], "^OVE-[[:digit:]]{8}-[[:digit:]]{4}$") ||
+            match(arr[i], "^BDU:[[:digit:]]{4}-[[:digit:]]{5}$")) {
+            print arr[i]
+        }
+    }
+}
+
+function scan_short_form(i, j, string) {
+    while ((i = index($0, "(fixes"))) {
+        string = substr($0, i + 6)
+        j = index(string, ")")
+        while (j == 0) {
+            if (getline <= 0) {
+                print_string(string)
+                exit
+            }
+            string = string " " $0
+            j = index(string, ")")
+        }
+        $0 = substr(string, j + 1)
+        string = substr(string, 1, j - 1)
+        print_string(string)
+    }
+}
+
+{
+    while (match($0, "^(- )fixes[:[:space:]]*$")) {
+        if (getline <= 0) exit
+        while (match($0, "^[[:space:]]+[[:punct:][:space:]]*" \
+                         "([[:alnum:][:punct:]]+)", arr)) {
+            gsub(":$", "", arr[1])
+            print_string(arr[1])
+            scan_short_form()
+            if (getline <= 0) exit
+        }
+    }
+
+    scan_short_form()
+}

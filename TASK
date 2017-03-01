@@ -23,7 +23,9 @@ TASK_ID/report/acl-addressees	list of acl addressees, one id per line
 TASK_ID/report/unmet-addressees	list of unmet addressees, one id per line
 
 # Email sent to bugzilla to close bugs.
-TASK_ID/bugmail/$bug_id  	bugmail contents for bug $bug_id
+TASK_ID/mail/bugmail/$bug_id  	bugmail contents for bug $bug_id
+# Email sent to whom it may concern about fixed vulns.
+TASK_ID/mail/cvemail/$cve_id  	cvemail contents for vuln $cve_id
 
 # After the build is successful, there is a plan to upgrade the repo.
 # packages going to be added

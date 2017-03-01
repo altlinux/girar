@@ -2,3 +2,4 @@
 
 
 ../gb-x-parse-bugs-from-changelog < parse-bugs-from-changelog.test | diff -u - parse-bugs-from-changelog.out
+../gb-x-parse-vulns-from-changelog < parse-vulns-from-changelog.test | diff -u - parse-vulns-from-changelog.out
