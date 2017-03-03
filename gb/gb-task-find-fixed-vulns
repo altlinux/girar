@@ -32,8 +32,8 @@ while F0=; read -r N EVR F P I F0; do
 		X-Vulnzilla-In-Source-Package: ${N}
 		X-Vulnzilla-In-Binary-Packages: ${binaries}
 		X-Vulnzilla-In-Uploader: ${uploader}
-        X-Vulnzilla-In-Repo: ${GB_REPO_NAME}
-        X-Vulnzilla-In-EVR: ${EVR}
+		X-Vulnzilla-In-Repo: ${GB_REPO_NAME}
+		X-Vulnzilla-In-EVR: ${EVR}
 
 		${changelog}
 		__EOF
