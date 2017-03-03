@@ -19,7 +19,7 @@ while F0=; read -r N EVR F P I F0; do
 	else
 		changelog=$(rpm_recent_changes "$P")
 	fi
-	ids=$(printf '%s\n' "$changelog" |gb-x-parse-cves-from-changelog)
+	ids=$(printf '%s\n' "$changelog" |gb-x-parse-vulns-from-changelog)
 	[ -n "$ids" ] || continue
 	stamp_echo >&2 "$N: fixes vulnerabilities: $ids"
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
