@@ -28,6 +28,7 @@ while F0=; read -r N EVR F P I F0; do
 		cat >"mail/cvemail/$id" <<-__EOF
 		From: ${GB_VULNZILLA_FROM}
 		To: ${GB_VULNZILLA_TO}
+
 		X-Vulnzilla-In-Vuln-Id: ${id}
 		X-Vulnzilla-In-Source-Package: ${N}
 		X-Vulnzilla-In-Binary-Packages: ${binaries}
