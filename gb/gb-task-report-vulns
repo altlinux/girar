@@ -2,13 +2,15 @@
 
 . gb-sh-functions
 
+dir=mail/cvemail
+
 fixed_vulns()
 {
-	find mail/cvemail -mindepth 1 -maxdepth 1 -name '[1-9a-zA-Z]*' -type f 2>/dev/null |
-		cut -d/ -f2 |sort -n
+	find $dir -mindepth 1 -maxdepth 1 -name '[1-9a-zA-Z]*' -type f 2>/dev/null |
+		sort -u
 }
 
-for id in $(fixed_vulns); do
-	(echo "X-Vulnzilla-In-Token: $GB_VULNZILLA_KEY"; cat "mail/cvemail/$id") |
+for file in $(fixed_vulns); do
+	(echo "X-Vulnzilla-In-Token: $GB_VULNZILLA_KEY"; cat "$file") |
 		/usr/sbin/sendmail -i -t
 done

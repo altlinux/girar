@@ -2,13 +2,15 @@
 
 . gb-sh-functions
 
+dir=mail/bugmail
+
 closed_bugs()
 {
-	find mail/bugmail -mindepth 1 -maxdepth 1 -name '[1-9]*' -type f 2>/dev/null |
-		cut -d/ -f2 |sort -n
+	find $dir -mindepth 1 -maxdepth 1 -name '[1-9]*' -type f -printf '%f\n' 2>/dev/null |
+		sort -n
 }
 
 for id in $(closed_bugs); do
-	(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "mail/bugmail/$id") |
+	(echo "X-Bugzilla-In-Token: $GB_BUGZILLA_KEY"; cat "$dir/$id") |
 		/usr/sbin/sendmail -i -t
 done
