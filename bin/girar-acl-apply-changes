@@ -57,10 +57,13 @@ ok()
 
 change()
 {
-	# remove duplicates
 	local o list=
 	for o; do
-		[ -n "$list" -a -z "${list##* $o *}" ] ||
+		# unconditionally remove @nobody
+		[ '@nobody' != "$o" ] ||
+			continue
+		# remove duplicates
+		[ -n "$list" ] && [ -z "${list##* $o *}" ] ||
 			list="$list $o "
 	done
 	set -- $list
@@ -68,7 +71,7 @@ change()
 	local tail=
 	while [ $# -gt 0 ]; do
 		case "${1-}" in
-			@qa|@everybody|@nobody) tail="$tail $1"; shift ;;
+			@qa|@everybody) tail="$tail $1"; shift ;;
 			*) break ;;
 		esac
 	done
