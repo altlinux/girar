@@ -57,24 +57,20 @@ ok()
 
 change()
 {
-	local o list=
+	local o list= list_qa= list_everybody=
 	for o; do
-		# unconditionally remove @nobody
-		[ '@nobody' != "$o" ] ||
-			continue
+		case "$o" in
+			@nobody)	# unconditionally remove @nobody
+				continue ;;
+			@qa|@everybody)	# move @qa/@everybody to the end of list
+				eval "list_${o#@}=$o"
+				continue ;;
+		esac
 		# remove duplicates
 		[ -n "$list" ] && [ -z "${list##* $o *}" ] ||
 			list="$list $o "
 	done
 	set -- $list
-
-	local tail=
-	while [ $# -gt 0 ]; do
-		case "${1-}" in
-			@qa|@everybody) tail="$tail $1"; shift ;;
-			*) break ;;
-		esac
-	done
 
 	if [ -z "${*-}" ]; then
 		if [ "$action_type" = pkg ]; then
@@ -83,7 +79,7 @@ change()
 			abort 'ACL entry cannot be made empty'
 		fi
 	else
-		set -- $@ $tail
+		set -- $@ $list_qa $list_everybody
 	fi
 
 	if [ "$*" = "$prev_owners" ]; then
