@@ -210,6 +210,12 @@ if [ "${GIRAR_TASK_LOCKED-}" != "$id" ]; then
 fi
 
 repo="$(cat task/repo)"
+repo_norm="$(girar-normalize-repo-name "$repo")"
+repo_conf="$CONF_DIR/repo/$repo_norm"
+if [ -s "$repo_conf" ]; then
+	. "$repo_conf"
+fi
+
 case "$action" in
 	repo)
 	validate_repo_dir
@@ -469,7 +475,7 @@ fi
 
 pkg_tar="gears/$i/pkg.tar"
 printf >&2 %s "generating pkg.tar for ${dir##*/} tag \"$tag_name\"... "
-if env TZ=UTC gear -t "$tag_name" -- "$pkg_tar" &&
+if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
    [ -s "$pkg_tar" ]; then
 	echo >&2 done
 else
