@@ -6,7 +6,7 @@ PROG='girar-task share'
 usage()
 {
 	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task_id>] <status|enabled|disabled>"
+	echo >&2 "usage: $PROG [<task_id>] <status|enable|disable>"
 	exit 1
 }
 
@@ -39,10 +39,10 @@ case "$1" in
 			echo disabled
 		exit 0
 		;;
-	enabled)
+	enable|enabled)
 		op=+
 		;;
-	disabled)
+	disable|disabled)
 		op=-
 		;;
 	*)
