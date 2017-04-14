@@ -91,13 +91,32 @@ Standard:
   python-dev
   python-modules-tkinter
   altlinux-release-$GB_REPO_NAME
-  branding-altlinux-office-server-alterator
-  branding-altlinux-office-server-bootloader
-  branding-altlinux-office-server-bootsplash
-  branding-altlinux-office-server-graphics
-  branding-altlinux-office-server-indexhtml
-  branding-altlinux-office-server-notes
-  branding-altlinux-office-server-slideshow
+  branding-alt-$GB_REPO_NAME-alterator
+  branding-alt-$GB_REPO_NAME-bootloader
+  branding-alt-$GB_REPO_NAME-bootsplash
+  branding-alt-$GB_REPO_NAME-gnome-settings
+  branding-alt-$GB_REPO_NAME-graphics
+  branding-alt-$GB_REPO_NAME-indexhtml
+  branding-alt-$GB_REPO_NAME-kde3-settings
+  branding-alt-$GB_REPO_NAME-kde4-settings
+  branding-alt-$GB_REPO_NAME-notes
+  branding-alt-$GB_REPO_NAME-release
+  branding-alt-$GB_REPO_NAME-slideshow
+  branding-alt-$GB_REPO_NAME-themes
+  branding-alt-$GB_REPO_NAME-xfce-settings
+  branding-altlinux-$GB_REPO_NAME-alterator
+  branding-altlinux-$GB_REPO_NAME-bootloader
+  branding-altlinux-$GB_REPO_NAME-bootsplash
+  branding-altlinux-$GB_REPO_NAME-gnome-settings
+  branding-altlinux-$GB_REPO_NAME-graphics
+  branding-altlinux-$GB_REPO_NAME-indexhtml
+  branding-altlinux-$GB_REPO_NAME-kde3-settings
+  branding-altlinux-$GB_REPO_NAME-kde4-settings
+  branding-altlinux-$GB_REPO_NAME-notes
+  branding-altlinux-$GB_REPO_NAME-release
+  branding-altlinux-$GB_REPO_NAME-slideshow
+  branding-altlinux-$GB_REPO_NAME-themes
+  branding-altlinux-$GB_REPO_NAME-xfce-settings
 EOF
 
 # recreate ~/.rpmmacros
