@@ -32,7 +32,7 @@ for i in $(gear_nums); do
 		continue
 	touch "acl/$i/$GIRAR_USER"
 	[ 'all' = "$num" ] ||
-		exit
+		exit 0
 done
 [ 'all' = "$num" ] ||
 	fatal "task #$id: subtask #$num not found"
