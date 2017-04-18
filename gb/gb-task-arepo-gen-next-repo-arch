@@ -3,7 +3,6 @@
 . gb-sh-functions
 
 arch="$1"; shift
-[ -s plan/arepo-add-$arch -o -s plan/arepo-rm-$arch ] || exit 0
 
 comp=${GB_AREPO_COMPONENT_NAME:-classic}
 
