@@ -19,12 +19,22 @@ while F0=; read -r N EVR F P I F0; do
 	else
 		changelog=$(rpm_recent_changes "$P")
 	fi
-	ids=$(printf '%s\n' "$changelog" |gb-x-parse-vulns-from-changelog)
-	[ -n "$ids" ] || continue
-	stamp_echo >&2 "$N: fixes vulnerabilities: $ids"
+
+	mentioned_ids=$(printf '%s\n' "$changelog" |gb-x-parse-mentioned-vulns-from-changelog)
+	[ -n "$mentioned_ids" ] || continue
+	fixed_ids=$(printf '%s\n' "$changelog" |gb-x-parse-vulns-from-changelog)
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
 	uploader="$(cat task/owner)"
-	for id in $ids; do
+	truly_mentioned=
+
+	for id in $mentioned_ids; do
+		if printf ' %s \n' "$fixed_ids" | grep -q " $id "; then
+			in_type='Fix'
+		else
+			truly_mentioned="$truly_mentioned $id"
+			in_type='Mention'
+		fi
+
 		cat >"mail/cvemail/$id" <<-__EOF
 		From: ${GB_VULNZILLA_FROM}
 		To: ${GB_VULNZILLA_TO}
@@ -35,8 +45,12 @@ while F0=; read -r N EVR F P I F0; do
 		X-Vulnzilla-In-Uploader: ${uploader}
 		X-Vulnzilla-In-Repo: ${GB_REPO_NAME}
 		X-Vulnzilla-In-EVR: ${EVR}
+		X-Vulnzilla-In-Type: ${in_type}
 
 		${changelog}
 		__EOF
 	done
+
+	[ -z "$fixed_ids" ] || stamp_echo >&2 "$N: fixes vulnerabilities: $fixed_ids"
+	[ -z "$truly_mentioned" ] || stamp_echo >&2 "$N: mentions vulnerabilities:$truly_mentioned"
 done <$tmpdir/src

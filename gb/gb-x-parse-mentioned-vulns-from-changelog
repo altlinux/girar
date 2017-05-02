@@ -1,0 +1,6 @@
+#!/bin/sh -efu
+cve='CVE-[[:digit:]]{4}-[[:digit:]]{4,6}'
+mfsa='MFSA-[[:digit:]]{4}-[[:digit:]]{2}'
+ove='OVE-[[:digit:]]{8}-[[:digit:]]{4}'
+bdu='BDU:[[:digit:]]{4}-[[:digit:]]{5}'
+egrep -o "$cve|$mfsa|$ove|$bdu" ||:
