@@ -239,16 +239,10 @@ rpm_recent_changes()
 
 rpm_changes_since()
 {
-	local time0 EVR0
-	time0=$(rpmquery --qf '%{CHANGELOGTIME}' -p "$2")
-	EVR0=$(rpmquery --qf '%|epoch?{%{epoch}:}|%{version}-%{release}' -p "$2")
-	changelog_with_time "$1" |
-	awk -v time0="$time0" -v EVR0="$EVR0" '
-		/^\* [0-9]+ / {
-			if ($NF == EVR0) exit
-			if ($2 < time0 && printed) exit
-			sub(/ [0-9]+ /, " ")
-		}
-		{ print; printed++ }
-	'
+	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\r]' \
+		-p $1 > ${tmpdir}/changelog_new
+	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\r]' \
+		-p $2 > ${tmpdir}/changelog_old
+
+	gb-x-changelog-complement ${tmpdir}/changelog_old ${tmpdir}/changelog_new
 }

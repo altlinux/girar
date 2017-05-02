@@ -1,0 +1,13 @@
+#!/bin/gawk -f
+
+BEGIN {
+	RS="\r"
+	FS="\n"
+}
+
+FILENAME == ARGV[1] {
+	changelog[$1] = ""
+	next
+}
+
+!($1 in changelog)
