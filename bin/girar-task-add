@@ -45,6 +45,7 @@ action="$1"; shift
 enable -f /usr/lib/bash/lockf lockf
 
 dir=
+gears_i_dir=
 validate_repo_dir()
 {
 	local dir0 tasks_re
@@ -54,6 +55,7 @@ validate_repo_dir()
 	if printf '%s' "$dir" |grep -Exqse "$tasks_re"; then
 		[ -f "$dir/git-daemon-export-ok" ] ||
 			fatal "$dir0: git repository not available"
+		gears_i_dir="$(cat "$dir/../dir")"
 	else
 		local people_re
 		people_re="$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\\.git"
@@ -437,7 +439,8 @@ case "$action" in
 	;;
 esac
 
-printf '%s\n' "$dir" >gears/$i/dir
+[ -n "$gears_i_dir" ] || gears_i_dir="$dir"
+printf '%s\n' "$gears_i_dir" >gears/$i/dir
 printf '%s\n' "$tag_name" >gears/$i/tag_name
 printf '%s\n' "$tag_id" >gears/$i/tag_id
 printf '%s\n' "$tag_author" >gears/$i/tag_author
