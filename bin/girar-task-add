@@ -47,11 +47,21 @@ enable -f /usr/lib/bash/lockf lockf
 dir=
 validate_repo_dir()
 {
-	local dir0="$dir"
+	local dir0 tasks_re
+	dir0="$dir"
 
-	dir="$(validate_local_exported_gitdir "$dir")"
-	printf '%s' "$dir" |grep -Exqse "$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\.git" ||
-		fatal "$dir0: git repository does not belong to allowed directory tree"
+	tasks_re="$TASKS_DIR/[1-9][0-9]*/gears/[1-7][0-7]*/git"
+	if printf '%s' "$dir" |grep -Exqse "$tasks_re"; then
+		[ -f "$dir/git-daemon-export-ok" ] ||
+			fatal "$dir0: git repository not available"
+	else
+		local people_re
+		people_re="$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\\.git"
+
+		dir="$(validate_local_exported_gitdir "$dir")"
+		printf '%s' "$dir" |grep -Exqse "$people_re" ||
+			fatal "$dir0: git repository does not belong to allowed directory tree"
+	fi
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
