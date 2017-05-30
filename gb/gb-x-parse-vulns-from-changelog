@@ -39,8 +39,8 @@ function print_string(string, arr) {
 
 function print_array(arr) {
     for (i in arr) {
-        if (match(arr[i], "^CVE-[[:digit:]]{4}-[[:digit:]]{4,6}$") ||
-            match(arr[i], "^MFSA-[[:digit:]]{4}-[[:digit:]]{2}$") ||
+        if (match(arr[i], "^CVE-[[:digit:]]{4}-[[:digit:]]{4,}$") ||
+            match(arr[i], "^MFSA[-[:space:]]+[[:digit:]]{4}-[[:digit:]]{2}$") ||
             match(arr[i], "^OVE-[[:digit:]]{8}-[[:digit:]]{4}$") ||
             match(arr[i], "^BDU:[[:digit:]]{4}-[[:digit:]]{5}$")) {
             print arr[i]
