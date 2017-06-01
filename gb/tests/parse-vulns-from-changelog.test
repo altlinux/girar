@@ -6,7 +6,10 @@
   CVE-2017-5380: Potential use-after-free during DOM manipulations
   + (fixes OVE-99999999-9999)
   + CVE-2017-9999
-- (fIxEs CVE-2222-2222 XXXX , YYYY and CVE-2222-2222)
+- (fIxEs CVE-2222-2222 XXXX , YYYY and CVE-2222-2222) (fixed OVE-22222222-2222)
+- fixed
+- fixed
+  + BDU:2222-22222
 
 - Updated to 2.6.32-642.13.1.el6 (fixes CVE-3333-3333,
   , ,

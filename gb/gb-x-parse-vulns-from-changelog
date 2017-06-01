@@ -4,13 +4,13 @@
 #
 # Accepts two formats, the first one is:
 # opening parenthesis, then
-# "Fixes", then
+# "Fixes" or "Fixed", then
 # optional ":", then
 # comma- or space- or "and"-separated list of identifiers, then
 # closing parenthesis.
 #
 # The second one is:
-# "- Fixes" in the beginning of a line, then
+# "- Fixes" or "- Fixed" in the beginning of a line, then
 # optional ":", then
 # newline, then
 # possibly multiple lines of the form:
@@ -49,7 +49,7 @@ function print_array(arr) {
 }
 
 function scan_short_form(i, j, string) {
-    while ((i = index($0, "(fixes"))) {
+    while (i = match($0, "\\(fixe[ds]")) {
         string = substr($0, i + 6)
         j = index(string, ")")
         while (j == 0) {
@@ -67,7 +67,7 @@ function scan_short_form(i, j, string) {
 }
 
 {
-    while (match($0, "^(- )fixes[:[:space:]]*$")) {
+    while (match($0, "^(- )fixe[ds][:[:space:]]*$")) {
         if (getline <= 0) exit
         while (match($0, "^[[:space:]]+[[:punct:][:space:]]*" \
                          "([[:alnum:][:punct:]]+)", arr)) {
