@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+args='--keyid-format=0xlong'
+for a; do
+	shift
+	case "$a" in
+		--keyid-format=*) continue ;;
+	esac
+	printf -v args '%s %q' "$args" "$a"
+done
+
+eval exec gpg $args

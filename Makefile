@@ -68,6 +68,7 @@ bin_TARGETS = \
 	bin/girar-check-perms \
 	bin/girar-check-superuser \
 	bin/girar-get-email-address \
+	bin/girar-gpg \
 	bin/girar-normalize-repo-name \
 	bin/girar-quota \
 	bin/girar-repo-copyself \
