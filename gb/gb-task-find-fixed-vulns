@@ -28,7 +28,7 @@ while F0=; read -r N EVR F P I F0; do
 	truly_mentioned=
 
 	for id in $mentioned_ids; do
-		if printf ' %s \n' "$fixed_ids" | grep -q " $id "; then
+		if printf ' %s \n' $fixed_ids | grep -q " $id "; then
 			in_type='Fix'
 		else
 			truly_mentioned="$truly_mentioned $id"
