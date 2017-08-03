@@ -63,9 +63,9 @@ if girar-check-superuser "$repository"; then
 	allow 'superuser'
 fi
 
-# Denied if user is not a maintainer
+# Denied if user is not a maintainer yet.
 getent group $MAINTAINERS_GROUP | cut -d: -f4 | tr , '\n' | grep -Fxqs "$USER_PREFIX$GIRAR_USER" ||
-	deny 'does not belong to maintainers list'
+	deny 'does not belong to maintainers list yet'
 
 # Source per-repository config file.
 conf="$CONF_DIR/repo/$repository"
