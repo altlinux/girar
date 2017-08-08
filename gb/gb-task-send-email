@@ -26,7 +26,7 @@ fi
 
 cc="$({
 	(set +f; cat gears/*/userid)
-	[ -f task/test-only ] ||
+	[ -f task/test-only -a "$state" != TESTED ] ||
 		cat report/acl-addressees report/unmet-addressees
       } | grep ^. | sort -u | join -v1 - task/owner)"
 
