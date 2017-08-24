@@ -51,17 +51,20 @@ girar_rename_repo_branch()
 
 girar_commit_git()
 {
-	local tag_name tag_id old_id
+	local tag_name tag_id old_id msg_prefix
 	tag_name="$(cat "gears/$I/tag_name")"
 	tag_id="$(cat "gears/$I/tag_id")"
 	old_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null ||:)"
 	if [ -n "$old_id" ]; then
 		# update gear
 		git_fetch "gears/$I/git" tag "$tag_name"
-		check_inheritance "$tag_id" "$old_id" ||
+		if check_inheritance "$tag_id" "$old_id"; then
+			msg_prefix=updated
+		else
 			girar_rename_repo_branch
+			msg_prefix=replaced
+		fi
 		git branch -f "$GB_REPO_NAME" "$tag_id"
-		stamp_echo >&2 "updated $GIT_DIR branch \`$GB_REPO_NAME'"
 	else
 		# first time push
 		mkdir -p -- "$GIT_DIR"
@@ -70,8 +73,9 @@ girar_commit_git()
 		git branch "$GB_REPO_NAME" "$tag_id"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
-		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
+		msg_prefix=created
 	fi
+	stamp_echo >&2 "$msg_prefix $GIT_DIR branch \`$GB_REPO_NAME'"
 	git tag "gb-$GB_REPO_NAME-task$task_id.$I" "$tag_id" ||:
 	git repack -q -a -d ||:
 	update_git_timestamp
