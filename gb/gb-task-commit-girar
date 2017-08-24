@@ -6,6 +6,13 @@ enable -f /usr/lib/bash/lockf lockf
 # Obtain an exclusive lock on the $GB_GEARS_DIR.
 builtin lockf -v "$GB_GEARS_DIR"
 
+# global variables:
+# N: source package name
+# EVR: source package epoch:version-release
+# F: source package file name
+# P: patch to source package file
+# I: subtask id
+
 updated_dirs=
 update_git_timestamp()
 {
@@ -45,12 +52,12 @@ girar_rename_repo_branch()
 girar_commit_git()
 {
 	local tag_name tag_id old_id
-	tag_name="$(cat "gears/$i/tag_name")"
-	tag_id="$(cat "gears/$i/tag_id")"
+	tag_name="$(cat "gears/$I/tag_name")"
+	tag_id="$(cat "gears/$I/tag_id")"
 	old_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null ||:)"
 	if [ -n "$old_id" ]; then
 		# update gear
-		git_fetch "gears/$i/git" tag "$tag_name"
+		git_fetch "gears/$I/git" tag "$tag_name"
 		check_inheritance "$tag_id" "$old_id" ||
 			girar_rename_repo_branch
 		git branch -f "$GB_REPO_NAME" "$tag_id"
@@ -59,21 +66,21 @@ girar_commit_git()
 		# first time push
 		mkdir -p -- "$GIT_DIR"
 		git init -q --template=/var/empty
-		git_fetch "gears/$i/git" tag "$tag_name"
+		git_fetch "gears/$I/git" tag "$tag_name"
 		git branch "$GB_REPO_NAME" "$tag_id"
 		git symbolic-ref HEAD refs/heads/sisyphus
 		touch -- "$GIT_DIR/git-daemon-export-ok"
 		stamp_echo >&2 "created $GIT_DIR branch \`$GB_REPO_NAME'"
 	fi
-	git tag "gb-$GB_REPO_NAME-task$task_id.$i" "$tag_id" ||:
+	git tag "gb-$GB_REPO_NAME-task$task_id.$I" "$tag_id" ||:
 	git repack -q -a -d ||:
 	update_git_timestamp
 	# Save space by replacing local objects store with symlink to global store.
-	if mv "gears/$i/git/objects"{,.orig}; then
-		if ln -s "$GIT_DIR/objects" "gears/$i/git/"; then
-			rm -rf "gears/$i/git/objects.orig"
+	if mv "gears/$I/git/objects"{,.orig}; then
+		if ln -s "$GIT_DIR/objects" "gears/$I/git/"; then
+			rm -rf "gears/$I/git/objects.orig"
 		else
-			mv "gears/$i/git/objects"{.orig,}
+			mv "gears/$I/git/objects"{.orig,}
 		fi
 	fi
 }
@@ -81,7 +88,7 @@ girar_commit_git()
 girar_commit_srpm()
 {
 	local srpm tmp_repo="$tmpdir/repo"
-	srpm="$PWD/gears/$i/$(cat "gears/$i/srpm")"
+	srpm="$PWD/gears/$I/$(cat "gears/$I/srpm")"
 	rm -rf -- "$tmp_repo"
 	if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
 		# update gear
@@ -116,7 +123,7 @@ girar_commit_srpm()
 	local tag_name
 	tag_name="$(git describe --exact-match "refs/heads/$GB_REPO_NAME" ||:)"
 	if [ -n "$tag_name" ]; then
-		git tag "gb-$GB_REPO_NAME-task$task_id.$i" "$tag_name" ||:
+		git tag "gb-$GB_REPO_NAME-task$task_id.$I" "$tag_name" ||:
 	fi
 	git repack -q -a -d ||:
 	update_git_timestamp
@@ -125,7 +132,6 @@ girar_commit_srpm()
 girar_obsolete()
 {
 	local dir="$1"; shift
-	local N="$1"; shift
 	local GIT_DIR
 	set_GIT_DIR "$dir" "$N"
 	[ -d "$GIT_DIR" ] || return 0
@@ -140,7 +146,7 @@ girar_obsolete()
 girar_commit_copy()
 {
 	local copy_repo text
-	copy_repo="$(cat "gears/$i/copy_repo")"
+	copy_repo="$(cat "gears/$I/copy_repo")"
 	if [ -n "$(git_get_branch_id "$copy_repo" 2>/dev/null)" ]; then
 		[ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ] &&
 			text=updated || text=created
@@ -149,7 +155,7 @@ girar_commit_copy()
 		update_git_timestamp
 	else
 		if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
-			girar_obsolete "$GB_GEARS_DIR" "$N"
+			girar_obsolete "$GB_GEARS_DIR"
 		fi
 		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
 		[ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ] &&
@@ -162,37 +168,36 @@ girar_commit_copy()
 
 girar_commit()
 {
-	local N="$1" i="$2"; shift 2
 	local GIT_DIR
 
-	if [ -s "gears/$i/dir" ]; then
+	if [ -s "gears/$I/dir" ]; then
 		# build from gear
 		set_GIT_DIR "$GB_GEARS_DIR" "$N"
 		girar_commit_git
-	elif [ -s "gears/$i/srpm" ]; then
+	elif [ -s "gears/$I/srpm" ]; then
 		# build from srpm
 		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
 		girar_commit_srpm
-		girar_obsolete "$GB_GEARS_DIR" "$N"
-	elif [ -s "gears/$i/copy_repo" ]; then
+		girar_obsolete "$GB_GEARS_DIR"
+	elif [ -s "gears/$I/copy_repo" ]; then
 		# copy from another branch
 		set_GIT_DIR "$GB_GEARS_DIR" "$N"
 		girar_commit_copy
 	else
-		fail "#$i: source not found"
+		fail "#$I: source not found"
 	fi
 }
 
 . gb-sh-tmpdir
 
 while read -r N EVR F P I; do
-	girar_commit "$N" "$I"
+	girar_commit
 done <plan/add-src
 
 join -v2 plan/add-src plan/rm-src > "$tmpdir"/rm
 
 while read -r N EVR F P I; do
-	girar_obsolete "$GB_GEARS_DIR" "$N"
+	girar_obsolete "$GB_GEARS_DIR"
 done <"$tmpdir"/rm
 
 gb-y-make-git-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
