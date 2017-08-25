@@ -51,6 +51,7 @@ if [ "$rc" = 0 ]; then
 	state=DONE
 else
 	state=FAILURE
+	halt_build_queue ||:
 fi
 
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
