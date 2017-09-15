@@ -84,6 +84,10 @@ gb-task-set-summary
 	gb-task-repo-plan
 	gb-task-repo-vercheck
 
+	# gather information about closed bugs and fixed vulns
+	gb-task-find-closed-bugs
+	gb-task-find-fixed-vulns
+
 	# generate task and "next" repos
 	gb-task-gen-task-repo "$id"
 	gb-task-gen-next-repo
@@ -100,9 +104,6 @@ gb-task-set-summary
 	gb-task-check-girar
 	gb-task-check-lastchange
 	gb-task-check-acl
-
-	gb-task-find-closed-bugs
-	gb-task-find-fixed-vulns
 
 	# apply local policy enforcement
 	gb-task-local-policy
