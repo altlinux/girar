@@ -3,7 +3,7 @@
 . gb-sh-functions
 
 . shell-quote
-qgroups="$(quote_sed_regexp "$GB_EMAIL_DOMAIN_GROUPS")"
+quote_sed_regexp_variable qgroups "$GB_EMAIL_DOMAIN_GROUPS"
 
 id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
