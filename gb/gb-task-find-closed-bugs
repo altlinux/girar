@@ -4,6 +4,7 @@
 
 fail_if_task_abort_requested
 
+. shell-quote
 . gb-sh-tmpdir
 join -t$'\t' -o 1.1,1.2,1.3,1.4,1.5,2.3 plan/{add,rm}-src >$tmpdir/src
 sort -t$'\t' -u -k1,3 -o $tmpdir/src{,} plan/add-src
@@ -24,6 +25,11 @@ while F0=; read -r N EVR F P I F0; do
 	stamp_echo >&2 "$N: closes bugs: $ids"
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
 	uploader="$(cat task/owner)"
+	quote_sed_regexp_variable qdom_in \
+		"$GB_EMAIL_DOMAIN_PEOPLE"
+	quote_sed_regexp_variable qdom_out \
+		"${GB_EMAIL_DOMAIN_PEOPLE_OBFUSCATED:-$GB_EMAIL_DOMAIN_PEOPLE}"
+	changelog="$(printf %s "$changelog" |sed "s/@$qdom_in>/@$qdom_out>/g")"
 	for id in $ids; do
 		cat >"mail/bugmail/$id" <<-__EOF
 		From: ${GB_BUGZILLA_FROM}
