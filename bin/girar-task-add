@@ -53,21 +53,21 @@ dir=
 gears_i_dir=
 validate_repo_dir()
 {
-	local dir0 tasks_re
+	local dir0
 	dir0="$dir"
+	dir="$(validate_local_exported_gitdir "$dir")"
 
+	local gears_re people_re tasks_re
+	gears_re="$GEARS_DIR/[A-Za-z0-9]/$PROJECT_NAME_REGEXP\\.git"
+	people_re="$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\\.git"
 	tasks_re="$TASKS_DIR/[1-9][0-9]*/gears/[1-7][0-7]*/git"
-	if printf '%s' "$dir" |grep -Exqse "$tasks_re"; then
-		[ -f "$dir/git-daemon-export-ok" ] ||
-			fatal "$dir0: git repository not available"
+
+	if printf '%s' "$dir" |grep -Exqse "$people_re|$gears_re"; then
+		:
+	elif printf '%s' "$dir" |grep -Exqse "$tasks_re"; then
 		gears_i_dir="$(cat "$dir/../dir")"
 	else
-		local people_re
-		people_re="$PEOPLE_DIR/$USER_NAME_REGEXP/packages/$PROJECT_NAME_REGEXP\\.git"
-
-		dir="$(validate_local_exported_gitdir "$dir")"
-		printf '%s' "$dir" |grep -Exqse "$people_re" ||
-			fatal "$dir0: git repository does not belong to allowed directory tree"
+		fatal "$dir0: git repository does not belong to allowed directory tree"
 	fi
 
 	cd "$dir"
