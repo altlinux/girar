@@ -1,43 +1,56 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task deps'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task deps'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	cat >&2 <<EOF
-Usage: $PROG [<task_id>] show
-   or: $PROG [<task_id>] clear
-   or: $PROG [<task_id>] add|del|set <required task id1> [<required task id2>...]
+	cat <<EOF
+$PROG - manage task dependencies
+
+Usage: $PROG [<task_id>] <action> ...
+
+Actions:
+  show  show the list of task dependencies;
+  clear clear the list of task dependencies;
+  <edit action> <required task id1> [<required task id2>...]
+        change the list of task dependencies.
+
+Edit actions:
+  add   add specified task ids to the list of task dependencies;
+  del   remove specified task ids to the list of task dependencies;
+  set   set the list of task dependencies to the specified task ids.
 EOF
-	exit 1
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
-[ $# -ge 1 ] || usage 'Not enough arguments.'
+[ $# -ge 1 ] || show_usage 'not enough arguments.'
 case "$1" in
 	show|clear|add|del|set) id=$(PROG="$PROG" girar-task-find-current) ;;
 	*) id=$(PROG="$PROG" girar-task-find-current "$@"); shift;;
 esac
 cd "$TASKS_DIR/$id"
 
-[ $# -ge 1 ] || usage 'Not enough arguments.'
+[ $# -ge 1 ] || show_usage 'not enough arguments.'
 action="$1"; shift
 case "$action" in
-	show)	[ $# -eq 0 ] || usage 'Too many arguments.'
+	show)	[ $# -eq 0 ] || show_usage 'too many arguments.'
 		cat task/depends 2>/dev/null ||:
 		exit 0
 		;;
-	clear)	[ $# -eq 0 ] || usage 'Too many arguments.' ;;
-	add|set)[ $# -ge 1 ] || usage 'Not enough arguments.' ;;
-	del)	[ $# -ge 1 ] || usage 'Not enough arguments.'
+	clear)	[ $# -eq 0 ] || show_usage 'too many arguments.' ;;
+	add|set)[ $# -ge 1 ] || show_usage 'not enough arguments.' ;;
+	del)	[ $# -ge 1 ] || show_usage 'not enough arguments.'
 		[ -s task/depends ] || exit 0
 		;;
-	*)	usage "Invalid action: $action" ;;
+	*)	show_usage "invalid action: $action" ;;
 esac
 
 for i; do
@@ -86,5 +99,5 @@ for i; do
 done
 
 sort -u -o task/depends task/depends
-logger -t "$PROG" "user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+logger -t "$PROG0" "user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
 girar-task-change-state "$id" NEW

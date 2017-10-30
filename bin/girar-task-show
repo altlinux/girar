@@ -1,27 +1,36 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task show'
+. shell-args
 
-usage()
+PROG='task show'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--brief] [<task_id>]"
-	exit 1
+cat <<EOF
+$PROG - show a task
+
+Usage: $PROG [options] [<task id>]
+
+Options:
+  --brief       use brief output format;
+  --help        show this text and exit.
+EOF
+	exit
 }
 
-if [ "${1-}" = '--help' ]; then
-	usage
-fi
-
 brief=
-if [ "${1-}" = '--brief' ]; then
-	brief=1
+while :; do
+	case "${1-}" in
+		--help) show_help ;;
+		--brief) brief=1 ;;
+		*) break ;;
+	esac
 	shift
-fi
+done
 
 if [ "$#" -gt 1 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 id=$(PROG="$PROG" girar-task-find-current "$@")

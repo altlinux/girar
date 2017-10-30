@@ -1,21 +1,27 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task rm'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task rm'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task_id>]"
-	exit 1
+	cat <<EOF
+$PROG - remove a task
+
+Usage: $PROG [<task_id>]
+EOF
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
 if [ "$#" -gt 1 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 cd "$TASKS_DIR"
@@ -35,7 +41,7 @@ check_task_modifiable
 state=$(cat task/state)
 
 echo >&2 -n "removing task #$id ... "
-logger -t "$PROG" "user=$GIRAR_USER task=$id state=$state"
+logger -t "$PROG0" "user=$GIRAR_USER task=$id state=$state"
 girar-task-update-queues  "$id" "$state" ''
 girar-webapi-task delete "$id"
 cd - >/dev/null

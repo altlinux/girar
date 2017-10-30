@@ -1,7 +1,8 @@
 #!/bin/sh -efu
 
-. shell-args
 . girar-sh-functions
+. shell-args
+
 PROG='task ls'
 
 valid_repo_list="$(valid_repositories)"

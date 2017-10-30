@@ -1,36 +1,41 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task check-git-inheritance'
+. shell-args
 
-usage()
+PROG='task check-git-inheritance'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG <task_id> <subtask_number> disable <commit_sha_id>"
-	exit 1
+	cat <<EOF
+$PROG - manage subtask git inheritance
+
+Usage: $PROG <task_id> <subtask_number> disable <commit_sha_id>
+EOF
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
 if [ "$#" -gt 4 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 if [ "$#" -lt 4 ]; then
-	usage 'Not enough arguments.'
+	show_usage 'not enough arguments.'
 fi
 
 id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 num="$1"; shift
 [ "$1" = disable ] ||
-	usage 'Invalid argument.'
+	show_usage 'invalid argument.'
 shift
 commit_id="$1"; shift
 [ "${#commit_id}" -eq 40 ] &&
 [ -n "${commit_id##*[!0123456789abcdefABCDEF]*}" ] ||
-	usage 'Invalid commit id.'
+	show_usage 'invalid commit id.'
 
 enable -f /usr/lib/bash/lockf lockf
 cd "$TASKS_DIR/$id"

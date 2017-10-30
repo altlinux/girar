@@ -2,43 +2,48 @@
 
 . girar-sh-functions
 . shell-quote
-PROG='girar-task add'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task add'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	cat >&2 <<EOF
-Usage: $PROG [<task_id> [<before_subtask_id>]] repo <gear_repo> <gear_tag>
-   or: $PROG [<task_id> [<before_subtask_id>]] srpm <srpm file>
-   or: $PROG [<task_id> [<before_subtask_id>]] del <package>
-   or: $PROG [<task_id> [<before_subtask_id>]] rebuild <package>
-   or: $PROG [<task_id> [<before_subtask_id>]] copy <package> [<binary_repository_name>]
-   or: $PROG [<task_id>] kmodules <kflavour>
+	cat <<EOF
+$PROG - add a subtask to a task
+
+Usage: $PROG [<task id> [<before subtask id>]] <action> ...
+
+Actions:
+  repo <gear repo> <gear tag>
+  srpm <srpm file>
+  del <src package name>
+  rebuild <src package name>
+  copy <src package name> [<from binary repository name>]
+  kmodules <kflavour>
 EOF
-	exit 1
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
-[ "$#" -le 5 ] || usage 'Too many arguments.'
-[ "$#" -ge 2 ] || usage 'Not enough arguments.'
+[ "$#" -le 5 ] || show_usage 'too many arguments.'
+[ "$#" -ge 2 ] || show_usage 'not enough arguments.'
 
 id=
 subtask_id=
 case "$1" in
 	[1-9]*)	id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 		case "$1" in
-			repo|srpm|del|rebuild|kmodules|copy) ;;
 			[1-7]*) subtask_id="$1"; shift ;;
-			*) usage "Invalid action: $1" ;;
 		esac ;;
 	*)	id=$(PROG="$PROG" girar-task-find-current) ;;
 esac
 
-[ "$#" -le 3 ] || usage 'Too many arguments.'
-[ "$#" -ge 2 ] || usage 'Not enough arguments.'
+[ "$#" -le 3 ] || show_usage 'too many arguments.'
+[ "$#" -ge 2 ] || show_usage 'not enough arguments.'
 
 action="$1"; shift
 
@@ -179,24 +184,24 @@ handle_kmodules()
 
 case "$action" in
 	repo)
-	[ "$#" -eq 2 ] || usage 'Not enough arguments.'
+	[ "$#" -eq 2 ] || show_usage 'not enough arguments.'
 	dir="$1"; shift
 	tag_name="$1"; shift
 	;;
 	del|rebuild)
-	[ "$#" -le 1 ] || usage 'Too many arguments.'
-	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	[ "$#" -le 1 ] || show_usage 'too many arguments.'
+	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	package="$1"; shift
 	;;
 	kmodules)
-	[ "$#" -le 1 ] || usage 'Too many arguments.'
-	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	[ "$#" -le 1 ] || show_usage 'too many arguments.'
+	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	[ -z "$subtask_id" ] ||
-		usage "subtask #$subtask_id is not supported for \`$action' action"
+		show_usage "subtask #$subtask_id is not supported for \`$action' action"
 	kflavour="$1"; shift
 	;;
 	copy)
-	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	package="$1"; shift
 	copy_repo=
 	if [ $# -ge 1 ]; then
@@ -206,11 +211,11 @@ case "$action" in
 	copy_repo="$(girar-normalize-repo-name "$copy_repo")"
 	;;
 	srpm)
-	[ "$#" -le 1 ] || usage 'Too many arguments.'
-	[ "$#" -ge 1 ] || usage 'Not enough arguments.'
+	[ "$#" -le 1 ] || show_usage 'too many arguments.'
+	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	srpm="$1"; shift
 	;;
-	*) usage "Invalid action: $action" ;;
+	*) show_usage "invalid action: $action" ;;
 esac
 
 cd "$TASKS_DIR/$id"
@@ -392,7 +397,7 @@ else
 fi
 
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id subtask=$i"
+logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i"
 
 atexit()
 {

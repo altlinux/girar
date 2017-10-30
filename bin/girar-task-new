@@ -1,24 +1,29 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task new'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task new'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	cat >&2 <<EOF
-usage: $PROG [<binary_repository_name>]
-Valid repositories are: $(valid_repositories)
+	cat <<EOF
+$PROG - create a new task
+
+Usage: $PROG [<binary repository name>]
+
+Valid binary repository names are: $(valid_repositories)
 EOF
-	exit 1
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
 if [ "$#" -gt 1 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 repo="$(girar-normalize-repo-name "${1:-sisyphus}")"
@@ -42,7 +47,7 @@ builtin lockf -v .
 id=$(cat .max-task-id)
 id=$(($id+1))
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id repo=$repo"
+logger -t "$PROG0" "user=$GIRAR_USER task=$id repo=$repo"
 
 trap '' HUP INT QUIT PIPE TERM
 printf '%s\n' "$id" >.max-task-id

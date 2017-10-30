@@ -1,25 +1,35 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task abort'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task abort'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG <task_id>"
-	exit 1
+	cat <<EOF
+$PROG - abort a task
+
+Usage: $PROG <task id>
+
+If the task is not locked for processing yet, it will be dequeued immediately,
+otherwise it will be marked for abortion which will happen later
+at the first opportunity.
+EOF
+	exit
 }
 
-if [ "${1-}" = '--help' ]; then
-	usage
-fi
-
 if [ "$#" -gt 1 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 if [ "$#" -lt 1 ]; then
-	usage 'Not enough arguments.'
+	show_usage 'not enough arguments.'
+fi
+
+if [ "$1" = '--help' ]; then
+	show_help
 fi
 
 id=$(PROG="$PROG" girar-task-find-current "$1"); shift
@@ -54,6 +64,7 @@ do_abort()
 {
 	message "task #$id was not locked, trying immediate abort"
 	girar-task-change-state "$id" FAILED
+	logger -t "$PROG0" "user=$GIRAR_USER task=$id repo=$repo"
 	message "task #$id aborted"
 }
 

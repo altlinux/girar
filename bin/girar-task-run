@@ -1,39 +1,46 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task run'
+. shell-args
 
-usage()
+PROG0="$PROG"
+PROG='task run'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [--dry-run] [--test-only|--swift] [<task_id>]"
-	exit 1
+	cat <<EOF
+$PROG - queue a task for build
+
+Usage: $PROG [options] [<task id>]
+
+If no task id is specified, the latest task created by the current user
+will be choosen.
+
+Options:
+  --dry-run     stop right before queueing the task;
+  --test-only   stop after test, do not commit the task;
+  --swift       enable swift mode (undocumented, RTFS);
+  --help        show this text and exit.
+EOF
+	exit
 }
 
-if [ "${1-}" = '--help' ]; then
-	usage
-fi
-
 dry_run=
-if [ "${1-}" = '--dry-run' ]; then
-	dry_run=1
-	shift
-fi
-
 test_only=
 swift_only=
-case "${1-}" in
-	--test-only)
-		test_only=1
-		shift ;;
-	--swift)
-		test_only=1
-		swift_only=1
-		shift ;;
-esac
+while :; do
+	case "${1-}" in
+		--dry-run) dry_run=1 ;;
+		--test-only) test_only=1; swift_only= ;;
+		--swift) test_only=1; swift_only=1 ;;
+		--help) show_help ;;
+		*) break;
+	esac
+	shift
+done
 
 if [ "$#" -gt 1 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 cd "$TASKS_DIR"
@@ -211,7 +218,7 @@ rm -f task/abort
 
 echo "$GIRAR_USER" > task/run
 
-logger -t "$PROG" "user=$GIRAR_USER task=$id try=$try repo=$repo"
+logger -t "$PROG0" "user=$GIRAR_USER task=$id try=$try repo=$repo"
 
 trap '' HUP INT QUIT PIPE TERM
 echo $try > task/try

@@ -1,26 +1,47 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task share'
+. shell-args
 
-usage()
+PROG='task share'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG [<task_id>] <status|enable|disable>"
-	exit 1
+	cat <<EOF
+$PROG - manage task shared access
+
+Usage: $PROG [<task_id>] <action>
+
+Actions:
+  status        show current shared access state;
+  enable        enable shared access;
+  disable       disable shared access.
+EOF
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
 if [ "$#" -gt 2 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 if [ "$#" -lt 1 ]; then
-	usage 'Not enough arguments.'
+	show_usage 'not enough arguments.'
 fi
+
+if [ "$#" -eq 1 ]; then
+	action="$1"
+else
+	action="$2"
+fi
+
+case "$action" in
+	status|enable|enabled|disable|disabled) ;;
+	*) show_usage "invalid action: $action" ;;
+esac
 
 if [ "$#" -eq 1 ]; then
 	id=$(PROG="$PROG" girar-task-find-current)
@@ -33,7 +54,7 @@ cd "$TASKS_DIR/$id"
 enable -f /usr/lib/bash/lockf lockf
 
 op=
-case "$1" in
+case "$action" in
 	status)
 		find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'enabled\n' -or -printf 'disabled\n' 2>/dev/null ||
 			echo disabled
@@ -46,7 +67,7 @@ case "$1" in
 		op=-
 		;;
 	*)
-		usage 'Invalid argument.'
+		show_usage "invalid action: $action"
 		;;
 esac
 

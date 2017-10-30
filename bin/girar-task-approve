@@ -1,25 +1,30 @@
 #!/bin/sh -efu
 
 . girar-sh-functions
-PROG='girar-task approve'
+. shell-args
 
-usage()
+PROG='task approve'
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG <task_id> <subtask_number>"
-	exit 1
+	cat <<EOF
+$PROG - approve a subtask of a task
+
+Usage: $PROG <task id> <subtask number>
+EOF
+	exit
 }
 
 if [ "${1-}" = '--help' ]; then
-	usage
+	show_help
 fi
 
 if [ "$#" -gt 2 ]; then
-	usage 'Too many arguments.'
+	show_usage 'too many arguments.'
 fi
 
 if [ "$#" -lt 2 ]; then
-	usage 'Not enough arguments.'
+	show_usage 'not enough arguments.'
 fi
 
 id=$(PROG="$PROG" girar-task-find-current "$1"); shift

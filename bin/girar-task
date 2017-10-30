@@ -5,26 +5,41 @@
 [ -n "${GIRAR_USER-}" ] ||
 	fatal 'GIRAR_USER undefined'
 
-usage()
+. shell-args
+
+show_help()
 {
-	[ -z "$*" ] || message "$*"
-	echo >&2 "usage: $PROG {ls|show|new|add|delsub|deps|run|share|approve|rm|abort|check-git-inheritance} ..."
-	exit 1
+cat <<EOF
+$PROG - execute a task command
+
+Usage: $PROG <command> ...
+
+Commands:
+  ls                            list tasks;
+  show                          show task;
+  new                           create a new task;
+  add                           add subtask;
+  delsub                        remove subtask;
+  run                           queue task for build;
+  abort                         abort task;
+  rm                            remove task;
+  deps                          manage task dependencies;
+  share                         manage task shared access;
+  approve                       approve subtask;
+  check-git-inheritance         manage subtask git inheritance;
+  help                          show this text and exit.
+
+Every task command supports --help option.
+EOF
+	exit
 }
 
-if [ "$#" -lt 1 ]; then
-	usage 'Not enough arguments.'
-fi
-
-op="$1"; shift
-
-case "$op" in
-	--help|help|'')
-		usage ;;
+case "${1-}" in
+	'') show_usage 'not enough arguments.' ;;
+	--help|help) show_help ;;
 	ls|show|new|add|delsub|deps|run|share|approve|rm|abort|check-git-inheritance)
+		op="$1"; shift
 		exec "$PROG-$op" "$@"
 		;;
-	*)
-		usage "invalid operation: $op"
-		;;
+	*) show_usage "invalid task command: $1" ;;
 esac
