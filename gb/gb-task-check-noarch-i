@@ -62,7 +62,7 @@ dump_rpmfile()
 		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] ||
 		{ echo >&2 "${1##*/}: unpack failed"; return 1; }
 	sed -i 's/, last modified: [^,]\+//' $tmpdir/types
-	sed -i 's/\(PNG image\), [1-9][^,]\+/\1/' $tmpdir/types
+	sed -i 's/\(PNG image\), [1-9][^,]\+\(, 8-bit\(\/color RGBA\?\| colormap\)\)\?/\1/' $tmpdir/types
 	sed -i 's/\(GIF image data, version 89a\), [1-9][0-9]* x [1-9][0-9]*/\1/' $tmpdir/types
 	sed -i 's/\(TeX DVI file \)(TeX output .*/\1/' $tmpdir/types
 	sed -i 's/\(DBase 3 data file \)([0-9]* records)/\1/' $tmpdir/types
