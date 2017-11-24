@@ -54,11 +54,11 @@ for d in $(set +f && echo ??*); do
 	cd "$repo/task/"
 	for t in $(set +f && echo [1-9]*); do
 		[ -L "$t" -a -d "$t" ] || continue
+		ti="$t/files/list/task.info"
+		[ -w "$ti" ] || continue
 		k="_$(($t/1024))" || continue
 		builtin lockf -n "$t" || continue
-		if [ -f "$t"/files/list/task.info ]; then
-			touch -r "$t"/files/list/task.info "$t"
-		fi
+		touch -r "$ti" "$t"
 		rm -f "$t"
 		logger -t "$PROG" "$repo/task/$t -> archive/$k/$t"
 		set +f
