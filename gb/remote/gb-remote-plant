@@ -42,7 +42,7 @@ rm -rf hasher
 ln -s -- "$TMPDIR/hasher"
 
 # recreate hasher config file
-mkdir -p -- .hasher
+mkdir -p .hasher
 cat >.hasher/config <<EOF
 workdir="\$TMPDIR/hasher"
 mkdir -p -- "\$workdir"
@@ -60,6 +60,21 @@ EOF
 for arg; do
 	printf '%s\n' "$arg"
 done >>.hasher/config
+
+# recreate hasher install hook
+mkdir -p .hasher/install
+case "$whatis" in
+	install)
+		rm -f .hasher/install/post
+		;;
+	*)
+		cat >.hasher/install/post <<'EOF'
+#!/bin/sh -efu
+exec find /usr/share/locale/ -mindepth 3 -maxdepth 3 -type f -name '*.mo' -delete
+EOF
+		chmod a+x .hasher/install/post
+		;;
+esac
 
 # recreate apt config files
 cat >apt/apt.conf <<EOF
