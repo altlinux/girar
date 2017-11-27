@@ -11,8 +11,9 @@ dir="_$(($task/1024))"
 cd "$STATE_DIR/repo/$repo/task/archive/$dir/$task"
 
 [ -d noarch ] || exit 0
-[ -n "$(find -maxdepth 0 -type d -mtime +32)" ] || exit 0
+[ -w files/list ] || exit 0
 [ -s files/list/task.info -a -s files/list/src.hash.xz ] || exit 0
+[ -n "$(find -maxdepth 0 -type d -mtime +32)" ] || exit 0
 
 utask="$(sed -n "/^$task\$/,\$ p" "$STATE_DIR/repo/$repo/index/task.list" |
 	diff -U1 - "$STATE_DIR/upload/log/snapshot/$repo.log" |
