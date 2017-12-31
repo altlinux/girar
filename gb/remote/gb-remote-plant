@@ -98,6 +98,7 @@ Important:
 Required:
   apt
 Standard:
+  etcnet
   kernel-doc
   libpam0
   libpam0-devel
