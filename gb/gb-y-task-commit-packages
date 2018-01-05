@@ -23,20 +23,31 @@ LN()
 	ln -v -s "$1" "$2"
 }
 
-while read -r N EVR A F; do
+guess_comp()
+{
+	local name dir
+	name="$1"; shift
+	dir="$1"; shift
+
 	comp=classic
-	if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
-		comp=debuginfo
-	fi
+	for c in checkinstall debuginfo; do
+		if [ -z "${name##*-$c}" ]; then
+			if [ -d "$dir/RPMS.$c" ]; then
+				comp=$c
+			fi
+			break
+		fi
+	done
+}
+
+while read -r N EVR A F; do
+	guess_comp "$N" "$REPO_DIR/$A"
 	RM $REPO_DIR/$A/RPMS.$comp/$F
 	RM $REPO_DIR/files/$A/RPMS/$F
 done < plan/rm-bin
 
 while read -r N EVR A F P I; do
-	comp=classic
-	if [ -z "${N##*-debuginfo}" -a -d $REPO_DIR/$A/RPMS.debuginfo ]; then
-		comp=debuginfo
-	fi
+	guess_comp "$N" "$REPO_DIR/$A"
 	CP "$P" $REPO_DIR/files/$A/RPMS/$F
 	LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$comp/$F
 done < plan/add-bin

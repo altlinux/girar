@@ -9,7 +9,7 @@ arch_to="$1"; shift
 file_from="$1"; shift
 
 # packages to skip
-BLACKLIST_PKGNAME_REGEXP="${GB_AREPO_BLACKLIST_PKGNAME_REGEXP:--debuginfo$|^kernel-}"
+BLACKLIST_PKGNAME_REGEXP="${GB_AREPO_BLACKLIST_PKGNAME_REGEXP:--(checkinstall|debuginfo)$|^kernel-}"
 
 # packages to skip by their contents
 BLACKLIST_PKG_CONTENTS_REGEXP="${GB_AREPO_BLACKLIST_PKG_CONTENTS_REGEXP:-^/lib/udev/devices/}"

@@ -38,6 +38,7 @@ dump_unmets()
 }
 
 dump_unmets
+dump_unmets checkinstall
 dump_unmets debuginfo
 
 rc=0
@@ -46,11 +47,11 @@ rc=0
 
 # compare unmets
 for arch in $GB_ARCH; do
-	for comp in '' debuginfo; do
+	for comp in '' checkinstall debuginfo; do
 		comm -13 $arch-$comp-unmets.{old,new}
 	done >$arch-unmets.plus
 	sort -u -o $arch-unmets.plus{,}
-	for comp in '' debuginfo; do
+	for comp in '' checkinstall debuginfo; do
 		comm -23 $arch-$comp-unmets.{old,new}
 	done >$arch-unmets.minus
 	sort -u -o $arch-unmets.minus{,}

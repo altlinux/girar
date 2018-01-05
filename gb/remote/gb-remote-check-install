@@ -22,9 +22,14 @@ trap 'exit 143' HUP INT QUIT PIPE TERM
 
 q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
 comp=classic
-if [ -z "${N##*-debuginfo}" -a -d gb-repo/$A/RPMS.debuginfo ]; then
-	comp=debuginfo
-fi
+for c in checkinstall debuginfo; do
+	if [ -z "${N##*-$c}" ]; then
+		if [ -d gb-repo/$A/RPMS.$c ]; then
+			comp=$c
+		fi
+		break
+	fi
+done
 F_path="gb-repo/$A/RPMS.$comp/$F"
 rpmquery --qf "$q_bin" -p "$F_path" > "$tmpdir/id"
 
