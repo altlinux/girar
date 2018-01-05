@@ -11,6 +11,7 @@
 - fixed
   + BDU:2222-22222
 
+
 - Updated to 2.6.32-642.13.1.el6 (fixes CVE-3333-3333,
   , ,
 
@@ -21,3 +22,8 @@ BDU:5555-55555)
 
 - fixes
   + (fixes CVE-4444-4444 XXXX
+
+(by ldv@; fixes CVE-2017-5715,) (by 
+    glebfm@,   fixes
+                CVE-2017-5754)
+
