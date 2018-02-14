@@ -81,9 +81,9 @@ while read -r src; do
 done < unmets-new.src > "$topdir"/report/unmet-addressees
 sort -u -o "$topdir"/report/unmet-addressees{,}
 
-if [ -s unmets.acl ]; then
+if [ -s unmets-new.src ]; then
 	echo '	ACLs of affected packages:'
-	cat unmets.acl
+	join -t$'\t' -a1 unmets-new.src unmets.acl
 fi
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
