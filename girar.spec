@@ -75,7 +75,7 @@ cd gb/tests
 %_sbindir/groupadd -r -f maintainers
 for u in acl depot repo upload; do
 	%_sbindir/groupadd -r -f $u
-	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c 'Girar $u robot' -n $u ||:
+	%_sbindir/useradd -r -g $u -G girar -d /var/empty -s /dev/null -c "Girar $u robot" -n $u ||:
 done
 for u in pender awaiter; do
 	%_sbindir/groupadd -r -f $u
