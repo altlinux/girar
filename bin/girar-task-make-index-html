@@ -70,7 +70,7 @@ show_status()
 			label="label-default" ;;
 		AWAITING|POSTPONED|BUILDING|PENDING|COMMITTING)
 			label="label-info" ;;
-		EPERM|FAILED)
+		EPERM|FAILING|FAILED)
 			label="label-danger" ;;
 		SWEPT|TESTED|DONE)
 			label='label-success' ;;

@@ -62,7 +62,7 @@ case "$state" in
 		;;
 	AWAITING|POSTPONED)
 		fatal "task #$id is already scheduled for run" ;;
-	BUILDING|PENDING|COMMITTING)
+	BUILDING|FAILING|PENDING|COMMITTING)
 		fatal "task #$id is a work in progress" ;;
 	DONE)
 		fatal "task #$id is already successfully processed" ;;

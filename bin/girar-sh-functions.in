@@ -78,7 +78,7 @@ check_task_modifiable()
 	case "$state" in
 		AWAITING|EPERM|FAILED|NEW|PENDING|POSTPONED|SWEPT|TESTED)
 			;;
-		BUILDING|COMMITTING)
+		BUILDING|COMMITTING|FAILING)
 			fatal "task #$id is a work in progress" ;;
 		DONE)
 			fatal "task #$id is already successfully processed" ;;

@@ -79,7 +79,7 @@ try_abort()
 			fatal "task #$id is not yet submitted for processing" ;;
 		DONE|EPERM|FAILED|SWEPT|TESTED)
 			fatal "task #$id is already processed" ;;
-		BUILDING|COMMITTING)
+		BUILDING|FAILING|COMMITTING)
 			fatal "task #$id is in unexpected state \"$state\"" ;;
 		*)
 			fatal "task #$id is in unrecognized state \"$state\"" ;;
