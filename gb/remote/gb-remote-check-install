@@ -1,6 +1,7 @@
 #!/bin/sh -efu
 
 GB_REPO_NAME="$1"; shift
+GB_REPO_REAL_NAME="$1"; shift
 arch="$1" N="$2" EVR="$3" A="$4" comp="$5" F="$6" I="$7"
 shift 7
 
@@ -28,7 +29,7 @@ if rpmquery --provides -p "$F_path" |
    grep -qs '^altlinux-release '; then
 	release=$N
 else
-	release=altlinux-release-$GB_REPO_NAME
+	release=altlinux-release-$GB_REPO_REAL_NAME
 fi
 export GB_UNCHECKED_INITROOT_CACHE="$release"
 

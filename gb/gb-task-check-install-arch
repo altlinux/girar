@@ -30,6 +30,7 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	install \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
+	"\"$(quote_shell "$GB_REPO_REAL_NAME")\"" \
 	gb-repo \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$comps")\"" \
@@ -71,7 +72,9 @@ while read -r N EVR A F P I C dummy; do
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
 
 	if gb-x-ssh "$remote_host" ./gb-remote-check-install \
-	       "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$C" "$F" "$I" </dev/null; then
+			"$GB_REPO_NAME" \
+			"$GB_REPO_REAL_NAME" \
+			"$arch" "$N" "$EVR" "$A" "$C" "$F" "$I" </dev/null; then
 		# copy install chroot identification from remote side
 		gb-x-rsync-loop -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
 	else

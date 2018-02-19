@@ -3,6 +3,7 @@
 whatis="$1"; shift
 owner="$1"; shift
 GB_REPO_NAME="$1"; shift
+GB_REPO_REAL_NAME="$1"; shift
 dir="$1"; shift
 arch="$1"; shift
 comps="$1"; shift
@@ -142,31 +143,31 @@ Standard:
   llvm11.0-devel-static
   llvm11.0-doc
   llvm11.0-libs
-  altlinux-release-$GB_REPO_NAME
-  branding-alt-$GB_REPO_NAME-alterator
-  branding-alt-$GB_REPO_NAME-bootloader
-  branding-alt-$GB_REPO_NAME-bootsplash
-  branding-alt-$GB_REPO_NAME-gnome-settings
-  branding-alt-$GB_REPO_NAME-graphics
-  branding-alt-$GB_REPO_NAME-indexhtml
-  branding-alt-$GB_REPO_NAME-kde3-settings
-  branding-alt-$GB_REPO_NAME-kde4-settings
-  branding-alt-$GB_REPO_NAME-notes
-  branding-alt-$GB_REPO_NAME-slideshow
-  branding-alt-$GB_REPO_NAME-themes
-  branding-alt-$GB_REPO_NAME-xfce-settings
-  branding-altlinux-$GB_REPO_NAME-alterator
-  branding-altlinux-$GB_REPO_NAME-bootloader
-  branding-altlinux-$GB_REPO_NAME-bootsplash
-  branding-altlinux-$GB_REPO_NAME-gnome-settings
-  branding-altlinux-$GB_REPO_NAME-graphics
-  branding-altlinux-$GB_REPO_NAME-indexhtml
-  branding-altlinux-$GB_REPO_NAME-kde3-settings
-  branding-altlinux-$GB_REPO_NAME-kde4-settings
-  branding-altlinux-$GB_REPO_NAME-notes
-  branding-altlinux-$GB_REPO_NAME-slideshow
-  branding-altlinux-$GB_REPO_NAME-themes
-  branding-altlinux-$GB_REPO_NAME-xfce-settings
+  altlinux-release-$GB_REPO_REAL_NAME
+  branding-alt-$GB_REPO_REAL_NAME-alterator
+  branding-alt-$GB_REPO_REAL_NAME-bootloader
+  branding-alt-$GB_REPO_REAL_NAME-bootsplash
+  branding-alt-$GB_REPO_REAL_NAME-gnome-settings
+  branding-alt-$GB_REPO_REAL_NAME-graphics
+  branding-alt-$GB_REPO_REAL_NAME-indexhtml
+  branding-alt-$GB_REPO_REAL_NAME-kde3-settings
+  branding-alt-$GB_REPO_REAL_NAME-kde4-settings
+  branding-alt-$GB_REPO_REAL_NAME-notes
+  branding-alt-$GB_REPO_REAL_NAME-slideshow
+  branding-alt-$GB_REPO_REAL_NAME-themes
+  branding-alt-$GB_REPO_REAL_NAME-xfce-settings
+  branding-altlinux-$GB_REPO_REAL_NAME-alterator
+  branding-altlinux-$GB_REPO_REAL_NAME-bootloader
+  branding-altlinux-$GB_REPO_REAL_NAME-bootsplash
+  branding-altlinux-$GB_REPO_REAL_NAME-gnome-settings
+  branding-altlinux-$GB_REPO_REAL_NAME-graphics
+  branding-altlinux-$GB_REPO_REAL_NAME-indexhtml
+  branding-altlinux-$GB_REPO_REAL_NAME-kde3-settings
+  branding-altlinux-$GB_REPO_REAL_NAME-kde4-settings
+  branding-altlinux-$GB_REPO_REAL_NAME-notes
+  branding-altlinux-$GB_REPO_REAL_NAME-slideshow
+  branding-altlinux-$GB_REPO_REAL_NAME-themes
+  branding-altlinux-$GB_REPO_REAL_NAME-xfce-settings
 EOF
 
 # recreate ~/.rpmmacros

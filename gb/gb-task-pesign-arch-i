@@ -70,6 +70,7 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	pesign \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
+	"\"$(quote_shell "$GB_REPO_REAL_NAME")\"" \
 	gb-repo \
 	"\"$(quote_shell "$arch")\"" \
 	classic \
