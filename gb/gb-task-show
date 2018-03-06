@@ -11,6 +11,11 @@ for i; do
 	printf '#%d ' "$i"
 	if [ -s "gears/$i/dir" ]; then
 		printf 'build %s from %s' "$(cat "gears/$i/tag_name")" "$(cat "gears/$i/dir")"
+		pkg_tar="gears/$i/pkg.tar"
+		if [ -s "$pkg_tar" ]; then
+			printf ' fetched at %s' \
+				"$(LC_TIME=C date -r "$pkg_tar" '+%Y-%b-%d %T')"
+		fi
 	elif [ -s "gears/$i/srpm" ]; then
 		printf 'build %s' "$(cat "gears/$i/srpm")"
 	elif [ -s "gears/$i/package" ]; then
