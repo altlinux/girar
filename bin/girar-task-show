@@ -71,6 +71,11 @@ for i in $nums; do
 			printf ' %s:tag_name=%s\n' "$i" "$tag_name"
 			printf ' %s:tag_id=%s\n' "$i" "$(cat "gears/$i/tag_id")"
 			printf ' %s:tag_author=%s\n' "$i" "$(cat "gears/$i/tag_author")"
+			pkg_tar="gears/$i/pkg.tar"
+			if [ -s "$pkg_tar" ]; then
+				printf ' %s:fetched=%s\n' "$i" \
+					"$(LC_TIME=C date -r "$pkg_tar" '+%FT%T')"
+			fi
 		else
 			printf ' %s:%s=%s\n' "$i" "${dir##*/}" "$tag_name"
 		fi
