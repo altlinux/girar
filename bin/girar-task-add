@@ -16,7 +16,9 @@ Usage: $PROG [<task id> [<before subtask id>]] <action> ...
 
 Actions:
   repo <gear repo> <gear tag>
+  <gear repo>.git=<gear tag>
   srpm <srpm file>
+  <srpm file without suffix>.src.rpm
   del <src package name>
   rebuild <src package name>
   copy <src package name> [<from binary repository name>]
@@ -30,7 +32,7 @@ if [ "${1-}" = '--help' ]; then
 fi
 
 [ "$#" -le 5 ] || show_usage 'too many arguments.'
-[ "$#" -ge 2 ] || show_usage 'not enough arguments.'
+[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 
 id=
 subtask_id=
@@ -43,7 +45,7 @@ case "$1" in
 esac
 
 [ "$#" -le 3 ] || show_usage 'too many arguments.'
-[ "$#" -ge 2 ] || show_usage 'not enough arguments.'
+[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 
 action="$1"; shift
 
@@ -214,6 +216,17 @@ case "$action" in
 	[ "$#" -le 1 ] || show_usage 'too many arguments.'
 	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	srpm="$1"; shift
+	;;
+	*.git=*)
+	[ "$#" -eq 0 ] || show_usage 'too many arguments.'
+	dir="${action%%=*}"
+	tag_name="${action#*.git=}"
+	action=repo
+	;;
+	*.src.rpm)
+	[ "$#" -eq 0 ] || show_usage 'too many arguments.'
+	srpm="$action"
+	action=srpm
 	;;
 	*) show_usage "invalid action: $action" ;;
 esac

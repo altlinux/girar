@@ -14,10 +14,11 @@ show_help()
 cat <<EOF
 $PROG - create a task, add subtasks, and queue for build.
 
-Usage: $PROG [options] <build_source_1> <build_name_1> ...
+Usage: $PROG [options] <build_instruction_1> ...
 
-where each \`<build_source_N> <build_name_N>' pair is
-either \`<gear_repo> <gear_tag>' or \`srpm <srpm_file>'
+where each <build_instruction_N> is either
+\`<gear_repo> <gear_tag>' or \`<gear_repo>.git=<gear_tag>'
+or \`srpm <srpm_file>' or \`<srpm_file_without_suffix>.src.rpm'
 or \`rebuild <package_name>' or \`del <package_name>'
 or \`copy <package_name>'.
 
@@ -49,11 +50,8 @@ while :; do
 	shift
 done
 
-[ $# -ge 2 ] ||
-	show_usage 'not enough arguments'
-
-[ "$(($#%2))" -eq 0 ] ||
-	show_usage 'odd number of arguments'
+[ $# -ge 1 ] ||
+	show_usage 'not enough arguments.'
 
 atexit()
 {
@@ -71,14 +69,43 @@ if [ -n "$deps" ]; then
 	girar-task deps "$id" set $(printf %s "$deps" |tr , ' ')
 fi
 
-while [ $# -gt 0 ]; do
-	dir="$1" tag="$2"
-	shift 2
-	case "$dir" in
-		copy|del|rebuild|srpm) girar-task add "$id" "$dir" "$tag"
+# Basic sanity check.
+cmd=
+for arg; do
+	[ -n "$arg" ] ||
+		show_usage 'invalid empty argument.'
+	if [ -n "$cmd" ]; then
+		cmd=
+	else
+		case "$arg" in
+			*.git=*|*.src.rpm)
+				cmd= ;;
+			*)
+				cmd="$arg" ;;
+		esac
+	fi
+done
+[ -z "$cmd" ] ||
+	show_usage 'not enough arguments.'
+
+cmd=
+for arg; do
+	case "$cmd" in
+		'')
+			case "$arg" in
+				*.git=*|*.src.rpm)
+					girar-task add "$id" "$arg"
+					cmd= ;;
+				*)
+					cmd="$arg" ;;
+			esac
 			;;
-		*) girar-task add "$id" repo "$dir" "$tag"
-			;;
+		copy|del|rebuild|srpm)
+			girar-task add "$id" "$cmd" "$arg"
+			cmd= ;;
+		*)
+			girar-task add "$id" repo "$cmd" "$arg"
+			cmd= ;;
 	esac
 done
 
