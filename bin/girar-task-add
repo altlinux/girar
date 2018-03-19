@@ -121,8 +121,11 @@ validate_rebuild_dir()
 
 	sym="$(printf %s "$package" |cut -c1)"
 	dir="$GEARS_DIR/$sym/$package.git"
-	[ -f "$dir/git-daemon-export-ok" ] ||
-		fatal "$dir: git repository not available"
+	if [ ! -f "$dir/git-daemon-export-ok" ]; then
+		action=srpm-rebuild
+		validate_srpm_rebuild
+		return
+	fi
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
@@ -136,9 +139,18 @@ validate_rebuild_dir()
 	validate_tag_name
 }
 
-srpm_tmp_locked=
 nevr=
 validate_srpm()
+{
+	nevr="$(rpmquery -p --qf '%{name}\t%|epoch?{%{epoch}:}|%{version}-%{release}' -- "$srpm")" ||
+		fatal "$srpm: rpmquery failed"
+	package="${nevr%	*}"
+	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
+		fatal "$srpm: sisyphus_check failed"
+}
+
+srpm_tmp_locked=
+validate_srpm_build()
 {
 	[ -n "${srpm##*/*}" -a "$srpm" != "${srpm%.src.rpm}" ] ||
 		fatal "$srpm: Invalid path"
@@ -155,15 +167,21 @@ validate_srpm()
 	mv -- "$srpm" tmp/
 	cd tmp
 
-	nevr="$(rpmquery -p --qf '%{name}\t%|epoch?{%{epoch}:}|%{version}-%{release}' -- "$srpm")" ||
-		fatal "$srpm: rpmquery failed"
-	package="${nevr%	*}"
-	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
-		fatal "$srpm: sisyphus_check failed"
+	validate_srpm
+
 	girar-check-nevr-in-repo "$package" "${nevr#*	}" "$repo" ||
 		fatal "$srpm: too old for \`$repo'"
 
 	popd >/dev/null
+}
+
+srpm_tmp_locked=
+validate_srpm_rebuild()
+{
+	srpm_name="$(printf %s "$package" |
+		join -o2.3 - $STATE_DIR/repo/$repo_norm/release/latest/files/list/src.list)"
+	srpm="$STATE_DIR/repo/$repo_norm/release/latest/files/SRPMS/$srpm_name"
+	validate_srpm
 }
 
 handle_kmodules()
@@ -252,7 +270,7 @@ case "$action" in
 	validate_tag_name
 	;;
 	srpm)
-	validate_srpm
+	validate_srpm_build
 	;;
 	del)
 	girar-check-package-in-repo "$package" "$repo" ||
@@ -453,6 +471,17 @@ case "$action" in
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
+	exit 0
+	;;
+	srpm-rebuild)
+	install -p -- "$srpm" gears/$i/
+	printf '%s\n' "$srpm_name" >gears/$i/srpm
+	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
+	printf '%s\n' "$nevr" >gears/$i/nevr
+	touch gears/$i/rebuild
+	girar-task-change-state "$id" NEW
+	girar-webapi-subtask create "$id" "$i"
+	echo >&2 "task #$id: added #$i: rebuild srpm $srpm_name"
 	exit 0
 	;;
 esac

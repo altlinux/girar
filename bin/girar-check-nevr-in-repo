@@ -35,4 +35,8 @@ fi
 cd "$STATE_DIR/repo/$repository/release/latest"
 
 r_evr="$(printf %s "$package" |join -j1 -o2.2 - files/list/src.list)" || exit 0
-[ "$(rpmevrcmp "$r_evr" "$evr")" -lt 0 ]
+if [ -n "${GIRAR_ALLOW_SAME_NEVR-}" ]; then
+	[ "$(rpmevrcmp "$r_evr" "$evr")" -le 0 ]
+else
+	[ "$(rpmevrcmp "$r_evr" "$evr")" -lt 0 ]
+fi

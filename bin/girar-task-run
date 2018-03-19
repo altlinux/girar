@@ -136,7 +136,12 @@ check_srpm()
 	for i in $nums; do
 		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
 		nevr="$(cat gears/$i/nevr)"
-		girar-check-nevr-in-repo "${nevr%	*}" "${nevr#*	}" "$repo" ||
+		GIRAR_ALLOW_SAME_NEVR=
+		if [ -f gears/$i/rebuild ]; then
+			GIRAR_ALLOW_SAME_NEVR=1
+		fi
+		GIRAR_ALLOW_SAME_NEVR=$GIRAR_ALLOW_SAME_NEVR \
+			girar-check-nevr-in-repo "${nevr%	*}" "${nevr#*	}" "$repo" ||
 		{
 			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is too old for \`$repo'"
 			rc=1
