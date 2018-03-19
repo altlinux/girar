@@ -11,20 +11,28 @@ fail_if_task_abort_requested
 
 rc=0
 
+if [ -n "$GB_ALLOW_SAME_NEVR" ]; then
+	RELATION=-le
+	PART_OF_ERROR_MESSAGE=
+else
+	RELATION=-lt
+	PART_OF_ERROR_MESSAGE='either the same or '
+fi
+
 # input: src-N  src-EVR  src-F
 # join by src-N
 join -t$'\t' -o 1.1,1.2,1.3,2.2,2.3 plan/rm-src plan/add-src >$tmpdir/replace-src
 sort -u -o $tmpdir/replace-src{,}
 
 while read -r N EVR1 F1 EVR2 F2; do
-	if [ "$F1" = "$F2" ]; then
+	if [ -z "$GB_ALLOW_SAME_NEVR" ] && [ "$F1" = "$F2" ]; then
 		echo ' *** new and existing source packages have the same filename'
 		printf '%s\t%s\n' "$N" "$F1"
 		rc=1
 		continue
 	fi >&2
-	if ! is_ver1_lt_ver2 "$EVR1" "$EVR2"; then
-		echo ' *** source package version is either the same or older than existing'
+	if ! is_ver1_and_ver2_in_relation "$EVR1" "$EVR2" "$RELATION"; then
+		echo " *** source package version is ${PART_OF_ERROR_MESSAGE}older than existing"
 		printf '%s\t%s\t%s\n' "$N" "$EVR1" "$EVR2"
 		rc=1
 	fi >&2
@@ -36,14 +44,14 @@ join -t$'\t' -o 1.1,1.2,1.3,1.4,2.2,2.3,2.4 plan/rm-bin plan/add-bin >$tmpdir/re
 sort -u -o $tmpdir/replace-bin{,}
 
 while read -r N EVR1 A1 F1 EVR2 A2 F2; do
-	if [ "$F1" = "$F2" ]; then
+	if [ -z "$GB_ALLOW_SAME_NEVR" ] && [ "$F1" = "$F2" ]; then
 		echo ' *** new and existing binary packages have the same filename'
 		printf '%s\t%s\n' "$N" "$F1"
 		rc=1
 	fi >&2
 	[ "$A1" = "$A2" ] || [ "$A1" = noarch ] || [ "$A2" = noarch ] || continue
-	if ! is_ver1_lt_ver2 "$EVR1" "$EVR2"; then
-		echo ' *** binary package version is either the same or older than existing'
+	if ! is_ver1_and_ver2_in_relation "$EVR1" "$EVR2" "$RELATION"; then
+		echo " *** binary package version is ${PART_OF_ERROR_MESSAGE}older than existing"
 		printf '%s\t%s\t%s\n' "$N" "$EVR1" "$EVR2"
 		rc=1
 	fi >&2

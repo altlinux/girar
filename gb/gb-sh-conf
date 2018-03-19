@@ -37,3 +37,5 @@ GB_AREPO_DIR="$TMPDIR/gb-arepo-$USER-$GB_REPO_NAME"
 
 [ -z "${arch-}" ] ||
 	remote_host="build-$USER-$GB_REPO_NAME-$arch"
+
+: ${GB_ALLOW_SAME_NEVR=}

@@ -173,6 +173,12 @@ is_ver1_le_ver2()
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -le 0 ] || return 1
 }
 
+is_ver1_and_ver2_in_relation()
+{
+	local EVR1="${1:?}" EVR2="${2:?}" RELATION="${3:?}"
+	[ "$(rpmevrcmp "$EVR1" "$EVR2")" "$RELATION" 0 ] || return 1
+}
+
 halt_build_queue()
 {
 	echo "${0##*/} failed in $PWD" >>"$GB_STOP_FILE"
