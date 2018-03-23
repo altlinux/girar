@@ -132,7 +132,7 @@ mkdir ~/SRPMS
 ln --target-directory ~/SRPMS/ -- "$@"
 EOF
 
-hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --no-sisyphus-check in/"$src" \
+hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --query-repackage --no-sisyphus-check in/"$src" \
 	>build/srpm.log 2>&1 ||
 	{
 		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
