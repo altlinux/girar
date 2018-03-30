@@ -36,7 +36,7 @@ q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerp
 while read -r N EVR A F P I; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
 
-	if [ -f task/swift ]; then
+	if [ -f task/swift -o -s task/trusted_swift ]; then
 		if [ -f "install/$N/$arch/chroot_install" ]; then
 			rpmquery --qf "$q_bin" -p "$P" > "$tmpdir/id"
 			if cmp -s install/"$N/$arch"/id "$tmpdir"/id; then

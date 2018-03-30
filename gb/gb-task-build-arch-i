@@ -47,7 +47,8 @@ gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:in/"
 gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "build/$i/$arch/" "$remote_host:build/"
 
 swift=
-if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chroot_BR" ] &&
+if [ -f task/swift -o -s task/trusted_swift ] &&
+   [ -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chroot_BR" ] &&
    [ -n "$(set +f && ls "build/$i/$arch/srpm"/*.src.rpm 2>/dev/null)" ]; then
 	swift=swift
 fi
