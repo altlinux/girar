@@ -62,6 +62,7 @@ TASK_ID/gears/$i/$srpm		srpm file
 # copy subtask specific files
 TASK_ID/gears/$i/copy_repo	package repository to copy from, e.g. sisyphus
 TASK_ID/gears/$i/package	package name, e.g. foo
+TASK_ID/gears/$i/sid		source id (type:hash)
 
 # NMU approvals acl/$i/ is 1-1 to gears/$i/
 TASK_ID/acl/$i/USER		USER@altlinux.org approved gears/$i/

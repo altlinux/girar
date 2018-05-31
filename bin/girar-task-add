@@ -468,6 +468,7 @@ case "$action" in
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
+	rpmquery --qf 'srpm:%{sha1header}' -p gears/$i/"$srpm" >gears/$i/sid
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
@@ -490,6 +491,7 @@ esac
 printf '%s\n' "$gears_i_dir" >gears/$i/dir
 printf '%s\n' "$tag_name" >gears/$i/tag_name
 printf '%s\n' "$tag_id" >gears/$i/tag_id
+printf '%s\n' "gear:$tag_id" >gears/$i/sid
 printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 if [ "$action" = rebuild ]; then
