@@ -79,10 +79,19 @@ for type in src; do
 	while read -r N EVR I; do
 		sym="$(printf %s "$N" |cut -c1)"
 		dir="$index_dir/$type/$sym/$N"
+		# sid is not defined for non-build methods
+		if [ -f gears/$I/sid ]; then
+			sid="$(cat gears/$I/sid)"
+		else
+			sid=
+		fi
 		mkdir -p -- "$dir"
 		touch -- "$dir"
-		printf '%s\t%s\t%s\t%s\n' "$date_s" "$task_id" "$I" "$EVR" >> "$dir/d-t-s-evr.list"
-		gb-y-print-rip-html "$GB_REPO_NAME" "$N" "$dir/d-t-s-evr.list" > "$dir/index.html" ||:
+		printf '%s\t%s\t%s\t%s\t%s\n' \
+			"$date_s" "$task_id" "$I" "$EVR" "$sid" \
+			>> "$dir/d-t-s-evr.list"
+		gb-y-print-rip-html "$GB_REPO_NAME" "$N" \
+			"$dir/d-t-s-evr.list" > "$dir/index.html" ||:
 	done < plan/rip-$type
 done
 

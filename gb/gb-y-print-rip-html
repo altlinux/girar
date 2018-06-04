@@ -13,10 +13,10 @@ cat <<__EOF__
 <body>
 <h1>Index of source package <i>$N</i> in <i>$repo</i></h1>
 <table border="1">
-<tr><th>Date</th><th>Version</th><th>Task</th><th>Subtask</th></tr>
+<tr><th>Date</th><th>Version</th><th>Task</th><th>Subtask</th><th>SourceID</th></tr>
 __EOF__
 
-while read -r D T S V; do
+while read -r D T S V SID; do
 	G="_$(($T/1024))"
 	date="$(TZ=UTC date -d "1970-01-01 $D seconds" '+%F %H:%M')"
 
@@ -27,11 +27,11 @@ while read -r D T S V; do
 			"$T" \
 			"$S"
 	else
-		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/">%s</a>&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/#s%s">%s</a>&nbsp;</th></tr>\n' \
+		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/">%s</a>&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/#s%s">%s</a>&nbsp;</th><th align="right">&nbsp;%s</th></tr>\n' \
 			"$G" "$T" "$date" \
 			"$V" \
 			"$GB_SITE" "$G" "$T" "$T" \
-			"$GB_SITE" "$G" "$T" "$S" "$S"
+			"$GB_SITE" "$G" "$T" "$S" "$S" "$SID"
 	fi
 done < "$input"
 
