@@ -1,6 +1,7 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
+. shell-quote
 
 i="$1"; shift
 
@@ -49,6 +50,13 @@ elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
 	I="$I: $(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
 else
 	Fatal 'source not found'
+fi
+
+if [ -n "$built" ]; then
+	sid="$(cat "gears/$i/sid")" ||
+		Fatal 'source id not found'
+else
+	sid=
 fi
 
 cd build/$i
@@ -170,6 +178,33 @@ check_nevr()
 	done
 }
 
+check_sid()
+{
+	local n="$1"; shift
+	local evr="$1"; shift
+	local sid="$1"; shift
+	local dir spi dspi qevr index_sid what
+
+	[ -n "$sid" ] || return 0
+
+	quote_sed_regexp_variable qevr "$evr"
+	what="package \`$n' version \`$evr' was already built"
+	spi="src/${n:0:1}/$n/d-t-s-evr.list"
+
+	for dir in $(set +f && echo $GB_REPO_ROOT/*/index); do
+		dspi="$dir/$spi"
+		[ -f "$dspi" ] || continue
+
+		index_sid="$(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
+				"$dspi" |uniq)"
+		case "$index_sid" in
+			:) Fatal "$what but no source id has been recorded" ;;
+			''|:$sid) ;;
+			*) Fatal "$what from a different source: \`${index_sid#:}'" ;;
+		esac
+	done
+}
+
 for arch in $GB_ARCH; do
 	for d in $arch/srpm $arch/rpms; do
 		if [ ! -d "$d" -a -s "$arch/excluded" ]; then
@@ -196,6 +231,7 @@ for arch in $GB_ARCH; do
 		while read -r N EVR F; do
 			[ -z "$built" ] || check_release_name "${EVR##*-}"
 			check_nevr src "$N" "$EVR" '' "$built"
+			check_sid "$N" "$EVR" "$sid"
 		done <"$tmpdir/new.src"
 	fi
 
