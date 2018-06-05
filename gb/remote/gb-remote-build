@@ -4,6 +4,9 @@ arch="$1"; shift
 from="$1"; shift
 tag_name="$1"; shift
 package_signer="$1"; shift
+dist="$1"; shift
+task_id="$1"; shift
+subtask_id="$1"; shift
 swift=
 if [ "${1-}" = swift ]; then
 	swift="$1"; shift
@@ -106,8 +109,11 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 fi
 
 # initialize %package_signer before parsing spec.
-printf '%s\t%s\n' '%package_signer' "${package_signer:-%packager}" |
-	hsh-run -- sh -c 'cat >> ~/.rpmmacros'
+cat <<EOF |hsh-run -- sh -c 'cat >> ~/.rpmmacros'
+%package_signer	${package_signer:-%packager}
+%distribution	ALT ${dist/sisyphus/Sisyphus}
+%disttag	$dist.$task_id.$subtask_id
+EOF
 
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.

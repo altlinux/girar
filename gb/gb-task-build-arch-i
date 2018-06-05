@@ -35,6 +35,9 @@ else
 	exit 1
 fi
 
+dist="$(cat task/repo)"
+task_id="$(cat task/id)"
+
 stamp_echo >&2 "$I build start"
 
 # copy source package and accompanying build data to remote side
@@ -56,6 +59,9 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$from")\"" \
 	"\"$(quote_shell "$tag_name")\"" \
 	"\"$(quote_shell "$tag_author")\"" \
+	"\"$(quote_shell "$dist")\"" \
+	"\"$(quote_shell "$task_id")\"" \
+	"\"$(quote_shell "$i")\"" \
 	$swift ||
 		{ stamp_echo >&2 "$I build FAILED";
 		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
