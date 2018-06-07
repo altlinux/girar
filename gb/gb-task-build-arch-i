@@ -37,6 +37,8 @@ fi
 
 dist="$(cat task/repo)"
 task_id="$(cat task/id)"
+task_try="$(cat task/try)"
+task_iter="$(cat task/iter)"
 
 stamp_echo >&2 "$I build start"
 
@@ -62,6 +64,8 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$dist")\"" \
 	"\"$(quote_shell "$task_id")\"" \
 	"\"$(quote_shell "$i")\"" \
+	"\"$(quote_shell "$task_try")\"" \
+	"\"$(quote_shell "$task_iter")\"" \
 	$swift ||
 		{ stamp_echo >&2 "$I build FAILED";
 		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
