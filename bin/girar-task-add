@@ -468,7 +468,7 @@ case "$action" in
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
-	rpmquery --qf 'srpm:%{sha1header}' -p gears/$i/"$srpm" >gears/$i/sid
+	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm" >gears/$i/sid
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
@@ -479,6 +479,7 @@ case "$action" in
 	printf '%s\n' "$srpm_name" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
+	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm_name" >gears/$i/sid
 	touch gears/$i/rebuild
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
