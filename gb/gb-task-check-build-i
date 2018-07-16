@@ -139,7 +139,9 @@ check_nevr()
 			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
-			[ -z "$a" -o "$a" = "$a0" ] || continue
+			[ -z "$a" ] || [ "$a" = "$a0" ] ||
+			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
+				continue
 			if [ -n "$built" ]; then
 				is_ver1_lt_ver2 "$evr" "$evr0" ||
 					Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
@@ -154,7 +156,9 @@ check_nevr()
 			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
 			sort -u > "$tmpdir/evra"
 		while read -r evr0 a0; do
-			[ -z "$a" -o "$a" = "$a0" ] || continue
+			[ -z "$a" ] || [ "$a" = "$a0" ] ||
+			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
+				continue
 			if [ -n "$built" ]; then
 				is_ver1_lt_ver2 "$evr0" "$evr" ||
 					Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
