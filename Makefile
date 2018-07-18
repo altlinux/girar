@@ -66,6 +66,7 @@ bin_TARGETS = \
 	bin/girar-check-orphaned \
 	bin/girar-check-package-in-repo \
 	bin/girar-check-perms \
+	bin/girar-check-sid \
 	bin/girar-check-superuser \
 	bin/girar-get-email-address \
 	bin/girar-gpg \

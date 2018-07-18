@@ -172,6 +172,15 @@ validate_srpm_build()
 	girar-check-nevr-in-repo "$package" "${nevr#*	}" "$repo" ||
 		fatal "$srpm: too old for \`$repo'"
 
+	sid="$(rpmquery -p --qf 'srpm:%{sha1header}\n' -- "$srpm")" ||
+		fatal "$srpm: rpmquery failed"
+	girar-check-sid "$package" "${nevr#*	}" "$sid" "$repo" || {
+		case "$?" in
+			1) fatal "package \`$package' version \`${nevr#*    }' is already built but no source id has been recorded" ;;
+			2) fatal "package \`$package' version \`${nevr#*    }' is already built from a different source" ;;
+		esac
+	}
+
 	popd >/dev/null
 }
 

@@ -139,6 +139,7 @@ check_srpm()
 	for i in $nums; do
 		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
 		nevr="$(cat gears/$i/nevr)"
+		sid="$(cat gears/$i/sid)"
 		GIRAR_ALLOW_SAME_NEVR=
 		if [ -f gears/$i/rebuild ]; then
 			GIRAR_ALLOW_SAME_NEVR=1
@@ -148,6 +149,19 @@ check_srpm()
 		{
 			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is too old for \`$repo'"
 			rc=1
+		}
+		[ "$rc" -ne 0 ] ||
+			girar-check-sid "${nevr%       *}" "${nevr#*   }" "$sid" "$repo" || {
+			case $? in
+				1)
+					message "package \`${nevr%       *}' version \`${nevr#*    }' is already built but no source id has been recorded"
+					rc=1
+					;;
+				2)
+					message "package \`${nevr%       *}' version \`${nevr#*    }' is already built from a different source"
+					rc=1
+					;;
+			esac
 		}
 	done
 	return $rc

@@ -1,0 +1,47 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-quote
+
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <source package name> <source package epoch:version-release> <source id> <repo>"
+	exit 1
+}
+
+[ "$#" -ge 4 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 4 ] ||
+	usage 'Too many arguments.'
+
+package="$1"; shift
+evr="$1"; shift
+sid="$1"; shift
+repo="$1"; shift
+
+# Returns:
+# 0 - either $package $evr not found in indices or $package $evr is present and sids match.
+# 1 - $evr is present for $package but it has no sid.
+# 2 - $evr is present for $package but sids mismatch.
+
+repo="$(girar-normalize-repo-name "$repo")"
+
+quote_sed_regexp_variable qevr "$evr"
+spi="src/${package:0:1}/$package/d-t-s-evr.list"
+
+for dir in $(set +f && echo $STATE_DIR/repo/*/index); do
+	dspi="$dir/$spi"
+	[ -f "$dspi" ] || continue
+
+	index_sid="$(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
+			 "$dspi" |uniq)"
+	case "$index_sid" in
+	        ''|:*$sid) ;; # package evr not found or sids match
+		:) exit 1 ;; # package evr is built but has no sid
+		*) exit 2 ;; # package evr sid mismatches
+	esac
+done
+
+exit 0
+
