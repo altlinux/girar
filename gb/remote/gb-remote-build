@@ -212,15 +212,39 @@ sort -u -o "$tmpdir"/ref-src{,}
 	Fatal 'binary packages refer wrong %{SOURCERPM}'
 
 # Copyout.
+> "$tmpdir"/FAIL
+
 rm -rf build/rpms
 mkdir -p build/rpms
-tar -C hasher_repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` |
-tar -C build/rpms -xf -
+{
+	tar -C hasher_repo/$arch/RPMS.hasher -cf - `cat "$tmpdir"/add-bin` ||
+		echo "FAILED: tar -C hasher_repo/$arch/RPMS.hasher -cf" >> "$tmpdir"/FAIL
+} |
+{
+	tar -C build/rpms -xf - ||
+		echo "FAILED: tar -C build/rpms -xf" >> "$tmpdir"/FAIL
+}
+
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
 
 rm -rf build/srpm
 mkdir -p build/srpm
-tar -C hasher_repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` |
-tar -C build/srpm -xf -
+{
+	tar -C hasher_repo/SRPMS.hasher -cf - `cat "$tmpdir"/add-src` ||
+		echo "FAILED: tar -C hasher_repo/SRPMS.hasher -cf" >> "$tmpdir"/FAIL
+} |
+{
+	tar -C build/srpm -xf - ||
+		echo "FAILED: tar -C build/srpm -xf" >> "$tmpdir"/FAIL
+}
+
+if [ -s "$tmpdir"/FAIL ]; then
+	cat >&2 "$tmpdir"/FAIL
+	exit 1
+fi
 
 # Meta copyout.
 cp -p "$tmpdir"/chroot_base build/chroot_base
