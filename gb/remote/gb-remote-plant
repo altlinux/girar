@@ -34,7 +34,7 @@ mkdir -- $recreate_dirs
 mkdir lists/partial
 
 # support for full private repo
-rm -f gb-repo
+rm -rf gb-repo
 ln -s base_repo gb-repo
 
 # recreate ~/hasher symlink
