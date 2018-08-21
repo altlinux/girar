@@ -25,24 +25,27 @@ or \`copy <package_name>'.
 Options:
   -b <binary_repository_name>     set a target binary package repository;
   --deps <deps>   set a comma-separated list of required task id numbers;
-  --test-only     stop building task after tests, do not commit;
+  --fail-early    stop building the task after the first error;
+  --test-only     stop building the task after tests, do not commit;
   --help          show this text and exit.
 EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o b: -l deps:,test-only,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o b: -l deps:,fail-early,test-only,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
 deps=
 repo=
+fail_early=
 test_only=
 while :; do
 	case "$1" in
 		--) shift; break ;;
 		-b) shift; repo="$1" ;;
 		--deps) shift; deps="$1" ;;
+		--fail-early) fail_early="$1" ;;
 		--test-only) test_only="$1" ;;
 		--help) show_help ;;
 		*) show_usage "unrecognized option: $1" ;;
@@ -109,4 +112,4 @@ for arg; do
 	esac
 done
 
-girar-task run $test_only "$id"
+girar-task run $fail_early $test_only "$id"

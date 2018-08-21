@@ -18,6 +18,7 @@ will be choosen.
 
 Options:
   --dry-run     stop right before queueing the task;
+  --fail-early  stop building the task after the first error;
   --test-only   stop after test, do not commit the task;
   --swift       enable swift mode (undocumented, RTFS);
   --help        show this text and exit.
@@ -26,11 +27,13 @@ EOF
 }
 
 dry_run=
+fail_early=
 test_only=
 swift_only=
 while :; do
 	case "${1-}" in
 		--dry-run) dry_run=1 ;;
+		--fail-early) fail_early=1 ;;
 		--test-only) test_only=1; swift_only= ;;
 		--swift) test_only=1; swift_only=1 ;;
 		--help) show_help ;;
@@ -199,6 +202,15 @@ mkdir -pm2775 arepo build plan
 
 # create group writable files required for build
 (umask 002; touch logs/events.$try.$iter.log task/iter task/try) || false
+
+# set/remove fail-early flag
+if [ -n "$fail_early" ]; then
+	[ -f task/fail-early ] ||
+		touch task/fail-early
+else
+	[ ! -f task/fail-early ] ||
+		rm task/fail-early
+fi
 
 # set/remove test-only flag
 if [ -n "$test_only" ]; then
