@@ -117,6 +117,7 @@ validate_tag_name()
 
 validate_rebuild_dir()
 {
+	local repo="${1-}"; shift
 	local sym id
 
 	sym="$(printf %s "$package" |cut -c1)"
@@ -190,6 +191,8 @@ validate_srpm_build()
 srpm_tmp_locked=
 validate_srpm_rebuild()
 {
+	local repo_norm
+	repo_norm="$(girar-normalize-repo-name "$repo")"
 	srpm_name="$(printf %s "$package" |
 		join -o2.3 - $STATE_DIR/repo/$repo_norm/release/latest/files/list/src.list)"
 	srpm="$STATE_DIR/repo/$repo_norm/release/latest/files/SRPMS/$srpm_name"
@@ -270,8 +273,7 @@ if [ "${GIRAR_TASK_LOCKED-}" != "$id" ]; then
 fi
 
 repo="$(cat task/repo)"
-repo_norm="$(girar-normalize-repo-name "$repo")"
-repo_conf="$CONF_DIR/repo/$repo_norm"
+repo_conf="$CONF_DIR/repo/$(girar-normalize-repo-name "$repo")"
 if [ -s "$repo_conf" ]; then
 	. "$repo_conf"
 fi
@@ -291,7 +293,7 @@ case "$action" in
 	rebuild)
 	girar-check-package-in-repo "$package" "$repo" ||
 		fatal "Invalid request to rebuild a nonexistent package \`$package' in \`$repo'"
-	validate_rebuild_dir
+	validate_rebuild_dir $repo
 	;;
 	kmodules)
 	handle_kmodules
@@ -304,6 +306,7 @@ case "$action" in
 		fatal "Invalid request to copy package to \`$repo'"
 	girar-check-package-in-repo "$package" "$copy_repo" ||
 		fatal "Invalid request to copy nonexistent package \`$package' from \`$copy_repo'"
+	validate_rebuild_dir $copy_repo
 	;;
 esac
 cd "$TASKS_DIR/$id"
@@ -464,15 +467,6 @@ case "$action" in
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: delete package $package from $repo"
-	exit 0
-	;;
-	copy)
-	printf '%s\n' "$copy_repo" >gears/$i/copy_repo
-	printf '%s\n' "$package" >gears/$i/package
-	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-	girar-task-change-state "$id" NEW
-	girar-webapi-subtask create "$id" "$i"
-	echo >&2 "task #$id: added #$i: copy package $package from $copy_repo"
 	exit 0
 	;;
 	srpm)
