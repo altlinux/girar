@@ -110,7 +110,7 @@ check_brpms
 
 . gb-sh-tmpdir
 
-for r in $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
+for r in $GB_REPO_NAME $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
 	make_repo_table $r
 	sort -k1,1 -o $r.src{,}
@@ -159,7 +159,7 @@ check_nevr()
 			fi
 		done < "$tmpdir/evra"
 	done
-	for r in $GB_REPO_DOWN_NAME; do
+	for r in $GB_REPO_NAME $GB_REPO_DOWN_NAME; do
 		printf '%s\t%s\n' "$n" "$evr" |
 			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
 			sort -u > "$tmpdir/evra"
