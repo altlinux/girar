@@ -23,14 +23,12 @@ get_sig_uid()
 	printf %s "$userid"
 }
 
-built=
 srpm=
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"
 	I="${dir##*/} $(cat "gears/$i/tag_name")"
 	tag_author="$(cat "gears/$i/tag_author")"
 	userid="$(get_sig_uid "$tag_author")"
-	built=1
 elif [ -s "gears/$i/srpm" ]; then
 	srpm="$(cat "gears/$i/srpm")"
 	I="$I: $srpm"
@@ -45,19 +43,14 @@ elif [ -s "gears/$i/srpm" ]; then
 	[ -n "$tag_author" ] ||
 		Fatal 'gpg uid not found'
 	userid="$(get_sig_uid "$tag_author")"
-	built=1
 elif [ -s "gears/$i/copy_repo" -a -s "gears/$i/package" ]; then
 	I="$I: $(cat "gears/$i/copy_repo") $(cat "gears/$i/package")"
 else
 	Fatal 'source not found'
 fi
 
-if [ -n "$built" ]; then
-	sid="$(cat "gears/$i/sid")" ||
-		Fatal 'source id not found'
-else
-	sid=
-fi
+sid="$(cat "gears/$i/sid")" ||
+	Fatal 'source id not found'
 
 cd build/$i
 
@@ -139,7 +132,6 @@ check_nevr()
 	local n="$1"; shift
 	local evr="$1"; shift
 	local a="$1"; shift
-	local built="${1-}"; shift
 	local r evr0 a0
 
 	for r in $GB_REPO_UP_NAME; do
@@ -150,7 +142,7 @@ check_nevr()
 			[ -z "$a" ] || [ "$a" = "$a0" ] ||
 			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
 				continue
-			if [ -n "$built" ]; then
+			if [ -z "$GB_ALLOW_SAME_NEVR" ]; then
 				is_ver1_lt_ver2 "$evr" "$evr0" ||
 					Fatal "${a:-$t} package \`$n' version \`$evr' is not lesser than its version \`$evr0' in \`$r'"
 			else
@@ -167,7 +159,7 @@ check_nevr()
 			[ -z "$a" ] || [ "$a" = "$a0" ] ||
 			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
 				continue
-			if [ -n "$built" ]; then
+			if [ -z "$GB_ALLOW_SAME_NEVR" ]; then
 				is_ver1_lt_ver2 "$evr0" "$evr" ||
 					Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
 			else
@@ -220,17 +212,15 @@ for arch in $GB_ARCH; do
 	done
 
 	# check changelog name
-	if [ -n "$built" ]; then
-		find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
-			Fatal 'changelog name check FAILED'
-	fi
+	find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
+		Fatal 'changelog name check FAILED'
 
 	# check release name
 	if [ -d "$arch/srpm" -o ! -s "$arch/excluded" ]; then
 		qsrc "$arch/srpm/" >"$tmpdir/new.src"
 		while read -r N EVR F; do
-			[ -z "$built" ] || check_release_name "${EVR##*-}"
-			check_nevr src "$N" "$EVR" '' "$built"
+			check_release_name "${EVR##*-}"
+			check_nevr src "$N" "$EVR" ''
 			check_sid "$N" "$EVR" "$sid"
 		done <"$tmpdir/new.src"
 	fi
@@ -238,8 +228,8 @@ for arch in $GB_ARCH; do
 	if [ -d "$arch/rpms" -o ! -s "$arch/excluded" ]; then
 		qbin "$arch/rpms/" >"$tmpdir/new.bin"
 		while read -r N EVR A F src_F; do
-			[ -z "$built" ] || check_release_name "${EVR##*-}"
-			check_nevr bin "$N" "$EVR" "$arch" "$built"
+			check_release_name "${EVR##*-}"
+			check_nevr bin "$N" "$EVR" "$arch"
 		done <"$tmpdir/new.bin"
 	fi
 done
