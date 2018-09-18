@@ -133,8 +133,11 @@ validate_rebuild_dir()
 	dir="$PWD"
 
 	id="$(git rev-parse --branches="[${repo:0:1}]${repo:1}")"
-	[ -n "$id" ] ||
-		fatal "$dir: branch \"$repo\" not available"
+	if [ -z "$id" ]; then
+		action=srpm-rebuild
+		validate_srpm_rebuild
+		return
+	fi
 	tag_name="$(git describe --exact-match "$id")"
 	validate_tag_name
 }
