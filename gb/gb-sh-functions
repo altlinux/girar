@@ -241,11 +241,15 @@ rpm_changes_since()
 {
 	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\r]' \
 		-p $1 > ${tmpdir}/changelog_new
+	# ignore %ubt branch suffix in the new changelog
+	sed -r -i 's/\.(S1|M[5-8]0[CPT]\.1)((\.[0-9]+)*)$/\2/' -- \
+		${tmpdir}/changelog_new
+
 	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\r]' \
 		-p $2 > ${tmpdir}/changelog_old
-	# ignore %ubt branch suffix in changelogs
-	sed -r -i 's/\.(S1|M[5-8]0[CPT]\.1)((\.[0-9]+)*)$/\2/' -- \
-		${tmpdir}/changelog_new ${tmpdir}/changelog_old
+	# ignore %ubt branch suffix in the old changelog
+	sed -r -i 's/\.(S1|M[5-8]0[CPT]\.1)((\.[0-9]+)*\r)/\2/g' -- \
+		${tmpdir}/changelog_old
 
 	gb-x-changelog-complement ${tmpdir}/changelog_old ${tmpdir}/changelog_new
 }
