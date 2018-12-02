@@ -7,5 +7,10 @@ arch="$1"; shift
 rm -rf "build/repo/$arch"
 
 for i in $(src_nums); do
-	$0-i "$arch" "$i"
+	$0-i "$arch" "$i" || {
+		rc=$?
+		# force rebuild packages on the task run
+		touch "build/$i/force-rebuild"
+		exit $rc
+	}
 done

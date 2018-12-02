@@ -1,0 +1,13 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+# force rebuild if force-rebuid flag is set
+for i in $(src_nums); do
+	if [ -f "build/$i/force-rebuild" ]; then
+		stamp_echo >&2 "#$i: force rebuild"
+		rm -rf "build/$i"
+	fi
+done

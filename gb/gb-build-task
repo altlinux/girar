@@ -69,6 +69,7 @@ gb-task-set-summary
 	gb-task-gen-buildrepo
 	gb-task-setup-remote
 	gb-task-copy-packages
+	gb-task-build-prep
 	gb-task-build
 	fail_if_task_abort_requested
 	gb-x-girar task-make-index-html "$id" ||:
