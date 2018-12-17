@@ -9,7 +9,7 @@ oneliner()
 
 stamp_echo()
 {
-	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $(oneliner "$*")"
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
 }
 
 userid_nums()

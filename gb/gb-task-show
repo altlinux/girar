@@ -14,7 +14,7 @@ for i; do
 		pkg_tar="gears/$i/pkg.tar"
 		if [ -s "$pkg_tar" ]; then
 			printf ' fetched at %s' \
-				"$(LC_TIME=C date -r "$pkg_tar" '+%Y-%b-%d %T')"
+				"$(LC_TIME=C date -u -r "$pkg_tar" '+%Y-%b-%d %T')"
 		fi
 	elif [ -s "gears/$i/srpm" ]; then
 		printf 'build %s' "$(cat "gears/$i/srpm")"

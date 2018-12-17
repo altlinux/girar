@@ -22,7 +22,7 @@ fi
 
 stamp_echo()
 {
-	echo "$(LC_TIME=C date '+%Y-%b-%d %T') :: $*"
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $*"
 }
 
 I="[$arch] $from${tag_name:+ $tag_name}: remote"
