@@ -3,9 +3,11 @@
 . gb-sh-functions
 
 arch="$1"; shift
+arch_from=${arch##*-}
 arch_to=${arch%%-*}
 
 acomp=${GB_AREPO_COMPONENT_NAME:-classic}
+topdir="$PWD"
 
 . gb-sh-tmpdir
 cd "$tmpdir"
@@ -18,11 +20,38 @@ rpm file:$GB_AREPO_DIR $arch $acomp
 EOF
 unmets ${GB_APT_CACHE_LIMIT:+-l $GB_APT_CACHE_LIMIT} -s sources.list > unmets
 
-if [ -s unmets ]; then
-	echo "  $arch: NEW unmet dependencies detected:"
-	cat unmets
-	#stamp_echo >&2 "[$arch] dependencies check FAILED"
-	exit 1
+if [ ! -s unmets ]; then
+	stamp_echo >&2 "[$arch] dependencies check OK"
+	exit 0
 fi
 
-stamp_echo >&2 "[$arch] dependencies check OK"
+echo "  $arch: NEW unmet dependencies detected:"
+cat unmets
+
+cut -f1 < unmets | cut -d'#' -f1 > unmets.bin
+sed -i "s/^${arch_from}-//; s/\\.32bit\$//" unmets.bin
+sort -u -o unmets.bin{,}
+
+join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
+sort -u -o unmets.srpms{,}
+
+sort -k3,3 "$topdir"/plan/next.src |
+	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
+sort -u -o unmets.src{,}
+
+join -v1 unmets.src "$topdir"/plan/add-src > unmets-new.src
+
+> unmets.acl
+while read -r src; do
+	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
+	list_notifiable_pkg_acl_members "$src"
+done < unmets-new.src >> "$topdir"/report/unmet-addressees
+sort -u -o "$topdir"/report/unmet-addressees{,}
+
+if [ -s unmets-new.src ]; then
+	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets-new.src)"
+	join -t$'\t' -a1 unmets-new.src unmets.acl
+fi
+
+#stamp_echo >&2 "[$arch] dependencies check FAILED"
+exit 1
