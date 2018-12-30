@@ -181,7 +181,7 @@ sort -o "$tmpdir"/rpms1{,}
 
 # Step 6: build.
 hsh-rebuild in/"$src" >build/log 2>&1 ||
-	{ . gb-remote-log; buildlog_errors build/log;
+	{ . ./gb-remote-log; buildlog_errors build/log;
 		  Fatal 'build failed'; } >&2
 hsh-rmchroot
 
