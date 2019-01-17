@@ -74,6 +74,7 @@ mv -fT -- "$latest.$task_id" "$latest"
 index_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
 echo "$task_id" >> "$index_dir/task.list"
 
+[ "${GB_DISABLE_COMMIT_GIRAR-}" = 'yes' ] ||
 for type in src; do
 	mkdir -p -- "$index_dir/$type"
 	while read -r N EVR I; do
