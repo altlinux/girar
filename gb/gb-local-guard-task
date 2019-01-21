@@ -10,9 +10,13 @@ exit 0
 
 . gb-sh-tmpdir
 
-find $GB_TASKS_DIR/$guard/build/ -mindepth 3 -maxdepth 3 -name chroot_\* -type f -print0 |
-	xargs -r0 cut -f1 -- $GB_TASKS_DIR/$guard/plan/add-bin $GB_TASKS_DIR/$guard/plan/rm-bin 2>/dev/null |
-	sort -u >"$tmpdir"/guard
+{
+	cut -f1 -- $GB_TASKS_DIR/$guard/plan/add-bin $GB_TASKS_DIR/$guard/plan/rm-bin 2>/dev/null
+	find $GB_TASKS_DIR/$guard/build/ -mindepth 3 -maxdepth 3 -name chroot_\* -type f -print0 |
+		xargs -r0 cut -f1 --
+} >"$tmpdir"/guard
+sort -u -o "$tmpdir"/guard{,}
+
 cut -f1 plan/add-bin plan/rm-bin 2>/dev/null |
 	sort -u >"$tmpdir"/change
 comm -12 "$tmpdir"/guard "$tmpdir"/change >"$tmpdir"/affected
