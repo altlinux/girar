@@ -5,8 +5,12 @@
 fail_if_task_abort_requested
 
 # force rebuild if force-rebuid flag is set
+force_rebuild=
 for i in $(src_nums); do
 	if [ -f "build/$i/force-rebuild" ]; then
+		force_rebuild=1
+	fi
+	if [ -n "$force_rebuild" ]; then
 		stamp_echo >&2 "#$i: force rebuild"
 		rm -rf "build/$i"
 	fi
