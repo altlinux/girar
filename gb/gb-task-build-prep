@@ -4,13 +4,27 @@
 
 fail_if_task_abort_requested
 
-# force rebuild if force-rebuid flag is set
 force_rebuild=
-for i in $(src_nums); do
-	if [ -f "build/$i/force-rebuild" ]; then
-		force_rebuild=1
+# find the first failed subtask
+for arch in $GB_ARCH; do
+	[ -s "build/force-rebuild-$arch" ] ||
+		continue
+
+	force_rebuild_arch="$(cat build/force-rebuild-"$arch")"
+	if [ -z "$force_rebuild" ] ||
+	   [ "$force_rebuild_arch" -lt "$force_rebuild" ]; then
+		force_rebuild="$force_rebuild_arch"
 	fi
-	if [ -n "$force_rebuild" ]; then
+
+	rm -f "build/force-rebuild-$arch"
+done
+
+[ -n "$force_rebuild" ] ||
+	exit 0
+
+for i in $(src_nums); do
+	# we need to rebuild the subtask and all subsequent subtasks
+	if [ "$i" -ge "$force_rebuild" ]; then
 		stamp_echo >&2 "#$i: force rebuild"
 		rm -rf "build/$i"
 	fi
