@@ -27,7 +27,7 @@ while read -r D T S V SID; do
 			"$T" \
 			"$S"
 	else
-		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/">%s</a>&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/#s%s">%s</a>&nbsp;</th><th align="right">&nbsp;%s</th></tr>\n' \
+		printf '<tr><th align="left">&nbsp;<a href="../../../../task/archive/%s/%s/">%s</a>&nbsp;</th><th align="left">&nbsp;%s&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/">%s</a>&nbsp;</th><th align="right">&nbsp;<a href="%s/tasks/archive/done/%s/%s/#s%s">%s</a>&nbsp;</th><th align="left">&nbsp;%s</th></tr>\n' \
 			"$G" "$T" "$date" \
 			"$V" \
 			"$GB_SITE" "$G" "$T" "$T" \
