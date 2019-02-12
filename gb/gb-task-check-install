@@ -10,7 +10,7 @@ fail_if_task_abort_requested
 
 . gb-sh-tmpdir
 
-for arch in $GB_ARCH; do
+for arch in ${GB_CHECK_INSTALL_ARCH:-$GB_ARCH}; do
 	$0-arch "$arch" || {
 		stamp_echo "[$arch] install check FAILED" >>"$tmpdir"/FAIL
 		if [ -f task/fail-early -a ! -f task/abort ]; then
