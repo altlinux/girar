@@ -33,30 +33,6 @@ Fatal()
 	exit 1
 }
 
-examine_excludearch_exclusivearch()
-{
-	local srpm exclude_arch exclusive_arch
-	srpm="$1"; shift
-
-	exclude_arch="$(rpmquery --qf '[%{excludearch}\n]' -p "$srpm")"
-	if [ -n "$exclude_arch" ] && printf '%s\n' "$exclude_arch" |fgrep -qx "$arch"; then
-		printf "%s: Architecture is excluded: %s\n" "${srpm##*/}" "$arch" >build/excluded
-		exit 0
-	fi
-
-	exclusive_arch="$(rpmquery --qf '[%{exclusivearch}\n]' -p "$srpm")"
-	if [ -n "$exclusive_arch" ] && ! printf '%s\n' "$exclusive_arch" |fgrep -qx "$arch"; then
-		printf "%s: Architecture is not included: %s\n" "${srpm##*/}" "$arch" >build/excluded
-		exit 0
-	fi
-}
-
-# If source is src.rpm, examine ExcludeArch and ExclusiveArch early.
-rm -f build/excluded
-if [ "$from" = "$src" ]; then
-	examine_excludearch_exclusivearch in/"$src"
-fi
-
 if [ -n "$swift" -a -s build/chroot_base -a -f build/chroot_BR ]; then
 	mkdir -p hasher_repo/$arch/RPMS.hasher hasher_repo/SRPMS.hasher
 	(set +f
@@ -132,6 +108,7 @@ mkdir ~/SRPMS
 ln --target-directory ~/SRPMS/ -- "$@"
 EOF
 
+rm -f build/excluded
 hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --query-repackage --no-sisyphus-check in/"$src" \
 	>build/srpm.log 2>&1 ||
 	{
@@ -147,9 +124,6 @@ hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --query-repackage --no-sisyphus-c
 srpm="$(find hasher/chroot/usr/src/SRPMS -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f)" &&
 	srpm_name="$(rpmquery --qf '%{name}' -p "$srpm")" ||
 		Fatal 'cannot build valid src.rpm'
-
-# Examine ExcludeArch and ExclusiveArch.
-examine_excludearch_exclusivearch "$srpm"
 
 # Step 3: examine BuildRequires.
 hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
