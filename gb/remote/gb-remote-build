@@ -180,7 +180,7 @@ find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 6: build.
-hsh-rebuild in/"$src" >build/log 2>&1 ||
+hsh-rebuild --query-repackage in/"$src" >build/log 2>&1 ||
 	{ . ./gb-remote-log; buildlog_errors build/log;
 		  Fatal 'build failed'; } >&2
 hsh-rmchroot
