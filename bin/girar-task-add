@@ -191,7 +191,6 @@ validate_srpm_build()
 srpm_tmp_locked=
 validate_srpm_rebuild()
 {
-	local repo_norm
 	repo_norm="$(girar-normalize-repo-name "$repo")"
 	srpm_name="$(printf %s "$package" |
 		join -o2.3 - $STATE_DIR/repo/$repo_norm/release/latest/files/list/src.list)"
@@ -486,7 +485,7 @@ case "$action" in
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm_name" >gears/$i/sid
-	touch gears/$i/rebuild
+	printf '%s\n' "$repo_norm" >gears/$i/rebuild
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: rebuild srpm $srpm_name"
