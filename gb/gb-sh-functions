@@ -166,7 +166,7 @@ is_ver1_lt_ver2()
 	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -lt 0 ] || return 1
 }
 
-# When coping packages, versions may be equal
+# When copying packages, versions may be equal
 is_ver1_le_ver2()
 {
 	local EVR1="${1:?}" EVR2="${2:?}"
