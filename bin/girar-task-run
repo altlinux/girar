@@ -17,6 +17,7 @@ If no task id is specified, the latest task created by the current user
 will be choosen.
 
 Options:
+  -m <message>  use the given <message> as the reason for this build;
   --dry-run     stop right before queueing the task;
   --fail-early  stop building the task after the first error;
   --test-only   stop after test, do not commit the task;
@@ -30,8 +31,13 @@ dry_run=
 fail_early=
 test_only=
 swift_only=
+task_msg=
 while :; do
 	case "${1-}" in
+		-m) shift
+		    [ "$#" -ge 1 ] ||
+			show_usage 'not enough arguments.'
+		    task_msg="$1" ;;
 		--dry-run) dry_run=1 ;;
 		--fail-early) fail_early=1 ;;
 		--test-only) test_only=1; swift_only= ;;
@@ -246,6 +252,11 @@ fi
 
 # remove "abort" flag
 rm -f task/abort
+
+# save the message for posterity
+[ -z "$task_msg" ] ||
+	(umask 002; printf '%s\n' "$task_msg" > task/message) ||
+	false
 
 echo "$GIRAR_USER" > task/run
 

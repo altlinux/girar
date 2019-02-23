@@ -13,6 +13,7 @@ TASK_ID/task/run		girar user id started the latest try
 TASK_ID/task/fail-early		fail-early flag
 TASK_ID/task/test-only		test-only flag
 TASK_ID/task/depends		list of done task numbers the task depends on
+TASK_ID/task/message		message specified by "task run -m"
 
 # Task logs.
 TASK_ID/logs/events.$try.$iter.log	log of important events during $try.$iter stage

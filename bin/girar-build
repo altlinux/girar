@@ -23,6 +23,7 @@ or \`rebuild <package_name>' or \`del <package_name>'
 or \`copy <package_name>'.
 
 Options:
+  -m <message>    use the given <message> as the reason for this build;
   -b <binary_repository_name>     set a target binary package repository;
   --deps <deps>   set a comma-separated list of required task id numbers;
   --fail-early    stop building the task after the first error;
@@ -32,7 +33,7 @@ EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o b: -l deps:,fail-early,test-only,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o b:m: -l deps:,fail-early,test-only,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
@@ -40,10 +41,12 @@ deps=
 repo=
 fail_early=
 test_only=
+task_msg=
 while :; do
 	case "$1" in
 		--) shift; break ;;
 		-b) shift; repo="$1" ;;
+		-m) shift; task_msg="$1" ;;
 		--deps) shift; deps="$1" ;;
 		--fail-early) fail_early="$1" ;;
 		--test-only) test_only="$1" ;;
@@ -112,4 +115,7 @@ for arg; do
 	esac
 done
 
-girar-task run $fail_early $test_only "$id"
+set -- $fail_early $test_only
+[ -z "$task_msg" ] ||
+	set -- "$@" -m "$task_msg"
+girar-task run "$@" "$id"
