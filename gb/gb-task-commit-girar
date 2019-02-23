@@ -162,16 +162,15 @@ girar_commit_copy()
 		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
 		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
 		update_git_timestamp
+		girar_obsolete "$GB_SRPMS_DIR"
 	else
-		if [ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ]; then
-			girar_obsolete "$GB_GEARS_DIR"
-		fi
 		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
 		[ -n "$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ] &&
 			text=updated || text=created
 		git branch -f "$GB_REPO_NAME" "refs/heads/$copy_repo"
 		stamp_echo >&2 "$text $GIT_DIR branch \`$GB_REPO_NAME'"
 		update_git_timestamp
+		girar_obsolete "$GB_GEARS_DIR"
 	fi
 }
 
@@ -183,6 +182,7 @@ girar_commit()
 		# build from gear
 		set_GIT_DIR "$GB_GEARS_DIR" "$N"
 		girar_commit_git
+		girar_obsolete "$GB_SRPMS_DIR"
 	elif [ -s "gears/$I/srpm" ]; then
 		# build from srpm
 		set_GIT_DIR "$GB_SRPMS_DIR" "$N"
@@ -207,6 +207,7 @@ join -v2 plan/add-src plan/rm-src > "$tmpdir"/rm
 
 while read -r N EVR F P I; do
 	girar_obsolete "$GB_GEARS_DIR"
+	girar_obsolete "$GB_SRPMS_DIR"
 done <"$tmpdir"/rm
 
 gb-y-make-git-html-index $(printf '%s\n' "$updated_dirs" |sort -u)
