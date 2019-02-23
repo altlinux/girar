@@ -100,7 +100,12 @@ girar_commit_srpm()
 		git clone -q -s --bare --template=/var/empty "$GIT_DIR" "$tmp_repo/.git"
 		cd "$tmp_repo"
 		git config core.bare false
-		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm" ||:
+		local tmp_log="$tmpdir/srpmimport.log"
+		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" \
+			-- "$srpm" > "$tmp_log" 2>&1 && cat "$tmp_log" || {
+			grep -Fxq 'nothing to commit, working tree clean' "$tmp_log" ||
+				cat "$tmp_log"
+		}
 		cd - >/dev/null
 
 		export GIT_DIR
