@@ -180,10 +180,15 @@ halt_build_queue()
 	return 1
 }
 
+maybe_cancel()
+{
+	[ -f task/abort ]
+}
+
 fail_if_task_abort_requested()
 {
-	if [ -f task/abort ]; then
-		stamp_echo >&2 "${1:+$1 }task processing ABORTED"
+	if maybe_cancel; then
+		stamp_echo >&2 "${1:+$1 }task processing CANCELLED"
 		exit 1
 	fi
 }

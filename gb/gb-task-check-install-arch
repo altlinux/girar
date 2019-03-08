@@ -45,8 +45,8 @@ while read -r N EVR A F P I; do
 		fi
 	fi
 
-	if [ -f task/abort ]; then
-		stamp_echo >&2 "[$arch] #$I $N: install check ABORTED"
+	if maybe_cancel; then
+		stamp_echo >&2 "[$arch] #$I $N: install check CANCELLED"
 		rc=1
 		break
 	fi
