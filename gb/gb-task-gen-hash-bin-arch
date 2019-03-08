@@ -2,14 +2,14 @@
 
 . gb-sh-functions
 
-fail_if_task_abort_requested
-
-. gb-sh-tmpdir
-
 arch="$1"; shift
 rm_f="$1"; shift
 add_a_p="$1"; shift
 list_a_f="$1"; shift
+
+fail_if_task_abort_requested "[$arch]"
+
+. gb-sh-tmpdir
 
 echo "$arch" | join -o 2.2 - "$add_a_p" > "$tmpdir"/add-P
 echo "$arch" | join -o 2.2 - "$list_a_f" > "$tmpdir"/list-F

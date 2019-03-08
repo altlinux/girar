@@ -183,7 +183,7 @@ halt_build_queue()
 fail_if_task_abort_requested()
 {
 	if [ -f task/abort ]; then
-		stamp_echo >&2 'task processing ABORTED'
+		stamp_echo >&2 "${1:+$1 }task processing ABORTED"
 		exit 1
 	fi
 }

@@ -7,10 +7,7 @@ arch="$1" i="$2"; shift 2
 . gb-sh-functions
 . gb-sh-tmpdir
 
-if [ -f task/abort ]; then
-	stamp_echo >&2 "[$arch] task processing ABORTED"
-	exit 1
-fi
+fail_if_task_abort_requested "[$arch]"
 
 userid="$(cat gears/$i/userid)"
 if [ -s "gears/$i/dir" ]; then

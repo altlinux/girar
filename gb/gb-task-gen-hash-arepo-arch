@@ -2,9 +2,9 @@
 
 . gb-sh-functions
 
-fail_if_task_abort_requested
-
 arch="$1"; shift
+
+fail_if_task_abort_requested "[$arch]"
 
 . gb-sh-tmpdir
 
