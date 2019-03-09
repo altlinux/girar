@@ -20,7 +20,7 @@ for state; do
 	set +f
 	for d in [1-9]*; do
 		# skip obviously invalid findings
-		[ "$d"/task/iter ] ||
+		[ -f "$d"/task/iter ] ||
 			continue
 		# idle and test-only tasks do not count
 		if [ -f "$d"/task/idle -o -f "$d"/task/test-only ]; then
