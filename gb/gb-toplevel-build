@@ -27,6 +27,8 @@ pid=
 while :; do
 	exit_if_stopped_by_global_cutout_switches
 
+	# give gb-toplevel-commit a chance to win the race
+	sleep 1
 	# It's better to wait for the committer to finish its current batch of work:
 	# there might appear tasks in new states in a short while.
 	stamp_echo waiting until the committer has no work
@@ -43,8 +45,6 @@ while :; do
 	if [ -n "$id" ]; then
 		stamp_echo "task $id"
 		gb-build-task "$id" ||:
-		# give gb-toplevel-commit a chance to win the race
-		sleep 1
 		continue
 	fi
 	stamp_echo waiting
