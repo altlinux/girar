@@ -27,6 +27,11 @@ pid=
 while :; do
 	exit_if_stopped_by_global_cutout_switches
 
+	# It's better to wait for the committer to finish its current batch of work:
+	# there might appear tasks in new states in a short while.
+	stamp_echo waiting until the committer has no work
+	(builtin lockf -s "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending") ||:
+
 	if [ -z "$pid" ]; then
 		inotifywait -q -t 60 -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/awaiting" &
 		pid=$!
