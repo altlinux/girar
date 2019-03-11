@@ -73,7 +73,7 @@ check_inheritance()
 	local new_id="$1"; shift
 	local old_id="$1"; shift
 
-	if [ -z "$(GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" git log -n1 --pretty=format:1 ^"$new_id" "$old_id")" ]; then
+	if GIT_ALTERNATE_OBJECT_DIRECTORIES="${1-}" git merge-base --is-ancestor -- "$old_id" "$new_id"; then
 		rm -f "check-git-inheritance/.$i"
 		return 0
 	else
