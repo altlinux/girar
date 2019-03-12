@@ -14,8 +14,9 @@ Source: %name-%version.tar
 Requires(pre): shadow-utils
 # due to "enable -f /usr/lib/bash/lockf lockf"
 Requires: bash-builtin-lockf >= 0:0.2
-# due to post-receive hook
-Requires: git-core >= 0:1.5.1
+# due to post-receive hook (>= 0:1.5.1)
+# due to merge-base --is-ancestor
+Requires: git-core >= 0:1.8.0
 # due to girar-task-add
 Requires: gear
 # due to gb-sh-rpmhdrcache
