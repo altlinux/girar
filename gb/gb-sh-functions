@@ -180,6 +180,12 @@ halt_build_queue()
 	return 1
 }
 
+exit_if_stopped_by_global_cutout_switches()
+{
+	[ ! -f STOP ] || exit 0
+	[ ! -f "$GB_STOP_FILE" ] || exit 0
+}
+
 maybe_cancel()
 {
 	[ -f task/abort ]

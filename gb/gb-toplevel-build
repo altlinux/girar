@@ -25,9 +25,7 @@ PATH="$PWD:$PATH"
 
 pid=
 while :; do
-	# Check for global cutout switches.
-	[ ! -f STOP ] || exit 0
-	[ ! -f "$GB_STOP_FILE" ] || exit 0
+	exit_if_stopped_by_global_cutout_switches
 
 	if [ -z "$pid" ]; then
 		inotifywait -q -t 60 -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/awaiting" &
