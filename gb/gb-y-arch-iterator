@@ -11,10 +11,7 @@ for arch in $GB_ARCH; do
 		me=${0##*/}
 		prefix="[$arch] ${me#gb-task-}"
 		stamp_echo "$prefix FAILED" >>"$tmpdir"/FAIL
-		if [ -f task/fail-early -a ! -f task/abort ]; then
-			touch task/abort
-			stamp_echo >&2 "$prefix task abort requested"
-		fi
+		task_change_state_to_failing "[$arch]"
 	} &
 done
 

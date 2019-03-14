@@ -63,10 +63,12 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$i")\"" \
 	"\"$(quote_shell "$task_try")\"" \
 	"\"$(quote_shell "$task_iter")\"" \
-	$swift ||
-		{ stamp_echo >&2 "$I build FAILED";
-		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
-		  exit 1; }
+	$swift || {
+	stamp_echo >&2 "$I build FAILED"
+	gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/"
+	task_change_state_to_failing "[$arch]"
+	exit 1
+}
 
 # copy build result from remote side
 gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "$remote_host:build/" "build/$i/$arch/"
@@ -101,6 +103,7 @@ rpmsign()
 	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
 		printf '%s\n' "$out"
 		stamp_echo >&2 "$I $dir rpmsign FAILED"
+		task_change_state_to_failing "[$arch]"
 		exit 1
 	fi
 	mv $tmpdir/$dir-hash "build/$i/$arch"/$dir.signed
@@ -114,6 +117,7 @@ fi
 
 gb-task-pesign-arch-i "$arch" "$i" || {
 	stamp_echo >&2 "$I pesign FAILED"
+	task_change_state_to_failing "[$arch]"
 	exit 1
 }
 rpmsign rpms

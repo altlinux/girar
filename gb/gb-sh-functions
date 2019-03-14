@@ -186,9 +186,22 @@ exit_if_stopped_by_global_cutout_switches()
 	[ ! -f "$GB_STOP_FILE" ] || exit 0
 }
 
+task_change_state_to_failing()
+{
+	gb-x-girar task-change-state "$(cat task/id)" FAILING
+	if [ -f task/fail-early -a ! -f task/abort ]; then
+		touch task/abort
+		stamp_echo >&2 "${1:+$1 }requesting cancellation of task processing"
+	fi
+}
+
 maybe_cancel()
 {
-	[ -f task/abort ]
+	if [ -f task/abort ]; then
+		task_change_state_to_failing
+		return 0
+	fi
+	return 1
 }
 
 fail_if_task_abort_requested()

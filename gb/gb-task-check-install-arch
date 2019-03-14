@@ -62,6 +62,7 @@ while read -r N EVR A F P I; do
 	else
 		rm -rf "install/$N/$arch"
 		stamp_echo >&2 "[$arch] #$I $N: install check FAILED"
+		task_change_state_to_failing "[$arch]"
 		rc=1
 	fi
 done <plan/add-bin
