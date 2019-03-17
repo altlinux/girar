@@ -27,19 +27,20 @@ Options:
   -b <binary_repository_name>     set a target binary package repository;
   --deps <deps>   set a comma-separated list of required task id numbers;
   --fail-early    stop building the task after the first error;
+  --fail-late     do not stop building the task after the first error;
   --test-only     stop building the task after tests, do not commit;
   --help          show this text and exit.
 EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o b:m: -l deps:,fail-early,test-only,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o b:m: -l deps:,fail-early,fail-late,test-only,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
 deps=
 repo=
-fail_early=
+fail_mode=
 test_only=
 task_msg=
 while :; do
@@ -48,7 +49,7 @@ while :; do
 		-b) shift; repo="$1" ;;
 		-m) shift; task_msg="$1" ;;
 		--deps) shift; deps="$1" ;;
-		--fail-early) fail_early="$1" ;;
+		--fail-early|--fail-late) fail_mode="$1" ;;
 		--test-only) test_only="$1" ;;
 		--help) show_help ;;
 		*) show_usage "unrecognized option: $1" ;;
@@ -115,7 +116,7 @@ for arg; do
 	esac
 done
 
-set -- $fail_early $test_only
+set -- $fail_mode $test_only
 [ -z "$task_msg" ] ||
 	set -- "$@" -m "$task_msg"
 girar-task run "$@" "$id"

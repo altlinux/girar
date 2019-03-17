@@ -20,6 +20,7 @@ Options:
   -m <message>  use the given <message> as the reason for this build;
   --dry-run     stop right before queueing the task;
   --fail-early  stop building the task after the first error;
+  --fail-late   do not stop building the task after the first error;
   --test-only   stop after test, do not commit the task;
   --swift       enable swift mode (undocumented, RTFS);
   --help        show this text and exit.
@@ -28,7 +29,7 @@ EOF
 }
 
 dry_run=
-fail_early=
+fail_mode=
 test_only=
 swift_only=
 task_msg=
@@ -39,7 +40,7 @@ while :; do
 			show_usage 'not enough arguments.'
 		    task_msg="$1" ;;
 		--dry-run) dry_run=1 ;;
-		--fail-early) fail_early=1 ;;
+		--fail-early|--fail-late) fail_mode="$1" ;;
 		--test-only) test_only=1; swift_only= ;;
 		--swift) test_only=1; swift_only=1 ;;
 		--help) show_help ;;
@@ -223,14 +224,17 @@ mkdir -pm2775 arepo build plan
 # create group writable files required for build
 (umask 002; touch logs/events.$try.$iter.log task/iter task/try) || false
 
-# set/remove fail-early flag
-if [ -n "$fail_early" ]; then
-	[ -f task/fail-early ] ||
-		touch task/fail-early
-else
-	[ ! -f task/fail-early ] ||
-		rm task/fail-early
-fi
+# set/remove fail-early flag if requested
+case "$fail_mode" in
+	--fail-early)
+		[ -f task/fail-early ] ||
+			touch task/fail-early
+		;;
+	--fail-late)
+		[ ! -f task/fail-early ] ||
+			rm task/fail-early
+		;;
+esac
 
 # set/remove test-only flag
 if [ -n "$test_only" ]; then
