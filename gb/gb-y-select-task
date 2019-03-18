@@ -56,8 +56,9 @@ select_task()
 	iter="$(grep -h '^[1-9][0-9]*$' task/iter)" || exit
 	[ "$iter" -ge "$min_iter" ] || exit
 
-	# is the max iteration number in target queue greater than 1?
-	if [ "$max_target_iter" -gt 1 ]; then
+	# Is the task is not test-only and
+	# the max iteration number in target queue greater than 1?
+	if [ "$max_target_iter" -gt 1 ] && [ ! -f task/test-only ]; then
 		# fail unless iteration number equals to 1 or greater than max
 		[ "$iter" -eq 1 -o "$iter" -gt "$max_target_iter" ] || exit
 	fi
