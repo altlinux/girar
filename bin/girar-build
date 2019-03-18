@@ -29,19 +29,20 @@ Options:
   --fail-early    stop building the task after the first error;
   --fail-late     do not stop building the task after the first error;
   --test-only     stop building the task after tests, do not commit;
+  --commit        commit the task after tests;
   --help          show this text and exit.
 EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o b:m: -l deps:,fail-early,fail-late,test-only,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o b:m: -l commit,deps:,fail-early,fail-late,test-only,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
 deps=
 repo=
 fail_mode=
-test_only=
+test_mode=
 task_msg=
 while :; do
 	case "$1" in
@@ -50,7 +51,7 @@ while :; do
 		-m) shift; task_msg="$1" ;;
 		--deps) shift; deps="$1" ;;
 		--fail-early|--fail-late) fail_mode="$1" ;;
-		--test-only) test_only="$1" ;;
+		--commit|--test-only) test_mode="$1" ;;
 		--help) show_help ;;
 		*) show_usage "unrecognized option: $1" ;;
 	esac
@@ -116,7 +117,7 @@ for arg; do
 	esac
 done
 
-set -- $fail_mode $test_only
+set -- $fail_mode $test_mode
 [ -z "$task_msg" ] ||
 	set -- "$@" -m "$task_msg"
 girar-task run "$@" "$id"

@@ -22,27 +22,34 @@ Options:
   --fail-early  stop building the task after the first error;
   --fail-late   do not stop building the task after the first error;
   --test-only   stop after test, do not commit the task;
-  --swift       enable swift mode (undocumented, RTFS);
+  --commit      commit the task after tests;
+  --hurry       enable undocumented swift mode;
+  --unhurry     disable undocumented swift mode;
   --help        show this text and exit.
 EOF
 	exit
 }
 
+TEMP="$(getopt -n "$PROG" -o m: -l commit,dry-run,fail-early,fail-late,hurry,test-only,unhurry,help -- "$@")" ||
+        show_usage
+eval set -- "$TEMP"
+
 dry_run=
 fail_mode=
-test_only=
-swift_only=
+test_mode=
+swift_mode=
 task_msg=
 while :; do
 	case "${1-}" in
+		--) shift; break ;;
 		-m) shift
 		    [ "$#" -ge 1 ] ||
 			show_usage 'not enough arguments.'
 		    task_msg="$1" ;;
 		--dry-run) dry_run=1 ;;
 		--fail-early|--fail-late) fail_mode="$1" ;;
-		--test-only) test_only=1; swift_only= ;;
-		--swift) test_only=1; swift_only=1 ;;
+		--commit|--test-only) test_mode="$1" ;;
+		--hurry|--unhurry) swift_mode="$1" ;;
 		--help) show_help ;;
 		*) break;
 	esac
@@ -79,6 +86,26 @@ case "$state" in
 	*)
 		fatal "task #$id is in unrecognized state \"$state\"" ;;
 esac
+
+if [ -z "$test_mode" ]; then
+	if [ -f task/test-only ]; then
+		test_mode='--test-only'
+	else
+		test_mode='--commit'
+	fi
+fi
+
+if [ -z "$swift_mode" ]; then
+	if [ -f task/swift ]; then
+		swift_mode='--hurry'
+	else
+		swift_mode='--unhurry'
+	fi
+fi
+
+if [ "$test_mode $swift_mode" = '--commit --hurry' ]; then
+	fatal 'cannot commit in a hurry'
+fi
 
 [ -n "$(find acl -mindepth 1 -maxdepth 1 -path 'acl/[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
@@ -206,7 +233,7 @@ fi
 iter=1
 
 next_state=AWAITING
-if [ "$state" = TESTED -a -z "$test_only" ]; then
+if [ "$state" = TESTED ] && [ "$test_mode" = '--commit' ]; then
 	next_state=PENDING
 fi
 if [ "$next_state" = AWAITING -a -s task/depends ]; then
@@ -236,23 +263,29 @@ case "$fail_mode" in
 		;;
 esac
 
-# set/remove test-only flag
-if [ -n "$test_only" ]; then
-	[ -f task/test-only ] ||
-		touch task/test-only
-else
-	[ ! -f task/test-only ] ||
-		rm task/test-only
-fi
+# set/remove test-only flag if requested
+case "$test_mode" in
+	--test-only)
+		[ -f task/test-only ] ||
+			touch task/test-only
+		;;
+	--commit)
+		[ ! -f task/test-only ] ||
+			rm task/test-only
+		;;
+esac
 
-# set/remove swift flag
-if [ -n "$swift_only" ]; then
-	[ -f task/swift ] ||
-		touch task/swift
-else
-	[ ! -f task/swift ] ||
-		rm task/swift
-fi
+# set/remove swift flag if requested
+case "$swift_mode" in
+	--hurry)
+		[ -f task/swift ] ||
+			touch task/swift
+		;;
+	--unhurry)
+		[ ! -f task/swift ] ||
+			rm task/swift
+		;;
+esac
 
 # remove "abort" flag
 rm -f task/abort
