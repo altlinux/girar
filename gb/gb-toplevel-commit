@@ -33,6 +33,8 @@ while :; do
 		stamp_echo "forked $pid"
 	fi
 
+	min_iter="$(gb-y-calc-max-iter BUILDING PENDING)" ||
+		min_iter=0
 	(
 		# Abuse our queue dir to signal that we are busy
 		# (and might have some work done soon).
@@ -41,8 +43,6 @@ while :; do
 		while :; do
 			exit_if_stopped_by_global_cutout_switches
 
-			min_iter="$(gb-y-calc-max-iter BUILDING PENDING)" ||
-				min_iter=0
 			stamp_echo "selecting min_iter=$min_iter"
 			id="$(gb-y-select-task PENDING COMMITTING "$min_iter")" ||
 				id=
@@ -53,6 +53,14 @@ while :; do
 	) || exit # bash3 needs an explicit exit here (unlike bash4)
 
 	stamp_echo waiting
+
+	# Give gb-toplevel-build a chance to start building tasks
+	# with iter >= $min_iter, before we recalculate min_iter.
+	# (We might have just put such a task into awaiting state,
+	# and if we continue, we might worsen the situation for it
+	# by committing a task with a lesser iter after recalculating min_iter.)
+	sleep 2
+
 	wait $pid ||
 	{
 		[ $? -eq 2 ] || exit
