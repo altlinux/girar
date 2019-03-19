@@ -241,7 +241,7 @@ case "$action" in
 	if [ $# -ge 1 ]; then
 		copy_repo="$1"; shift
 	fi
-	[ -n "$copy_repo" ] || copy_repo=sisyphus
+	[ -n "$copy_repo" ] || copy_repo="${GIRAR_DEFAULT_REPO:-sisyphus}"
 	copy_repo="$(girar-normalize-repo-name "$copy_repo")"
 	;;
 	srpm)
