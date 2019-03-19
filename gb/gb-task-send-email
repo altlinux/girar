@@ -42,7 +42,7 @@ else
 	stry=
 fi
 
-if [ "$repo" != sisyphus ]; then
+if [ "$repo" != "${GB_DEFAULT_REPO:-sisyphus}" ]; then
 	srepo=" $repo"
 else
 	srepo=
