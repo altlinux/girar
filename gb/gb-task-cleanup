@@ -8,7 +8,12 @@ done
 
 for arch in $GB_ARCH noarch; do
 	rm -rf -- build/repo/$arch/base.{prev,next}
+	rm -f -- bad_elf_symbols/$arch.hash
 done
+
+if [ -d bad_elf_symbols ]; then
+	find bad_elf_symbols/ -empty -delete
+fi
 
 for arch in ${GB_AREPO_ARCH-}; do
 	rm -rf -- arepo/$arch/base

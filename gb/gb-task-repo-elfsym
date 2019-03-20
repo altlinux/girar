@@ -7,46 +7,64 @@ fail_if_task_abort_requested
 # This check does not apply to noarch packages.
 fgrep -qs -xv noarch plan/change-arch || exit 0
 
+mkdir -pm2775 bad_elf_symbols
+
 repo1="$GB_REPO_DIR"
 
 # Reuse our temporary repo.
 repo2="$GB_TMP_REPO_DIR"
 
 . gb-sh-tmpdir
-cd "$tmpdir"
 
+cached_arches=
 for arch in $GB_ARCH; do
+	grep -Fqsx $arch plan/change-arch ||
+		continue # this task does not change $arch
+
+	sha256sum < "$repo2/$arch/base/pkglist.classic.xz" > "$tmpdir/$arch.hash"
+	if cmp -s "$tmpdir/$arch.hash" bad_elf_symbols/$arch.hash; then
+		cached_arches="$cached_arches $arch"
+		continue
+	fi
+
 	(
 		. gb-sh-rpmhdrcache
 
 		# Assume that the only component worth checking is "classic".
 		bad_elf_symbols_dircmp.pl \
 				{"$repo1","$repo2"}/$arch/RPMS.classic \
-				> $arch-bes.plus 3> $arch-bes.minus ||
-			echo $? >>FAIL
+				> bad_elf_symbols/$arch.new 3> bad_elf_symbols/$arch.old ||
+			echo $? >>"$tmpdir/FAIL"
 	) &
 done
+[ -z "$cached_arches" ] ||
+	stamp_echo >&2 "[${cached_arches# }] no need to repeat ELF symbols check"
+
 wait
-if [ -s FAIL ]; then
-	if fgrep -qsx 12 FAIL; then
+if [ -s "$tmpdir/FAIL" ]; then
+	if grep -Fqsx 12 "$tmpdir/FAIL"; then
 		halt_build_queue
 	fi
 	stamp_echo >&2 "ELF symbols check FAILED"
 	exit 1
 fi
 
-rc=0 text=OK
+rc=0 text=OK checked_arches=
 
 for arch in $GB_ARCH; do
-	if [ -s $arch-bes.plus ]; then
+	[ -s "$tmpdir/$arch.hash" ] ||
+		continue
+	if [ -s bad_elf_symbols/$arch.new ]; then
 		echo "	$arch: NEW bad_elf_symbols detected:"
-		cat $arch-bes.plus
+		cat bad_elf_symbols/$arch.new
 		rc=1 text=FAILED
 	fi >&2
-	if [ -s $arch-bes.minus ]; then
+	if [ -s bad_elf_symbols/$arch.old ]; then
 		echo "	$arch: old bad_elf_symbols resolved:"
-		cat $arch-bes.minus
+		cat bad_elf_symbols/$arch.old
 	fi >&2
+	mv -- "$tmpdir/$arch.hash" bad_elf_symbols/
+	checked_arches="$checked_arches $arch"
 done
 
 if [ "$rc" = 1 ]; then
@@ -64,7 +82,7 @@ EOF
 	too_bad=
 	for arch in $GB_ARCH; do
 		# Bad symbols which are not part of allow-bad-p?
-		if egrep -qs -v -f allow-bad-p -- $arch-bes.plus; then
+		if egrep -qs -v -f allow-bad-p -- bad_elf_symbols/$arch.new; then
 			too_bad=1
 			break
 		fi
@@ -75,5 +93,5 @@ EOF
 	fi
 fi
 
-stamp_echo >&2 "ELF symbols check $text"
+stamp_echo >&2 "[${checked_arches# }] ELF symbols check $text"
 exit $rc
