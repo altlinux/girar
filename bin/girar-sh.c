@@ -37,9 +37,9 @@ typedef struct
 } cmd_t;
 
 static cmd_t commands[] = {
-	{"build", "girar-build", " [-b <binary_repository_name>] <gear_repo_1> <gear_tag_1> ..."},
-	{"task", "girar-task", " {--help|ls|show|new|add|delsub|run|share|approve|rm} ..."},
-	{"acl", "girar-acl", " {--help|<binary_repository_name> ...}"},
+	{"build", "girar-build", " {--help | [options] <arguments> ..."},
+	{"task", "girar-task", " {--help | <command> [options] ..."},
+	{"acl", "girar-acl", " {--help | <arguments> ...}"},
 	{"quota", "girar-quota", ""},
 };
 
