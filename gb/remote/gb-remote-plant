@@ -24,6 +24,8 @@ cd
 # create cache directory
 cache_dir="cache/$repo_name/$arch/$whatis"
 mkdir -p -- "$cache_dir"
+# remove stale aptbox cache if any
+rm -f "$cache_dir"/chroot/aptbox.tar
 
 # recreate directories
 recreate_dirs='in apt build install base_repo hasher_repo lists'
