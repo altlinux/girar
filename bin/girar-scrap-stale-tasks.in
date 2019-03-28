@@ -1,0 +1,26 @@
+#!/bin/sh -efu
+
+cd @TASKS_DIR@
+cd stale
+cd - > /dev/null
+
+enable -f /usr/lib/bash/lockf lockf
+# obtain an exclusive lock on the whole TASKS directory
+builtin lockf .
+
+[ -z "${PATH##@CMD_DIR@:*}" -o -z "${PATH%%*:@CMD_DIR@}" ] ||
+	PATH="@CMD_DIR@:$PATH"
+
+for t in $(set +f && echo [1-9]*); do
+	s="$t/task/state"
+	[ -s "$s" ] ||
+		continue
+	[ -n "$(find "$s" -maxdepth 0 -type f -mtime +28)" ] ||
+		continue
+	state="$(tr '[:upper:]' '[:lower:]' < "$s")" ||
+		continue
+	[ -n "$state" ] ||
+		continue
+	girar-task-update-queues "$t" "$state" ''
+	mv -- "$t" stale ||:
+done

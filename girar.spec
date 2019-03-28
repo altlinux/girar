@@ -122,7 +122,7 @@ if [ $1 -eq 1 ]; then
 	fi
 	crontab -u pender - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-commit sisyphus
-	40	1	*	*	*	/usr/libexec/girar/girar-scrap-archived-tasks
+	40	1	*	*	*	/usr/libexec/girar/girar-scrap-stale-tasks
 	EOF
 	crontab -u awaiter - <<-'EOF'
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
@@ -170,8 +170,8 @@ fi
 
 %dir %attr(3775,pender,tasks) /tasks/
 %dir %attr(3775,root,pender) /tasks/archive/
-%dir %attr(1770,root,pender) /tasks/archive/.trash/
-%dir %attr(775,root,pender) /tasks/archive/*
+%dir %attr(775,root,pender) /tasks/archive/done/
+%dir %attr(1770,root,pender) /tasks/stale/
 %dir %attr(755,root,root) /tasks/index/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
 
