@@ -57,16 +57,14 @@ fi
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 gb-x-girar task-change-state "$id" "$state"
 
-if [ "$rc" != 0 ]; then
-	gb-task-send-email "$id"
-	exit $rc
-fi
-
-gb-task-close-bugs ||:
-gb-task-report-vulns ||:
-gb-task-cleanup ||:
 gb-task-send-email "$id"
-gb-task-archive "$id" ||:
-gb-y-awake-tasks "$id" ||:
+
+if [ "$rc" = 0 ]; then
+	gb-y-awake-tasks "$id" ||:
+	gb-task-close-bugs ||:
+	gb-task-report-vulns ||:
+	gb-task-cleanup ||:
+	gb-task-archive "$id" ||:
+fi
 
 exit $rc
