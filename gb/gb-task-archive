@@ -11,6 +11,16 @@ cd "$GB_TASKS_DIR/$id"
 cd "$GB_TASKS_DIR"
 k="_$(($id/1024))"
 
+host="${GB_REMOTE_TASKS_DONE_HOST-}"
+destdir="${GB_REMOTE_TASKS_DONE_DIR-}"
+if [ -n "$host" ] && [ -n "$destdir" ]; then
+	destdir="$destdir/$k"
+	gb-x-ssh "$host" mkdir -p "$destdir" &&
+	gb-x-rsync-loop -qrltH --exclude=check-git-inheritance \
+		"$id/" "$host:$destdir/$id/" &&
+	gb-x-ssh "$host" find "$destdir/$id/" -empty -delete ||:
+fi
+
 destdir="$GB_TASKS_DONE_DIR/$k"
 if [ ! -d "$destdir" ]; then
 	mkdir -- "$destdir"
