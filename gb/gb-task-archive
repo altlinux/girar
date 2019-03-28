@@ -10,6 +10,7 @@ cd "$GB_TASKS_DIR/$id"
 
 cd "$GB_TASKS_DIR"
 k="_$(($id/1024))"
+
 destdir="$GB_TASKS_DONE_DIR/$k"
 if [ ! -d "$destdir" ]; then
 	mkdir -- "$destdir"
@@ -21,8 +22,7 @@ if [ ! -d "$destdir" ]; then
 	ln -s -- "$k" "$GB_TASKS_DONE_DIR/current"
 
 fi
+
 mv -- "$id" "$destdir/"
 ln -snf ../../.."${GB_TASKS_DONE_DIR#$GB_TASKS_DIR}/$k/$id" \
 	index/"$GB_REPO_NAME"/done/
-
-gb-y-awake-tasks "$id" ||:

@@ -67,5 +67,6 @@ gb-task-report-vulns ||:
 gb-task-cleanup ||:
 gb-task-send-email "$id"
 gb-task-archive "$id" ||:
+gb-y-awake-tasks "$id" ||:
 
 exit $rc
