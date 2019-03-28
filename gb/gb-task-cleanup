@@ -12,7 +12,7 @@ for arch in $GB_ARCH noarch; do
 done
 
 if [ -d bad_elf_symbols ]; then
-	find bad_elf_symbols/ -empty -delete
+	find bad_elf_symbols/ -mindepth 1 -empty -delete ||:
 fi
 
 for arch in ${GB_AREPO_ARCH-}; do
