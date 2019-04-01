@@ -32,10 +32,16 @@ num="$1"; shift
 
 cd "$TASKS_DIR/$id"
 
+stamp="$(LC_TIME=C date -u '+%Y-%b-%d %T')"
 for i in $(gear_nums); do
 	[ -d "acl/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
 		continue
-	touch "acl/$i/$GIRAR_USER"
+	f="acl/$i/$GIRAR_USER"
+	if [ -s "$f" ]; then
+		message "$i: already approved"
+	else
+		printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+	fi
 	[ 'all' = "$num" ] ||
 		exit 0
 done
