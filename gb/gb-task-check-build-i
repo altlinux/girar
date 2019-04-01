@@ -187,13 +187,15 @@ check_sid()
 		dspi="$dir/$spi"
 		[ -f "$dspi" ] || continue
 
-		index_sid="$(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
-				"$dspi" |uniq)"
-		case "$index_sid" in
-			:) Fatal "$what but no source id has been recorded" ;;
-			''|:$sid) ;;
-			*) Fatal "$what from a different source: \`${index_sid#:}'" ;;
-		esac
+		for index_sid in \
+		    $(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
+		      "$dspi" |uniq); do
+			case "$index_sid" in
+				:) Fatal "$what but no source id has been recorded" ;;
+				''|:$sid) ;;
+				*) Fatal "$what from a different source: \`${index_sid#:}'" ;;
+			esac
+		done
 	done
 }
 
