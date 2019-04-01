@@ -10,14 +10,25 @@ show_help()
 	cat <<EOF
 $PROG - approve a subtask of a task
 
-Usage: $PROG <task id> <subtask number>
+Usage: $PROG [--revoke] <task id> <subtask number>
 EOF
 	exit
 }
 
-if [ "${1-}" = '--help' ]; then
-	show_help
-fi
+TEMP="$(getopt -n "$PROG" -o h -l revoke,help -- "$@")" ||
+        show_usage
+eval set -- "$TEMP"
+
+revoke=
+while :; do
+	case "${1-}" in
+		--) shift; break ;;
+		--revoke) revoke=1 ;;
+		-h|--help) show_help ;;
+		*) break;
+	esac
+	shift
+done
 
 if [ "$#" -gt 2 ]; then
 	show_usage 'too many arguments.'
@@ -37,10 +48,18 @@ for i in $(gear_nums); do
 	[ -d "acl/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
 		continue
 	f="acl/$i/$GIRAR_USER"
-	if [ -s "$f" ]; then
-		message "$i: already approved"
+	if [ -z "$revoke" ]; then
+		if [ -s "$f" ]; then
+			message "$i: already approved"
+		else
+			printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+		fi
 	else
-		printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+		if [ -s "$f" ]; then
+			rm "$f"
+		else
+			message "$i: nothing to revoke"
+		fi
 	fi
 	[ 'all' = "$num" ] ||
 		exit 0
