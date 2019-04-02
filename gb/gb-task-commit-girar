@@ -20,7 +20,7 @@ update_git_timestamp()
 	s="$(git for-each-ref "--format=%(tagger)" --sort=-taggerdate --count=1 refs/tags |
 		sed -n 's/.* \([1-9][0-9]\{9,\}\) [+-][0-9]\+$/\1/p')"
 	[ -n "$s" ] || return 0
-	touch --date="1970-01-01 $s seconds UTC" "$GIT_DIR"
+	touch --date="@$s" "$GIT_DIR"
 	updated_dirs="$updated_dirs
 ${GIT_DIR%/*}"
 }
