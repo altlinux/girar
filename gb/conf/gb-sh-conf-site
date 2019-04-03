@@ -21,7 +21,6 @@ GB_ACL_ADDON='@everybody'
 GB_ACL_NOAUTOASSIGN_USERS='repocop qa_ldv qa_glebfm'
 GB_LIST_OF_CHECKS_ALLOWED_TO_FAIL='gb-task-check-girar gb-task-check-lastchange'
 GB_STOP_FILE="$HOME/STOP"
-GB_LOCK_PEOPLE_DIR=/var/lock/girar/$LOGNAME
 GB_TRUST_GPG_NAMES="incominger updates"
 GB_APT_CACHE_LIMIT=134217728
 export OMP_NUM_THREADS=1

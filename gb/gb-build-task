@@ -14,16 +14,6 @@ if [ "$(cat task/state)" != BUILDING ]; then
 	exit 1
 fi
 
-# find out who is the filesystem owner of the task
-fsowner="$(stat -c %U .)"
-
-# obtain an exclusive lock on the per-fsowner-and-state file,
-# if the lock cannot be immediately acquired, requeue the test
-if ! builtin lockf -n "$GB_LOCK_PEOPLE_DIR/$fsowner.BUILDING"; then
-	gb-x-girar task-change-state "$id" AWAITING
-	exit 1
-fi
-
 try=$(cat task/try)
 iter=$(cat task/iter)
 log="logs/events.$try.$iter.log"
