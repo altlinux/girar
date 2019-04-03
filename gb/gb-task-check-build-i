@@ -175,7 +175,7 @@ check_sid()
 	local n="$1"; shift
 	local evr="$1"; shift
 	local sid="$1"; shift
-	local dir spi dspi qevr index_sid what
+	local repo_dir dir spi qevr what
 
 	[ -n "$sid" ] || return 0
 
@@ -183,19 +183,25 @@ check_sid()
 	what="package \`$n' version \`$evr' was already built"
 	spi="src/${n:0:1}/$n/d-t-s-evr.list"
 
-	for dir in $(set +f && echo $GB_REPO_ROOT/*/index); do
+	repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
+	for dir in $repo_dir $(set +f && echo $GB_REPO_ROOT/*/index); do
+		local dspi
 		dspi="$dir/$spi"
 		[ -f "$dspi" ] || continue
 
+		local index_sid found=
 		for index_sid in \
 		    $(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
 		      "$dspi" |uniq); do
 			case "$index_sid" in
-				:) Fatal "$what but no source id has been recorded" ;;
-				''|:$sid) ;;
+				:) Fatal "$what but no source id was recorded" ;;
+				:$sid) found=1 ;;
 				*) Fatal "$what from a different source: \`${index_sid#:}'" ;;
 			esac
 		done
+		if [ "$dir" = "$repo_dir" ] && [ -n "$found" ]; then
+			break
+		fi
 	done
 }
 
