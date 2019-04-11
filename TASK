@@ -71,7 +71,6 @@ TASK_ID/gears/$i/sid		source id (type:hash)
 TASK_ID/acl/$i/USER		USER@altlinux.org approved gears/$i/
 
 # Build results build/$i/ is 1-1 to gears/$i/, with per-arch subdirs.
-TASK_ID/build/force-rebuild-$arch	id of the 1st failed subtask on $arch
 TASK_ID/build/$i/$arch/try_iter		try.iter of completed subtask build
 TASK_ID/build/$i/$arch/chroot_base	hsh --initroot packages
 TASK_ID/build/$i/$arch/chroot_BR	BuildRequires packages
