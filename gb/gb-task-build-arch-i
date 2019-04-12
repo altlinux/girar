@@ -52,6 +52,13 @@ if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chro
 	swift=swift
 fi
 
+save_build_try_iter()
+{
+	printf %s "$task_try.$task_iter" > "build/$i/$arch/try_iter"
+}
+
+rm -f "build/$i/$arch/try_iter"
+
 # run the build on remote side
 gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
@@ -76,6 +83,7 @@ find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 
 if [ -s "build/$i/$arch/excluded" ]; then
+	save_build_try_iter
 	stamp_echo >&2 "$I build SKIPPED"
 	exit 0
 fi
@@ -84,6 +92,7 @@ fi
 grep -EHs 'WARNING: [^ ]+ is not yet (set-versioned|debuginfo-enabled)' "build/$i/$arch/log" ||:
 
 if [ -n "$swift" ]; then
+	save_build_try_iter
 	stamp_echo >&2 "$I build swiftly SKIPPED"
 	exit 0
 fi
@@ -122,4 +131,5 @@ gb-task-pesign-arch-i "$arch" "$i" || {
 }
 rpmsign rpms
 
+save_build_try_iter
 stamp_echo >&2 "$I build OK"
