@@ -22,9 +22,31 @@ done
 [ -n "$force_rebuild" ] ||
 	exit 0
 
+is_rebuild_needed()
+{
+	local arch total_arch= found_arch= this_ti= prev_ti
+	for arch in $GB_ARCH; do
+		total_arch="$total_arch $arch"
+		prev_ti="$this_ti"
+
+		this_ti="build/$i/$arch/try_iter"
+		[ -f "$this_ti" ] ||
+			continue
+
+		found_arch="$found_arch $arch"
+
+		[ -n "$prev_ti" ] ||
+			continue
+
+		cmp -s "$prev_ti" "$this_ti" ||
+			return 0
+	done
+
+	[ -n "$found_arch" ] && [ "$found_arch" != "$total_arch" ]
+}
+
 for i in $(src_nums); do
-	# we need to rebuild the subtask and all subsequent subtasks
-	if [ "$i" -ge "$force_rebuild" ]; then
+	if [ "$i" -ge "$force_rebuild" ] && is_rebuild_needed; then
 		stamp_echo >&2 "#$i: force rebuild"
 		rm -rf "build/$i"
 	fi
