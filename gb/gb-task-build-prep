@@ -30,6 +30,8 @@ is_rebuild_needed()
 for i in $(src_nums); do
 	if is_rebuild_needed; then
 		stamp_echo >&2 "#$i: force rebuild"
-		rm -rf "build/$i"
+		for arch in $GB_ARCH; do
+			rm -f "build/$i/$arch/chroot_base"
+		done
 	fi
 done
