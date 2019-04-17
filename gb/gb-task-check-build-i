@@ -26,7 +26,7 @@ get_sig_uid()
 srpm=
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"
-	I="${dir##*/} $(cat "gears/$i/tag_name")"
+	I="$I: ${dir##*/} $(cat "gears/$i/tag_name")"
 	tag_author="$(cat "gears/$i/tag_author")"
 	userid="$(get_sig_uid "$tag_author")"
 elif [ -s "gears/$i/srpm" ]; then
