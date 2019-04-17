@@ -17,11 +17,13 @@ fail()
 
 # check each built package separately
 for i in $(src_nums) $(copy_nums); do
+	fail_if_task_abort_requested
 	$0-i "$i" || fail "#$i"
 done
 
 # check all $arch packages in whole
 for arch in $GB_ARCH; do
+	fail_if_task_abort_requested
 	$0-arch "$arch" || fail "$arch"
 done
 
