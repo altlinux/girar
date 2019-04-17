@@ -250,3 +250,5 @@ for arch in $GB_ARCH; do
 	echo "$built_pkgname" > pkgname
 	break
 done
+
+stamp_echo >&2 "$I: build check OK"
