@@ -36,7 +36,7 @@ for arch1 in "$@"; do
 		continue
 	fi
 	if is_excluded "$arch1"; then
-		echo >&2 "warning ($i): $arch1: non-verifiable noarch packages, due to ExclusiveArch"
+		echo >&2 "warning (#$i): $arch1: non-verifiable noarch packages due to ExclusiveArch"
 		continue
 	fi
 	for arch2 in "$@"; do
