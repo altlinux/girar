@@ -120,8 +120,14 @@ case "$state" in
 			fi
 		else
 			state=FAILED
-		fi ;;
-	*) rc=1; state=FAILED ;;
+			rm -f task/abort
+		fi
+		;;
+	*)
+		rc=1
+		state=FAILED
+		rm -f task/abort
+		;;
 esac
 
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
