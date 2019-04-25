@@ -39,6 +39,7 @@ if rpmquery --provides -p "$F_path" |
 else
 	release=altlinux-release-$GB_REPO_NAME
 fi
+export GB_UNCHECKED_INITROOT_CACHE="$release"
 
 topdir="$PWD"
 cd "$tmpdir"
