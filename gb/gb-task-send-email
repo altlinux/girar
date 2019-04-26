@@ -23,10 +23,17 @@ if [ "$state" = DONE ]; then
 else
 	url="$GB_SITE$GB_TASKS_DIR/$id/"
 fi
+if [ -f task/test-only ] &&
+   [ "$state" != TESTED ] &&
+   [ "$state" != SWEPT ]; then
+	test_only=' [test-only]'
+else
+	test_only=
+fi
 
 cc="$({
 	(set +f; cat gears/*/userid)
-	[ -f task/test-only -a "$state" != TESTED ] ||
+	[ -n "$test_only" ] ||
 		cat report/acl-addressees report/unmet-addressees
       } | grep ^. | sort -u | join -v1 - task/owner)"
 
@@ -71,8 +78,8 @@ X-girar-task-iter: $iter
 X-girar-task-status: $state
 X-girar-task-URL: $url
 X-girar-task-log: $log_file
-X-girar-task-summary: [#$id]$srepo $state$stry$summary
-Subject: [#$id]$srepo $state$stry$stripped_summary
+X-girar-task-summary: [#$id]${test_only}$srepo $state$stry$summary
+Subject: [#$id]${test_only}$srepo $state$stry$stripped_summary
 
 $url$log_file
 
