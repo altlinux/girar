@@ -120,13 +120,11 @@ case "$state" in
 			fi
 		else
 			state=FAILED
-			rm -f task/abort
 		fi
 		;;
 	*)
 		rc=1
 		state=FAILED
-		rm -f task/abort
 		;;
 esac
 
@@ -135,6 +133,7 @@ stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 if [ "$state" != TESTED -o -f task/test-only ]; then
 	gb-x-girar task-change-state "$id" "$state"
 	gb-task-send-email "$id"
+	rm -f task/abort 2> /dev/null ||:
 else
 	gb-x-girar task-change-state "$id" PENDING
 fi
