@@ -115,32 +115,88 @@ validate_tag_name()
 		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
-validate_rebuild()
+# side effects: tag_id, tag_name, PWD
+validate_gear_rebuild()
 {
-	local repo="${1-}"; shift
-	local sym id
-
-	sym="$(printf %s "$package" |cut -c1)"
-	dir="$GEARS_DIR/$sym/$package.git"
-	if [ ! -f "$dir/git-daemon-export-ok" ]; then
-		action=srpm-rebuild
-		validate_srpm_rebuild
-		return
-	fi
+	local commit_id
+	tag_id="$1"; shift
+	commit_id="$1"; shift
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
 	builtin lockf -s -v .
 	dir="$PWD"
 
-	id="$(git rev-parse --branches="[${repo:0:1}]${repo:1}")"
-	if [ -z "$id" ]; then
-		action=srpm-rebuild
-		validate_srpm_rebuild
-		return
-	fi
-	tag_name="$(git describe --exact-match "$id")"
+	[ "$(git rev-parse --verify "$tag_id^{commit}")" = "$commit_id" ] ||
+		fatal "sid \`gear:$sid' from src index for package \`$package' is out of sync with \`$repo_norm' gears repository"
+
+	tag_name="$(git cat-file tag "$tag_id" | sed -n '/^tag /s///p')"
 	validate_tag_name
+}
+
+# side effects: action, srpm
+validate_srpm_rebuild()
+{
+	local id
+	id="$1"; shift
+
+	srpm="$STATE_DIR/repo/$repo_norm/release/latest/files/SRPMS/$srpm_name"
+	[ "$(rpmquery --qf '%{sha1header}' -p "$srpm")" = "$id" ] ||
+		fatal "sid \`srpm:$sid' from src index for package \`$package' is out of sync with \`$srpm_name' in \`$repo_norm' repository"
+
+	action=srpm-rebuild
+	validate_srpm
+}
+
+# side effects: repo_norm, srpm_name, dir
+validate_rebuild()
+{
+	local package from_repo src_list evr sym spi sid commit_id
+	package="$1"; shift
+	from_repo="$1"; shift
+
+	repo_norm="$(girar-normalize-repo-name "$from_repo")"
+	src_list="$STATE_DIR/repo/$repo_norm/release/latest/files/list/src.list"
+	set -- $(printf %s "$package" | join -o2.2,2.3 - "$src_list")
+	[ $# -eq 2 ] ||
+		fatal "Invalid request to rebuild a nonexistent package \`$package' from \`$from_repo'"
+
+	evr="$1"; shift
+	srpm_name="$1"; shift
+	sym="${package:0:1}"
+	spi="$STATE_DIR/repo/$repo_norm/index/src/$sym/$package/d-t-s-evr.list"
+	set -- $(tail -n1 -- "$spi")
+	case $# in
+		5) ;;
+		4) fatal "src index for package \`$package' in repository \`$from_repo' doesn't contain a source id" ;;
+		*) fatal "Repository \`$from_repo' doesn't have a valid src index for package \`$package'" ;;
+	esac
+	[ "$4" = "$evr" ] ||
+		fatal "src index for package \`$package' is out of sync with repository \`$from_repo'"
+	sid="$5"
+
+	commit_id=
+	dir="$GEARS_DIR/$sym/$package.git"
+	if [ -f "$dir/git-daemon-export-ok" ]; then
+		commit_id="$(git --git-dir="$dir" rev-parse \
+				--branches="[${repo_norm:0:1}]${repo_norm:1}")"
+	fi
+
+	case "$sid" in
+		gear:*)
+			[ -z "$commit_id" ] || {
+				validate_gear_rebuild "${sid#gear:}" "$commit_id"
+				return
+			}
+			;;
+		srpm:*)
+			[ -n "$commit_id" ] || {
+				validate_srpm_rebuild "${sid#srpm:}"
+				return
+			}
+			;;
+	esac
+	fatal "sid \`$sid' from src index for package \`$package' is out of sync with \`$from_repo' gears repository"
 }
 
 nevr=
@@ -186,16 +242,6 @@ validate_srpm_build()
 	}
 
 	popd >/dev/null
-}
-
-srpm_tmp_locked=
-validate_srpm_rebuild()
-{
-	repo_norm="$(girar-normalize-repo-name "$repo")"
-	srpm_name="$(printf %s "$package" |
-		join -o2.3 - $STATE_DIR/repo/$repo_norm/release/latest/files/list/src.list)"
-	srpm="$STATE_DIR/repo/$repo_norm/release/latest/files/SRPMS/$srpm_name"
-	validate_srpm
 }
 
 handle_kmodules()
@@ -290,9 +336,7 @@ case "$action" in
 		fatal "Invalid request to delete a nonexistent package \`$package' from \`$repo'"
 	;;
 	rebuild)
-	girar-check-package-in-repo "$package" "$repo" ||
-		fatal "Invalid request to rebuild a nonexistent package \`$package' in \`$repo'"
-	validate_rebuild $repo
+	validate_rebuild "$package" "$repo"
 	;;
 	kmodules)
 	handle_kmodules
@@ -303,9 +347,7 @@ case "$action" in
 		fatal "Invalid request to copy package from \`$copy_repo' to \`$repo'"
 	[ "$repo" != "${GIRAR_DEFAULT_REPO:-sisyphus}" ] ||
 		fatal "Invalid request to copy package to \`$repo'"
-	girar-check-package-in-repo "$package" "$copy_repo" ||
-		fatal "Invalid request to copy nonexistent package \`$package' from \`$copy_repo'"
-	validate_rebuild $copy_repo
+	validate_rebuild "$package" "$copy_repo"
 	;;
 esac
 cd "$TASKS_DIR/$id"
