@@ -115,7 +115,7 @@ validate_tag_name()
 		fatal "$tag_name: unacceptable signature: login name \`$userid' not found"
 }
 
-validate_rebuild_dir()
+validate_rebuild()
 {
 	local repo="${1-}"; shift
 	local sym id
@@ -292,7 +292,7 @@ case "$action" in
 	rebuild)
 	girar-check-package-in-repo "$package" "$repo" ||
 		fatal "Invalid request to rebuild a nonexistent package \`$package' in \`$repo'"
-	validate_rebuild_dir $repo
+	validate_rebuild $repo
 	;;
 	kmodules)
 	handle_kmodules
@@ -305,7 +305,7 @@ case "$action" in
 		fatal "Invalid request to copy package to \`$repo'"
 	girar-check-package-in-repo "$package" "$copy_repo" ||
 		fatal "Invalid request to copy nonexistent package \`$package' from \`$copy_repo'"
-	validate_rebuild_dir $copy_repo
+	validate_rebuild $copy_repo
 	;;
 esac
 cd "$TASKS_DIR/$id"
