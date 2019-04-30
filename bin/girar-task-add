@@ -301,7 +301,7 @@ case "$action" in
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
 		fatal "Invalid request to copy package from \`$copy_repo' to \`$repo'"
-	[ "$repo" != 'sisyphus' ] ||
+	[ "$repo" != "${GIRAR_DEFAULT_REPO:-sisyphus}" ] ||
 		fatal "Invalid request to copy package to \`$repo'"
 	girar-check-package-in-repo "$package" "$copy_repo" ||
 		fatal "Invalid request to copy nonexistent package \`$package' from \`$copy_repo'"
