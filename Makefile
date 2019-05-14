@@ -119,7 +119,7 @@ admin_TARGETS = \
 	admin/girar-admin-sh-functions \
 	admin/girar-auth-add \
 	admin/girar-auth-zero \
-	admin/girar-branch-gears \
+	admin/girar-branch-gears-from-rip \
 	admin/girar-clone-repo \
 	admin/girar-del \
 	admin/girar-disable \

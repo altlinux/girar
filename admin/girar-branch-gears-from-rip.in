@@ -1,0 +1,56 @@
+#!/bin/sh -efu
+
+export IFS=' 	
+'
+export PATH='@CMD_DIR@:/bin:/usr/bin'
+umask 022
+. shell-error
+. girar-sh-config
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <BRANCH-REPO-NAME>"
+	exit 1
+}
+
+[ $# -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 1 ] ||
+	usage 'Too many arguments.'
+
+repo="$1"; shift
+
+printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$repo: invalid BRANCH-REPO-NAME specified"
+
+cd "$STATE_DIR/repo"
+
+[ -d "$repo" ] ||
+	fatal "$repo: repository not found"
+
+src_list="$repo/release/latest/files/list/src.list"
+spi_dir="$repo/index/src"
+
+while read name evr srpm; do {
+	sym="${name:0:1}"
+	spi="$spi_dir/$sym/$name/d-t-s-evr.list"
+	set -- $(tail -n1 -- "$spi")
+	[ $# -eq 5 ] && [ "$4" = "$evr" ] ||
+		continue
+	sid="$5"
+	case "$sid" in
+		gear:*)
+			tid="${sid#gear:}"
+			dir="$GEARS_DIR/$sym/$name.git"
+			;;
+		srpm:*)
+			tid="refs/tags/${evr#*:}"
+			dir="$SRPMS_DIR/$sym/$name.git"
+			;;
+		*) continue ;;
+	esac
+	[ ! -f "$dir/refs/heads/$repo" ] ||
+		continue
+	git --git-dir="$dir" branch "$repo" "$tid"
+} < /dev/null; done < "$src_list"
