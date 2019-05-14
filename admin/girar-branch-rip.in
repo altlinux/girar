@@ -1,0 +1,69 @@
+#!/bin/sh -efu
+
+export IFS=' 	
+'
+export PATH='@CMD_DIR@:/bin:/usr/bin'
+umask 022
+. shell-error
+. girar-sh-config
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <BRANCH-REPO-NAME> <FROM-REPO-NAME>"
+	exit 1
+}
+
+[ $# -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 2 ] ||
+	usage 'Too many arguments.'
+
+dst_repo="$1"; shift
+src_repo="$1"; shift
+
+printf %s "$dst_repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$dst_repo: invalid BRANCH-REPO-NAME specified"
+printf %s "$src_repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$src_repo: invalid FROM-REPO-NAME specified"
+
+cd "$STATE_DIR/repo"
+
+for repo in "$src_repo" "$dst_repo"; do
+	[ -d "$repo" ] ||
+		fatal "$repo: repository not found"
+done
+
+task_list="$dst_repo/index/task.list"
+if [ -f "$task_list" ]; then
+	fatal "$task_list: already exists"
+fi
+
+src_list="$dst_repo/release/latest/files/list/src.list"
+src_spi_dir="$src_repo/index/src"
+dst_spi_dir="$dst_repo/index/src"
+
+task_info="$dst_repo/release/latest/files/list/task.info"
+date_s="$(date -r "$task_info" +%s)"
+task_id="$(sed '/^task */!d;s///;q' "$task_info")"
+
+printf >&2 '%s: init from %s\n' "$dst_repo" "$task_id"
+
+mkdir -p -- "$dst_spi_dir"
+
+while read name evr srpm; do {
+	sym="${name:0:1}"
+	dst_dir="$dst_spi_dir/$sym/$name"
+	dst_spi="$dst_dir/d-t-s-evr.list"
+	[ ! -f "$dst_spi" ] ||
+		continue
+	src_spi="$src_spi_dir/$sym/$name/d-t-s-evr.list"
+	set -- $(tail -n1 -- "$src_spi")
+	[ $# -eq 5 ] && [ "$4" = "$evr" ] ||
+		continue
+	mkdir -p -- "$dst_dir"
+	printf '%s\t%s\t%s\t%s\t%s\n' "$date_s" "$task_id" '-' "$evr" "$5" \
+		> "$dst_spi"
+	touch -r "$task_info" "$dst_spi"
+	touch -r "$task_info" "$dst_dir"
+} < /dev/null; done < "$src_list"
