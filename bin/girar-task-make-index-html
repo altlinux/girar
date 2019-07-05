@@ -49,6 +49,18 @@ find_git_url()
 	done
 }
 
+get_num_arches()
+{
+	set -- $(gear_nums)
+	local num=0
+	for i; do
+		[ -d "build/$i" ] || continue
+		num="$(find build/"$i" -maxdepth 1 -mindepth 1 -type d | wc -l)"
+		break
+	done
+	echo "$num"
+}
+
 show_time()
 {
 	[ -f "$log" ] || exit 0
@@ -152,12 +164,15 @@ show_subtasks()
 	set -- $(gear_nums)
 	[ $# -ge 1 ] || return 0
 
-	local i userid print_userid= colspan=7 th_owner=
+	local i userid print_userid= base_colspan=3 results_colspan=1 num_arches th_owner=
+	num_arches=$(get_num_arches)
+	[ "$num_arches" = 0 ] ||
+		results_colspan=$num_arches
 	for i; do
 		userid="$(cat "gears/$i/userid")" || continue
 		if [ "$userid" != "$owner" ]; then
 			print_userid=1
-			colspan=8
+			base_colspan=4
 			th_owner='<th>Owner</th>'
 			break
 		fi
@@ -165,9 +180,9 @@ show_subtasks()
 
 	printf '<table class="table table-striped table-bordered">\n'
 	printf '<tr><th colspan="%s"><h4>Subtasks</h4></th></tr>\n' \
-		"$colspan"
-	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="4">Build results</th></tr>\n' \
-		"$th_owner"
+		"$(($base_colspan + $results_colspan))"
+	printf '<tr><th>#</th>%s<th>Action</th><th>Source</th><th colspan="%s">Build results</th></tr>\n' \
+		"$th_owner" "$results_colspan"
 
 	for i; do
 		userid="$(cat gears/$i/userid)" || continue
