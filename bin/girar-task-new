@@ -22,6 +22,11 @@ if [ "${1-}" = '--help' ]; then
 	show_help
 fi
 
+# skip optional -b
+if [ "${1-}" = '-b' ]; then
+	shift
+fi
+
 if [ "$#" -gt 1 ]; then
 	show_usage 'too many arguments.'
 fi
