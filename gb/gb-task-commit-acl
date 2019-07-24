@@ -2,8 +2,9 @@
 
 . gb-sh-functions
 
-[ -z "${GB_DISABLE_ACL_UPDATE-}" ] ||
-	exit 0
+case "${GB_DISABLE_ACL_UPDATE-}" in
+        1|[Yy][Ee][Ss]) exit 0 ;;
+esac
 
 while read -r N EVR F P I; do
 	gb-x-girar check-orphaned "$N" "$GB_REPO_NAME" ||
