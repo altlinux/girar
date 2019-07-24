@@ -1,0 +1,36 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+case "${GB_DISABLE_COMMIT_INDEX-}" in
+	1|[Yy][Ee][Ss]) exit 0 ;;
+esac
+
+index_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
+task_id=$(cat task/id)
+task_info="$GB_REPO_DIR/files/list/task.info"
+date_s="$(date -r "$task_info" +%s)"
+echo "$task_id" >> "$index_dir/task.list"
+
+for type in src; do
+	mkdir -p -- "$index_dir/$type"
+	while read -r N EVR I; do
+		sym="$(printf %s "$N" |cut -c1)"
+		dir="$index_dir/$type/$sym/$N"
+		# sid is not defined for non-build methods
+		if [ -f gears/$I/sid ]; then
+			sid="$(cat gears/$I/sid)"
+		else
+			sid=
+		fi
+		mkdir -p -- "$dir"
+		touch -- "$dir"
+		printf '%s\t%s\t%s\t%s\t%s\n' \
+			"$date_s" "$task_id" "$I" "$EVR" "$sid" \
+			>> "$dir/d-t-s-evr.list"
+		gb-y-print-rip-html "$GB_REPO_NAME" "$N" \
+			"$dir/d-t-s-evr.list" > "$dir/index.html" ||:
+	done < plan/rip-$type
+
+	stamp_echo >&2 "$type index update OK"
+done

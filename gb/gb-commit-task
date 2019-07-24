@@ -38,6 +38,7 @@ log="logs/events.$try.$iter.log"
 	stamp_echo 'task is ready for commit'
 
 	gb-task-commit-repo
+	gb-task-commit-index
 	gb-task-commit-girar
 	gb-task-commit-acl
 )

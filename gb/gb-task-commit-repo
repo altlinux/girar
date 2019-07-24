@@ -68,7 +68,6 @@ cat > "$task_info" <<EOF
 task $task_id
 prev ${prev_repo_dir##*/}
 EOF
-date_s="$(date -r "$task_info" +%s)"
 
 stamp_echo >&2 'repo update OK'
 
@@ -87,31 +86,4 @@ ln -snf -- "../task/$task_id" "$latest.$task_id"
 readlink -ev -- "$latest.$task_id" > /dev/null
 mv -fT -- "$latest.$task_id" "$latest"
 
-# update index dirs
-index_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
-echo "$task_id" >> "$index_dir/task.list"
-
-[ "${GB_DISABLE_COMMIT_GIRAR-}" = 'yes' ] ||
-for type in src; do
-	mkdir -p -- "$index_dir/$type"
-	while read -r N EVR I; do
-		sym="$(printf %s "$N" |cut -c1)"
-		dir="$index_dir/$type/$sym/$N"
-		# sid is not defined for non-build methods
-		if [ -f gears/$I/sid ]; then
-			sid="$(cat gears/$I/sid)"
-		else
-			sid=
-		fi
-		mkdir -p -- "$dir"
-		touch -- "$dir"
-		printf '%s\t%s\t%s\t%s\t%s\n' \
-			"$date_s" "$task_id" "$I" "$EVR" "$sid" \
-			>> "$dir/d-t-s-evr.list"
-		gb-y-print-rip-html "$GB_REPO_NAME" "$N" \
-			"$dir/d-t-s-evr.list" > "$dir/index.html" ||:
-	done < plan/rip-$type
-done
-
-sync &
 stamp_echo >&2 'repo save OK'
