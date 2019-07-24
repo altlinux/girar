@@ -29,10 +29,6 @@ rm -f -- plan/next.{src,bin}{,.xz}
 
 while read -r N EVR F P I; do
 	[ -L "$P" ] || continue
-	t="gears/$I/$F"
-	if [ -f "$t" -a ! -L "$t" ]; then
-		cp -afl -- "$P" "$t" ||:
-	fi
 	for arch in $GB_ARCH; do
 		t="build/$I/$arch/srpm/$F"
 		[ "$P" != "$t" ] && [ -f "$t" -a ! -L "$t" ] || continue
