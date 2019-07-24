@@ -2,6 +2,10 @@
 
 . gb-sh-functions
 
+case "${GB_DISABLE_COMMIT_GIRAR-}" in
+	1|[Yy][Ee][Ss]) exit 0 ;;
+esac
+
 enable -f /usr/lib/bash/lockf lockf
 # Obtain an exclusive lock on the $GB_GEARS_DIR.
 builtin lockf -v "$GB_GEARS_DIR"
