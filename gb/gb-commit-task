@@ -41,6 +41,7 @@ log="logs/events.$try.$iter.log"
 	gb-task-commit-index
 	gb-task-commit-girar
 	gb-task-commit-acl
+	echo "$id" >> "$lockdir/task.list"
 )
 
 rc=$?

@@ -15,7 +15,7 @@ cd "$STATE_DIR/repo/$repo/task/archive/$dir/$task"
 [ -s files/list/task.info -a -s files/list/src.hash.xz ] || exit 0
 [ -n "$(find -maxdepth 0 -type d -mtime +32)" ] || exit 0
 
-utask="$(sed -n "/^$task\$/,\$ p" "$STATE_DIR/repo/$repo/index/task.list" |
+utask="$(sed -n "/^$task\$/,\$ p" "$STATE_DIR/repo/$repo/release/task.list" |
 	diff -U1 - "$STATE_DIR/upload/log/snapshot/$repo.log" |
 	sed '/^ /!d;s///;q')"
 [ -n "$utask" ] || exit 0

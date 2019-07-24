@@ -4,7 +4,7 @@
 
 repo="$1"; shift
 
-task_list="$STATE_DIR/repo/$repo/index/task.list"
+task_list="$STATE_DIR/repo/$repo/release/task.list"
 squeeze_list="$STATE_DIR/repo/$repo/task/squeeze.list"
 upload_list="$STATE_DIR/upload/log/snapshot/$repo.log"
 [ -f "$task_list" ] || exit 0
