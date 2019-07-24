@@ -35,7 +35,7 @@ while read -r N EVR F P I; do
 	fi
 	for arch in $GB_ARCH; do
 		t="build/$I/$arch/srpm/$F"
-		[ -f "$t" -a ! -L "$t" ] || continue
+		[ "$P" != "$t" ] && [ -f "$t" -a ! -L "$t" ] || continue
 		cp -afl -- "$P" "$t" ||:
 	done
 done < plan/add-src
