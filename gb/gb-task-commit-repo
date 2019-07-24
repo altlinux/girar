@@ -30,9 +30,26 @@ updated=
 for arch in $GB_ARCH noarch; do
 	repo_base="$GB_REPO_DIR/$arch/base"
 	next_base="build/repo/$arch/base.next"
-	cmp_file=pkglist.classic.xz
-	# If $cmp_file has not changed, skip the update for this $arch.
-	if cmp -s "$repo_base/$cmp_file" "$next_base/$cmp_file"; then
+	mandatory_comps='classic'
+	optional_comps='checkinstall debuginfo'
+	for comp in $optional_comps; do
+		cmp_file=pkglist.$comp.xz
+		if [ -f "$repo_base/$cmp_file" ] ||
+		   [ -f "$next_base/$cmp_file" ]; then
+			mandatory_comps="$mandatory_comps $comp"
+		fi
+	done
+	skip=1
+	for comp in $mandatory_comps; do
+		cmp_file=pkglist.$comp.xz
+		# If $cmp_file has changed,
+		# the update cannot be skipped for this $arch.
+		cmp -s "$repo_base/$cmp_file" "$next_base/$cmp_file" || {
+			skip=
+			break
+		}
+	done
+	if [ -n "$skip" ]; then
 		continue
 	fi
 	# NB: no --delete here, contents_index might be optimized out.
