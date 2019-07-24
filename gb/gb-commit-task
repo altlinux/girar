@@ -31,7 +31,7 @@ log="logs/events.$try.$iter.log"
 	# obtain a shared lock on the $GB_REPO_DIR
 	builtin lockf -sv "$GB_REPO_DIR"
 
-	# obtain an excludive lock on the $lockdir
+	# obtain an exclusive lock on the $lockdir
 	lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
 	builtin lockf -v "$lockdir"
 
