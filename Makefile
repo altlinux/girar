@@ -24,6 +24,7 @@ UPLOAD_DIR = ${STATE_DIR}/upload
 PEOPLE_DIR = /people
 PLUGIN_DIR = ${libexecdir}/girar
 RUNTIME_DIR = ${runtimedir}/girar
+PROJECT_PREFIX = @PROJECT_PREFIX@
 RUN_AS = @RUN_AS@
 SOCKDIR = @SOCKDIR@
 SOCKGRP = @SOCKGRP@
@@ -49,6 +50,7 @@ CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	-DPLUGIN_DIR=\"${PLUGIN_DIR}\" \
 	-DSRPMS_DIR=\"${SRPMS_DIR}\" \
 	-DSOCKDIR=\"${SOCKDIR}\" \
+	-DPROJECT_PREFIX=\"${PROJECT_PREFIX}\" \
 	-DRUN_AS=\"${RUN_AS}\" \
 	-DUSER_PREFIX=\"${USER_PREFIX}\"
 CFLAGS = -pipe -O2
@@ -83,9 +85,6 @@ bin_TARGETS = \
 	bin/girar-socket-forward-acl \
 	bin/girar-socket-forward-depot \
 	bin/girar-socket-forward-repo \
-	bin/girar-squeeze-archive \
-	bin/girar-squeeze-archive-repo \
-	bin/girar-squeeze-archive-repo-task \
 	bin/girar-task \
 	bin/girar-task-abort \
 	bin/girar-task-add \
@@ -146,13 +145,17 @@ TARGETS = \
 	${sudoers_TARGETS} \
 	#
 
-.PHONY: all install install-bin install-check install-data install-init \
-	install-lib install-sbin install-sudoers install-var
+install-TARGETS = install-bin install-check install-data install-init \
+		  install-lib install-sbin install-sudoers install-var
 
-all: ${TARGETS}
+GA_TARGETS = ${GA_sbin_TARGETS} ${GA_init_TARGETS}
+GA-install-TARGETS = GA-install-sbin GA-install-init GA-install-var
 
-install: install-bin install-check install-data install-init install-lib \
-	install-sbin install-sudoers install-var
+.PHONY: all install ${install-TARGETS} ${GA-install-TARGETS}
+
+all: ${TARGETS} ${GA_TARGETS}
+
+install: ${install-TARGETS} ${GA-install-TARGETS}
 
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${CMD_DIR}
@@ -200,10 +203,9 @@ install-var:
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
 		${DESTDIR}${STATE_DIR}/pender \
 		${DESTDIR}${STATE_DIR}/repo \
+		${DESTDIR}${STATE_DIR}/symlinkery \
 		${DESTDIR}${STATE_DIR}/upload/{copy,lockdir,log} \
 		${DESTDIR}${TASKS_DIR} \
-		${DESTDIR}${TASKS_DIR}/archive \
-		${DESTDIR}${TASKS_DIR}/archive/done \
 		${DESTDIR}${TASKS_DIR}/stale \
 		${DESTDIR}${TASKS_DIR}/index \
 		${DESTDIR}${girar_lockdir} \
@@ -229,6 +231,7 @@ bin/girar-sh: bin/girar-sh.c
 lib/rsync.so: lib/rsync.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -fpic -shared -ldl -o $@
 
+sbin/girar-proxyd-acl sbin/girar-proxyd-depot sbin/girar-proxyd-repo: PROJECT_PREFIX = girar
 sbin/girar-proxyd-acl sbin/girar-proxyd-depot sbin/girar-proxyd-repo: sbin/girar-proxyd.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
@@ -237,6 +240,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@RUN_AS@,${RUN_AS},g' \
 	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
 	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
+	    -e 's,@PROJECT_PREFIX@,girar,g' \
 		<$< >$@
 	chmod --reference=$< $@
 
@@ -266,3 +270,76 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@WEBAPI_URL@,${WEBAPI_URL},g' \
 		<$< >$@
 	chmod --reference=$< $@
+
+# GA
+GA_BIN_DIR = ${libexecdir}/girar-archiver
+GA_SBIN_DIR = ${sbindir}
+GA_LOG_DIR = /var/log/girar-archiver
+GA_RUNTIME_DIR = ${runtimedir}/girar-archiver
+GA_KICKER_DIR = ${GA_RUNTIME_DIR}/kicker
+GA_STATE_DIR = ${localstatedir}/girar-archiver
+
+GA_CPPFLAGS = -std=gnu99 ${WARNINGS} \
+	      -DGA_KICKER_DIR=\"${GA_KICKER_DIR}\" \
+	      -DCMD_DIR=\"${GA_BIN_DIR}\" \
+	      -DRUN_AS=\"${RUN_AS}\" \
+	      -DPROJECT_PREFIX=\"${PROJECT_PREFIX}\" \
+	      -DSOCKDIR=\"${SOCKDIR}\"
+
+GA_sbin_TARGETS = ga/ga_kicker-sh ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo
+GA_init_TARGETS = ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo
+
+ga/ga_kicker-sh: CPPFLAGS = ${GA_CPPFLAGS}
+ga/ga_kicker-sh: ga/ga_kicker-sh.c
+
+ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo: SOCKGRP = ga_tasker
+
+ga/init/ga-proxyd-ga_depot ga/ga-proxyd-ga_depot: RUN_AS = ga_depot
+ga/init/ga-proxyd-ga_repo ga/ga-proxyd-ga_repo: RUN_AS = ga_repo
+
+ga/init/ga-proxyd-ga_depot ga/ga-proxyd-ga_depot: SOCKDIR = ${GA_RUNTIME_DIR}/depot
+ga/init/ga-proxyd-ga_repo ga/ga-proxyd-ga_repo: SOCKDIR = ${GA_RUNTIME_DIR}/repo
+
+ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo: CPPFLAGS = ${GA_CPPFLAGS}
+ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo: PROJECT_PREFIX = ga
+ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo: ga/ga-proxyd.c
+	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo: ga/init/ga-proxyd.in
+	sed -e 's,@CMD_DIR@,${GA_BIN_DIR},g' \
+	    -e 's,@RUN_AS@,${RUN_AS},g' \
+	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
+	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
+	    -e 's,@PROJECT_PREFIX@,ga,g' \
+		<$< >$@
+	chmod --reference=$< $@
+
+GA-install-sbin: ${GA_sbin_TARGETS}
+	install -d -m755 ${DESTDIR}${GA_SBIN_DIR}
+	install -pm700 $^ ${DESTDIR}${GA_SBIN_DIR}/
+
+GA-install-init: ${GA_init_TARGETS}
+	install -d -m750 ${DESTDIR}${initdir}
+	install -pm755 $^ ${DESTDIR}${initdir}/
+
+GA-install-var:
+	install -d -m750 \
+		${DESTDIR}${GA_LOG_DIR} \
+		${DESTDIR}${GA_RUNTIME_DIR} \
+		${DESTDIR}${GA_RUNTIME_DIR}/depot \
+		${DESTDIR}${GA_RUNTIME_DIR}/repo \
+		${DESTDIR}${GA_KICKER_DIR} \
+		${DESTDIR}${GA_STATE_DIR} \
+		${DESTDIR}${GA_STATE_DIR}/attic \
+		${DESTDIR}${GA_STATE_DIR}/depot \
+		${DESTDIR}${GA_STATE_DIR}/depot/.tmp \
+		${DESTDIR}${GA_STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
+		${DESTDIR}${GA_STATE_DIR}/repo \
+		${DESTDIR}${GA_STATE_DIR}/repo/sisyphus \
+		${DESTDIR}${GA_STATE_DIR}/repo/sisyphus/{.tmp,date,task} \
+		${DESTDIR}${GA_STATE_DIR}/symlinkery \
+		${DESTDIR}${GA_STATE_DIR}/tasker \
+		${DESTDIR}${GA_STATE_DIR}/tasks \
+		${DESTDIR}${GA_STATE_DIR}/tasks/{.tmp,done} \
+		${DESTDIR}${GA_STATE_DIR}/upload/{copy,lockdir,log} \
+		#

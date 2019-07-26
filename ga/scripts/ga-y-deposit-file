@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-. gb-sh-functions
+. ga-sh-functions
 . shell-error
 
 file="$1"; shift
@@ -12,7 +12,7 @@ rfile="$(readlink -ev -- "$file")"
 
 set +e
 result="$(printf '%s\n' "$rfile" |
-		netcat -U "$GB_SOCKET_DIR/depot/socket" -e \
+		netcat -U "$GA_DEPOT_SOCKET_DIR/socket" -e \
 			'cat <&3 && cat >&4' 3<&0 4>&1)"
 set -e
 
@@ -22,4 +22,11 @@ if [ -n "${result##/*}" ]; then
 	printf >&2 '%s\n' "$result"
 	fatal "$file: failed to deposit"
 fi
-readlink -ev -- "$result"
+result="$(readlink -ev -- "$result")"
+if [ -n "${GA_STRIP_PREFIX-}" ]; then
+	result="${result#$GA_STRIP_PREFIX}"
+	[ -n "$result" ] ||
+		fatal 'result is empty'
+fi
+
+printf '%s\n' "$result"

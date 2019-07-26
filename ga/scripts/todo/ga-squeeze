@@ -1,0 +1,10 @@
+#!/bin/sh -efu
+
+. ga-sh-functions
+
+cd "$GA_STATE_DIR/repo"
+set +f
+for repo in [a-z0-9]*; do
+	[ -s "$repo"/task/task.list ] || continue
+	"$0-repo" "$repo"
+done

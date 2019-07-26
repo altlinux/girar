@@ -1,0 +1,51 @@
+#!/bin/sh -efu
+# The girar-archiver main loop.
+
+. shell-error
+
+GA_REPO_NAME="$1"; shift
+case "$GA_REPO_NAME" in
+	''|[^A-Za-z0-9]*|*/*|*..*)
+		fatal "repo $GA_REPO_NAME: Invalid argument" ;;
+esac
+export GA_REPO_NAME
+
+# Prepend the path to scripts.
+[ "${0%/*}" != "$0" ] ||
+	fatal 'Where am I?'
+PATH="${0%/*}:$PATH"
+
+. ga-sh-functions
+
+# Ensure that only one instance is running for the given repo.
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -n "$GA_REPO_DIR" || exit 0
+
+# Redirect stdio to the log.
+exec < /dev/null >> "$GA_LOG_DIR/$GA_REPO_NAME.log" 2>&1
+
+cd "$GA_KICKER_DIR"
+> "$GA_REPO_NAME"
+
+spawn_inotifywait=true
+while :; do
+	exit_if_aborted
+
+	if $spawn_inotifywait; then
+		inotifywait -qq -t 3600 -e close_nowrite "$GA_REPO_NAME" &
+	fi
+
+	sleep 1
+	stamp_echo executing
+
+	if ga-tasker-repo-iterate; then
+		# Start the next attempt immediately.
+		# There is no need to wait, and, therefore,
+		# no need to spawn inotifywait.
+		spawn_inotifywait=false
+	else
+		stamp_echo waiting
+		wait
+		spawn_inotifywait=true
+	fi
+done

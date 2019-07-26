@@ -182,7 +182,7 @@ handle_socket(int listen_fd)
 	dup2(0, 1);
 	dup2(0, 2);
 
-	const char *file = "girar-socket-forward-" RUN_AS;
+	const char *file = PROJECT_PREFIX "-socket-forward-" RUN_AS;
 	const char *const args[] = { file, pw->pw_name, NULL };
 	execvp(file, (char * const*) args);
 	syslog(LOG_ERR, "execvp: %s: %m", file);
@@ -239,7 +239,7 @@ main(int argc, __attribute__ ((unused)) const char *argv[])
 
 	nocldwait();
 
-	openlog("girar-proxyd-" RUN_AS, LOG_PERROR | LOG_PID, LOG_DAEMON);
+	openlog(PROJECT_PREFIX "-proxyd-" RUN_AS, LOG_PERROR | LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "waiting for requests");
 
 	for (;;)

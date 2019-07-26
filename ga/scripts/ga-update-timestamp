@@ -1,0 +1,16 @@
+#!/bin/sh -efu
+
+. shell-error
+
+GA_REPO_NAME=site
+export GA_REPO_NAME
+
+# Prepend the path to scripts.
+[ "${0%/*}" != "$0" ] ||
+	fatal 'Where am I?'
+PATH="${0%/*}:$PATH"
+
+. ga-sh-conf
+
+cd "$GA_UPLOAD_DIR"
+(flock 1; date +%s > .timestamp) >> .timestamp

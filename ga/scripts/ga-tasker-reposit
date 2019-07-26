@@ -1,0 +1,20 @@
+#!/bin/sh -efu
+
+. ga-sh-functions
+. shell-error
+
+task_id="$1"; shift
+[ "$task_id" -gt 0 ] 2>/dev/null ||
+	fatal "task $task_id: Invalid argument"
+
+set +e
+result="$(printf '%s %s\n' "$GA_REPO_NAME" "$task_id" |
+		netcat -U "$GA_REPO_SOCKET_DIR/socket" -e \
+			'cat <&3 && cat >&4' 3<&0 4>&1)"
+set -e
+
+case "$result" in
+	/*) ;;
+	*) fatal "$GA_REPO_NAME $task_id: reposited to '$result'" ;;
+esac
+readlink -ev -- "$result"

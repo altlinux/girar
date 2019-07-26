@@ -3,6 +3,7 @@ GB_TASKS_DONE_DIR="$GB_TASKS_DIR/archive/done"
 GB_GEARS_DIR=/gears
 GB_SRPMS_DIR=/srpms
 GB_REPO_ROOT=/var/lib/girar/repo
+GB_SYMLINK_DIR=/var/lib/girar/symlinkery
 GB_SOCKET_DIR=/var/run/girar
 GB_SITE='http://git.altlinux.org'
 GB_REPO_CODENAME="$(date +%s)"

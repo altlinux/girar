@@ -1,0 +1,35 @@
+#!/bin/sh -efu
+
+. ga-sh-functions
+. shell-quote
+. shell-temp
+
+create_temporary tmpdir
+cd "$tmpdir"
+
+# fetch remote task list
+ga-x-rsync-loop -q "$GA_REMOTE_TASK_LIST" task.list
+
+# compare with the local copy
+last_local=
+if [ -s "$GA_REPO_TASK_LIST" ]; then
+	last_local="$((flock -s 0; tail -n1) < "$GA_REPO_TASK_LIST")"
+fi
+if [ -n "$last_local" ]; then
+	# skip all tasks up to the last one
+	quote_sed_regexp_variable qlast_local "$last_local"
+	sed -n "1,/^$qlast_local\$/d;p" task.list
+else
+	# the local list is empty
+	cat task.list
+fi > todo.list
+
+# iterate over todo.list
+[ -s todo.list ] ||
+	fatal "$GA_REPO_NAME: nothing to do"
+while read task_id; do {
+	[ "$task_id" -gt 0 ] 2>/dev/null ||
+		fatal "$GA_REPO_NAME $task_id: invalid task id"
+	ga-tasker-import-repo "$task_id"
+	ga-tasker-import-task "$task_id"
+} < /dev/null; done < todo.list

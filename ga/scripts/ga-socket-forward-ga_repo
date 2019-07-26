@@ -1,0 +1,55 @@
+#!/bin/sh -efu
+
+. shell-error
+
+usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo >&2 "usage: $PROG <reponame> <taskno>"
+	exit 1
+}
+
+read line
+set -- $line
+unset line
+
+logger -t "$PROG" "$*"
+[ $# -ge 2 ] || usage 'Not enough arguments.'
+[ $# -le 2 ] || usage 'Too many arguments.'
+
+GA_REPO_NAME="$1"; shift
+case "$GA_REPO_NAME" in
+	''|[^A-Za-z0-9]*|*/*|*..*)
+		fatal "repo $GA_REPO_NAME: Invalid argument" ;;
+esac
+export GA_REPO_NAME
+
+task_id="$1"; shift
+[ "$task_id" -gt 0 ] 2>/dev/null ||
+	fatal "task $task_id: Invalid argument"
+
+# Prepend the path to scripts.
+[ "${0%/*}" != "$0" ] ||
+	fatal 'Where am I?'
+PATH="${0%/*}:$PATH"
+
+. ga-sh-functions
+src="$GA_REPO_TMP_DIR/$task_id"
+k="$(($task_id/1024))"
+dst_parent_dir="$GA_REPO_DIR/task/_$k"
+dst="$dst_parent_dir/$task_id"
+
+cd "$GA_REPO_DIR"
+
+if [ -e "$dst" ]; then
+	fatal "task $task_id: Task already reposited"
+fi
+[ -d "$src" ] ||
+	fatal "task $task_id: Task not ready"
+
+mkdir -p -- "$dst_parent_dir"
+ga-x-repo-savetree "$src" "$dst"
+readlink -ev -- "$dst"
+
+ln -rsnf -- "$dst" "$GA_REPO_DIR/latest"
+(flock 1; echo "$task_id") >> "$GA_REPO_TASK_LIST"

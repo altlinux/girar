@@ -52,7 +52,7 @@ install -d -m755 -o root -g root "$TASKS_DIR/index/$repo"
 install -d -m2775 -o root -g tasks "$TASKS_DIR/index/$repo"/{awaiting,building,committing,done,eperm,failing,failed,failure,new,pending,postponed,swept,tested}
 install -d -m755 -o root -g root repo/$repo
 install -d -m775 -o root -g repo repo/$repo/task
-install -d -m775 -o root -g repo repo/$repo/task/archive
+ln -s /archive/repo/$repo/task repo/$repo/task/archive
 install -d -m775 -o root -g pender repo/$repo/{index,release}
 install -d -m775 -o root -g upload repo/$repo/date
 su -l repo -s /bin/sh -c "cp -al -- '$from' '$STATE_DIR/repo/$repo/task/$id'"

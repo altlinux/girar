@@ -62,13 +62,11 @@ gb-x-girar task-change-state "$id" "$state"
 gb-task-send-email "$id"
 
 if [ "$rc" = 0 ]; then
+	gb-task-close-bugs &
+	gb-task-report-vulns &
+	gb-y-notify-archiver &
+	gb-y-reap-archived-repo &
 	gb-y-awake-tasks "$id" &
-	{
-		gb-task-close-bugs ||:
-		gb-task-report-vulns ||:
-		gb-task-cleanup ||:
-		gb-task-archive "$id" ||:
-	} &
 fi
 
 exit $rc

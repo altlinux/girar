@@ -1,0 +1,25 @@
+#!/bin/sh
+
+. ga-sh-conf
+
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
+}
+
+abort_queue()
+{
+	echo "${0##*/} failed in $PWD" >> "$GA_STOP_FILE"
+	stamp_echo >&2 "${0##*/} failed in $PWD"
+	return 1
+}
+
+exit_if_aborted()
+{
+	[ ! -f "$GA_STOP_FILE" ] || exit 0
+}

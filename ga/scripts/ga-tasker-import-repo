@@ -1,0 +1,98 @@
+#!/bin/sh -efu
+
+. ga-sh-functions
+. shell-error
+. shell-temp
+enable -f /usr/lib/bash/lockf lockf
+
+task_id="$1"; shift
+[ "$task_id" -gt 0 ] 2>/dev/null ||
+	fatal "task $task_id: Invalid argument"
+k="$(($task_id / 1024))"
+
+# obtain an exclusive lock on the whole repo/task tree
+builtin lockf -v "$GA_REPO_DIR/task"
+
+next_repo_dir="$GA_REPO_DIR/task/_$k/$task_id"
+if [ -d "$next_repo_dir" ]; then
+	fatal "$task_id: repo already exists"
+fi
+
+tmp_repo_dir="$GA_REPO_TMP_DIR/$task_id"
+if [ -d "$tmp_repo_dir" ]; then
+	fatal "$task_id: tmp repo already exists"
+fi
+
+create_temporary tmpdir
+
+# clone
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting repo clone"
+latest_repo_dir="$GA_REPO_DIR/latest"
+prev_repo_dir="$(readlink -ev -- "$latest_repo_dir")"
+cp -al -- "$prev_repo_dir" "$tmp_repo_dir"
+
+# download
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting repo download"
+ga-x-rsync-loop -irltx --delete \
+	--exclude='files/.timestamp' \
+	--exclude='files/list/*.list' \
+	--exclude='base/ds.*' \
+	-- "${GA_REMOTE_REPO_DIR}/task/$task_id/" "$tmp_repo_dir/" \
+	> $tmpdir/rsync.log
+sort -u -o $tmpdir/rsync.log{,}
+grep -E '^(>f|cL)' < $tmpdir/rsync.log > $tmpdir/todo.list ||:
+
+# deposit
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting repo deposit"
+deposit_file()
+{
+	local file deposited
+	file="$1"; shift
+	case "$file" in
+		*..*) return 0 ;;
+		*.rpm) ;;
+		*) return 0 ;;
+	esac
+	deposited="$(ga-y-deposit-file "$file")"
+	ln -v -nf -- "$deposited" "$file"
+}
+
+deposit_symlink()
+{
+	local target link name deposited
+	target="$1"; shift
+	link="$1"; shift
+	name="${target##*/}"
+
+	[ -n "$name" ] && [ -n "$link" ] || return 0;
+	deposited="$GA_SYMLINK_DIR/$name"
+
+	{
+		flock 0
+		[ -L "$deposited" ] ||
+			ln -v -sn -- "$target" "$deposited"
+	} < "$GA_SYMLINK_DIR"
+
+	ln -v -nf -- "$deposited" "$link"
+}
+
+cd "$tmp_repo_dir"
+while read -r item file dummy target; do {
+	case "$item" in
+		">f"*) deposit_file "$file" ;;
+		cL*) deposit_symlink "$target" "$file" ;;
+	esac
+} </dev/null; done < $tmpdir/todo.list
+cd - > /dev/null
+
+# reposit
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting repo save"
+reposited="$(ga-tasker-reposit "$task_id")"
+expected="$(readlink -ev -- "$next_repo_dir")"
+[ "$reposited" = "$expected" ] ||
+	fatal "expected $expected, reposited $reposited!"
+
+chmod u+w -- "$tmp_repo_dir"
+rm -rf -- "$tmp_repo_dir"
+
+stamp_echo >&2 "$GA_REPO_NAME $task_id: repo import complete"

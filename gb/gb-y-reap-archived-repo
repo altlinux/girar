@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+cd "$GB_REPO_ROOT/$GB_REPO_NAME/task"
+[ -d .done ] || exit 0
+cd .done
+
+set +f
+for task in [1-9]*; do
+	[ -d "$task" ] && $0-task "$task" ||:
+done

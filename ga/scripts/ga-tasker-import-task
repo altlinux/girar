@@ -1,0 +1,58 @@
+#!/bin/sh -efu
+
+. ga-sh-functions
+. shell-error
+. shell-temp
+enable -f /usr/lib/bash/lockf lockf
+
+task_id="$1"; shift
+[ "$task_id" -gt 0 ] 2>/dev/null ||
+	fatal "task $task_id: Invalid argument"
+k="$(($task_id / 1024))"
+
+cd "$GA_TASKS_DONE_DIR"
+# obtain an exclusive lock on the whole tasks/done tree
+builtin lockf -v .
+
+task_dir="_$k/$task_id"
+if [ -d "$task_dir" ]; then
+	fatal "$task_id: task already exists"
+fi
+mkdir -p "_$k"
+
+tmp_task_dir="$GA_TASKS_TMP_DIR/$task_id"
+mkdir -- "$tmp_task_dir"
+cd "$tmp_task_dir"
+
+create_temporary tmpdir
+
+# download
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting task download"
+ga-x-rsync-loop -irltxH \
+	--exclude=check-git-inheritance \
+	--exclude='gears/*/pkg.tar' \
+	--exclude='build/repo/*/base.*' \
+	--exclude='bad_elf_symbols/*.hash' \
+	--exclude='arepo/*/base' \
+	--exclude='arepo/*/pkg.list' \
+	--exclude='plan/arepo-pkg-*' \
+	--exclude='plan/arepo-table-*' \
+	--exclude='plan/*.hash.xz' \
+	--exclude='plan/next.*' \
+	-- "${GA_REMOTE_TASKS_DIR}/$task_id/" . \
+	> $tmpdir/rsync.log
+sort -u -o $tmpdir/rsync.log{,}
+sed -n -e 's|^>f[^ ]\+ \([[:alpha:]][^. ]\+/[^/ ]\+\.rpm\)$|\1|p' \
+       -e 's|^hf[^ ]\+ \([[:alpha:]][^. ]\+/[^/ ]\+\.rpm\) => .*|\1|p' \
+	< $tmpdir/rsync.log > $tmpdir/todo.list
+
+# deposit
+stamp_echo >&2 "$GA_REPO_NAME $task_id: starting task deposit"
+xargs -r ga-y-deposited-link-remove < $tmpdir/todo.list
+
+# cleanup
+find -empty -delete ||:
+
+cd - > /dev/null
+mv -T -- "$tmp_task_dir" "$task_dir"
+stamp_echo >&2 "$GA_REPO_NAME $task_id: task import complete"

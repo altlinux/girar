@@ -1,0 +1,103 @@
+#!/bin/sh -efu
+
+. shell-error
+
+GA_REPO_NAME=site
+export GA_REPO_NAME
+
+# Prepend the path to scripts.
+[ "${0%/*}" != "$0" ] ||
+	fatal 'Where am I?'
+PATH="${0%/*}:$PATH"
+
+. ga-sh-functions
+
+export TZ=UTC-4
+
+cd "$GA_UPLOAD_DIR/lockdir"
+enable -f /usr/lib/bash/lockf lockf
+builtin lockf -nv .
+
+day="$(($(date +%s)/86400))"
+date_file="$(date -d "@$((86400*$day))" '+%Y/%m/%d')"
+date_dir="${date_file%/*}"
+
+log_file="$GA_UPLOAD_DIR/log/_$day.log"
+dst_dir="$GA_UPLOAD_DIR/copy"
+cd "$dst_dir"
+
+cd "$GA_REPO_ROOT"
+
+exec < /dev/null >> "$log_file" 2>&1
+
+# snapshot
+
+f=files/list/task.info
+set +f
+for d in [A-Za-z0-9]?*; do
+	# do not introduce new repos
+	dst="$dst_dir/$d"
+	[ -d "$dst" ] || continue
+	src="$(readlink -ev -- "$d/latest/")" || continue
+
+	# obtain a shared lock on this repo
+	builtin lockf -n -s "$src" || continue
+
+	# skip unchanged repos
+	if cmp -s -- "$src/$f" "$dst/$f"; then
+		continue
+	fi
+
+	stamp_echo >&2 "replacing $dst with $src"
+	task="${src##*/}"
+	echo "$task" >> "$GA_UPLOAD_DIR/log/$d.log"
+	cp -al -- "$src" "$dst.new"
+
+	# re-introduce .timestamp
+	if [ -s "$GA_UPLOAD_DIR/.timestamp" ]; then
+		ln -v -Lnf -- "$GA_UPLOAD_DIR/.timestamp" "$dst.new/files/"
+	fi
+
+	# replace the old copy with the new one
+	mv -- "$dst" "$dst.old"
+	mv -- "$dst.new" "$dst"
+	stamp_echo >&2 "removing $dst.old"
+	chmod u+w -- "$dst.old"
+	rm -rf -- "$dst.old"
+
+	# create/update the link in the daily index
+	ti="_$(($task/1024))"
+	mkdir -p -- "$d/date/$date_dir"
+	ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
+	touch -hr "$src/$f" "$d/date/$date_file"
+done
+set -f
+
+# upload
+
+cd "$dst_dir"
+
+stamp_echo >&2 "uploading $date_file snapshot"
+rsync -vrltxH --delete-after --stats \
+	--exclude='base/ds.*' \
+	--exclude=x86_32 \
+	--exclude=armh \
+	--exclude=arm \
+	--exclude=school \
+	--exclude=icarus \
+	--exclude=4.0 \
+	--exclude=4.1 \
+	--exclude=5.0 \
+	--exclude=5.1 \
+	--exclude=c6 \
+	--exclude=c6.0 \
+	--exclude=c7.1 \
+	--exclude=c8.1 \
+	--exclude=p5 \
+	--exclude=p6 \
+	--exclude=t6 \
+	--exclude=p8/aarch64 \
+	--exclude=p8/files/aarch64 \
+	./ "${GA_REMOTE_UPLOAD_DIR}/" "$@"
+
+stamp_echo >&2 'done'

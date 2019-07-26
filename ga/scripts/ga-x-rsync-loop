@@ -1,0 +1,11 @@
+#!/bin/sh -efu
+
+for i in `seq 0 300`; do
+	rsync --timeout=300 "$@" && i= && break ||
+		sleep 1
+done
+
+[ -z "$i" ] || {
+	echo >&2 "${0##*/}: all attempts failed"
+	exit 1
+}

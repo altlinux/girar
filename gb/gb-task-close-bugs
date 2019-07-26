@@ -1,5 +1,9 @@
 #!/bin/sh -efu
 
+enable -f /usr/lib/bash/lockf lockf
+# obtain a shared lock on the TASKS structure
+builtin lockf -sv .
+
 . gb-sh-functions
 
 dir=mail/bugmail

@@ -1,0 +1,11 @@
+GA_LOG_DIR="/var/log/girar-archiver"
+GA_RUNTIME_DIR="/var/run/girar-archiver"
+GA_STATE_DIR="/var/lib/girar-archiver"
+
+GA_REMOTE_REPO_DIR="girar:/ALT/repo/${GA_REPO_NAME}"
+GA_REMOTE_TASKS_DIR="girar:/tasks"
+GA_REMOTE_TASK_LIST="${GA_REMOTE_REPO_DIR}/release/task.list"
+
+GA_STRIP_PREFIX="/space"
+
+GA_STOP_FILE="$HOME/STOP"

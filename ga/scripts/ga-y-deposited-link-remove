@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. ga-sh-conf
+
+exec < /dev/null
+
+for file; do
+	hash="$(sha256sum -- "$file")"
+	hash="${hash%% *}"
+	depot_file="$GA_DEPOT_DIR/${hash:0:2}/${hash:2:2}/${hash:4}"
+	if [ -f "$depot_file" ]; then
+		target_file="$(readlink -ev -- "$depot_file")"
+		[ -z "${GA_STRIP_PREFIX-}" ] ||
+			target_file="${target_file#$GA_STRIP_PREFIX}"
+		ln -v -snf -- "$target_file" "$file"
+	else
+		rm -v -f -- "$file"
+	fi
+done

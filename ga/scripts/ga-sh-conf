@@ -1,0 +1,36 @@
+#!/bin/sh -efu
+
+. ga-sh-conf-site
+: ${GA_REPO_NAME:?}
+. ga-sh-conf-$GA_REPO_NAME
+
+: ${GA_REPO_NAME:?}
+: ${GA_STOP_FILE:?}
+
+: ${GA_LOG_DIR:?}
+: ${GA_RUNTIME_DIR:?}
+: ${GA_STATE_DIR:?}
+
+: ${GA_REMOTE_REPO_DIR:?}
+: ${GA_REMOTE_TASKS_DIR:?}
+: ${GA_REMOTE_TASK_LIST:?}
+: ${GA_REMOTE_UPLOAD_DIR:?}
+
+: ${GA_DEPOT_DIR:=$GA_STATE_DIR/depot}
+
+: ${GA_REPO_ROOT:=$GA_STATE_DIR/repo}
+: ${GA_REPO_DIR:=$GA_REPO_ROOT/$GA_REPO_NAME}
+: ${GA_REPO_TMP_DIR:=$GA_REPO_DIR/.tmp}
+: ${GA_REPO_TASK_LIST:=$GA_REPO_DIR/task/task.list}
+
+: ${GA_SYMLINK_DIR:=$GA_STATE_DIR/symlinkery}
+
+: ${GA_TASKS_DIR:=$GA_STATE_DIR/tasks}
+: ${GA_TASKS_TMP_DIR:=$GA_TASKS_DIR/.tmp}
+: ${GA_TASKS_DONE_DIR:=$GA_TASKS_DIR/done}
+
+: ${GA_UPLOAD_DIR:=$GA_STATE_DIR/upload}
+
+: ${GA_KICKER_DIR:=$GA_RUNTIME_DIR/kicker}
+: ${GA_DEPOT_SOCKET_DIR:=$GA_RUNTIME_DIR/depot}
+: ${GA_REPO_SOCKET_DIR:=$GA_RUNTIME_DIR/repo}

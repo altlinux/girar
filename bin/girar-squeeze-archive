@@ -1,8 +1,0 @@
-#!/bin/sh -efu
-
-. girar-sh-functions
-
-for repo in $(valid_repositories); do
-	[ -d "$STATE_DIR/repo/$repo" ] || continue
-	"$0-repo" "$repo"
-done

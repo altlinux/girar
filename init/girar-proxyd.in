@@ -2,9 +2,9 @@
 #
 # chkconfig: 3 95 05
 # description: \
-#	The girar @RUN_AS@ proxy daemon.
+#	The @PROJECT_PREFIX@ proxy daemon for @RUN_AS@.
 #
-# processname: girar-proxyd-@RUN_AS@
+# processname: @PROJECT_PREFIX@-proxyd-@RUN_AS@
 
 WITHOUT_RC_COMPAT=1
 
@@ -13,7 +13,7 @@ WITHOUT_RC_COMPAT=1
 
 SOCKDIR='@SOCKDIR@'
 SOCKGRP='@SOCKGRP@'
-EXE=girar-proxyd-@RUN_AS@
+EXE=@PROJECT_PREFIX@-proxyd-@RUN_AS@
 LOCKFILE=/var/lock/subsys/"$EXE"
 RUN_AS=@RUN_AS@
 RETVAL=0

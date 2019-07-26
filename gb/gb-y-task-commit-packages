@@ -12,15 +12,31 @@ RM()
 
 CP()
 {
-	local deposited
-	deposited=$(gb-y-deposit-file "$1")
-	ln -v -- "$deposited" "$2"
-	ln -v -snf -- "$deposited" "$1"
+	local src dst header rsrc
+	src="$1"; shift
+	dst="$1"; shift
+	header="$(od -A n -N 4 -t x1 -- "$src")"
+	[ "$header" = ' ed ab ee db' ] ||
+		fatal "$src: unrecognized header: $header"
+	rsrc="$(readlink -ev -- "$src")"
+	install -vpm444 -- "$rsrc" "$dst"
 }
 
 LN()
 {
-	ln -v -s "$1" "$2"
+	local target link name deposited
+	target="$1"; shift
+	link="$1"; shift
+	name="${target##*/}"
+
+	[ -n "$name" ] && [ -n "$link" ] || return 0;
+	deposited="$GB_SYMLINK_DIR/$name"
+	{
+		flock 0
+		[ -L "$deposited" ] ||
+			ln -v -sn -- "$target" "$deposited"
+	} < "$GB_SYMLINK_DIR"
+	ln -v -n -- "$deposited" "$link"
 }
 
 guess_comp()
