@@ -126,6 +126,9 @@ make_repo_table()
 	local arch
 	if [ -s "$repo_dir/files/list/src.list" ]; then
 		sort -u "$repo_dir/files/list/src.list" >"$out.src"
+	elif [ -s "$repo_dir/files/list/src.list.xz" ]; then
+		xzcat "$repo_dir/files/list/src.list.xz" >"$out.src"
+		sort -u -o "$out.src"{,}
 	else
 		qsrc "$repo_dir"/files/SRPMS/ >"$out.src"
 		sort -u -o "$out.src"{,}
@@ -133,6 +136,9 @@ make_repo_table()
 
 	if [ -s "$repo_dir/files/list/bin.list" ]; then
 		sort -u "$repo_dir/files/list/bin.list" >"$out.bin"
+	elif [ -s "$repo_dir/files/list/bin.list.xz" ]; then
+		xzcat "$repo_dir/files/list/bin.list.xz" >"$out.bin"
+		sort -u -o "$out.bin"{,}
 	else
 		for arch in $GB_ARCH noarch; do
 			qbin "$repo_dir"/files/$arch/RPMS/
