@@ -6,11 +6,38 @@ fail_if_task_abort_requested
 
 id="$1"; shift
 
-for arch in $GB_ARCH noarch; do
+rm -rf build/repo/noarch
+
+for arch in $GB_ARCH; do
 	rm -rf "build/repo/$arch"
+	(
+		umask 002
+		mkdir -p "build/repo/$arch/base" "build/repo/$arch/RPMS.task"
+	) || exit
 done
 
-gb-task-gen-task-repo-skel
+while read -r N EVR A F P I; do
+	case "$A" in
+		noarch)
+			link=
+			for arch in $GB_ARCH; do
+				[ -f "build/$I/$arch/rpms/$F" ] ||
+					continue
+				if [ -n "$link" ]; then
+					ln -n -- "$link" \
+						"build/repo/$arch/RPMS.task/"
+				else
+					ln -rsn -- "$P" \
+						"build/repo/$arch/RPMS.task/"
+					link="build/repo/$arch/RPMS.task/$F"
+				fi
+			done
+			;;
+		*)
+			ln -rsn -- "$P" "build/repo/$A/RPMS.task/"
+			;;
+	esac
+done < plan/add-bin
 
 GB_REPO_COMPONENT_NAMES=task GB_REPO_ARCHIVE="task $id" GB_REPO_DESCRIPTION="task $id" GB_REPO_LABEL="task $id" GB_REPO_SUITE="task $id" GB_REPO_VERSION="task $id" \
 	gb-y-repo-regen-basedir --bloat build/repo
