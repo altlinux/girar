@@ -1,0 +1,27 @@
+#!/bin/sh -efu
+
+exec < /dev/null
+
+. ga-sh-conf
+
+k="$1"; shift
+
+for dir; do
+	[ -d "$dir" -a -f "$dir/config" -a -L "$dir/objects" ] ||
+		continue
+	dest="$dir/refs"
+	[ -e "$dest" ] || {
+		emptydir="$GA_SYMLINK_DIR/emptydir_$k"
+		[ -L "$emptydir" ] ||
+			ln -sn -- /var/empty "$emptydir"
+		ln -n -- "$emptydir" "$dest"
+	}
+	dest="$dir/git-daemon-export-ok"
+	[ -e "$dest" ] || {
+		nullfile="$GA_SYMLINK_DIR/nullfile_$k"
+		[ -L "$nullfile" ] ||
+			ln -sn -- /dev/null "$nullfile"
+		ln -n -- "$nullfile" "$dest"
+	}
+	touch -hr "$dir/objects" "$dir"
+done

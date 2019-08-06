@@ -53,6 +53,11 @@ xargs -r ga-y-deposited-link-remove < $tmpdir/todo.list
 # cleanup
 find -empty -delete ||:
 
+# resurrect empty git/refs and git/git-daemon-export-ok
+sed -n 's|^>f[^ ]\+ \(gears/[0-9]\+/git\)/config$|\1|p' \
+	< $tmpdir/rsync.log > $tmpdir/git.list
+xargs -r $0-fix-gears "$k" < $tmpdir/git.list
+
 cd - > /dev/null
 mv -T -- "$tmp_task_dir" "$task_dir"
 stamp_echo >&2 "$GA_REPO_NAME $task_id: task import complete"
