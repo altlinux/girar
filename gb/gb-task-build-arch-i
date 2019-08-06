@@ -110,7 +110,7 @@ rpmsign()
 		return 0
 	fi
 
-	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
+	if ! out=$(find "build/$i/$arch/$dir/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_PACKAGE_SIGNER" '{}' '+'); then
 		printf '%s\n' "$out"
 		stamp_echo >&2 "$I $dir rpmsign FAILED"
 		task_change_state_to_failing "[$arch]"

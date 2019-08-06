@@ -41,7 +41,7 @@ genbasedir "$@" \
 	--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
 	--suite="${GB_REPO_SUITE:-$label}" \
 	--version="${GB_REPO_VERSION:-$date_s}" \
-	-s --default-key="$GB_REPO_SIGNER" \
+	-s --default-key="$GB_INDEX_SIGNER" \
 	--topdir="$dir" \
 	--flat --no-oldhashfile --mapi --bz2only --xz --no-bz2 \
 	$arch $comp

@@ -93,7 +93,7 @@ sisyphus_check --no-check=arepo,gpg,python arepo/$arepo_arch/rpms ||
 	fail 'sisyphus_check FAILED'
 
 # sign the result
-if ! out=$(find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_REPO_SIGNER" '{}' '+'); then
+if ! out=$(find arepo/$arepo_arch/rpms -mindepth 1 -maxdepth 1 -type f -name '*.rpm' -execdir gb-x-rpmaddsign "$GB_PACKAGE_SIGNER" '{}' '+'); then
 	printf '%s\n' "$out"
 	fail 'rpmsign FAILED'
 fi

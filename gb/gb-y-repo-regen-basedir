@@ -76,7 +76,7 @@ for arch in $GB_ARCH noarch; do
 		--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
 		--suite="${GB_REPO_SUITE:-$label}" \
 		--version="${GB_REPO_VERSION:-$date_s}" \
-		-s --default-key="$GB_REPO_SIGNER" \
+		-s --default-key="$GB_INDEX_SIGNER" \
 		--topdir="$REPO_DIR" \
 		--flat --no-oldhashfile --bz2only --mapi \
 		$arch $comps ||
