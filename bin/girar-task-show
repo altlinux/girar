@@ -53,10 +53,16 @@ fi
 printf ' repo=%s' "$(cat task/repo)"
 printf ' owner=%s' "$(cat task/owner)"
 printf ' state=%s' "$(cat task/state)"
-printf ' try=%s' "$(cat task/try 2>/dev/null ||:)"
-printf ' iter=%s' "$(cat task/iter 2>/dev/null ||:)"
+try="$(cat task/try 2>/dev/null ||:)"
+printf ' try=%s' "$try"
+iter="$(cat task/iter 2>/dev/null ||:)"
+printf ' iter=%s' "$iter"
+log="logs/events.$try.$iter.log"
 if [ -s task/depends ]; then
 	printf ' depends=%s' "$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+fi
+if [ -f "$log" ]; then
+	printf ' build_time=%s' "$(date -r "$log" '+%Y-%b-%d/%T')"
 fi
 echo
 
