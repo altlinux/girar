@@ -229,15 +229,17 @@ validate_srpm_build()
 
 	validate_srpm
 
-	girar-check-nevr-in-repo "$package" "${nevr#*	}" "$repo" ||
-		fatal "$srpm: too old for \`$repo'"
+	local s_evr r_evr
+	s_evr="${nevr#*	}"
+	r_evr="$(girar-check-nevr-in-repo "$package" "$s_evr" "$repo")" ||
+		fatal "$srpm is not newer than $package-$r_evr in \`$repo'"
 
 	sid="$(rpmquery -p --qf 'srpm:%{sha1header}\n' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
-	girar-check-sid "$package" "${nevr#*	}" "$sid" "$repo" || {
+	girar-check-sid "$package" "$s_evr" "$sid" "$repo" || {
 		case "$?" in
-			1) fatal "package \`$package' version \`${nevr#*    }' is already built but no source id was recorded" ;;
-			2) fatal "package \`$package' version \`${nevr#*    }' is already built from a different source" ;;
+			1) fatal "package \`$package' version \`$s_evr' is already built but no source id was recorded" ;;
+			2) fatal "package \`$package' version \`$s_evr' is already built from a different source" ;;
 		esac
 	}
 

@@ -169,7 +169,7 @@ check_copy_del()
 
 check_srpm()
 {
-	local i nevr rc=0
+	local i nevr s_name s_evr r_evr rc=0
 	for i in $nums; do
 		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
 		nevr="$(cat gears/$i/nevr)"
@@ -178,21 +178,23 @@ check_srpm()
 		if [ -f gears/$i/rebuild ]; then
 			GIRAR_ALLOW_SAME_NEVR=1
 		fi
-		GIRAR_ALLOW_SAME_NEVR=$GIRAR_ALLOW_SAME_NEVR \
-			girar-check-nevr-in-repo "${nevr%	*}" "${nevr#*	}" "$repo" ||
+		s_name="${nevr%	*}"
+		s_evr="${nevr#*	}"
+		r_evr="$(GIRAR_ALLOW_SAME_NEVR=$GIRAR_ALLOW_SAME_NEVR \
+			girar-check-nevr-in-repo "$s_name" "$s_evr" "$repo")" ||
 		{
-			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is too old for \`$repo'"
+			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is not newer than \`$s_name-$r_evr' in \`$repo'"
 			rc=1
 		}
 		[ "$rc" -ne 0 ] ||
-			girar-check-sid "${nevr%       *}" "${nevr#*   }" "$sid" "$repo" || {
+			girar-check-sid "$s_name" "$s_evr" "$sid" "$repo" || {
 			case $? in
 				1)
-					message "package \`${nevr%       *}' version \`${nevr#*    }' is already built but no source id has been recorded"
+					message "package \`$s_name' version \`$s_evr' is already built but no source id has been recorded"
 					rc=1
 					;;
 				2)
-					message "package \`${nevr%       *}' version \`${nevr#*    }' is already built from a different source"
+					message "package \`$s_name' version \`$s_evr' is already built from a different source"
 					rc=1
 					;;
 			esac

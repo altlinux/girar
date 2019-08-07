@@ -39,4 +39,7 @@ if [ -n "${GIRAR_ALLOW_SAME_NEVR-}" ]; then
 	[ "$(rpmevrcmp "$r_evr" "$evr")" -le 0 ]
 else
 	[ "$(rpmevrcmp "$r_evr" "$evr")" -lt 0 ]
-fi
+fi || {
+	printf '%s\n' "$r_evr"
+	exit 1
+}
