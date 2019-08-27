@@ -53,7 +53,7 @@ apt_config="\$HOME/apt/apt.conf"
 def_target="$arch"
 def_repo="\$HOME/hasher_repo"
 cache_dir="\$HOME/$cache_dir"
-known_mountpoints=/proc,/dev/pts
+known_mountpoints=/proc,/dev/pts,/dev/shm
 USER="$owner-$repo_name"
 EOF
 
