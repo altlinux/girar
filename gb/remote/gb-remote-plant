@@ -14,6 +14,11 @@ GB_APT_CACHE_LIMIT="$1"; shift
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
 
+known_mountpoints=/proc,/dev/pts,/dev/shm
+if [ -c /dev/kvm ]; then
+	known_mountpoints="$known_mountpoints,/dev/kvm"
+fi
+
 # turn $dir into an absolute path
 [ -n "$dir" ]
 [ -z "${dir##/*}" ] ||
@@ -53,7 +58,7 @@ apt_config="\$HOME/apt/apt.conf"
 def_target="$arch"
 def_repo="\$HOME/hasher_repo"
 cache_dir="\$HOME/$cache_dir"
-known_mountpoints=/proc,/dev/pts,/dev/shm
+known_mountpoints="$known_mountpoints"
 USER="$owner-$repo_name"
 EOF
 
