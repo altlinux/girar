@@ -95,6 +95,7 @@ gb-task-set-summary
 	gb-task-check-girar
 	gb-task-check-lastchange
 	gb-task-check-acl
+	gb-task-check-neighbour-version
 
 	# apply local policy enforcement
 	gb-task-local-policy

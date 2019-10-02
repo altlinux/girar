@@ -103,7 +103,7 @@ check_brpms
 
 . gb-sh-tmpdir
 
-for r in $GB_REPO_NAME $GB_REPO_UP_NAME $GB_REPO_DOWN_NAME; do
+for r in $GB_REPO_NAME $GB_REPO_DOWN_NAME; do
 	cd "$tmpdir"
 	make_repo_table $r
 	sort -k1,1 -o $r.src{,}
@@ -134,23 +134,6 @@ check_nevr()
 	local a="$1"; shift
 	local r evr0 a0
 
-	for r in $GB_REPO_UP_NAME; do
-		printf '%s\t%s\n' "$n" "$evr" |
-			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
-			sort -u > "$tmpdir/evra"
-		while read -r evr0 a0; do
-			[ -z "$a" ] || [ "$a" = "$a0" ] ||
-			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
-				continue
-			if [ -z "$GB_ALLOW_SAME_NEVR" ]; then
-				is_ver1_lt_ver2 "$evr" "$evr0" ||
-					Fatal "${a:-$t} package \`$n' version \`$evr' is not less than its version \`$evr0' in \`$r'"
-			else
-				is_ver1_le_ver2 "$evr" "$evr0" ||
-					Fatal "${a:-$t} package \`$n' version \`$evr' is greater than its version \`$evr0' in \`$r'"
-			fi
-		done < "$tmpdir/evra"
-	done
 	for r in $GB_REPO_NAME $GB_REPO_DOWN_NAME; do
 		printf '%s\t%s\n' "$n" "$evr" |
 			join -t$'\t' -o '2.2,2.3' - "$tmpdir/$r.$t" |
