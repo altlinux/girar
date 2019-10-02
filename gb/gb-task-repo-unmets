@@ -42,18 +42,21 @@ dump_unmets checkinstall
 dump_unmets debuginfo
 
 rc=0
+> unmets.stat
 > unmets.bin
 > unmets.acl
 
 # compare unmets
 for arch in $GB_ARCH; do
+	> $arch-unmets.new
+	> $arch-unmets.plus
+	> $arch-unmets.minus
 	for comp in '' checkinstall debuginfo; do
-		comm -13 $arch-$comp-unmets.{old,new}
-	done >$arch-unmets.plus
+		cat $arch-$comp-unmets.new >> $arch-unmets.new
+		comm -13 $arch-$comp-unmets.{old,new} >> $arch-unmets.plus
+		comm -23 $arch-$comp-unmets.{old,new} >> $arch-unmets.minus
+	done
 	sort -u -o $arch-unmets.plus{,}
-	for comp in '' checkinstall debuginfo; do
-		comm -23 $arch-$comp-unmets.{old,new}
-	done >$arch-unmets.minus
 	sort -u -o $arch-unmets.minus{,}
 	if [ -s $arch-unmets.plus ]; then
 		echo "	$arch: NEW unmet dependencies detected:"
@@ -65,6 +68,16 @@ for arch in $GB_ARCH; do
 		echo "	$arch: old unmet dependencies resolved:"
 		awk -F'\t' '{printf "%-24s\t%s\n", $1, $2}' <$arch-unmets.minus
 	fi >&2
+	if [ -s $arch-unmets.plus -o -s $arch-unmets.minus ]; then
+		sort -u -o $arch-unmets.new{,}
+		if [ -s unmets.stat ]; then
+			printf >> unmets.stat ,
+		fi
+		printf >> unmets.stat ' %s +%s -%s =%s' \
+			"$arch" "$(wc -l < $arch-unmets.plus)" \
+			"$(wc -l < $arch-unmets.minus)" \
+			"$(wc -l < $arch-unmets.new)"
+	fi
 done
 
 sort -u -o unmets.bin{,}
@@ -84,6 +97,10 @@ sort -u -o "$topdir"/report/unmet-addressees{,}
 if [ -s unmets-new.src ]; then
 	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets-new.src)"
 	join -t$'\t' -a1 unmets-new.src unmets.acl
+fi
+
+if [ -s unmets.stat ]; then
+	stamp_echo >&2 "unmets:$(cat unmets.stat)"
 fi
 
 [ "$rc" = 0 ] && text=OK || text=FAILED
