@@ -5,21 +5,20 @@ exec < /dev/null
 . ga-sh-functions
 
 [ -n "${GA_SQUEEZE_MTIME-}" ] &&
-[ "${GA_SQUEEZE_MTIME-}" -gt 0 ] || exit 0
+[ "$GA_SQUEEZE_MTIME" -gt 0 ] || exit 0
 
-repo="$1"; shift
 task="$1"; shift
 dir="_$(($task/1024))"
 
-cd "$GA_REPO_DIR/$repo/task/$dir/$task"
+cd "$GA_REPO_DIR/task/$dir/$task"
 
 [ -d noarch ] || exit 0
 [ -w files/list ] || exit 0
 [ -s files/list/task.info -a -s files/list/src.hash.xz ] || exit 0
 [ -n "$(find -maxdepth 0 -type d -mtime +"$GA_SQUEEZE_MTIME")" ] || exit 0
 
-utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/$repo/release/task.list" |
-	diff -U1 - "$GA_UPLOAD_DIR/log/snapshot/$repo.log" |
+utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/task/task.list" |
+	diff -U1 - "$GA_UPLOAD_DIR/log//$GA_REPO_NAME.log" |
 	sed '/^ /!d;s///;q')"
 [ -n "$utask" ] || exit 0
 udir="_$(($utask/1024))"
@@ -27,8 +26,8 @@ udir="_$(($utask/1024))"
 enable -f /usr/lib/bash/lockf lockf
 builtin lockf -n . || exit 0
 
-logger -t "$PROG" "squeezing: $PWD"
-echo "$task" >> "$GA_REPO_DIR/$repo/task/squeeze.list"
+logger -t "${0##*/}" "squeezing: $PWD"
+echo "$task" >> "$GA_REPO_DIR/task/squeeze.list"
 
 chmod u+w .
 find -mindepth 1 -not -type d -not -path './files/list/*' -delete
