@@ -15,12 +15,12 @@ builtin lockf -v "$GA_REPO_DIR/task"
 
 next_repo_dir="$GA_REPO_DIR/task/_$k/$task_id"
 if [ -d "$next_repo_dir" ]; then
-	fatal "$task_id: repo already exists"
+	fatal "$task_id: repo already exists: $next_repo_dir"
 fi
 
 tmp_repo_dir="$GA_REPO_TMP_DIR/$task_id"
 if [ -d "$tmp_repo_dir" ]; then
-	fatal "$task_id: tmp repo already exists"
+	fatal "$task_id: tmp repo already exists: $tmp_repo_dir"
 fi
 
 create_temporary tmpdir
