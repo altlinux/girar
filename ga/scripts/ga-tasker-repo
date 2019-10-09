@@ -17,35 +17,39 @@ PATH="${0%/*}:$PATH"
 
 . ga-sh-functions
 
+cd "$GA_REPO_DIR"
+
 # Ensure that only one instance is running for the given repo.
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -n "$GA_REPO_DIR" || exit 0
+exec < .
+flock -n 0 || exit 0
 
-# Redirect stdio to the log.
-exec < /dev/null >> "$GA_LOG_DIR/$GA_REPO_NAME.log" 2>&1
+{
+	# Redirect stdio to the log.
+	exec >> "$GA_LOG_DIR/$GA_REPO_NAME.log" 2>&1
 
-cd "$GA_KICKER_DIR"
-> "$GA_REPO_NAME"
+	cd "$GA_KICKER_DIR"
+	> "$GA_REPO_NAME"
 
-spawn_inotifywait=true
-while :; do
-	exit_if_aborted
+	spawn_inotifywait=true
+	while :; do
+		exit_if_aborted
 
-	if $spawn_inotifywait; then
-		inotifywait -qq -t 3600 -e close_nowrite "$GA_REPO_NAME" &
-	fi
+		if $spawn_inotifywait; then
+			inotifywait -qq -t 3600 -e close_nowrite "$GA_REPO_NAME" &
+		fi
 
-	sleep 1
-	stamp_echo executing
+		sleep 1
+		stamp_echo executing
 
-	if ga-tasker-repo-iterate; then
-		# Start the next attempt immediately.
-		# There is no need to wait, and, therefore,
-		# no need to spawn inotifywait.
-		spawn_inotifywait=false
-	else
-		stamp_echo waiting
-		wait
-		spawn_inotifywait=true
-	fi
-done
+		if ga-tasker-repo-iterate; then
+			# Start the next attempt immediately.
+			# There is no need to wait, and, therefore,
+			# no need to spawn inotifywait.
+			spawn_inotifywait=false
+		else
+			stamp_echo waiting
+			wait
+			spawn_inotifywait=true
+		fi
+	done
+} < /dev/null
