@@ -8,15 +8,22 @@ cd "$GA_REPO_ROOT"
 
 create_temporary tmpdir
 
-set +f
+exec < .
+flock -n 0
 
 {
-	head -qn1 -- [a-z0-9]*/task/task.list
-	tail -qn1 -- [a-z0-9]*/task/task.list
-} > "$tmpdir/exclude.list"
+	set +f
 
-for repo in [a-z0-9]*; do
-	[ -f /usr/libexec/girar-archiver/ga-sh-conf-$repo ] || continue
-	[ -s "$repo"/task/task.list ] || continue
-	GA_REPO_NAME="$repo" "$0-repo" "$tmpdir/exclude.list"
-done
+	{
+		head -qn1 -- [a-z0-9]*/task/task.list
+		tail -qn1 -- [a-z0-9]*/task/task.list
+	} > "$tmpdir/exclude.list"
+
+	for repo in [a-z0-9]*; do
+		[ -f /usr/libexec/girar-archiver/ga-sh-conf-$repo ] ||
+			continue
+		[ -s "$repo"/task/task.list ] ||
+			continue
+		GA_REPO_NAME="$repo" "$0-repo" "$tmpdir/exclude.list"
+	done
+} < /dev/null
