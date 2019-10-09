@@ -70,6 +70,7 @@ for d in [A-Za-z0-9]?*; do
 	mkdir -p -- "$d/date/$date_dir"
 	ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
 	touch -hr "$src/$f" "$d/date/$date_file"
+	ln -fnsv -- "$date_file" "$d/date/latest"
 done
 set -f
 
