@@ -15,7 +15,8 @@ cd "$GA_REPO_DIR/task/$dir/$task"
 [ -d noarch ] || exit 0
 [ -w files/list ] || exit 0
 [ -s files/list/task.info -a -s files/list/src.hash.xz ] || exit 0
-[ -n "$(find -maxdepth 0 -type d -mtime +"$GA_SQUEEZE_MTIME")" ] || exit 0
+[ -n "$(find files/list/task.info -maxdepth 0 -type f -mtime +"$GA_SQUEEZE_MTIME")" ] ||
+	exit 0
 
 utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/task/task.list" |
 	diff -U1 - "$GA_UPLOAD_DIR/log//$GA_REPO_NAME.log" |
