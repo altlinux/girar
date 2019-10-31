@@ -103,3 +103,75 @@ for i; do
 	fi
 	message "task #$id: $action approval of subtask #$i"
 done
+
+# Notify the owner.
+
+[ "$owner" != "$GIRAR_USER" ] ||
+	exit 0
+
+author_name="$(girar-get-email-address "$GIRAR_USER" |
+		sed -n 's/^"\([^"]\+\)".*/\1/p')"
+
+email="$(girar-get-email-address "$owner")"
+[ -n "$author_name" ] && [ -n "$email" ] ||
+	exit 0
+
+if [ $# -gt 1 ]; then
+	text_summary="$action approvals of $# subtasks"
+	text_body="has $action approvals of $# subtasks of task #$id"
+else
+	text_summary="$action approval of subtask #$1"
+	text_body="has $action an approval of subtask #$1 of task #$id"
+fi
+
+url="$GITWEB_URL$TASKS_DIR/$id"
+
+{
+	cat <<EOF
+From: Girar $PROG <girar-task-approve@$EMAIL_DOMAIN>
+To: $email
+X-girar-task-approve: $action
+X-girar-task-id: $id
+X-girar-subtask-ids: $*
+X-girar-task-repo: $repo
+X-girar-task-URL: $url
+Subject: [#$id] $text_summary
+Content-Type: text/plain; charset=us-ascii
+
+Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
+
+$author_name $text_body:
+EOF
+
+	for i; do
+		if [ -s "gears/$i/dir" ]; then
+			dir="$(cat "gears/$i/dir")"
+			tag_name="$(cat "gears/$i/tag_name")"
+			printf '%s:%s=%s\n' "$i" "${dir##*/}" "$tag_name"
+		elif [ -s "gears/$i/srpm" ]; then
+			printf '%s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
+			if [ -s "gears/$i/rebuild" ]; then
+				printf ' %s:rebuild_from=%s\n' "$i" "$(cat "gears/$i/rebuild")"
+			fi
+		elif [ -s "gears/$i/package" ]; then
+			if [ -s "gears/$i/copy_repo" ]; then
+				action=copy
+			else
+				action=del
+			fi
+			package="$(cat "gears/$i/package")"
+			printf '%s:%s=%s\n' "$i" "$action" "$package"
+		fi
+	done
+
+	cat <<EOF
+
+$url
+
+--
+Yours truly, Girar $PROG
+EOF
+} > "$tmpdir/msg"
+
+/usr/sbin/sendmail -i -t < "$tmpdir/msg"
+message "task #$id: notified: $owner"
