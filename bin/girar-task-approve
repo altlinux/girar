@@ -84,10 +84,20 @@ set -- $subtasks
 [ $# -gt 0 ] ||
 	exit 0
 
+. girar-sh-tmpdir
+
+if [ -z "$revoke" ]; then
+	message 'Go ahead and type the text of approval'
+	head -c 8192 > "$tmpdir/msg"
+	grep -qs '^[[:space:]]*[^[:space:]]' < "$tmpdir/msg" ||
+		fatal 'failed to obtain a meaningful text of approval'
+fi
+
 for i; do
 	f="acl/$i/$GIRAR_USER"
 	if [ -z "$revoke" ]; then
 		printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+		cat < "$tmpdir/msg" >> "$f"
 	else
 		rm "$f"
 	fi
