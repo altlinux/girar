@@ -19,11 +19,12 @@ TEMP="$(getopt -n "$PROG" -o h -l revoke,help -- "$@")" ||
         show_usage
 eval set -- "$TEMP"
 
+action=added
 revoke=
 while :; do
 	case "${1-}" in
 		--) shift; break ;;
-		--revoke) revoke=1 ;;
+		--revoke) revoke=1; action=revoked ;;
 		-h|--help) show_help ;;
 		*) break;
 	esac
@@ -42,27 +43,53 @@ id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 num="$1"; shift
 
 cd "$TASKS_DIR/$id"
+repo="$(cat task/repo)"
+owner="$(cat task/owner)"
 
 stamp="$(LC_TIME=C date -u '+%Y-%b-%d %T')"
+found=
+subtasks=
 for i in $(gear_nums); do
 	[ -d "acl/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
 		continue
+	found=1
 	f="acl/$i/$GIRAR_USER"
 	if [ -z "$revoke" ]; then
 		if [ -s "$f" ]; then
-			message "$i: already approved"
+			message "task #$id: subtask #$i is already approved"
 		else
-			printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+			subtasks="$subtasks $i"
 		fi
 	else
 		if [ -s "$f" ]; then
-			rm "$f"
+			subtasks="$subtasks $i"
 		else
-			message "$i: nothing to revoke"
+			message "task #$id: subtask #$i has no approval to revoke"
 		fi
 	fi
 	[ 'all' = "$num" ] ||
-		exit 0
+		break
 done
-[ 'all' = "$num" ] ||
-	fatal "task #$id: subtask #$num not found"
+
+if [ -z "$found" ]; then
+	if [ 'all' = "$num" ]; then
+		text='no subtasks found'
+	else
+		text="subtask #$num not found"
+	fi
+	fatal "task #$id: $text"
+fi
+
+set -- $subtasks
+[ $# -gt 0 ] ||
+	exit 0
+
+for i; do
+	f="acl/$i/$GIRAR_USER"
+	if [ -z "$revoke" ]; then
+		printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+	else
+		rm "$f"
+	fi
+	message "task #$id: $action approval of subtask #$i"
+done
