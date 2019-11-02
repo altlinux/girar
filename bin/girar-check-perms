@@ -14,6 +14,15 @@ usage()
 	exit 1
 }
 
+silent=
+if [ "${1-}" = '--silent=allow' ]; then
+	silent=allow
+	shift
+elif [ "${1-}" = '--silent=deny' ]; then
+	silent=deny
+	shift
+fi
+
 [ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
 [ "$#" -le 2 ] ||
@@ -35,13 +44,15 @@ esac
 
 allow()
 {
-	message "access to $project_name ALLOWED for $GIRAR_USER: $*"
+	[ "$silent" = allow ] ||
+		message "access to $project_name ALLOWED for $GIRAR_USER: $*"
 	exit 0
 }
 
 deny()
 {
-	message "access to $project_name DENIED for $GIRAR_USER: $*"
+	[ "$silent" = deny ] ||
+		message "access to $project_name DENIED for $GIRAR_USER: $*"
 	exit 1
 }
 
