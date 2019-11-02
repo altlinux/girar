@@ -1,0 +1,70 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+PROG='check-subtask-perms'
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <task id> <subtask id> <package name>"
+	exit 1
+}
+
+[ "$#" -ge 3 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 3 ] ||
+	usage 'Too many arguments.'
+
+id="$1"; shift
+[ -n "$id" ] && [ -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
+	fatal "invalid task id: $id"
+
+subtask="$1"; shift
+[ -n "$subtask" ] && [ -z "$(printf %s "$subtask" |tr -d '[:digit:]')" ] ||
+	fatal "invalid subtask id: $subtask"
+
+pkg="$1"; shift
+
+cd "$TASKS_DIR/$id"
+userid="$(cat gears/$subtask/userid)"
+repo="$(cat task/repo)"
+repo="$(girar-normalize-repo-name "$repo")"
+
+# Source per-repository config file.
+conf="$CONF_DIR/repo/$repo"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
+allow()
+{
+	message "#$subtask: $pkg: $*"
+	exit 0
+}
+
+deny()
+{
+	message "#$subtask: $pkg: $*"
+	exit 1
+}
+
+# check author permissions
+if GIRAR_USER="$userid" girar-check-perms --silent=deny "$pkg" "$repo"; then
+	allow "allowed for $userid"
+fi
+
+# check other approvals
+approved="$(cd acl/approved/$subtask 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*)"
+for a in $approved; do
+	if GIRAR_USER="$a" girar-check-perms --silent=deny "$pkg" "$repo"; then
+		allow "approved by $a"
+	fi
+done
+
+# check author permissions again to print the error diagnostics
+if GIRAR_USER="$userid" girar-check-perms "$pkg" "$repo"; then
+	allow "allowed for $userid"
+fi
+
+# the author is not permitted and nobody has approved
+deny 'Operation not permitted'
