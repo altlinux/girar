@@ -10,10 +10,15 @@ if [ $# -gt 0 ]; then
 	[ -n "$id" -a -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
 		fatal "invalid task id: $id"
 else
-	id="$(find . -mindepth 3 -maxdepth 3 -path './[1-9]*/task/owner' -type f -user "$USER_PREFIX$GIRAR_USER" 2>/dev/null |
-		cut -d/ -f2 |
+	id="$(find -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d \
+		   -user "$USER_PREFIX$GIRAR_USER" -printf '%f\n' 2>/dev/null |
 		sort -nr |
-		head -n1)"
+		while read id; do
+			state="$(cat "$id/task/state" 2>/dev/null)" &&
+			[ "$state" != DONE ] &&
+			echo "$id" &&
+			break
+		done)"
 	[ -n "$id" ] ||
 		fatal 'no tasks found'
 fi
