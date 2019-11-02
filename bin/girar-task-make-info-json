@@ -61,11 +61,17 @@ if [ -n "$nums" ]; then
 			package="$(cat "gears/$i/package")"
 			printf '   "package": "%s",\n' "$package"
 		fi
-		if [ -d "acl/$i" ]; then
-			approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '"%f",' |
+		if [ -d "acl/approved/$i" ]; then
+			approved_by="$(find "acl/approved/$i" -mindepth 1 -maxdepth 1 -type f -printf '"%f",' |
 					sed 's/,$//')"
 			[ -z "$approved_by" ] ||
 				printf '   "approved_by": [%s],\n' "$approved_by"
+		fi
+		if [ -d "acl/disapproved/$i" ]; then
+			disapproved_by="$(find "acl/disapproved/$i" -mindepth 1 -maxdepth 1 -type f -printf '"%f",' |
+					  sed 's/,$//')"
+			[ -z "$disapproved_by" ] ||
+				printf '   "disapproved_by": [%s],\n' "$disapproved_by"
 		fi
 		if [ -f "build/$i/pkgname" ]; then
 			printf '   "pkgname": "%s",\n' "$(cat "build/$i/pkgname")"

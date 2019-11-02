@@ -108,10 +108,15 @@ for i in $nums; do
 	fi
 	if [ -z "$brief" ]; then
 		printf ' %s:userid=%s\n' "$i" "$(cat "gears/$i/userid")"
-		if [ -d "acl/$i" ]; then
-			approved_by="$(find "acl/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
+		if [ -d "acl/approved/$i" ]; then
+			approved_by="$(find "acl/approved/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
 			[ -z "$approved_by" ] ||
 				printf ' %s:approved_by=%s\n' "$i" "$approved_by"
+		fi
+		if [ -d "acl/disapproved/$i" ]; then
+			disapproved_by="$(find "acl/disapproved/$i" -mindepth 1 -maxdepth 1 -type f -printf '%f ')"
+			[ -z "$disapproved_by" ] ||
+				printf ' %s:disapproved_by=%s\n' "$i" "$disapproved_by"
 		fi
 		if [ -f "build/$i/pkgname" ]; then
 			printf ' %s:pkgname=%s\n' "$i" "$(cat "build/$i/pkgname")"

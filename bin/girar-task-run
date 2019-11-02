@@ -107,7 +107,7 @@ if [ "$test_mode $swift_mode" = '--commit --hurry' ]; then
 	fatal 'cannot commit in a hurry'
 fi
 
-[ -n "$(find acl -mindepth 1 -maxdepth 1 -name '[1-7]*' -type d 2>/dev/null)" ] ||
+[ -n "$(find acl/approved -mindepth 1 -maxdepth 1 -name '[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
 check_acl()

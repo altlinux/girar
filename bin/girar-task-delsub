@@ -47,7 +47,7 @@ for i; do
 	[ "$i" = "$num" ] || continue
 	[ -w "gears/$i" ] ||
 		fatal "gears/$i: Permission denied"
-	[ -e "acl/$i" ] ||
+	[ -e "acl/approved/$i" ] ||
 		fatal "task #$id: subtask #$i: nothing to remove"
 	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i"
 	trap '' HUP INT QUIT PIPE TERM
@@ -61,7 +61,7 @@ for i; do
 	rm -f gears/$i/pkg.tar
 	# common
 	rm -rf build/$i
-	rm -rf acl/$i
+	rm -rf acl/approved/$i acl/disapproved/$i
 
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask delete "$id" "$i"

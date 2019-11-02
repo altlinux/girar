@@ -492,15 +492,15 @@ atexit()
 {
 	local rc=$?
 	trap - EXIT
-	[ "$rc" -eq 0 ] || rm -rf gears/"$i"/ acl/"$i"/
+	[ "$rc" -eq 0 ] || rm -rf gears/"$i"/ acl/approved/"$i"/ acl/disapproved/"$i"/
 	exit $rc
 }
 
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
-mkdir -pm755 gears acl
+mkdir -pm2755 gears acl acl/approved acl/disapproved
 mkdir -m2775 gears/"$i"
-mkdir -m3775 acl/"$i"
+mkdir -m3775 acl/approved/"$i" acl/disapproved/"$i"
 trap atexit EXIT
 
 case "$action" in

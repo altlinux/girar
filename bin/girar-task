@@ -25,7 +25,8 @@ Commands:
   rm                            remove task;
   deps                          manage task dependencies;
   share                         manage task shared access;
-  approve                       approve subtask;
+  approve                       approve subtask(s);
+  disapprove                    disapprove subtask(s);
   check-git-inheritance         manage subtask git inheritance;
   help                          show this text and exit.
 
@@ -37,7 +38,7 @@ EOF
 case "${1-}" in
 	'') show_usage 'not enough arguments.' ;;
 	--help|help) show_help ;;
-	ls|show|new|add|delsub|deps|run|share|approve|rm|abort|check-git-inheritance)
+	ls|show|new|add|delsub|deps|run|share|approve|disapprove|rm|abort|check-git-inheritance)
 		op="$1"; shift
 		exec "$PROG-$op" "$@"
 		;;

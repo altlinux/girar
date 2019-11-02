@@ -48,13 +48,40 @@ deny()
 	exit 1
 }
 
+# check superuser disapprovals
+disapproved="$(cd acl/disapproved/$subtask 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*)"
+for a in $disapproved; do
+	if GIRAR_USER="$a" girar-check-superuser "$repo"; then
+		deny "disapproved by superuser $a"
+	fi
+done
+
+# check author superuser permissions
+if GIRAR_USER="$userid" girar-check-superuser "$repo"; then
+	allow "allowed for superuser $userid"
+fi
+
+# check superuser approvals
+approved="$(cd acl/approved/$subtask 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*)"
+for a in $approved; do
+	if GIRAR_USER="$a" girar-check-superuser "$repo"; then
+		allow "approved by superuser $a"
+	fi
+done
+
+# check other disapprovals
+for a in $disapproved; do
+	if GIRAR_USER="$a" girar-check-perms --silent=deny "$pkg" "$repo"; then
+		deny "disapproved by $a"
+	fi
+done
+
 # check author permissions
 if GIRAR_USER="$userid" girar-check-perms --silent=deny "$pkg" "$repo"; then
 	allow "allowed for $userid"
 fi
 
 # check other approvals
-approved="$(cd acl/approved/$subtask 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*)"
 for a in $approved; do
 	if GIRAR_USER="$a" girar-check-perms --silent=deny "$pkg" "$repo"; then
 		allow "approved by $a"

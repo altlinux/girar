@@ -3,12 +3,29 @@
 . girar-sh-functions
 . shell-args
 
-PROG='task approve'
+case "$0" in
+	*-approve)
+		infinitive=approve
+		noun=approval
+		;;
+	*-disapprove)
+		infinitive=disapprove
+		noun=disapproval
+		;;
+	*)
+		fatal 'who am I?'
+		;;
+esac
+PROG="task $infinitive"
+past="${infinitive}d"
+my_acl_dir="acl/$past"
+approve_dir=acl/approved
+disapprove_dir=acl/disapproved
 
 show_help()
 {
 	cat <<EOF
-$PROG - approve a subtask of a task
+$PROG - $infinitive a subtask of a task
 
 Usage: $PROG [--revoke] <task id> <subtask number>
 EOF
@@ -50,21 +67,28 @@ stamp="$(LC_TIME=C date -u '+%Y-%b-%d %T')"
 found=
 subtasks=
 for i in $(gear_nums); do
-	[ -d "acl/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
+	[ -d "$approve_dir/$i" ] && [ 'all' = "$num" -o "$i" = "$num" ] ||
 		continue
 	found=1
-	f="acl/$i/$GIRAR_USER"
+	dir_i="$my_acl_dir/$i"
+	f="$dir_i/$GIRAR_USER"
 	if [ -z "$revoke" ]; then
 		if [ -s "$f" ]; then
+			message "task #$id: subtask #$i is already $past"
+		elif [ -s "$approve_dir/$i/$GIRAR_USER" ]; then
 			message "task #$id: subtask #$i is already approved"
-		else
+		elif [ -s "$disapprove_dir/$i/$GIRAR_USER" ]; then
+			message "task #$id: subtask #$i is already disapproved"
+		elif [ -d "$dir_i" -a -w "$dir_i" ]; then
 			subtasks="$subtasks $i"
+		else
+			message "task #$id: subtask #$i cannot be $past"
 		fi
 	else
 		if [ -s "$f" ]; then
 			subtasks="$subtasks $i"
 		else
-			message "task #$id: subtask #$i has no approval to revoke"
+			message "task #$id: subtask #$i has no $noun to revoke"
 		fi
 	fi
 	[ 'all' = "$num" ] ||
@@ -87,21 +111,21 @@ set -- $subtasks
 . girar-sh-tmpdir
 
 if [ -z "$revoke" ]; then
-	message 'Go ahead and type the text of approval'
+	message "Go ahead and type the text of $noun"
 	head -c 8192 > "$tmpdir/msg"
 	grep -qs '^[[:space:]]*[^[:space:]]' < "$tmpdir/msg" ||
-		fatal 'failed to obtain a meaningful text of approval'
+		fatal "failed to obtain a meaningful text of $noun"
 fi
 
 for i; do
-	f="acl/$i/$GIRAR_USER"
+	f="$my_acl_dir/$i/$GIRAR_USER"
 	if [ -z "$revoke" ]; then
-		printf '%s :: approved by %s\n' "$stamp" "$GIRAR_USER" >> "$f"
+		printf '%s :: %s by %s\n' "$stamp" "$past" "$GIRAR_USER" >> "$f"
 		cat < "$tmpdir/msg" >> "$f"
 	else
 		rm "$f"
 	fi
-	message "task #$id: $action approval of subtask #$i"
+	message "task #$id: $action $noun of subtask #$i"
 done
 
 # Notify the owner.
@@ -117,20 +141,20 @@ email="$(girar-get-email-address "$owner")"
 	exit 0
 
 if [ $# -gt 1 ]; then
-	text_summary="$action approvals of $# subtasks"
-	text_body="has $action approvals of $# subtasks of task #$id"
+	text_summary="$action ${noun}s of $# subtasks"
+	text_body="has $action ${noun}s of $# subtasks of task #$id"
 else
-	text_summary="$action approval of subtask #$1"
-	text_body="has $action an approval of subtask #$1 of task #$id"
+	text_summary="$action $noun of subtask #$1"
+	text_body="has $action an $noun of subtask #$1 of task #$id"
 fi
 
 url="$GITWEB_URL$TASKS_DIR/$id"
 
 {
 	cat <<EOF
-From: Girar $PROG <girar-task-approve@$EMAIL_DOMAIN>
+From: Girar $PROG <girar-task-$infinitive@$EMAIL_DOMAIN>
 To: $email
-X-girar-task-approve: $action
+X-girar-task-$infinitive: $action
 X-girar-task-id: $id
 X-girar-subtask-ids: $*
 X-girar-task-repo: $repo

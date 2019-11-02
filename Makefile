@@ -161,6 +161,7 @@ install: ${install-TARGETS} ${GA-install-TARGETS}
 install-bin: ${bin_TARGETS}
 	install -d -m750 ${DESTDIR}${CMD_DIR}
 	install -pm755 $^ ${DESTDIR}${CMD_DIR}/
+	ln -s girar-task-approve ${DESTDIR}${CMD_DIR}/girar-task-disapprove
 
 install-check: ${check_TARGETS}
 	install -d -m755 ${DESTDIR}${check_dir}

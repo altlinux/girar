@@ -37,7 +37,7 @@ find "build/$i/$arch/rpms/" -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 # check acl access
 approved_by=
 pesign_group="@${GB_PESIGN_GROUP-pesign}"
-for user in $(cd acl/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
+for user in $(cd acl/approved/$i 2>/dev/null && shopt -s nullglob && set +f && echo [a-z]*); do
 	if GIRAR_USER="$user" gb-x-girar check-superuser "$GB_REPO_NAME" >/dev/null 2>&1; then
 		continue
 	fi
