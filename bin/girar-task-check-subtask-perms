@@ -69,11 +69,21 @@ for a in $approved; do
 	fi
 done
 
+maint="${GIRAR_ACL_MAINT_GROUP-}"
+tester="${GIRAR_ACL_TESTER_GROUP-}"
+
 # check other disapprovals
 for a in $disapproved; do
 	if GIRAR_USER="$a" girar-check-perms --silent=deny "$pkg" "$repo"; then
 		deny "disapproved by $a"
 	fi
+	# check against @maint and @tester
+	for g in "$maint" "$tester"; do
+		if [ -n "$g" ] &&
+		   GIRAR_USER="$a" girar-check-perms --silent=deny "@$g" "$repo"; then
+			deny "disapproved by $a"
+		fi
+	done
 done
 
 # check author permissions
@@ -87,6 +97,46 @@ for a in $approved; do
 		allow "approved by $a"
 	fi
 done
+
+# check against @maint
+approved_by_maint=
+if [ -n "$maint" ]; then
+	# check author permissions against @maint
+	if GIRAR_USER="$userid" girar-check-perms --silent=deny "@$maint" "$repo"; then
+		approved_by_maint="allowed for $userid"
+	else
+		# check other approvals against @maint
+		for a in $approved; do
+			if GIRAR_USER="$a" girar-check-perms --silent=deny "@$maint" "$repo"; then
+				approved_by_maint="approved by $a"
+				break
+			fi
+		done
+	fi
+fi
+
+# check against @tester
+approved_by_tester=
+if [ -n "$tester" ]; then
+	# check other approvals against @tester
+	for a in $approved; do
+		if GIRAR_USER="$a" girar-check-perms --silent=deny "@$tester" "$repo"; then
+			approved_by_tester="approved by $a"
+			break
+		fi
+	done
+fi
+
+if [ -n "$approved_by_maint$approved_by_tester" ]; then
+	# it has to be approved both by @maint and @tester
+	if [ -z "$approved_by_maint" ]; then
+		deny "$approved_by_tester, needs an approval from a member of @$maint group"
+	fi
+	if [ -z "$approved_by_tester" ]; then
+		deny "$approved_by_maint, needs an approval from a member of @$tester group"
+	fi
+	allow "$approved_by_maint, $approved_by_tester"
+fi
 
 # check author permissions again to print the error diagnostics
 if GIRAR_USER="$userid" girar-check-perms "$pkg" "$repo"; then
