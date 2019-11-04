@@ -21,6 +21,7 @@ Options:
   --repo=LIST   comma-separated list of repositories to display;
   --state=LIST  comma-separated list of task states to display;
   --user=NAME   user name whose tasks to display;
+  --needs-approval=WHO	list tasks that need specific approvals;
   -h, --help    show this text and exit.
 
 Valid repository names are:
@@ -37,16 +38,19 @@ Valid user name is
   any ${USER_PREFIX}* account name with "$USER_PREFIX" prefix stripped, or ALL.
 Default user name is $GIRAR_USER.
 
+Valid specific approvers are: maint tester
+
 EOF
 	exit
 }
 
-TEMP="$(getopt -n "$PROG" -o h -l all,brief,done,repo:,state:,user:,help -- "$@")" ||
+TEMP="$(getopt -n "$PROG" -o h -l all,brief,done,needs-approval:,repo:,state:,user:,help -- "$@")" ||
 	show_usage
 eval set -- "$TEMP"
 
 repo=
 brief=
+needs_approval=
 state=
 user=
 while :; do
@@ -55,6 +59,7 @@ while :; do
 		--all) user=all ;;
 		--brief) brief=1 ;;
 		--done) state=done ;;
+		--needs-approval) shift; needs_approval="$1" ;;
 		--repo) shift; repo="$1" ;;
 		--state) shift; state="$1" ;;
 		--user) shift; user="$1" ;;
@@ -72,6 +77,12 @@ repo="$(printf %s "$repo" |tr -s , ' ' |tr '[:upper:]' '[:lower:]')"
 [ -z "$(printf %s "$repo" |tr -d '[:alnum:]. ')" ] ||
 	show_usage 'invalid repository name'
 
+case "$needs_approval" in
+	ready|'') check_mode= ;;
+	maint|tester) check_mode="--mode=needs-approval-by-$needs_approval" ;;
+	*) fatal "unrecognized --needs-approval option: $needs_approval" ;;
+esac
+
 case "$repo" in
 	''|all) repo="$valid_repo_list"
 		;;
@@ -88,6 +99,16 @@ esac
 state="$(printf %s "$state" |tr -s , ' ' |tr '[:upper:]' '[:lower:]')"
 [ -z "$(printf %s "$state" |tr -d '[:alpha:] ')" ] ||
 	show_usage 'invalid task state name'
+
+if [ -n "$needs_approval" ]; then
+	if [ -n "$state" ]; then
+		if [ "$state" != eperm ]; then
+			fatal "--needs-approval is not compatible with --state=$state"
+		fi
+	else
+		state=eperm
+	fi
+fi
 
 case "$state" in
 	'')	if [ "$user" = all ]; then
@@ -131,7 +152,7 @@ enable -f /usr/lib/bash/lockf lockf
 show_status()
 {
 	local state try iter
-	state="$(cat task/state)"
+	state="$1"; shift
 	printf ' %s' "$state"
 	try="$(cat task/try 2>/dev/null ||:)"
 	iter="$(cat task/iter 2>/dev/null ||:)"
@@ -144,11 +165,23 @@ show_status()
 
 ls1()
 {
-	local id="$1"; shift
+	local id state
+	id="$1"; shift
 	cd "$id" || return
 	id="${id##*/}"
+	state="$(cat task/state)"
+
+	if [ -n "$needs_approval" ]; then
+		if [ "$state" != EPERM ] ||
+		   [ -f task/test-only ] ||
+		   [ -f task/swift ]; then
+			return
+		fi
+		girar-check-task-perms $check_mode "$id" >/dev/null 2>&1 || return
+	fi
+
 	printf '#%d' "$id"
-	show_status
+	show_status "$state"
 	if ! (builtin lockf -n . ); then
 		printf ' [locked]'
 	fi
