@@ -29,8 +29,8 @@ id=$(cat task/id)
 sort -u -k1,1n -k2 < $tmpdir/check_acl > plan/check_acl
 while read -r i N; do
 	list_notifiable_pkg_acl_members "$N" >> report/acl-addressees
-	gb-x-girar task-check-subtask-perms "$id" "$i" "$N" || rc=1
 done < plan/check_acl
+gb-x-girar check-task-perms "$id" || rc=1
 
 sort -u -o report/acl-addressees{,}
 

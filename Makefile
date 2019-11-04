@@ -69,7 +69,9 @@ bin_TARGETS = \
 	bin/girar-check-package-in-repo \
 	bin/girar-check-perms \
 	bin/girar-check-sid \
+	bin/girar-check-subtask-perms \
 	bin/girar-check-superuser \
+	bin/girar-check-task-perms \
 	bin/girar-get-email-address \
 	bin/girar-gpg \
 	bin/girar-normalize-repo-name \
@@ -91,7 +93,6 @@ bin_TARGETS = \
 	bin/girar-task-approve \
 	bin/girar-task-change-state \
 	bin/girar-task-check-git-inheritance \
-	bin/girar-task-check-subtask-perms \
 	bin/girar-task-delsub \
 	bin/girar-task-deps \
 	bin/girar-task-find-current \

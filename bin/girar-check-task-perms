@@ -1,0 +1,34 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+
+PROG='check-task-perms'
+usage()
+{
+	echo >&2 "$PROG: $*"
+	echo >&2 "usage: $PROG <task id>"
+	exit 1
+}
+
+mode=
+case "${1-}" in
+	--mode=*) mode="$1"; shift ;;
+esac
+
+[ "$#" -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 1 ] ||
+	usage 'Too many arguments.'
+
+id="$1"; shift
+[ -n "$id" ] && [ -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
+	fatal "invalid task id: $id"
+
+cd "$TASKS_DIR/$id"
+
+rc=0
+while read -r subtask pkg; do
+	girar-check-subtask-perms $mode "$subtask" "$pkg" || rc=$?
+done < plan/check_acl
+
+exit $rc

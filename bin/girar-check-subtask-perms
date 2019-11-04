@@ -6,18 +6,19 @@ PROG='check-subtask-perms'
 usage()
 {
 	echo >&2 "$PROG: $*"
-	echo >&2 "usage: $PROG <task id> <subtask id> <package name>"
+	echo >&2 "usage: $PROG <subtask id> <package name>"
 	exit 1
 }
 
-[ "$#" -ge 3 ] ||
-	usage 'Not enough arguments.'
-[ "$#" -le 3 ] ||
-	usage 'Too many arguments.'
+mode=
+case "${1-}" in
+	--mode=*) mode="${1#--mode=}"; shift ;;
+esac
 
-id="$1"; shift
-[ -n "$id" ] && [ -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
-	fatal "invalid task id: $id"
+[ "$#" -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ "$#" -le 2 ] ||
+	usage 'Too many arguments.'
 
 subtask="$1"; shift
 [ -n "$subtask" ] && [ -z "$(printf %s "$subtask" |tr -d '[:digit:]')" ] ||
@@ -25,7 +26,6 @@ subtask="$1"; shift
 
 pkg="$1"; shift
 
-cd "$TASKS_DIR/$id"
 userid="$(cat gears/$subtask/userid)"
 repo="$(cat task/repo)"
 repo="$(girar-normalize-repo-name "$repo")"
@@ -39,7 +39,8 @@ fi
 allow()
 {
 	message "#$subtask: $pkg: $*"
-	exit 0
+	[ -z "$mode" ] && exit 0
+	exit 1
 }
 
 deny()
@@ -127,20 +128,54 @@ if [ -n "$tester" ]; then
 	done
 fi
 
+mode_needs_approval_by()
+{
+	local g m
+	g="$1"; shift
+	m="$1"; shift
+
+	if [ -n "$g" ] && [ "$mode" = "needs-approval-by-$m" ]; then
+		message "#$subtask: $pkg: $mode"
+		exit 0
+	fi
+}
+
+mode_needs_approval_by_maint()
+{
+	mode_needs_approval_by "$maint" maint
+}
+
+mode_needs_approval_by_tester()
+{
+	mode_needs_approval_by "$tester" tester
+}
+
 if [ -n "$approved_by_maint$approved_by_tester" ]; then
 	# it has to be approved both by @maint and @tester
 	if [ -z "$approved_by_maint" ]; then
-		deny "$approved_by_tester, needs an approval from a member of @$maint group"
+		mode_needs_approval_by_maint
+		if [ -n "$maint" ]; then
+			deny "$approved_by_tester, needs an approval from a member of @$maint group"
+		fi
+	elif [ -z "$approved_by_tester" ]; then
+		mode_needs_approval_by_tester
+		if [ -n "$tester" ]; then
+			deny "$approved_by_maint, needs an approval from a member of @$tester group"
+		fi
+	else
+		allow "$approved_by_maint, $approved_by_tester"
 	fi
-	if [ -z "$approved_by_tester" ]; then
-		deny "$approved_by_maint, needs an approval from a member of @$tester group"
-	fi
-	allow "$approved_by_maint, $approved_by_tester"
 fi
+
+mode_needs_approval_by_maint
 
 # check author permissions again to print the error diagnostics
 if GIRAR_USER="$userid" girar-check-perms "$pkg" "$repo"; then
 	allow "allowed for $userid"
+fi
+
+if [ -n "$maint" ] && [ -n "$tester" ]; then
+	deny "needs approvals from members of @$maint and @$tester groups"
 fi
 
 # the author is not permitted and nobody has approved

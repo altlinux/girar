@@ -113,11 +113,7 @@ fi
 check_acl()
 {
 	[ "$state" = EPERM -a -s plan/check_acl ] || return
-	local i src rc=0
-	while read -r i src; do
-		girar-task-check-subtask-perms "$id" "$i" "$src" || rc=$?
-	done < plan/check_acl
-	return $rc
+	girar-check-task-perms "$id" || return
 }
 
 [ "$owner" = "$GIRAR_USER" ] ||
