@@ -174,9 +174,6 @@ EOF
 			printf '%s:%s=%s\n' "$i" "${dir##*/}" "$tag_name"
 		elif [ -s "gears/$i/srpm" ]; then
 			printf '%s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
-			if [ -s "gears/$i/rebuild" ]; then
-				printf ' %s:rebuild_from=%s\n' "$i" "$(cat "gears/$i/rebuild")"
-			fi
 		elif [ -s "gears/$i/package" ]; then
 			if [ -s "gears/$i/copy_repo" ]; then
 				action=copy
