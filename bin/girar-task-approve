@@ -112,8 +112,11 @@ set -- $subtasks
 
 if [ -z "$revoke" ]; then
 	message "Go ahead and type the text of $noun"
-	head -c 8192 > "$tmpdir/msg"
-	grep -qs '^[[:space:]]*[^[:space:]]' < "$tmpdir/msg" ||
+	tr -cd '[:print:]\n' |
+		tr -s '\n' |
+		head -c 8192 > "$tmpdir/msg"
+	tr -cd '[:graph:]' < "$tmpdir/msg" |
+		grep -qs ^. ||
 		fatal "failed to obtain a meaningful text of $noun"
 fi
 
@@ -151,7 +154,7 @@ fi
 url="$GITWEB_URL$TASKS_DIR/$id"
 
 {
-	cat <<EOF
+	cat <<__EOF__
 From: Girar $PROG <girar-task-$infinitive@$EMAIL_DOMAIN>
 To: $email
 X-girar-task-$infinitive: $action
@@ -165,7 +168,7 @@ Content-Type: text/plain; charset=us-ascii
 Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
 
 $author_name $text_body:
-EOF
+__EOF__
 
 	for i; do
 		if [ -s "gears/$i/dir" ]; then
@@ -185,14 +188,13 @@ EOF
 		fi
 	done
 
-	cat <<EOF
+if [ -z "$revoke" ]; then
+	printf '\n%s\n\n' 'The text of approval follows:'
+	cat < "$tmpdir/msg"
+fi
 
-$url
+	printf '\n\n-- \n%s\n' "$url"
+} > "$tmpdir/draft"
 
---
-Yours truly, Girar $PROG
-EOF
-} > "$tmpdir/msg"
-
-/usr/sbin/sendmail -i -t < "$tmpdir/msg"
+HOME="$tmpdir" mutt -x -H "$tmpdir/draft" </dev/null
 message "task #$id: notified: $owner"
