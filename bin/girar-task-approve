@@ -63,6 +63,12 @@ cd "$TASKS_DIR/$id"
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"
 
+repo="$(girar-normalize-repo-name "$repo")"
+conf="$CONF_DIR/repo/$repo"
+if [ -s "$conf" ]; then
+        . "$conf"
+fi
+
 stamp="$(LC_TIME=C date -u '+%Y-%b-%d %T')"
 found=
 subtasks=
@@ -157,6 +163,7 @@ url="$GITWEB_URL$TASKS_DIR/$id"
 	cat <<__EOF__
 From: Girar $PROG <girar-task-$infinitive@$EMAIL_DOMAIN>
 To: $email
+Cc: ${GIRAR_TASK_APPROVE_CC-}
 X-girar-task-$infinitive: $action
 X-girar-task-id: $id
 X-girar-subtask-ids: $*
