@@ -186,12 +186,12 @@ __EOF__
 			printf '%s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
 		elif [ -s "gears/$i/package" ]; then
 			if [ -s "gears/$i/copy_repo" ]; then
-				action=copy
+				act=copy
 			else
-				action=del
+				act=del
 			fi
 			package="$(cat "gears/$i/package")"
-			printf '%s:%s=%s\n' "$i" "$action" "$package"
+			printf '%s:%s=%s\n' "$i" "$act" "$package"
 		fi
 	done
 
