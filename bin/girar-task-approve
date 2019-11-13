@@ -150,10 +150,10 @@ email="$(girar-get-email-address "$owner")"
 	exit 0
 
 if [ $# -gt 1 ]; then
-	text_summary="$action ${noun}s of $# subtasks"
+	text_summary="$GIRAR_USER has $action ${noun}s of $# subtasks"
 	text_body="has $action ${noun}s of $# subtasks of task #$id"
 else
-	text_summary="$action $noun of subtask #$1"
+	text_summary="$GIRAR_USER has $action $noun of subtask #$1"
 	text_body="has $action an $noun of subtask #$1 of task #$id"
 fi
 
