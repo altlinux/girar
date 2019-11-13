@@ -18,8 +18,10 @@ CP()
 	src="$1"; shift
 	dst="$1"; shift
 	header="$(od -A n -N 4 -t x1 -- "$src")"
-	[ "$header" = ' ed ab ee db' ] ||
-		fatal "$src: unrecognized header: $header"
+	if [ "$header" != ' ed ab ee db' ]; then
+		echo "$src: unrecognized header: $header" >&2
+		exit 1
+	fi
 	rsrc="$(readlink -ev -- "$src")"
 	install -vpm444 -- "$rsrc" "$dst"
 }
