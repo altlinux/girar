@@ -30,15 +30,19 @@ done
 
 guess_comp()
 {
-	local name dir
+	local name dir path
 	name="$1"; shift
 	dir="$1"; shift
 
 	comp=classic
 	for c in checkinstall debuginfo; do
 		if [ -z "${name##*-$c}" ]; then
-			if [ -d "$dir/RPMS.$c" ]; then
+			path="$dir/RPMS.$c"
+			if [ -d "$path" ]; then
 				comp=$c
+			else
+				echo "$path does not exist" >&2
+				exit 1
 			fi
 			break
 		fi
