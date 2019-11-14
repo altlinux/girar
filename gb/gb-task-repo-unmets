@@ -14,15 +14,19 @@ cd "$tmpdir"
 dump_unmets()
 {
 	local comp="${1-}"
+	local noarch_comp="$comp"
 	for age in old new; do
 		for arch in $GB_ARCH; do
 			[ $age = old ] && repo=$repo1 || repo=$repo2
 			> $arch-$comp-unmets.$age
 			[ -z "$comp" -o -f "$repo/$arch/base/release.$comp" ] ||
 				continue
+			[ -f "$repo/noarch/base/release.$comp" ] ||
+				noarch_comp=
+
 			cat >$age-$arch-$comp-sources.list <<-EOF
 				rpm file:$repo $arch classic $comp
-				rpm file:$repo noarch classic
+				rpm file:$repo noarch classic $noarch_comp
 			EOF
 			setarch $arch >/dev/null 2>&1 && native_arch=1 || native_arch=
 			${native_arch:+setarch $arch} \
