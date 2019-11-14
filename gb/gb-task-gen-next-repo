@@ -54,7 +54,10 @@ guess_comp()
 # and update only RPMS.classic components.
 while read -r N EVR A F; do
 	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
-	rm -- $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+	pkg=$GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+	[ -f "$pkg" ] ||
+		pkg=$GB_TMP_REPO_DIR/$A/RPMS.classic/$F
+	rm -- "$pkg"
 done <plan/rm-bin
 while read -r N EVR A F P I; do
 	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
