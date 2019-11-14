@@ -19,9 +19,11 @@ cd "$GA_REPO_DIR/task/$dir/$task"
 	exit 0
 
 utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/task/task.list" |
-	diff -U1 - "$GA_UPLOAD_DIR/log//$GA_REPO_NAME.log" |
+	diff -U1 - "$GA_UPLOAD_DIR/log/$GA_REPO_NAME.log" |
 	sed '/^ /!d;s///;q')"
-[ -n "$utask" ] || exit 0
+[ -n "$utask" ] &&
+	[ "$task" != "$utask" ] ||
+	exit 0
 udir="_$(($utask/1024))"
 
 enable -f /usr/lib/bash/lockf lockf
