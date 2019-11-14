@@ -94,8 +94,8 @@ gb-task-set-summary
 	# run surmountable tests
 	gb-task-check-girar
 	gb-task-check-lastchange
-	gb-task-check-acl
 	gb-task-check-neighbour-version
+	gb-task-check-acl
 
 	# apply local policy enforcement
 	gb-task-local-policy
