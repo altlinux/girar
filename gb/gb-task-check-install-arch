@@ -10,6 +10,10 @@ comps="$(set +f && cd "$GB_TMP_REPO_DIR/$arch" && ls -d RPMS.?* |
 	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
 [ -n "$comps" ]
 
+noarch_comps="$(set +f && cd "$GB_TMP_REPO_DIR/noarch" && ls -d RPMS.?* |
+	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
+[ -n "$noarch_comps" ]
+
 # Prepare remote node for $arch install check.
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR.
 gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
@@ -20,6 +24,7 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	gb-repo \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$comps")\"" \
+	"\"$(quote_shell "$noarch_comps")\"" \
 	"\"$(quote_shell "$GB_APT_CACHE_LIMIT")\"" \
 	'unchecked_initroot_cache=\$\{GB_UNCHECKED_INITROOT_CACHE-\}' \
 	#

@@ -6,6 +6,7 @@ GB_REPO_NAME="$1"; shift
 dir="$1"; shift
 arch="$1"; shift
 comps="$1"; shift
+noarch_comps="$1"; shift
 GB_APT_CACHE_LIMIT="$1"; shift
 
 # a simple sanity check
@@ -96,7 +97,7 @@ APT::Cache-Limit "$GB_APT_CACHE_LIMIT";
 EOF
 cat >apt/sources.list <<EOF
 rpm file:$dir $arch $comps
-rpm file:$dir noarch classic
+rpm file:$dir noarch $noarch_comps
 EOF
 cat >apt/pkgpriorities <<EOF
 Important:
