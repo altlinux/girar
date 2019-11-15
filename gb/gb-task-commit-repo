@@ -31,7 +31,7 @@ for arch in $GB_ARCH noarch; do
 	repo_base="$GB_REPO_DIR/$arch/base"
 	next_base="build/repo/$arch/base.next"
 	mandatory_comps='classic'
-	optional_comps='checkinstall debuginfo'
+	optional_comps='checkinstall debuginfo gostcrypto'
 	for comp in $optional_comps; do
 		cmp_file=pkglist.$comp.xz
 		if [ -f "$repo_base/$cmp_file" ] ||

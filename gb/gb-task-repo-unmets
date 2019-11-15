@@ -55,6 +55,7 @@ dump_unmets()
 dump_unmets
 dump_unmets checkinstall
 dump_unmets debuginfo
+dump_unmets gostcrypto debuginfo
 
 rc=0
 > unmets.stat
@@ -66,7 +67,7 @@ for arch in $GB_ARCH; do
 	> $arch-unmets.new
 	> $arch-unmets.plus
 	> $arch-unmets.minus
-	for comp in '' checkinstall debuginfo; do
+	for comp in '' checkinstall debuginfo gostcrypto; do
 		cat $arch-$comp-unmets.new >> $arch-unmets.new
 		comm -13 $arch-$comp-unmets.{old,new} >> $arch-unmets.plus
 		comm -23 $arch-$comp-unmets.{old,new} >> $arch-unmets.minus
