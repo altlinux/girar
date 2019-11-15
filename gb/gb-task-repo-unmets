@@ -13,24 +13,35 @@ cd "$tmpdir"
 
 dump_unmets()
 {
-	local comp="${1-}"
-	local noarch_comp="$comp"
+	local suff="${1-}"
+	local orig_comps="$*"
+	local age
 	for age in old new; do
 		for arch in $GB_ARCH; do
 			[ $age = old ] && repo=$repo1 || repo=$repo2
-			> $arch-$comp-unmets.$age
-			[ -z "$comp" -o -f "$repo/$arch/base/release.$comp" ] ||
+			> $arch-$suff-unmets.$age
+			local comps=
+			local noarch_comps=
+			local c
+			for c in $orig_comps; do
+				if [ -f "$repo/$arch/base/release.$c" ]; then
+					comps="$comps $c"
+				fi
+				if [ -f "$repo/noarch/base/release.$c" ]; then
+					noarch_comps="$noarch_comps $c"
+				fi
+			done
+			if [ -n "$orig_comps" ] && [ -z "$comps$noarch_comps" ]; then
 				continue
-			[ -f "$repo/noarch/base/release.$comp" ] ||
-				noarch_comp=
+			fi
 
-			cat >$age-$arch-$comp-sources.list <<-EOF
-				rpm file:$repo $arch classic $comp
-				rpm file:$repo noarch classic $noarch_comp
+			cat >$age-$arch-$suff-sources.list <<-EOF
+				rpm file:$repo $arch classic $comps
+				rpm file:$repo noarch classic $noarch_comps
 			EOF
 			setarch $arch >/dev/null 2>&1 && native_arch=1 || native_arch=
 			${native_arch:+setarch $arch} \
-			unmets -a $arch ${GB_APT_CACHE_LIMIT:+-l $GB_APT_CACHE_LIMIT} -s $age-$arch-$comp-sources.list >$arch-$comp-unmets.$age ||
+			unmets -a $arch ${GB_APT_CACHE_LIMIT:+-l $GB_APT_CACHE_LIMIT} -s $age-$arch-$suff-sources.list >$arch-$suff-unmets.$age ||
 				echo 1 >>FAIL &
 		done
 	done
