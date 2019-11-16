@@ -55,7 +55,8 @@ for i; do
 		fatal "task #$id: source package name for subtask #$i is not known yet"
 	git --git-dir="$GEARS_DIR/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
 		fatal "commit $commit_id not found"
-	girar-check-subtask-perms "$i" "$pkgname"
+	repo="$(cat task/repo)"
+	girar-check-perms "$pkgname" "$repo"
 	f="check-git-inheritance/$i"
 	fgrep -qsx "$commit_id" "$f" 2 >/dev/null ||
 		echo "$commit_id" > "$f"
