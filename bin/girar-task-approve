@@ -121,7 +121,7 @@ if [ -z "$revoke" ]; then
 	tr -cd '[:print:]\n' |
 		tr -s '\n' |
 		head -c 8192 > "$tmpdir/msg"
-	tr -cd '[:graph:]' < "$tmpdir/msg" |
+	tr -cd '[:alpha:]' < "$tmpdir/msg" |
 		grep -qs ^. ||
 		fatal "failed to obtain a meaningful text of $noun"
 fi
