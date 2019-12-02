@@ -55,12 +55,15 @@ for i; do
 		fatal "task #$id: source package name for subtask #$i is not known yet"
 	git --git-dir="$GEARS_DIR/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
 		fatal "commit $commit_id not found"
-	repo="$(cat task/repo)"
-	girar-check-perms "$pkgname" "$repo"
 	f="check-git-inheritance/$i"
-	fgrep -qsx "$commit_id" "$f" 2 >/dev/null ||
+	if fgrep -qsx "$commit_id" "$f" 2 >/dev/null; then
+		echo >&2 "task #$id: update of $pkgname by subtask #$i is already allowed to overcome git inheritance check failure for commit $commit_id"
+	else
+		repo="$(cat task/repo)"
+		girar-check-perms "$pkgname" "$repo"
 		echo "$commit_id" > "$f"
-	echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome git inheritance check failure for commit $commit_id"
+		echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome git inheritance check failure for commit $commit_id"
+	fi
 	exit
 done
 fatal "task #$id: subtask #$num not found"
