@@ -35,6 +35,10 @@ guess_comp()
 	dir="$1"; shift
 
 	comp=classic
+	if [ -z "${name##*-gostcrypto-debuginfo}" ]; then
+		comp=gostcrypto
+		return
+	fi
 	for c in checkinstall debuginfo gostcrypto; do
 		if [ -z "${name##*-$c}" ]; then
 			path="$dir/RPMS.$c"
