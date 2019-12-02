@@ -6,11 +6,11 @@ arch="$1"; shift
 
 . shell-quote
 
-comps="$(set +f && cd "$GB_TMP_REPO_DIR/$arch" && ls -d RPMS.?* |
+comps="$(set +f && cd "$GB_TMP_REPO_DIR/$arch" && find RPMS.?* -type d -prune -not -empty |
 	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
 [ -n "$comps" ]
 
-noarch_comps="$(set +f && cd "$GB_TMP_REPO_DIR/noarch" && ls -d RPMS.?* |
+noarch_comps="$(set +f && cd "$GB_TMP_REPO_DIR/noarch" && find RPMS.?* -type d -prune -not -empty |
 	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
 [ -n "$noarch_comps" ]
 
