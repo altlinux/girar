@@ -23,7 +23,7 @@ for index in */postponed; do
 			enable -f /usr/lib/bash/lockf lockf &&
 			cd "$i" &&
 			builtin lockf -n . &&
-			gb-task-queue-rebuild
+			gb-task-queue-rebuild ||:
 		)
 	done
 done
