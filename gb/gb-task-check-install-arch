@@ -62,7 +62,7 @@ while read -r N EVR A F P I; do
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
 
 	comp=classic
-	if [ -z "${N##*-gostcrypto-debuginfo}" ]; then
+	if [ -z "${N##*-gostcrypto-*}" ]; then
 		comp=gostcrypto
 	else
 		for c in checkinstall debuginfo gostcrypto; do

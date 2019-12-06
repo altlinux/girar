@@ -48,7 +48,7 @@ guess_comp()
 	dir="$1"; shift
 
 	comp=classic
-	if [ -z "${name##*-gostcrypto-debuginfo}" ]; then
+	if [ -z "${name##*-gostcrypto-*}" ]; then
 		comp=gostcrypto
 		return
 	fi
