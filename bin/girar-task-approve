@@ -196,7 +196,7 @@ __EOF__
 	done
 
 if [ -z "$revoke" ]; then
-	printf '\n%s\n\n' 'The text of approval follows:'
+	printf '\n%s\n\n' "The text of $noun follows:"
 	cat < "$tmpdir/msg"
 fi
 
