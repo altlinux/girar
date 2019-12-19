@@ -147,4 +147,5 @@ cat >.rpmmacros <<EOF
 %_topdir	$HOME/RPM
 %_tmppath	$TMPDIR
 %_priority_distbranch	$GB_REPO_NAME
+%_rpmscript_werror	1
 EOF
