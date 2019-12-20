@@ -7,10 +7,12 @@ case "$0" in
 	*-approve)
 		infinitive=approve
 		noun=approval
+		a_noun='an approval'
 		;;
 	*-disapprove)
 		infinitive=disapprove
 		noun=disapproval
+		a_noun='a disapproval'
 		;;
 	*)
 		fatal 'who am I?'
@@ -154,7 +156,7 @@ if [ $# -gt 1 ]; then
 	text_body="has $action ${noun}s of $# subtasks of task #$id"
 else
 	text_summary="$GIRAR_USER has $action $noun of subtask #$1"
-	text_body="has $action an $noun of subtask #$1 of task #$id"
+	text_body="has $action $a_noun of subtask #$1 of task #$id"
 fi
 
 url="$GITWEB_URL$TASKS_DIR/$id"
