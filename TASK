@@ -78,6 +78,8 @@ TASK_ID/build/$i/$arch/chroot_BR	BuildRequires packages
 # packages built with hasher
 TASK_ID/build/$i/$arch/srpm/*.src.rpm	exactly one *.src.rpm
 TASK_ID/build/$i/$arch/rpms/*.rpm	1+ *.$arch.rpm or *.noarch.rpm
+TASK_ID/build/$i/pkgname		source package name
+TASK_ID/build/$i/changelog		source package last changes
 
 # Task repository generated when basic tests are passed.
 TASK_ID/build/repo		http://git.altlinux.org/repo/TASK_ID $arch task

@@ -76,6 +76,7 @@ gb-task-set-summary
 	gb-task-repo-vercheck
 
 	# gather information about closed bugs and fixed vulns
+	gb-task-gen-changelog
 	gb-task-find-closed-bugs
 	gb-task-find-fixed-vulns
 

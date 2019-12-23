@@ -4,25 +4,17 @@
 
 fail_if_task_abort_requested
 
-. gb-sh-tmpdir
-join -t$'\t' -o 1.1,1.2,1.3,1.4,1.5,2.3 plan/{add,rm}-src >$tmpdir/src
-sort -t$'\t' -u -k1,3 -o $tmpdir/src{,} plan/add-src
-
 # Drop old cvemails if any.
 find mail/cvemail -type f -delete
 
-while F0=; read -r N EVR F P I F0; do
-	if [ -n "$F0" ]; then
-		# Must be executed before commit-repo!
-		srpm0=$GB_REPO_DIR/files/SRPMS/$F0
-		changelog=$(rpm_changes_since "$P" "$srpm0")
-	else
-		changelog=$(rpm_recent_changes "$P")
-	fi
+while read -r N EVR F P I; do
+	changelog="build/$I/changelog"
+	[ -s "$changelog" ] ||
+		continue
 
-	mentioned_ids=$(printf '%s\n' "$changelog" |gb-x-parse-mentioned-vulns-from-changelog)
+	mentioned_ids=$(gb-x-parse-mentioned-vulns-from-changelog < "$changelog")
 	[ -n "$mentioned_ids" ] || continue
-	fixed_ids=$(printf '%s\n' "$changelog" |gb-x-parse-vulns-from-changelog)
+	fixed_ids=$(gb-x-parse-vulns-from-changelog < "$changelog")
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
 	uploader="$(cat task/owner)"
 	truly_mentioned=
@@ -35,22 +27,24 @@ while F0=; read -r N EVR F P I F0; do
 			in_type='Mention'
 		fi
 
-		cat >"mail/cvemail/$id" <<-__EOF
-		From: ${GB_VULNZILLA_FROM}
-		To: ${GB_VULNZILLA_TO}
+		{
+			cat <<-__EOF
+			From: ${GB_VULNZILLA_FROM}
+			To: ${GB_VULNZILLA_TO}
 
-		X-Vulnzilla-In-Vuln-Id: ${id}
-		X-Vulnzilla-In-Source-Package: ${N}
-		X-Vulnzilla-In-Binary-Packages: ${binaries}
-		X-Vulnzilla-In-Uploader: ${uploader}
-		X-Vulnzilla-In-Repo: ${GB_REPO_NAME}
-		X-Vulnzilla-In-EVR: ${EVR}
-		X-Vulnzilla-In-Type: ${in_type}
+			X-Vulnzilla-In-Vuln-Id: ${id}
+			X-Vulnzilla-In-Source-Package: ${N}
+			X-Vulnzilla-In-Binary-Packages: ${binaries}
+			X-Vulnzilla-In-Uploader: ${uploader}
+			X-Vulnzilla-In-Repo: ${GB_REPO_NAME}
+			X-Vulnzilla-In-EVR: ${EVR}
+			X-Vulnzilla-In-Type: ${in_type}
 
-		${changelog}
-		__EOF
+			__EOF
+			cat -- "${changelog}"
+		} > "mail/cvemail/$id"
 	done
 
 	[ -z "$fixed_ids" ] || stamp_echo >&2 "$N: fixes vulnerabilities: $fixed_ids"
 	[ -z "$truly_mentioned" ] || stamp_echo >&2 "$N: mentions vulnerabilities:$truly_mentioned"
-done <$tmpdir/src
+done < plan/add-src
