@@ -4,16 +4,36 @@
 
 fail_if_task_abort_requested
 
+. shell-quote
+quote_sed_regexp_variable qdom_in \
+	"$GB_EMAIL_DOMAIN_PEOPLE"
+quote_sed_regexp_variable qdom_out \
+	"${GB_EMAIL_DOMAIN_PEOPLE_OBFUSCATED:-$GB_EMAIL_DOMAIN_PEOPLE}"
+
 . gb-sh-tmpdir
 join -t$'\t' -o 1.1,1.2,1.3,1.4,1.5,2.3 plan/{add,rm}-src > $tmpdir/src
 sort -t$'\t' -u -k1,3 -o $tmpdir/src{,} plan/add-src
 
 while F0=; read -r N EVR F P I F0; do
+	changelog="build/$I/changelog"
 	if [ -n "$F0" ]; then
 		# Must be executed before commit-repo!
 		srpm0="$GB_REPO_DIR/files/SRPMS/$F0"
-		rpm_changes_since "$P" "$srpm0"
+		rpm_changes_since "$P" "$srpm0" > "$changelog"
+		# Report it
+		grep '^[[:space:]]*[^[:space:]]' < "$changelog" |
+			sed "s/@$qdom_in>/@$qdom_out>/g;s/^/ /" > $tmpdir/log
+		if [ -s $tmpdir/log ]; then
+			evr0="${F0%.src.rpm}"
+			evr0="${evr0#$N-}"
+			printf '#%s %s %s -> %s\n' \
+				"$I" "$N" "$evr0" "$EVR"
+			head < $tmpdir/log
+			if [ "$(wc -l < $tmpdir/log)" -gt 10 ]; then
+				echo ' [...]'
+			fi
+		fi
 	else
-		rpm_recent_changes "$P"
-	fi < /dev/null > "build/$I/changelog"
+		rpm_recent_changes "$P" > "$changelog"
+	fi < /dev/null
 done < $tmpdir/src
