@@ -4,8 +4,6 @@
 
 fail_if_task_abort_requested
 
-. shell-quote
-
 # Drop old bugmails if any.
 find mail/bugmail -type f -delete
 
@@ -19,11 +17,6 @@ while read -r N EVR F P I; do
 	stamp_echo >&2 "$N: closes bugs: $ids"
 	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
 	uploader="$(cat task/owner)"
-	quote_sed_regexp_variable qdom_in \
-		"$GB_EMAIL_DOMAIN_PEOPLE"
-	quote_sed_regexp_variable qdom_out \
-		"${GB_EMAIL_DOMAIN_PEOPLE_OBFUSCATED:-$GB_EMAIL_DOMAIN_PEOPLE}"
-	changelog="$(sed "s/@$qdom_in>/@$qdom_out>/g" < "$changelog")"
 	for id in $ids; do
 		cat >"mail/bugmail/$id" <<-__EOF
 		From: ${GB_BUGZILLA_FROM}
@@ -39,7 +32,7 @@ while read -r N EVR F P I; do
 
 		${N}-${EVR} -> $GB_REPO_NAME:
 
-		${changelog}
 		__EOF
+		cat < "$changelog" >> "mail/bugmail/$id"
 	done
 done < plan/add-src
