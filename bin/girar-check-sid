@@ -30,17 +30,32 @@ repo="$(girar-normalize-repo-name "$repo")"
 quote_sed_regexp_variable qevr "$evr"
 spi="src/${package:0:1}/$package/d-t-s-evr.list"
 
-for dir in $(set +f && echo $STATE_DIR/repo/*/index); do
+check_sid_in_index_dir() {
+	local dir dspi index_sid
+	dir="$1"; shift
+
 	dspi="$dir/$spi"
 	[ -f "$dspi" ] || continue
 
 	index_sid="$(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
 			 "$dspi" |uniq)"
 	case "$index_sid" in
-	        ''|:*$sid) ;; # package evr not found or sids match
+	        '') ;; # package evr not found
+	        :$sid) [ "$dir" != "$repo_index_dir" ] || exit 0 ;; # sids match
 		:) exit 1 ;; # package evr is built but has no sid
 		*) exit 2 ;; # package evr sid mismatches
 	esac
+}
+
+repo_index_dir="$STATE_DIR/repo/$repo/index"
+
+# check $repo first
+check_sid_in_index_dir "$repo_index_dir"
+
+# evr not found in $repo, check other repositories
+for dir in $(set +f && echo $STATE_DIR/repo/*/index); do
+	[ "$dir" = "$repo_index_dir" ] ||
+		check_sid_in_index_dir "$dir"
 done
 
 exit 0
