@@ -71,6 +71,14 @@ builtin lockf -n . ||
         fatal "task #$id is locked"
 
 repo="$(cat task/repo)"
+repo="$(girar-normalize-repo-name "$repo")"
+
+# Source per-repository config file.
+conf="$CONF_DIR/repo/$repo"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
 owner="$(cat task/owner)"
 state="$(cat task/state)"
 
@@ -203,12 +211,15 @@ fail=
 check_copy_del || fail=1
 check_srpm || fail=1
 check_depends || fail=1
-if [ -n "$delnums" ]; then
-	[ -n "$task_msg" ] ||
-	[ -s task/message ] ||
-		show_usage "task #$id contains explicit package removals, please specify a reason for that"
-fi
 [ -z "$fail" ]
+
+[ -n "$task_msg" ] ||
+[ -s task/message ] || {
+	[ -z "$delnums" ] ||
+		show_usage "task #$id contains explicit package removals, please specify a reason for that"
+	[ -z "${GIRAR_ACL_MAINT_GROUP-}" ] ||
+		show_usage "a reason must be specified for '$repo' repository"
+}
 
 try=$(cat task/try 2>/dev/null ||:)
 if [ -n "$try" ]; then

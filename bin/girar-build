@@ -61,6 +61,15 @@ done
 [ $# -ge 1 ] ||
 	show_usage 'not enough arguments.'
 
+default_repo="${GIRAR_DEFAULT_REPO:-sisyphus}"
+repo="$(girar-normalize-repo-name "${repo:-$default_repo}")"
+
+# Source per-repository config file.
+conf="$CONF_DIR/repo/$repo"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
 add_subtasks()
 {
 	local arg cmd= del=
@@ -91,8 +100,11 @@ add_subtasks()
 	done
 	[ -z "$cmd" ] ||
 		show_usage 'not enough arguments.'
-	if [ -n "$del" ] && [ -z "$task_msg" ]; then
-		show_usage 'contains explicit package removals, please specify a reason for that'
+	if [ -z "$task_msg" ]; then
+		[ -z "$del" ] ||
+			show_usage 'contains explicit package removals, please specify a reason for that'
+		[ -z "${GIRAR_ACL_MAINT_GROUP-}" ] ||
+			show_usage "a reason must be specified for '$repo' repository"
 	fi
 }
 
