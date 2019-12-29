@@ -61,6 +61,46 @@ done
 [ $# -ge 1 ] ||
 	show_usage 'not enough arguments.'
 
+add_subtasks()
+{
+	local arg cmd= del=
+	for arg; do
+		[ -n "$arg" ] ||
+			show_usage 'invalid empty argument.'
+		case "$cmd" in
+			'')
+				case "$arg" in
+					*.git=*|*.src.rpm)
+						$dry_run girar-task add "$id" "$arg"
+						cmd= ;;
+					*)
+						cmd="$arg" ;;
+				esac
+				;;
+			del)
+				del=1
+				$dry_run girar-task add "$id" "$cmd" "$arg"
+				cmd= ;;
+			copy|rebuild|srpm)
+				$dry_run girar-task add "$id" "$cmd" "$arg"
+				cmd= ;;
+			*)
+				$dry_run girar-task add "$id" repo "$cmd" "$arg"
+				cmd= ;;
+		esac
+	done
+	[ -z "$cmd" ] ||
+		show_usage 'not enough arguments.'
+	if [ -n "$del" ] && [ -z "$task_msg" ]; then
+		show_usage 'contains explicit package removals, please specify a reason for that'
+	fi
+}
+
+# Basic sanity check.
+dry_run=:
+id=
+add_subtasks "$@"
+
 atexit()
 {
 	local rc=$?
@@ -77,45 +117,8 @@ if [ -n "$deps" ]; then
 	girar-task deps "$id" set $(printf %s "$deps" |tr , ' ')
 fi
 
-# Basic sanity check.
-cmd=
-for arg; do
-	[ -n "$arg" ] ||
-		show_usage 'invalid empty argument.'
-	if [ -n "$cmd" ]; then
-		cmd=
-	else
-		case "$arg" in
-			*.git=*|*.src.rpm)
-				cmd= ;;
-			*)
-				cmd="$arg" ;;
-		esac
-	fi
-done
-[ -z "$cmd" ] ||
-	show_usage 'not enough arguments.'
-
-cmd=
-for arg; do
-	case "$cmd" in
-		'')
-			case "$arg" in
-				*.git=*|*.src.rpm)
-					girar-task add "$id" "$arg"
-					cmd= ;;
-				*)
-					cmd="$arg" ;;
-			esac
-			;;
-		copy|del|rebuild|srpm)
-			girar-task add "$id" "$cmd" "$arg"
-			cmd= ;;
-		*)
-			girar-task add "$id" repo "$cmd" "$arg"
-			cmd= ;;
-	esac
-done
+dry_run=
+add_subtasks "$@"
 
 set -- $fail_mode $test_mode
 [ -z "$task_msg" ] ||

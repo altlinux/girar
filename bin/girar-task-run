@@ -122,6 +122,7 @@ check_acl()
 			fatal "task #$id belongs to $owner"
 
 nums=$(gear_nums)
+delnums=
 check_copy_del()
 {
 	local i package action a_repo rc=0
@@ -134,6 +135,7 @@ check_copy_del()
 		else
 			action=delete
 			a_repo=$repo
+			delnums="$delnums $i"
 		fi
 		girar-check-package-in-repo "$package" "$a_repo" ||
 		{
@@ -201,6 +203,11 @@ fail=
 check_copy_del || fail=1
 check_srpm || fail=1
 check_depends || fail=1
+if [ -n "$delnums" ]; then
+	[ -n "$task_msg" ] ||
+	[ -s task/message ] ||
+		show_usage "task #$id contains explicit package removals, please specify a reason for that"
+fi
 [ -z "$fail" ]
 
 try=$(cat task/try 2>/dev/null ||:)
