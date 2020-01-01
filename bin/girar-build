@@ -104,6 +104,7 @@ add_subtasks()
 		[ -z "$del" ] ||
 			show_usage 'contains explicit package removals, please specify a reason for that'
 		[ -z "${GIRAR_ACL_MAINT_GROUP-}" ] ||
+		[ "$test_mode" = '--test-only' ] ||
 			show_usage "a reason must be specified for '$repo' repository"
 	fi
 }
