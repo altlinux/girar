@@ -64,6 +64,9 @@ fi
 if [ -f "$log" ]; then
 	printf ' build_time=%s' "$(date -r "$log" '+%Y-%b-%d/%T')"
 fi
+if [ -s task/message ]; then
+	printf ' message=%s' "$(tr -cd '[:print:]' < task/message | tr -s '[:space:]' _)"
+fi
 echo
 
 nums="$(gear_nums)"
