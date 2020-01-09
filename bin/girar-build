@@ -61,6 +61,16 @@ done
 [ $# -ge 1 ] ||
 	show_usage 'not enough arguments.'
 
+if [ -n "$task_msg" ]; then
+	task_msg="$(printf %s "$task_msg" |
+			tr -cd '[:print:]' |
+			head -c 1024)"
+	printf %s "$task_msg" |
+		tr -cd '[:alpha:]' |
+		grep -qs ^. ||
+		fatal 'invalid message'
+fi
+
 default_repo="${GIRAR_DEFAULT_REPO:-sisyphus}"
 repo="$(girar-normalize-repo-name "${repo:-$default_repo}")"
 

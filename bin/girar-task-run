@@ -60,6 +60,16 @@ if [ "$#" -gt 1 ]; then
 	show_usage 'too many arguments.'
 fi
 
+if [ -n "$task_msg" ]; then
+	task_msg="$(printf %s "$task_msg" |
+			tr -cd '[:print:]' |
+			head -c 1024)"
+	printf %s "$task_msg" |
+		tr -cd '[:alpha:]' |
+		grep -qs ^. ||
+		fatal 'invalid message'
+fi
+
 cd "$TASKS_DIR"
 
 id="$(PROG="$PROG" girar-task-find-current "$@")"
