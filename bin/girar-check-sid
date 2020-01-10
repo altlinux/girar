@@ -35,7 +35,7 @@ check_sid_in_index_dir() {
 	dir="$1"; shift
 
 	dspi="$dir/$spi"
-	[ -f "$dspi" ] || continue
+	[ -f "$dspi" ] || return 0
 
 	index_sid="$(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
 			 "$dspi" |uniq)"
