@@ -9,7 +9,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ -s task/message ]; then
-	stamp_echo "message: $(cat task/message)"
+	stamp_echo "message: $(tr -cd '[:print:]' < task/message)"
 fi
 
 for i; do
