@@ -61,9 +61,16 @@ if [ "$#" -gt 1 ]; then
 fi
 
 if [ -n "$task_msg" ]; then
-	task_msg="$(printf %s "$task_msg" |
-			tr -cd '[:print:]' |
+	task_msg="$(if [ "$task_msg" = '-' ]; then
+			message 'Go ahead and type the text of your message.'
+			cat
+		else
+			printf %s "$task_msg"
+		fi |
+			tr -cd '[:print:]\n' |
+			tr -s '[:space:]' ' ' |
 			head -c 1024)"
+	task_msg="${task_msg% }"
 	printf %s "$task_msg" |
 		tr -cd '[:alpha:]' |
 		grep -qs ^. ||
