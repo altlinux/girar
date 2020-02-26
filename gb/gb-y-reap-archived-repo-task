@@ -30,6 +30,6 @@ cd "$GB_TASKS_DIR"
 ln -rsnf -- "$archived_task_dir" "index/$GB_REPO_NAME/done/"
 
 # move the active instance of the archived task to .archived/.
-mkdir -p -m700 .archived
+mkdir -p -m755 .archived
 mv -- "$task_id" .archived
 logger -t "${0##*/}" "archived: $task_id"

@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+cd "$GB_TASKS_DIR/.archived"
+
+set -- $(set +f && ls -d $GB_REPO_ROOT/*/task/.archived)
+
+for task in $(set +f && ls -d [1-9]*); do
+	[ -d "$task" ] || continue
+	for d; do
+		if [ -d "$d/$task" ]; then
+			continue 2
+		fi
+	done
+	mkdir -p -m700 ../.done
+	mv "$task" ../.done/
+	logger -t "${0##*/}" "done: $task"
+done

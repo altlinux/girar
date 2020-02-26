@@ -10,3 +10,5 @@ set +f
 for task in [1-9]*; do
 	[ -d "$task" ] && $0-task "$task" ||:
 done
+
+gb-y-reap-archived-tasks

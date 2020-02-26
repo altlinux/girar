@@ -206,11 +206,15 @@ install-var:
 		${DESTDIR}${STATE_DIR}/depot/{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} \
 		${DESTDIR}${STATE_DIR}/pender \
 		${DESTDIR}${STATE_DIR}/repo \
+		${DESTDIR}${STATE_DIR}/repo/.done \
 		${DESTDIR}${STATE_DIR}/symlinkery \
 		${DESTDIR}${STATE_DIR}/upload/{copy,lockdir,log} \
 		${DESTDIR}${TASKS_DIR} \
-		${DESTDIR}${TASKS_DIR}/stale \
+		${DESTDIR}${TASKS_DIR}/.archived \
+		${DESTDIR}${TASKS_DIR}/.done \
+		${DESTDIR}${TASKS_DIR}/.rm \
 		${DESTDIR}${TASKS_DIR}/index \
+		${DESTDIR}${TASKS_DIR}/stale \
 		${DESTDIR}${girar_lockdir} \
 		${DESTDIR}${girar_lockdir}/awaiter \
 		${DESTDIR}${girar_lockdir}/pender \

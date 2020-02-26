@@ -205,14 +205,18 @@ fi
 %dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.qa-cache/
 %dir %attr(770,root,awaiter) /var/lib/girar/awaiter/.qa-cache/rpmelfsym/
 %dir %attr(755,root,root) /var/lib/girar/repo/
+%dir %attr(1770,root,repo) /var/lib/girar/repo/.done/
 %dir %attr(1771,root,pender) /var/lib/girar/symlinkery/
 %dir %attr(775,root,pender) /gears/
 %dir %attr(775,root,pender) /srpms/
 
 %dir %attr(3775,pender,tasks) /tasks/
 #/tasks/archive
-%dir %attr(1770,root,pender) /tasks/stale/
 %dir %attr(755,root,root) /tasks/index/
+%dir %attr(775,root,pender) /tasks/.archived/
+%dir %attr(1770,root,pender) /tasks/.done/
+%dir %attr(700,root,root) /tasks/.rm/
+%dir %attr(1770,root,pender) /tasks/stale/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
 
 %dir %attr(750,root,girar) /var/lib/girar/incoming/

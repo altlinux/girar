@@ -27,6 +27,7 @@ src="$repo/release/$task"
 dst="$repo/task/$task"
 k="_$(($task/1024))"
 adst="$repo/task/archive/$k/$task"
+done_dir="$STATE_DIR/repo/.done"
 
 cd "$STATE_DIR/repo"
 
@@ -50,8 +51,22 @@ for d in $(set +f && echo ??*); do
 	# We are called while $repo/release is locked,
 	# so $repo/release/latest cannot change.
 	builtin lockf -n -s "$repo/release/latest"
-	# Move archived repositories to .archived/.
+
 	cd "$repo/task/"
+	# Move .archived/ repositories to $done_dir/.
+	if [ -d "$done_dir" ] &&
+	   [ -d .archived ] &&
+	   [ -d "$TASKS_DIR/.archived" ]; then
+		for t in $(set +f && cd .archived && echo [1-9]*); do
+			[ -d ".archived/$t" ] &&
+			[ -d "$TASKS_DIR/.archived/$t" ] ||
+				continue
+			mv ".archived/$t" "$done_dir/"
+			logger -t "$PROG" "done: $repo/task/$t"
+		done
+	fi
+
+	# Move archived repositories to .archived/.
 	for t in $(set +f && echo [1-9]*); do
 		[ -d "$t" ] || continue
 		k="_$(($t/1024))" || continue
@@ -66,6 +81,7 @@ for d in $(set +f && echo ??*); do
 		mv "$t" .archived/
 		logger -t "$PROG" "archived: $repo/task/$t"
 	done
+
 	exit
 done
 
