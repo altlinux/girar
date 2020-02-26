@@ -65,8 +65,8 @@ while read -r N EVR A F; do
 done <plan/rm-bin
 while read -r N EVR A F P I; do
 	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
-	# NB: copy here, so that the repo is rsyncable to remotes.
-	cp -p -- $P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+	# NB: $PWD must be available to remotes.
+	ln -s -- $PWD/$P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
 done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse
