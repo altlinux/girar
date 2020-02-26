@@ -30,24 +30,27 @@ adst="$repo/task/archive/$k/$task"
 
 cd "$STATE_DIR/repo"
 
-if [ -e "$dst" -o -e "$adst" ]; then
-	fatal "task $task: Task already reposited"
-fi
+for d in "$dst" "$adst"; do
+	[ ! -e "$d" ] ||
+		fatal "$d already exists"
+done
 [ -d "$src" ] ||
-	fatal "task $task: Task not ready"
+	fatal "$src not found"
 
 for d in $(set +f && echo ??*); do
 	[ "$repo" = "$d" ] || continue
 	[ -d "$d" ] || continue
 	girar-repo-savetree "$src" "$dst"
 	readlink -ev -- "$dst"
-	# Move archived tasks to .done/.
+
+	# Hook up archiving jobs.
 	exec </dev/null >/dev/null 2>&1
 	enable -f /usr/lib/bash/lockf lockf
 	builtin lockf -n -s "$dst"
 	# We are called while $repo/release is locked,
 	# so $repo/release/latest cannot change.
 	builtin lockf -n -s "$repo/release/latest"
+	# Move archived repositories to .archived/.
 	cd "$repo/task/"
 	for t in $(set +f && echo [1-9]*); do
 		[ -d "$t" ] || continue
@@ -58,10 +61,10 @@ for d in $(set +f && echo ??*); do
 		# Has it been archived already?
 		cmp -s -- "$ti" "$ati" || continue
 		builtin lockf -n "$t" || continue
-		mkdir -p -m755 .done
+		mkdir -p -m755 .archived
 		chmod u+w "$t"
-		mv "$t" .done/
-		logger -t "$PROG" "done: $repo/task/$t"
+		mv "$t" .archived/
+		logger -t "$PROG" "archived: $repo/task/$t"
 	done
 	exit
 done

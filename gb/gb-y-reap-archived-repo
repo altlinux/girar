@@ -3,8 +3,8 @@
 . gb-sh-functions
 
 cd "$GB_REPO_ROOT/$GB_REPO_NAME/task"
-[ -d .done ] || exit 0
-cd .done
+[ -d .archived ] || exit 0
+cd .archived
 
 set +f
 for task in [1-9]*; do

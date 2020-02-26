@@ -7,9 +7,9 @@ task_id="$1"; shift
 k="$(($task_id/1024))"
 task_dir="$GB_TASKS_DIR/$task_id"
 [ -d "$task_dir" ] ||
-	exit 0
+	exit
 
-# the repo corresponding to this task is already archived and moved to .done
+# the repo corresponding to this task is already archived and moved to .archived/.
 
 cd "$task_dir"
 
@@ -19,7 +19,7 @@ builtin lockf -n .
 # not archived yet?
 archived_task_dir="$GB_TASKS_DIR/archive/done/_$k/$task_id"
 cmp -s -- task/state "$archived_task_dir/task/state" ||
-	exit 0
+	exit
 
 # sanity check
 [ DONE = "$(cat task/state)" ]
@@ -29,7 +29,7 @@ cd "$GB_TASKS_DIR"
 # redirect the entry in the task index to archive
 ln -rsnf -- "$archived_task_dir" "index/$GB_REPO_NAME/done/"
 
-# move the active instance of the archived task to .done
-mkdir -p -m700 .done
-mv -- "$task_id" .done
-logger -t "${0##*/}" "done: $task_id"
+# move the active instance of the archived task to .archived/.
+mkdir -p -m700 .archived
+mv -- "$task_id" .archived
+logger -t "${0##*/}" "archived: $task_id"
