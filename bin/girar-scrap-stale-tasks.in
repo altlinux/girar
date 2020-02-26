@@ -22,5 +22,7 @@ for t in $(set +f && echo [1-9]*); do
 	[ -n "$state" ] ||
 		continue
 	girar-task-update-queues "$t" "$state" ''
-	mv -- "$t" stale ||:
+	if mv -- "$t" stale/; then
+		logger -t "${0##*/}" "stale: $t"
+	fi
 done
