@@ -394,7 +394,7 @@ check_already_added_package()
 		else
 			reason="deletion"
 		fi
-		fatal "package $package was already queued by $(cat gears/$i/userid) for $reason"
+		fatal "task #$id: package $package was already queued by $(cat gears/$i/userid) for $reason in subtask #$i"
 	done
 }
 
@@ -407,7 +407,7 @@ check_already_added_srpm()
 		a_nevr="$(cat gears/$i/nevr)"
 		a_name="${a_nevr%	*}"
 		[ "$a_name" = "$package" ] || continue
-		fatal "package $(cat gears/$i/srpm) was already queued by $(cat gears/$i/userid) for build"
+		fatal "task #$id: package $(cat gears/$i/srpm) was already queued by $(cat gears/$i/userid) for build in subtask #$i"
 	done
 }
 
