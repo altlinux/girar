@@ -485,6 +485,11 @@ else
 	i=100
 fi
 
+if [ "$GIRAR_USER" = "$(cat task/owner)" ]; then
+	gears_i_mode=3775
+else
+	gears_i_mode=2775
+fi
 
 logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i"
 
@@ -499,7 +504,7 @@ atexit()
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
 mkdir -pm2755 gears acl acl/approved acl/disapproved
-mkdir -m2775 gears/"$i"
+mkdir -m "$gears_i_mode" gears/"$i"
 mkdir -m3775 acl/approved/"$i" acl/disapproved/"$i"
 trap atexit EXIT
 
