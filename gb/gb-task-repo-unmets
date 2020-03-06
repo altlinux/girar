@@ -102,17 +102,18 @@ sort -u -o unmets.srpms{,}
 sort -k3,3 "$topdir"/plan/next.src |
 	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
 sort -u -o unmets.src{,}
-join -v1 unmets.src "$topdir"/plan/add-src > unmets-new.src
 
 while read -r src; do
-	gb-x-girar acl-show "$GB_REPO_NAME" "$src" >> unmets.acl
 	list_notifiable_pkg_acl_members "$src"
-done < unmets-new.src > "$topdir"/report/unmet-addressees
+done < unmets.src > "$topdir"/report/unmet-addressees
 sort -u -o "$topdir"/report/unmet-addressees{,}
 
-if [ -s unmets-new.src ]; then
-	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets-new.src)"
-	join -t$'\t' -a1 unmets-new.src unmets.acl
+if [ -s unmets.src ]; then
+	while read -r src; do
+		gb-x-girar acl-show "$GB_REPO_NAME" "$src"
+	done < unmets.src > unmets.acl
+	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets.src)"
+	join -t$'\t' -a1 unmets.src unmets.acl
 fi
 
 if [ -s unmets.stat ]; then
