@@ -68,7 +68,7 @@ for arch in $GB_ARCH; do
 done
 
 if [ "$rc" = 1 ]; then
-	# This list should include only proprietry binary drivers
+	# This list should include only proprietary binary drivers
 	# and ELF files that are loaded by specialized linkers
 	# and don't follow traditional rules.
 	cat >allow-bad-p <<'EOF'
