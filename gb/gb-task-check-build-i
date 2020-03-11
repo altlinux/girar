@@ -153,6 +153,29 @@ check_nevr()
 	done
 }
 
+check_spi_nevr()
+{
+	local n="$1"; shift
+	local evr="$1"; shift
+	local repo_dir spi dspi
+
+	repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
+	spi="src/${n:0:1}/$n/d-t-s-evr.list"
+	dspi="$repo_dir/$spi"
+	[ -f "$dspi" ] ||
+		return 0
+	tac -- "$dspi" |uniq > "$tmpdir/dspi"
+
+	local what tid evr0 dummy
+	what="src package \`$n' version \`$evr' is less than its version"
+	while read -r dummy tid dummy evr0 dummy; do
+		[ "$evr0" != '-' ] ||
+			continue
+		is_ver1_le_ver2 "$evr0" "$evr" ||
+			Fatal "$what \`$evr0' in $GB_REPO_NAME/task/archive/_$(($tid/1024))/$tid"
+	done < "$tmpdir/dspi"
+}
+
 check_sid()
 {
 	local n="$1"; shift
@@ -212,6 +235,7 @@ for arch in $GB_ARCH; do
 		while read -r N EVR F; do
 			check_release_name "${EVR##*-}"
 			check_nevr src "$N" "$EVR" ''
+			check_spi_nevr "$N" "$EVR"
 			check_sid "$N" "$EVR" "$sid"
 		done <"$tmpdir/new.src"
 	fi
