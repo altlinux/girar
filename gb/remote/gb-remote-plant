@@ -107,6 +107,7 @@ Required:
 Standard:
   etcnet
   kernel-doc
+  libfftw3-devel
   libpam0
   libpam0-devel
   maxima-bin-gcl
