@@ -121,10 +121,6 @@ hsh-rebuild --rebuild-prog="$tmpdir"/save_srpm --query-repackage --no-sisyphus-c
 		Fatal 'cannot build src.rpm'
 	} >&2
 
-srpm="$(find hasher/chroot/usr/src/SRPMS -mindepth 1 -maxdepth 1 -name '*.src.rpm' -type f)" &&
-	srpm_name="$(rpmquery --qf '%{name}' -p "$srpm")" ||
-		Fatal 'cannot build valid src.rpm'
-
 # Step 3: examine BuildRequires.
 hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
 sort -u -o "$tmpdir"/chroot_base{,}
