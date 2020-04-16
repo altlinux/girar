@@ -23,7 +23,8 @@ or \`rebuild <package_name>' or \`del <package_name>'
 or \`copy <package_name>'.
 
 Options:
-  -m <message>    use the given <message> as the reason for this build;
+  -m <word>       use the given <word> as the reason for this build;
+  -m -            read full build reason message from stdin;
   -b <binary_repository_name>     set a target binary package repository;
   --deps <deps>   set a comma-separated list of required task id numbers;
   --fail-early    stop building the task after the first error;

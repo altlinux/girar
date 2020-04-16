@@ -17,7 +17,8 @@ If no task id is specified, the latest task created by the current user
 will be choosen.
 
 Options:
-  -m <message>  use the given <message> as the reason for this build;
+  -m <word>     use the given <word> as the reason for this build;
+  -m -          read full build reason message from stdin;
   --dry-run     stop right before queueing the task;
   --fail-early  stop building the task after the first error;
   --fail-late   do not stop building the task after the first error;
