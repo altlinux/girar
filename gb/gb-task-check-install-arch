@@ -6,11 +6,17 @@ arch="$1"; shift
 
 . shell-quote
 
-comps="$(set +f && cd "$GB_TMP_REPO_DIR/$arch" && find RPMS.?* -type d -prune -not -empty |
-	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
+list_comps()
+{
+	local dir="$1"; shift
 
-noarch_comps="$(set +f && cd "$GB_TMP_REPO_DIR/noarch" && find RPMS.?* -type d -prune -not -empty |
-	sed 's/^RPMS\.//' | tr -s '[:space:]' ' ')"
+	find -L "$dir" -mindepth 1 -maxdepth 1 -name 'RPMS.?*' \
+	     -type d -prune -not -empty -printf '%f\n' |
+		sed 's/^RPMS\.//' | tr -s '[:space:]' ' '
+}
+
+comps="$(list_comps "$GB_TMP_REPO_DIR/$arch")"
+noarch_comps="$(list_comps "$GB_TMP_REPO_DIR"/noarch)"
 
 if [ -z "$comps" ] || [ -z "$noarch_comps" ]; then
 	stamp_echo >&2 "[$arch] empty components lists: comps=[$comps] noarch_comps=[$noarch_comps]"
