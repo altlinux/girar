@@ -19,6 +19,7 @@ if [ -z "${from##*.src.rpm}" ]; then
 else
 	src=pkg.tar
 fi
+build_source=in/"$src"
 
 stamp_echo()
 {
@@ -107,7 +108,7 @@ sort -o "$tmpdir"/srpm0{,}
 
 # Step 3: install build environment, build src.rpm (if needed), without sisyphus_check.
 rm -f build/excluded
-hsh-rebuild --build-srpm-only --repo-src="$tmpdir"/srpm --query-repackage --no-sisyphus-check in/"$src" \
+hsh-rebuild --build-srpm-only --repo-src="$tmpdir"/srpm --query-repackage --no-sisyphus-check "$build_source" \
 	>build/srpm.log 2>&1 ||
 	{
 		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
@@ -160,13 +161,16 @@ if [ "$n" -ne 1 ]; then
 	Fatal 'multiple source packages'
 fi >&2
 
+read sname <"$tmpdir"/add-src
+build_source=hasher_repo/SRPMS.hasher/"$sname"
+
 # Step 7: examine repo/<arch> contents before build.
 find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms1
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 8: build.
-hsh-rebuild --query-repackage in/"$src" >build/log 2>&1 ||
+hsh-rebuild --query-repackage "$build_source" >build/log 2>&1 ||
 	{ . ./gb-remote-log; buildlog_errors build/log;
 		  Fatal 'build failed'; } >&2
 hsh-rmchroot
