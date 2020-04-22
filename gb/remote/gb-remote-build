@@ -23,9 +23,14 @@ else
 fi
 build_source=in/"$src"
 
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
 stamp_echo()
 {
-	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $*"
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
 }
 
 I="[$arch] $from${tag_name:+ $tag_name}: remote"
@@ -153,20 +158,17 @@ find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
 	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/srpm1
 sort -o "$tmpdir"/srpm1{,}
 
-comm -23 "$tmpdir"/srpm{0,1} |cut -f1 >"$tmpdir"/out
-if [ -s "$tmpdir"/out ]; then
-	cat "$tmpdir"/out
-	Fatal 'attempt to replace source packages'
-fi >&2
+comm -23 "$tmpdir"/srpm{0,1} >"$tmpdir"/out
+[ ! -s "$tmpdir"/out ] ||
+	Fatal 'attempt to replace source packages: ' "$(cut -f1 <"$tmpdir"/out)"
 
 comm -23 "$tmpdir"/srpm{1,0} |cut -f1 >"$tmpdir"/add-src
-[ -s "$tmpdir"/add-src ] || Fatal 'no source package'
+[ -s "$tmpdir"/add-src ] ||
+	Fatal 'no source package'
 
 n=$(wc -l <"$tmpdir"/add-src)
-if [ "$n" -ne 1 ]; then
-	cat "$tmpdir"/add-src
-	Fatal 'multiple source packages'
-fi >&2
+[ "$n" -eq 1 ] ||
+	Fatal 'multiple source packages: ' "$(cat "$tmpdir"/add-src)"
 
 read sname <"$tmpdir"/add-src
 build_source=hasher_repo/SRPMS.hasher/"$sname"
@@ -195,15 +197,14 @@ find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm
 	-printf '%f\t%D %i %s %T@\n' >"$tmpdir"/rpms2
 sort -o "$tmpdir"/rpms2{,}
 
-comm -23 "$tmpdir"/rpms{1,2} |cut -f1 >"$tmpdir"/out
-if [ -s "$tmpdir"/out ]; then
-	cat "$tmpdir"/out
-	Fatal 'attempt to replace binary packages'
-fi >&2
+comm -23 "$tmpdir"/rpms{1,2} >"$tmpdir"/out
+[ ! -s "$tmpdir"/out ] ||
+	Fatal 'attempt to replace binary packages: ' "$(cut -f1 <"$tmpdir"/out)"
 
 # Step 10: save results.
 comm -23 "$tmpdir"/rpms{2,1} |cut -f1 >"$tmpdir"/add-bin
-[ -s "$tmpdir"/add-bin ] || Fatal 'no binary packages'
+[ -s "$tmpdir"/add-bin ] ||
+	Fatal 'no binary packages'
 
 # Check that we've got (src,bin+) tuple.
 (cd hasher_repo/$arch/RPMS.hasher
