@@ -16,8 +16,10 @@ fi
 
 if [ -z "${from##*.src.rpm}" ]; then
 	src="$from"
+	build_env_flags=--install-only
 else
 	src=pkg.tar
+	build_env_flags=--build-srpm-only
 fi
 build_source=in/"$src"
 
@@ -108,7 +110,7 @@ sort -o "$tmpdir"/srpm0{,}
 
 # Step 3: install build environment, build src.rpm (if needed), without sisyphus_check.
 rm -f build/excluded
-hsh-rebuild --build-srpm-only --repo-src="$tmpdir"/srpm --query-repackage --no-sisyphus-check "$build_source" \
+hsh-rebuild $build_env_flags --repo-src="$tmpdir"/srpm --query-repackage --no-sisyphus-check "$build_source" \
 	>build/srpm.log 2>&1 ||
 	{
 		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
@@ -138,8 +140,12 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 		exit 0
 	fi
 fi
-find "$tmpdir"/srpm/ -mindepth 1 -maxdepth 1 -type f -name '*.src.rpm' \
-	-exec mv -t hasher_repo/SRPMS.hasher/ -- '{}' '+'
+if [ "$src" = pkg.tar ]; then
+	find "$tmpdir"/srpm/ -mindepth 1 -maxdepth 1 -type f -name '*.src.rpm' \
+		-exec mv -t hasher_repo/SRPMS.hasher/ -- '{}' '+'
+else
+	mv "$build_source" hasher_repo/SRPMS.hasher/
+fi
 
 # Step 6: examine repo/SRPMS.hasher contents after srpm build.
 find hasher_repo/SRPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm' \
