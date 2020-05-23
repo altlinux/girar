@@ -33,8 +33,7 @@ fi
 
 cc="$({
 	(set +f; cat gears/*/userid)
-	[ -n "$test_only" ] ||
-		cat report/acl-addressees report/unmet-addressees
+	cat report/acl-addressees report/unmet-addressees
       } | grep ^. | sort -u | join -v1 - task/owner)"
 
 summary="$(cat report/summary ||:)"
