@@ -21,8 +21,6 @@ while read -r N EVR A F P I; do
 		noarch)
 			link=
 			for arch in $GB_ARCH; do
-				[ -f "build/$I/$arch/rpms/$F" ] ||
-					continue
 				if [ -n "$link" ]; then
 					ln -n -- "$link" \
 						"build/repo/$arch/RPMS.task/"
