@@ -82,7 +82,6 @@ stamp_echo >&2 "uploading $date_file snapshot"
 rsync -vrltxH --delete-after --stats \
 	--exclude='base/ds.*' \
 	--exclude=x86_32 \
-	--exclude=armh \
 	--exclude=arm \
 	--exclude=school \
 	--exclude=icarus \
