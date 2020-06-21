@@ -81,6 +81,7 @@ girar_commit_git()
 	fi
 	stamp_echo >&2 "$msg_prefix $GIT_DIR branch \`$GB_REPO_NAME'"
 	git tag "gb-$GB_REPO_NAME-task$task_id.$I" "$tag_id" ||:
+	git pack-refs ||:
 	git repack -q -a -d &
 	update_git_timestamp
 	# Save space by replacing local objects store with symlink to global store.
@@ -138,6 +139,7 @@ girar_commit_srpm()
 	if [ -n "$tag_name" ]; then
 		git tag "gb-$GB_REPO_NAME-task$task_id.$I" "$tag_name" ||:
 	fi
+	git pack-refs ||:
 	git repack -q -a -d &
 	update_git_timestamp
 }
