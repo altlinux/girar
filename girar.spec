@@ -214,7 +214,7 @@ fi
 #/tasks/archive
 %dir %attr(755,root,root) /tasks/index/
 %dir %attr(775,root,pender) /tasks/.archived/
-%dir %attr(1770,root,pender) /tasks/.done/
+%dir %attr(750,root,tasks) /tasks/.done/
 %dir %attr(700,root,root) /tasks/.rm/
 %dir %attr(1770,root,pender) /tasks/stale/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
