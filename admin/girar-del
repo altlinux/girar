@@ -32,3 +32,8 @@ quote_sed_regexp_variable Q_EMAIL_DOMAIN "$EMAIL_DOMAIN"
 subst "/^$Q_IT_NAME:[[:space:]]\+$Q_NAME@$Q_EMAIL_DOMAIN.*\$/d" "$EMAIL_ALIASES" &&
 	newaliases ||
 	message "$IT_NAME: failed to remove email alias"
+
+for d in "$INCOMING_DIR/$NAME" "$TASKS_DIR/.done/$NAME"; do
+	rm -rf -- "$d" ||
+		message "$IT_NAME: failed to remove $d"
+done
