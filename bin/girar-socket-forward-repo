@@ -63,6 +63,7 @@ for d in $(set +f && echo ??*); do
 				continue
 			mv ".archived/$t" "$done_dir/"
 			logger -t "$PROG" "done: $repo/task/$t"
+			rm -rf -- "$done_dir/$t"
 		done
 	fi
 
