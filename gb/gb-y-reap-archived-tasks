@@ -4,6 +4,9 @@
 
 cd "$GB_TASKS_DIR/.archived"
 
+[ -d ../.done ] ||
+	exit 0
+
 set -- $(set +f && ls -d $GB_REPO_ROOT/*/task/.archived)
 
 for task in $(set +f && ls -d [1-9]*); do
@@ -13,7 +16,10 @@ for task in $(set +f && ls -d [1-9]*); do
 			continue 2
 		fi
 	done
-	mkdir -p -m700 ../.done
-	mv "$task" ../.done/
-	logger -t "${0##*/}" "done: $task"
+	owner="$(stat -c %U "$task")"
+	owner="${owner#git_}"
+	dir="../.done/$owner"
+	[ -d "$dir" ] || continue
+	mv "$task" "$dir/"
+	logger -t "${0##*/}" "done: $task owner=$owner"
 done
