@@ -36,6 +36,18 @@ repo="$(girar-normalize-repo-name "${1:-$default_repo}")"
 
 cd "$TASKS_DIR"
 
+cd ".done/$GIRAR_USER"
+set +f
+for d in [1-9]*; do
+	[ -d "$d" ] ||
+		continue
+	logger -t "$PROG0" "cleanup user=$GIRAR_USER task=$d"
+	rm -rf -- "$d" ||
+		fatal "failed to cleanup after task #$d"
+done
+set -f
+cd - >/dev/null
+
 [ -w .max-task-id ] ||
 	fatal 'Permission denied'
 
