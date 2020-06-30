@@ -52,3 +52,8 @@ for d in "$INCOMING_DIR/$NAME"; do
 	install -d -o "$IT_NAME" -g girar-admin -m750 "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done
+
+for f in "$TASKS_DIR/.done/$NAME"; do
+	install -d -o "git_$d" -g pender -m 1770 "$d" ||
+		fatal "$IT_NAME: failed to create $d"
+done
