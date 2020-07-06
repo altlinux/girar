@@ -36,7 +36,9 @@ repo="$(girar-normalize-repo-name "${1:-$default_repo}")"
 
 cd "$TASKS_DIR"
 
-cd ".done/$GIRAR_USER"
+cd ".done/$GIRAR_USER" 2>/dev/null ||
+	fatal 'Operation not permitted'
+
 set +f
 for d in [1-9]*; do
 	[ -d "$d" ] ||
