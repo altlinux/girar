@@ -229,25 +229,31 @@ for arch in $GB_ARCH; do
 	find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
 		Fatal 'changelog name check FAILED'
 
-	# check release name
+	# check release names
 	if [ -d "$arch/srpm" -o ! -s "$arch/excluded" ]; then
-		qsrc "$arch/srpm/" >"$tmpdir/new.src"
-		while read -r N EVR F; do
-			check_release_name "${EVR##*-}"
-			check_nevr src "$N" "$EVR" ''
-			check_spi_nevr "$N" "$EVR"
-			check_sid "$N" "$EVR" "$sid"
-		done <"$tmpdir/new.src"
-	fi
-
-	if [ -d "$arch/rpms" -o ! -s "$arch/excluded" ]; then
-		qbin "$arch/rpms/" >"$tmpdir/new.bin"
+		qsrc "$arch/srpm/" >> "$tmpdir/check.src"
+		qbin "$arch/rpms/" > "$tmpdir/new.bin"
 		while read -r N EVR A F src_F; do
-			check_release_name "${EVR##*-}"
-			check_nevr bin "$N" "$EVR" "$arch"
-		done <"$tmpdir/new.bin"
+			printf '%s\t%s\t%s\n' "$N" "$EVR" "$arch"
+		done < "$tmpdir/new.bin" >> "$tmpdir/check.bin"
 	fi
 done
+
+# check release names of src packages
+sort -u -o "$tmpdir"/check.src{,}
+while read -r N EVR F; do {
+	check_release_name "${EVR##*-}"
+	check_nevr src "$N" "$EVR" ''
+	check_spi_nevr "$N" "$EVR"
+	check_sid "$N" "$EVR" "$sid"
+} < /dev/null; done < "$tmpdir/check.src"
+
+# check release names of bin packages
+sort -u -o "$tmpdir"/check.bin{,}
+while read -r N EVR A; do {
+	check_release_name "${EVR##*-}"
+	check_nevr bin "$N" "$EVR" "$A"
+} < /dev/null; done < "$tmpdir/check.bin"
 
 for arch in $GB_ARCH; do
 	[ -d "$arch/srpm" -o ! -s "$arch/excluded" ] || continue
