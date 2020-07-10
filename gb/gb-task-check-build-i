@@ -181,12 +181,12 @@ check_sid()
 	local n="$1"; shift
 	local evr="$1"; shift
 	local sid="$1"; shift
-	local repo_dir dir spi qevr what
+	local repo_dir dir spi qevr what found_sid= error_missing= error_mismatch=
 
 	[ -n "$sid" ] || return 0
 
 	quote_sed_regexp_variable qevr "$evr"
-	what="package \`$n' version \`$evr' was already built"
+	what="package \`$n' version \`$evr' was built earlier"
 	spi="src/${n:0:1}/$n/d-t-s-evr.list"
 
 	repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
@@ -194,21 +194,36 @@ check_sid()
 		local dspi
 		dspi="$dir/$spi"
 		[ -f "$dspi" ] || continue
+		local repo_name
+		repo_name="${dir%/*}"
+		repo_name="${repo_name##*/}"
 
-		local index_sid found=
+		local index_sid found_sid_in_target_repo=
 		for index_sid in \
 		    $(sed -rn 's/^([^[:space:]]+[[:space:]]){3}'"$qevr"'([[:space:]]([^[:space:]]+))?$/:\3/p' \
 		      "$dspi" |uniq); do
 			case "$index_sid" in
-				:) Fatal "$what but no source id was recorded" ;;
-				:$sid) found=1 ;;
-				*) Fatal "$what from a different source: \`${index_sid#:}'" ;;
+				:)	error_missing=1
+					stamp_echo >&2 "$I: $what for $repo_name but no source id was recorded"
+					;;
+				:$sid)	found_sid=1
+					if [ "$dir" = "$repo_dir" ]; then
+						found_sid_in_target_repo=1
+					fi
+					;;
+				*)	error_mismatch=1
+					stamp_echo >&2 "$I: $what for $repo_name from a different source: \`${index_sid#:}'"
+					;;
 			esac
 		done
-		if [ "$dir" = "$repo_dir" ] && [ -n "$found" ]; then
+		[ -z "$found_sid_in_target_repo" ] ||
 			break
-		fi
 	done
+
+	[ -z "$found_sid" ] ||
+		error_missing=
+	[ -z "$error_mismatch$error_missing" ] ||
+		Fatal "source id check FAILED"
 }
 
 for arch in $GB_ARCH; do
