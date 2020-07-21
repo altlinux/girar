@@ -79,10 +79,36 @@ dump_deps()
 	rpmquery --qf "$R$P$O$C" -p "$1"
 }
 
+dump_scriptlets()
+{
+	local f
+	f="$1"; shift
+
+	[ -f $tmpdir/prog_tags ] || {
+		cd $tmpdir
+		rpmquery --querytags > query_tags
+		sort -u -o query_tags{,}
+		sed -n '/PROG$/{p;s///p;s/$/S/p}' query_tags > maybe_prog_tags
+		sort -u -o maybe_prog_tags{,}
+		comm -12 maybe_prog_tags query_tags > prog_tags
+		rm query_tags maybe_prog_tags
+		cd - >/dev/null
+	}
+
+	local rpmtag
+	for rpmtag in $(cat $tmpdir/prog_tags); do
+		# Print a nicely formatted scriptlet.
+		rpmquery --qf "%{$rpmtag}\n" -p "$f" |
+			sed '=' |
+			sed "s,^,${rpmtag}:,;N;s,\n, ,"
+	done
+}
+
 dump_noarch()
 {
 	dump_rpmfile "$1"
 	dump_deps "$1"
+	dump_scriptlets "$1"
 }
 
 set -- $GB_ARCH
@@ -176,6 +202,7 @@ dump_arch()
 	rpmquery --qf "$F" -p "$1" |
 		LC_ALL=C grep -v '^/usr/share/' || [ $? -eq 1 ]
 	dump_deps "$1"
+	dump_scriptlets "$1"
 }
 
 srcN=
