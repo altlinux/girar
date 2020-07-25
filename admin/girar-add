@@ -41,7 +41,7 @@ printf '%s:\t%s@%s\n' "$IT_NAME" "$NAME" "$EMAIL_DOMAIN" >>"$EMAIL_ALIASES" &&
 	newaliases ||
 	fatal "$IT_NAME: error adding email alias"
 
-echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $IDENTITY" >"$AUTH" ||
+echo "restrict $IDENTITY" > "$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
 
 INCOMING_MOUNT="$(df -P "$INCOMING_DIR" |awk '{dir=$6} END{print dir}')"

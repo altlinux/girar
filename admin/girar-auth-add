@@ -26,5 +26,5 @@ AUTH="/etc/openssh/authorized_keys/$IT_NAME"
 [ -e "$AUTH" ] ||
 	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
 
-echo "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $IDENTITY" >>"$AUTH" ||
+echo "restrict $IDENTITY" >> "$AUTH" ||
 	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"
