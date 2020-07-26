@@ -1,0 +1,44 @@
+#!/bin/sh -efu
+
+export PATH=@ADMIN_DIR@:/sbin:/usr/sbin:/bin:/usr/bin
+umask 022
+
+. shell-args
+
+show_help()
+{
+cat <<EOF
+$PROG - execute an admin command
+
+Usage: $PROG <command> ...
+
+Commands:
+  auth-add                      add user authentication information;
+  auth-clear                    clear user authentication information;
+  maintainer-add                add a user to maintainers;
+  maintainer-del                remove a user from maintainers;
+  user-add                      add a new user;
+  user-del                      delete a user;
+  user-disable                  disable a user login;
+  user-enable                   enable a user login;
+  help                          show this text and exit.
+
+Every admin command might support --help option some day in the future.
+EOF
+	exit
+}
+
+[ $# -gt 0 ] ||
+	set -- ${SSH_ORIGINAL_COMMAND-}
+
+logger -i -t "$PROG" "$*"
+
+case "${1-}" in
+	'') show_usage 'not enough arguments.' ;;
+	--help|help) show_help ;;
+	auth-add|auth-clear|maintainer-add|maintainer-del|user-add|user-del|user-disable|user-enable)
+		op="$1"; shift
+		exec "$PROG--$op" "$@"
+		;;
+	*) show_usage "invalid admin command: $1" ;;
+esac

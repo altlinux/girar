@@ -1,26 +1,18 @@
 #!/bin/sh -e
 
-export IFS=' 	
-'
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-umask 022
-
 . girar-admin-sh-functions
-
-sudo_init
 
 usage()
 {
 	echo "$PROG: $*" >&2
-	echo "usage: $PROG <NAME> <IDENTITY FILE> <GECOS>"
+	echo "usage: $PROG <NAME> <GECOS> < IDENTITY"
 	exit 1
 }
 
 set_name "$1"
 shift
 
-load_identity "$1"
-shift
+load_identity
 
 GECOS="$*"
 [ -n "$GECOS" ] ||
@@ -49,11 +41,11 @@ setquota "$IT_NAME" 1048576 1310720 1024 1280 "$INCOMING_MOUNT" ||
 	message "$IT_NAME: failed to set disk quota on $INCOMING_MOUNT"
 
 for d in "$INCOMING_DIR/$NAME"; do
-	install -d -o "$IT_NAME" -g girar-admin -m750 "$d" ||
+	install -d -o "$IT_NAME" -g girar-admin -m750 -- "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done
 
-for f in "$TASKS_DIR/.done/$NAME"; do
-	install -d -o "git_$d" -g pender -m 1770 "$d" ||
+for d in "$TASKS_DIR/.done/$NAME"; do
+	install -d -o "$IT_NAME" -g pender -m 1770 -- "$d" ||
 		fatal "$IT_NAME: failed to create $d"
 done

@@ -5,55 +5,31 @@
 
 . "@CMD_DIR@/girar-sh-config"
 
-sudo_init()
-{
-	[ -n "${SUDO_USER-}" ] ||
-		fatal 'Environment variable $SUDO_USER not found'
-
-	SUDO_HOME="$(getent passwd "$SUDO_USER" |cut -d: -f6)" ||
-		fatal "sudo user '$SUDO_USER' not found"
-
-	SUDO_HOME="$(readlink -ev "$SUDO_HOME")" &&
-	[ -d "$SUDO_HOME" ] ||
-		fatal "sudo user \`$SUDO_USER' home directory \`$SUDO_HOME' not available"
-}
-
 # exports: $IDENTITY
 load_identity()
 {
-	local IDFILE="$1"; shift
-
-	[ -n "$IDFILE" ] ||
-		usage 'not specified: IDENTITY FILE'
-
-	IDFILE="$(readlink -ev "$IDFILE")" ||
-		fatal "identity file '$IDFILE' not available"
-
-	[ -z "${IDFILE##$SUDO_HOME/*}" ] ||
-		fatal "identity file '$IDFILE' out of directory range"
-
-	IDENTITY=$(cat "$IDFILE") ||
-		fatal "$IDFILE: error reading identity file"
+	IDENTITY="$(head -c 8192)" ||
+		fatal "Error reading identity"
 
 	local type
 	type="$(printf %s "$IDENTITY" |head -c20 |cut -d' ' -f1)"
 	case "$type" in
 		ssh-ed25519|ssh-rsa) ;;
 		ssh-dss|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
-			fatal "$IDFILE: invalid identity file: unsupported key type: $type" ;;
-		*) fatal "$IDFILE: invalid identity file: unrecognized key type" ;;
+			fatal "Invalid identity: unsupported key type: $type" ;;
+		*) fatal "Invalid identity: unrecognized key type" ;;
 	esac
 	[ "$(echo "$IDENTITY" |wc -l)" = 1 ] ||
-		fatal "$IDFILE: invalid identity file: too many lines"
+		fatal "Invalid identity: too many lines"
 
 	local size
-	size="$(ssh-keygen -l -f "$IDFILE")"
+	size="$(printf %s "$IDENTITY" |ssh-keygen -l -f -)"
 	size="${size%% *}"
 	case "$type" in
 		ssh-rsa) [ "$size" = 4096 -o "$size" = 8192 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
+				fatal "Invalid $type key size: $size" ;;
 		ssh-ed25519) [ "$size" = 256 ] ||
-				fatal "$IDFILE: invalid $type key size: $size" ;;
+				fatal "Invalid $type key size: $size" ;;
 	esac
 }
 

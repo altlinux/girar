@@ -1,0 +1,20 @@
+#!/bin/sh -e
+
+. girar-admin-sh-functions
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <NAME>"
+	exit 1
+}
+
+set_name "$1"
+shift
+
+AUTH="/etc/openssh/authorized_keys/$IT_NAME"
+[ -e "$AUTH" ] ||
+	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
+
+chmod a-r "$AUTH" ||
+	fatal "error setting permissions on authorized keys file '$AUTH' for user $IT_NAME"

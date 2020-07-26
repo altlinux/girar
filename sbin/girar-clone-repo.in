@@ -1,13 +1,10 @@
-#!/bin/sh -e
+#!/bin/sh -efu
 
-export IFS=' 	
-'
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH='@CMD_DIR@:/bin:/usr/bin'
 umask 022
 
-. girar-admin-sh-functions
-
-sudo_init
+. shell-error
+. girar-sh-config
 
 usage()
 {

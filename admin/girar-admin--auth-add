@@ -1,25 +1,22 @@
 #!/bin/sh -e
 
-export IFS=' 	
-'
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-umask 022
-
 . girar-admin-sh-functions
 
 usage()
 {
 	echo "$PROG: $*" >&2
-	echo "usage: $PROG <NAME>"
+	echo "usage: $PROG <NAME> < IDENTITY"
 	exit 1
 }
 
 set_name "$1"
 shift
 
+load_identity
+
 AUTH="/etc/openssh/authorized_keys/$IT_NAME"
-[ -e "$AUTH" ] ||
+[ -w "$AUTH" ] ||
 	fatal "error changing $NAME: authorized keys file '$AUTH' doesn't exist"
 
-chmod a-r "$AUTH" ||
-	fatal "error setting permissions on authorized keys file '$AUTH' for user $IT_NAME"
+echo "restrict $IDENTITY" >> "$AUTH" ||
+	fatal "error creating authorized keys file '$AUTH' for user $IT_NAME"

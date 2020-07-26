@@ -1,7 +1,5 @@
 #!/bin/sh -efu
 
-export IFS=' 	
-'
 export PATH='@CMD_DIR@:/bin:/usr/bin'
 umask 022
 . shell-error

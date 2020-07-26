@@ -1,9 +1,5 @@
 #!/bin/sh -e
 
-export IFS=' 	
-'
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-
 . girar-admin-sh-functions
 
 usage()

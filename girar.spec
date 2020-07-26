@@ -138,6 +138,13 @@ if [ $1 -eq 1 ]; then
 	#1	*	*	*	*	/usr/libexec/girar-builder/gb-toplevel-build sisyphus
 	40	7	*	*	*	/usr/sbin/stmpclean -t 14d $HOME/.cache
 	EOF
+	root_authorized_keys=/root/.ssh/authorized_keys
+	if [ -w "$root_authorized_keys" ]; then
+		cat >> "$root_authorized_keys" <<-'EOF'
+		# girar-admin users can be registered by adding keys in the following format:
+		#restrict,command="/usr/libexec/girar-admin/girar-admin" ssh-keytype ssh-key comment
+		EOF
+	fi
 fi
 
 %preun
@@ -182,10 +189,10 @@ fi
 %preun_service ga-proxyd-ga_repo
 
 %files
-%config(noreplace) %attr(400,root,root) /etc/sudoers.d/girar
 %config(noreplace) /etc/sisyphus_check/check.d/*
 %config(noreplace) /etc/girar/aliases
 /etc/girar/
+%attr(700,root,root) /usr/libexec/girar-admin/
 /usr/libexec/girar/
 /usr/libexec/girar-builder/
 %_initdir/girar-proxyd-*

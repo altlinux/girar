@@ -7,9 +7,9 @@ runtimedir = /var/run
 sbindir = /usr/sbin
 sysconfdir = /etc
 initdir = ${sysconfdir}/rc.d/init.d
-sudoers_dir = ${sysconfdir}/sudoers.d
 
 ACL_DIR = ${STATE_DIR}/acl
+ADMIN_DIR = ${libexecdir}/girar-admin
 CMD_DIR = ${libexecdir}/girar
 CONF_DIR = ${sysconfdir}/girar
 EMAIL_ALIASES = ${CONF_DIR}/aliases
@@ -116,27 +116,26 @@ init_TARGETS = init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-r
 lib_TARGETS = lib/rsync.so
 
 admin_TARGETS = \
-	admin/girar-add \
+	admin/girar-admin \
 	admin/girar-admin-sh-functions \
-	admin/girar-auth-add \
-	admin/girar-auth-zero \
-	admin/girar-branch-gears-from-rip \
-	admin/girar-branch-rip \
-	admin/girar-clone-repo \
-	admin/girar-del \
-	admin/girar-disable \
-	admin/girar-enable \
-	admin/girar-maintainer-add \
-	admin/girar-maintainer-del \
+	admin/girar-admin--auth-add \
+	admin/girar-admin--auth-clear \
+	admin/girar-admin--maintainer-add \
+	admin/girar-admin--maintainer-del \
+	admin/girar-admin--user-add \
+	admin/girar-admin--user-del \
+	admin/girar-admin--user-disable \
+	admin/girar-admin--user-enable \
 	#
 
 sbin_TARGETS = \
+	sbin/girar-branch-gears-from-rip \
+	sbin/girar-branch-rip \
+	sbin/girar-clone-repo \
 	sbin/girar-proxyd-acl \
 	sbin/girar-proxyd-depot \
 	sbin/girar-proxyd-repo \
 	#
-
-sudoers_TARGETS = sudoers/girar
 
 TARGETS = \
 	${admin_TARGETS} \
@@ -144,11 +143,18 @@ TARGETS = \
 	${init_TARGETS} \
 	${lib_TARGETS} \
 	${sbin_TARGETS} \
-	${sudoers_TARGETS} \
 	#
 
-install-TARGETS = install-bin install-check install-data install-init \
-		  install-lib install-sbin install-sudoers install-var
+install-TARGETS = \
+	install-admin \
+	install-bin \
+	install-check \
+	install-data \
+	install-init \
+	install-lib \
+	install-sbin \
+	install-var \
+	#
 
 GA_TARGETS = ${GA_sbin_TARGETS} ${GA_init_TARGETS}
 GA-install-TARGETS = GA-install-sbin GA-install-init GA-install-var
@@ -180,13 +186,13 @@ install-lib: ${lib_TARGETS}
 	install -d -m750 ${DESTDIR}${PLUGIN_DIR}
 	install -pm644 $^ ${DESTDIR}${PLUGIN_DIR}/
 
-install-sbin: ${admin_TARGETS} ${sbin_TARGETS}
+install-admin: ${admin_TARGETS}
+	install -d -m700 ${DESTDIR}${ADMIN_DIR}
+	install -pm700 $^ ${DESTDIR}${ADMIN_DIR}/
+
+install-sbin: ${sbin_TARGETS}
 	install -d -m755 ${DESTDIR}${girar_sbindir}
 	install -pm700 $^ ${DESTDIR}${girar_sbindir}/
-
-install-sudoers: ${sudoers_TARGETS}
-	install -d -m700 ${DESTDIR}${sudoers_dir}
-	install -pm400 $^ ${DESTDIR}${sudoers_dir}/
 
 install-var:
 	install -d -m750 \
@@ -254,6 +260,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 %: %.in
 	sed \
 	    -e 's,@ACL_DIR@,${ACL_DIR},g' \
+	    -e 's,@ADMIN_DIR@,${ADMIN_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \
