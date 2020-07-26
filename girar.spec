@@ -1,7 +1,7 @@
 # --no-sisyphus-check-out=fhs
 
 Name: girar
-Version: 0.6
+Version: 0.7
 Release: alt1
 
 Summary: git.alt server engine
@@ -293,6 +293,9 @@ fi
 %config(noreplace) %ghost %attr(600,ga_upload,crontab) /var/spool/cron/ga_upload
 
 %changelog
+* Sun Jul 26 2020 Dmitry V. Levin <ldv@altlinux.org> 0.7-alt1
+- Rewritten admin interface from sudo to sshd forced command.
+
 * Fri Jul 26 2019 Dmitry V. Levin <ldv@altlinux.org> 0.6-alt1
 - Added girar-archiver.
 
