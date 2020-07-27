@@ -190,7 +190,8 @@ check_sid()
 	spi="src/${n:0:1}/$n/d-t-s-evr.list"
 
 	repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME/index"
-	for dir in $repo_dir $(set +f && echo $GB_REPO_ROOT/*/index); do
+	for dir in $repo_dir $(set +f && ls -d -- $GB_REPO_ROOT/*/index |
+				grep -Fxve "$repo_dir"); do
 		local dspi
 		dspi="$dir/$spi"
 		[ -f "$dspi" ] || continue
