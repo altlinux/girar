@@ -39,6 +39,20 @@ hsh --init --without-stuff --no-contents-ind \
     --pkg-build-list=+rpmrebuild-pesign 2>&1 ||
 	Fatal 'initroot failed'
 
+pesign_socketdir_mountpoint='/.pesign-socketdir'
+chroot_pesign_socketdir="hasher/chroot$pesign_socketdir_mountpoint"
+[ -e "$chroot_pesign_socketdir" ] ||
+[ -L "$chroot_pesign_socketdir" ] ||
+cp -a hasher/chroot/proc "$chroot_pesign_socketdir"
+
+cat > hasher/chroot/.host/setup-pesign-socketdir << EOF
+#!/bin/sh -efu
+rmdir /var/run/pesign/socketdir
+ln -s $pesign_socketdir_mountpoint /var/run/pesign/socketdir
+EOF
+chmod a+rx hasher/chroot/.host/setup-pesign-socketdir
+hsh-run --root -- /.host/setup-pesign-socketdir
+
 cat > hasher/chroot/.host/pesign << EOF
 #!/bin/sh -efu
 PESIGN=pesign-client
@@ -61,7 +75,7 @@ while read -r F; do {
 	rpmquery --qf '%{sourcerpm}\n' -p in/"$F" >> "$tmpdir/old-ref"
 
 	mv -- "in/$F" hasher/chroot/.in/
-	hsh-run --mount=/var/run/pesign/socketdir -- "/.host/pesign" "$F" 2>&1 ||
+	hsh-run --mount="$pesign_socketdir_mountpoint" -- "/.host/pesign" "$F" 2>&1 ||
 		Fatal "failed to pesign $F"
 	mv -- hasher/chroot/.out/"$F" build/rpms/
 
