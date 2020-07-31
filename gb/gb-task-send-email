@@ -84,6 +84,14 @@ $url$log_file
 
 __EOF
 
+if seq -f "logs/events.$try.%g.log" 1 $iter |
+	xargs -r cat -- |
+	girar-summary > "$tmpdir/log_summary" &&
+   [ -s "$tmpdir/log_summary" ]; then
+	cat "$tmpdir/log_summary"
+	echo
+fi >> "$tmpdir/draft"
+
 if [ "$log_size" -le 256 ]; then
 	cat -- "$log_file" >>"$tmpdir/draft"
 fi

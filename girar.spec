@@ -27,6 +27,8 @@ Requires: stmpclean
 Requires: glibc-i18ndata
 # due to gb-task-repo-unmets
 Requires: qa-robot >= 0.3.5-alt1
+# due to girar-summary
+Requires: girar-summary >= 1.2
 
 Obsoletes: girar-builder
 
