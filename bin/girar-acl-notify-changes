@@ -61,6 +61,7 @@ for f in $(cd diff && set +f && echo list.*); do
 	done
 done
 
+me="$(whoami)"
 author_name="$(girar-get-email-address "$GIRAR_USER" | sed -n 's/^"\([^"]\+\)".*/\1/p')"
 for repository in $(cd notify && set +f && echo *); do
 	[ -d "notify/$repository" ] || continue
@@ -68,8 +69,10 @@ for repository in $(cd notify && set +f && echo *); do
 		[ -f "notify/$repository/$person" ] || continue
 		email="$(girar-get-email-address "$person")"
 		cat > msg <<EOF
-From: Girar ACL robot <girar-acl@$EMAIL_DOMAIN>
+From: "Girar ACL ($GIRAR_USER)" <girar-acl@$EMAIL_DOMAIN>
 To: $email
+Reply-To: $GIRAR_USER@$EMAIL_DOMAIN
+Mail-Followup-To: $me
 X-Incominger: acl
 X-Incominger-Reason: acl-change-notification
 Subject: [girar-acl] $repository changes summary
