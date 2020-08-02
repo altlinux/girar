@@ -12,11 +12,13 @@ if [ -f task/skip ]; then
 	exit 0
 fi
 
+me="$(whoami)"
 state="$(cat task/state)"
 try="$(cat task/try)"
 iter="$(cat task/iter)"
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"
+run_by="$(cat task/run ||:)"
 if [ "$state" = DONE ]; then
 	k="_$(($id/1024))"
 	url="$GB_SITE$GB_TASKS_DONE_DIR/$k/$id/"
@@ -62,12 +64,13 @@ logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter s
 . gb-sh-tmpdir
 
 cat >"$tmpdir/draft" <<__EOF
+From: (Girar $me ($run_by)) $me
 To: git_$owner
 Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
 	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
 	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
 Reply-To: $owner@$GB_EMAIL_DOMAIN_PEOPLE
-Mail-Followup-To: $USER
+Mail-Followup-To: $me
 X-girar-task-id: $id
 X-girar-task-owner: $owner
 X-girar-task-cc: $(printf %s "$cc" |tr -s '\n' , |sed 's/,/, /g')
