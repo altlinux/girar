@@ -42,7 +42,7 @@ hsh --init --without-stuff --no-contents-ind \
     --pkg-build-list="$release,basesystem" >out 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 
@@ -90,7 +90,7 @@ fi
 hsh-install -- "$N=$EVR" "$N-" >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR preinstall failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 
@@ -110,7 +110,7 @@ printf '%s\n%s\n' \
 hsh-run --rooter --execute=find.sh >flist1 2>out ||
 	{
 		echo "  $arch: $N=$EVR preinstall filelist check failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 sort -u -o flist1{,}
@@ -119,7 +119,7 @@ sort -u -o flist1{,}
 hsh-install -- "$N=$EVR" >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 
@@ -131,7 +131,7 @@ sort -u -o packages2{,}
 hsh-run --rooter --execute=find.sh >flist2 2>out ||
 	{
 		echo "  $arch: $N=$EVR post-install filelist check failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 sort -u -o flist2{,}
@@ -185,7 +185,7 @@ hsh-run --rooter -- <unprovided \
 xargs -r --delimiter='\n' realpath >frlist 2>out ||
 	{
 		echo "  $arch: $N=$EVR post-install filelist check failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 sort -u -o frlist{,}
@@ -194,10 +194,10 @@ comm -23 frlist instlist >out
 if [ -s out ]; then
 	sed -i 's|no package provides \(/.*\)|file \1 is not owned by any package|' out
 	echo "	$arch: $N=$EVR post-install unowned files:"
-	cat out
+	sed 's/^./ &/' out
 	echo >> warnings \
 		"	$arch: $N=$EVR post-install unowned files:"
-	cat out >> warnings
+	sed 's/^./ &/' out >> warnings
 fi >&2
 
 # Save chroot identification.
@@ -219,7 +219,7 @@ hsh-run --rooter --mountpoints="$mountpoints" -- \
 rpm -ev -- ${what:?} </dev/null >out 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR uninstall failed:"
-		cat out
+		sed 's/^./ &/' out
 		exit 1
 	} >&2
 
