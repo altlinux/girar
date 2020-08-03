@@ -33,7 +33,8 @@ stamp_echo()
 	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
 }
 
-I="[$arch] $from${tag_name:+ $tag_name}: remote"
+arch_prefix="[$arch] "
+I="$arch_prefix$from${tag_name:+ $tag_name}: remote"
 
 Fatal()
 {
@@ -65,8 +66,10 @@ tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
 
 # Step 1: initialize and query hasher chroot.
 setarch "$arch" -- \
-hsh --init --no-repackage-source ${package_signer:+--packager="$package_signer"} >"$tmpdir"/out 2>&1 ||
-	{ cat "$tmpdir"/out; Fatal 'initroot failed'; } >&2
+hsh --init --no-repackage-source ${package_signer:+--packager="$package_signer"} >"$tmpdir"/out 2>&1 || {
+	sed "s/^/$arch_prefix/" "$tmpdir"/out
+	Fatal 'initroot failed'
+} >&2
 
 q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
 hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
@@ -124,7 +127,7 @@ hsh-rebuild $build_env_flags --repo-src="$tmpdir"/srpm --query-repackage --no-si
 				build/srpm.log >build/excluded
 			exit 0
 		fi
-		cat build/srpm.log
+		sed "s/^/$arch_prefix/" build/srpm.log
 		Fatal 'cannot build src.rpm'
 	} >&2
 
@@ -179,9 +182,11 @@ find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 8: build.
-hsh-rebuild --query-repackage "$build_source" >build/log 2>&1 ||
-	{ . ./gb-remote-log; buildlog_errors build/log;
-		  Fatal 'build failed'; } >&2
+hsh-rebuild --query-repackage "$build_source" >build/log 2>&1 || {
+	. ./gb-remote-log
+	buildlog_errors build/log |sed "s/^/$arch_prefix/"
+	Fatal 'build failed'
+} >&2
 hsh-rmchroot
 
 # Step 9: examine repo/ contents after build.
@@ -229,7 +234,7 @@ mkdir -p build/rpms
 }
 
 if [ -s "$tmpdir"/FAIL ]; then
-	cat >&2 "$tmpdir"/FAIL
+	sed >&2 "s/^/$arch_prefix/" "$tmpdir"/FAIL
 	exit 1
 fi
 
@@ -245,7 +250,7 @@ mkdir -p build/srpm
 }
 
 if [ -s "$tmpdir"/FAIL ]; then
-	cat >&2 "$tmpdir"/FAIL
+	sed >&2 "s/^/$arch_prefix/" "$tmpdir"/FAIL
 	exit 1
 fi
 
