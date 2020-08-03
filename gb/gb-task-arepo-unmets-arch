@@ -25,8 +25,8 @@ if [ ! -s unmets ]; then
 	exit 0
 fi
 
-echo "  $arch: NEW unmet dependencies detected:"
-cat unmets
+printf '\t%s: NEW unmet dependencies detected:\n' "$arch"
+awk -F'\t' '{printf " %-24s\t%s\n", $1, $2}' < unmets
 
 cut -f1 < unmets | cut -d'#' -f1 > unmets.bin
 sed -i "s/^${arch_from}-//; s/\\.32bit\$//" unmets.bin
