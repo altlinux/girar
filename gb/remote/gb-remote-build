@@ -128,7 +128,11 @@ hsh-rebuild $build_env_flags --repo-src="$tmpdir"/srpm --query-repackage --no-si
 			exit 0
 		fi
 		sed "s/^/$arch_prefix/" build/srpm.log
-		Fatal 'cannot build src.rpm'
+		[ "$arch" = armh ] ||
+			Fatal 'cannot build src.rpm'
+		echo 'Cannot build src.rpm' > build/excluded
+		stamp_echo >&2 "$I: cannot build src.rpm, but we don't care"
+		exit 0
 	} >&2
 
 # Step 4: examine BuildRequires.
