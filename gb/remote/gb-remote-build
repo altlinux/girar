@@ -182,9 +182,19 @@ find hasher_repo/$arch/RPMS.hasher/ -mindepth 1 -maxdepth 1 -type f -name '*.rpm
 sort -o "$tmpdir"/rpms1{,}
 
 # Step 8: build.
-hsh-rebuild --query-repackage "$build_source" >build/log 2>&1 || {
+rm -f "$tmpdir"/OK{1,2}
+{
+	hsh-rebuild --query-repackage "$build_source" 2>&1 &&
+		touch "$tmpdir"/OK1 ||:
+} | {
+	gawk 'BEGIN{ts0=systime()}{print strftime("[%T]",systime()-ts0,1),$0}' > build/log &&
+		touch "$tmpdir"/OK2 ||:
+}
+[ -f "$tmpdir"/OK1 -a -f "$tmpdir"/OK2 ] || {
 	. ./gb-remote-log
-	buildlog_errors build/log |sed "s/^/$arch_prefix/"
+	sed -r 's/^\[[0-9]{2}(:[0-9]{2}){2}\] //' build/log |
+		buildlog_errors |
+		sed "s/^/$arch_prefix/"
 	Fatal 'build failed'
 } >&2
 hsh-rmchroot

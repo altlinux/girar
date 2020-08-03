@@ -108,7 +108,7 @@ buildlog_deps()
 buildlog_errors()
 {
 	local out=
-	out=$(gzip -cdfq "$1" |uniq |tail -192 |grep '[[:alnum:]]') || return
+	out=$(uniq |tail -192 |grep '[[:alnum:]]') || return
 	while echo "$out" |tail -1 |grep -qs -E -f /dev/fd/3 3<<'__EOF__'; do
 user.*system.*elapsed.*CPU
 inputs.*outputs.*pagefaults
