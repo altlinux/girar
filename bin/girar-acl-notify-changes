@@ -68,6 +68,11 @@ for repository in $(cd notify && set +f && echo *); do
 	for person in $(cd "notify/$repository" && set +f && echo *); do
 		[ -f "notify/$repository/$person" ] || continue
 		email="$(girar-get-email-address "$person")"
+		summary="$(cut -d: -f1 < "notify/$repository/$person" |tr '\n' ' ')"
+		summary="${summary% }"
+		stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
+		[ "$stripped_summary" = "$summary" ] ||
+			stripped_summary="$stripped_summary ..."
 		cat > msg <<EOF
 From: "Girar ACL ($GIRAR_USER)" <girar-acl@$EMAIL_DOMAIN>
 To: $email
@@ -75,7 +80,7 @@ Reply-To: $GIRAR_USER@$EMAIL_DOMAIN
 Mail-Followup-To: $me
 X-Incominger: acl
 X-Incominger-Reason: acl-change-notification
-Subject: [girar-acl] $repository changes summary
+Subject: [girar-acl] $repository changes summary: $stripped_summary
 Content-Type: text/plain; charset=us-ascii
 
 Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
@@ -83,14 +88,14 @@ Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
 You have been engaged in ACL change(s) initiated by $author_name:
 
 EOF
-	cat -- "notify/$repository/$person" >> msg
-	cat >> msg <<EOF
+		cat -- "notify/$repository/$person" >> msg
+		cat >> msg <<EOF
 
 
 -- 
 Rgrds, your Girar ACL robot
 
 EOF
-	/usr/sbin/sendmail -i -t < msg
+		/usr/sbin/sendmail -i -t < msg
 	done
 done
