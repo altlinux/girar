@@ -114,6 +114,20 @@ Standard:
   postfix
   python-dev
   python-modules-tkinter
+  clang10.0
+  clang10.0-analyzer
+  clang10.0-devel
+  clang10.0-devel-static
+  clang10.0-doc
+  clang10.0-libs
+  lld10.0
+  lld10.0-devel
+  lld10.0-doc
+  llvm10.0
+  llvm10.0-devel
+  llvm10.0-devel-static
+  llvm10.0-doc
+  llvm10.0-libs
   altlinux-release-$GB_REPO_NAME
   branding-alt-$GB_REPO_NAME-alterator
   branding-alt-$GB_REPO_NAME-bootloader
