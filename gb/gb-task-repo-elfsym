@@ -27,15 +27,11 @@ for arch in $GB_ARCH; do
 		continue
 	fi
 
-	(
-		. gb-sh-rpmhdrcache
-
-		# Assume that the only component worth checking is "classic".
-		bad_elf_symbols_dircmp.pl \
-				{"$repo1","$repo2"}/$arch/RPMS.classic \
-				> bad_elf_symbols/$arch.new 3> bad_elf_symbols/$arch.old ||
-			echo $? >>"$tmpdir/FAIL"
-	) &
+	# Assume that the only component worth checking is "classic".
+	bad_elf_symbols_dircmp.pl \
+			{"$repo1","$repo2"}/$arch/RPMS.classic \
+			> bad_elf_symbols/$arch.new 3> bad_elf_symbols/$arch.old ||
+		echo $? >> "$tmpdir/FAIL" &
 done
 [ -z "$cached_arches" ] ||
 	stamp_echo >&2 "[${cached_arches# }] no need to repeat ELF symbols check"
