@@ -32,14 +32,7 @@ if [ -s "gears/$i/dir" ]; then
 elif [ -s "gears/$i/srpm" ]; then
 	srpm="$(cat "gears/$i/srpm")"
 	I="$I: $srpm"
-	sig_text="$(rpmsign -Kv "gears/$i/$srpm")" ||
-		Fatal 'signature not found'
-	fpr="$(printf %s "$sig_text" |
-		sed '/^gpg: Signature made .* using .* key ID */!d;s///;q')"
-	[ -n "$fpr" ] ||
-		Fatal 'gpg fingerprint not found'
-	tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
-		sed '/^uid[[:space:]]\+/!d;s///;q')"
+	tag_author="$(alt-rpmkeys-checksig "gears/$i/$srpm")"
 	[ -n "$tag_author" ] ||
 		Fatal 'gpg uid not found'
 	userid="$(get_sig_uid "$tag_author")"
