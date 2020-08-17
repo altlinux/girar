@@ -1,6 +1,6 @@
 #!/bin/sh -efu
 
-args='--keyid-format=0xlong'
+args='--no-permission-warning --homedir=/usr/lib/alt-gpgkeys --keyid-format=0xlong'
 for a; do
 	shift
 	case "$a" in

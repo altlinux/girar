@@ -86,7 +86,7 @@ validate_tag_name()
 		fatal "$tag_name: tag verification failure"
 	[ "$tag_name" = "$(git cat-file tag "$tag_id" | sed -n '/^tag /s///p')" ] ||
 		fatal "$tag_name: tag name verification failure"
-	if ! sig_text="$(GNUPGHOME=/usr/lib/alt-gpgkeys git -c gpg.program=girar-gpg verify-tag "$tag_id" 2>&1)"; then
+	if ! sig_text="$(git -c gpg.program=girar-gpg verify-tag "$tag_id" 2>&1)"; then
 		printf >&2 '%s\n' "$sig_text"
 		fatal "$tag_name: tag signature verification failure"
 	fi
@@ -96,7 +96,7 @@ validate_tag_name()
 	[ -n "$fpr" ] ||
 		fatal "$tag_name: gpg fingerprint not found"
 
-	tag_author="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "$fpr" 2>/dev/null |
+	tag_author="$(girar-gpg --list-keys "$fpr" 2>/dev/null |
 		sed '/^uid[[:space:]]\+/!d;s///;q')"
 	[ -n "$tag_author" ] ||
 		fatal "$tag_name: gpg uid not found"
