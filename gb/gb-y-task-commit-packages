@@ -65,7 +65,7 @@ guess_comp()
 	done
 }
 
-while read -r N EVR A F; do
+while read -r N EVR A F dummy; do
 	guess_comp "$N" "$REPO_DIR/$A"
 	pkg=$REPO_DIR/$A/RPMS.$comp/$F
 	[ -f "$pkg" ] ||
@@ -74,7 +74,7 @@ while read -r N EVR A F; do
 	RM $REPO_DIR/files/$A/RPMS/$F
 done < plan/rm-bin
 
-while read -r N EVR A F P I; do
+while read -r N EVR A F P I dummy; do
 	guess_comp "$N" "$REPO_DIR/$A"
 	CP "$P" $REPO_DIR/files/$A/RPMS/$F
 	LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$comp/$F

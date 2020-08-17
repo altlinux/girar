@@ -16,7 +16,7 @@ for arch in $GB_ARCH; do
 	) || exit
 done
 
-while read -r N EVR A F P I; do
+while read -r N EVR A F P I dummy; do
 	case "$A" in
 		noarch)
 			link=

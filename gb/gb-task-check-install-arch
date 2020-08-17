@@ -47,7 +47,7 @@ q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerp
 
 . gb-sh-tmpdir
 
-while read -r N EVR A F P I; do
+while read -r N EVR A F P I dummy; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
 
 	if [ -f task/swift -o -s task/trusted_swift ]; then

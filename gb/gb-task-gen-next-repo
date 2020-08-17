@@ -56,14 +56,14 @@ guess_comp()
 # Commit packages.  This is a light-weight reimplementation
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
 # and update only RPMS.classic components.
-while read -r N EVR A F; do
+while read -r N EVR A F dummy; do
 	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
 	pkg=$GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
 	[ -f "$pkg" ] ||
 		pkg=$GB_TMP_REPO_DIR/$A/RPMS.classic/$F
 	rm -- "$pkg"
 done <plan/rm-bin
-while read -r N EVR A F P I; do
+while read -r N EVR A F P I dummy; do
 	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
 	# NB: $PWD must be available to remotes.
 	ln -s -- $PWD/$P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
