@@ -79,7 +79,7 @@ for arch in $GB_ARCH noarch; do
 		--version="${GB_REPO_VERSION:-$date_s}" \
 		-s --default-key="$GB_INDEX_SIGNER" \
 		--topdir="$REPO_DIR" \
-		--flat --no-oldhashfile --bz2only --mapi \
+		--flat --no-oldhashfile --compressedonly --mapi \
 		$arch $comps &&
 			> "$tmpdir/OK-$arch" &
 done
