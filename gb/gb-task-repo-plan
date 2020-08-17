@@ -13,6 +13,25 @@ fail()
 	exit 1
 }
 
+comp=
+guess_comp()
+{
+	local name c
+	name="$1"; shift
+
+	comp=classic
+	if [ -z "${name##*-gostcrypto-*}" ]; then
+		comp=gostcrypto
+		return
+	fi
+	for c in checkinstall debuginfo gostcrypto; do
+		if [ -z "${name##*-$c}" ]; then
+			comp="$c"
+			break
+		fi
+	done
+}
+
 # Make a plan for upgrade: assuming that all new packages go
 # into the repo, find out the existing packages which should
 # be replaced or removed.
@@ -118,6 +137,35 @@ join -t$'\t' -o "$O" old rm-by-bin > rm-by-bin+
 # output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
 sort -u rm-by-{del,src,bin+} > rm-by-all
 
+# Create bin-N-C table.
+# output: bin-N bin-C
+# sorted by: bin-N
+cut -f4 < new > new-bin-N
+cut -f4 < rm-by-all > rm-bin-N
+sort -u new-bin-N rm-bin-N > bin-N
+rm new-bin-N rm-bin-N
+while read -r N; do
+	guess_comp "$N"
+	printf '%s\t%s\n' "$N" "$comp"
+done < bin-N > bin-N-C
+rm bin-N
+
+# Add component to new.
+sort -k4,4 -o new{,}
+# join new with bin-N-C by bin-N
+# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F  bin-C
+join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,1.5,1.6,1.7,2.2 new bin-N-C > new-c
+mv new-c new
+sort -u -o new{,}
+
+# Add component to rm-by-all.
+sort -k4,4 -o rm-by-all{,}
+# join rm-by-all with bin-N-C by bin-N
+# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F  bin-C
+join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,1.5,1.6,1.7,2.2 rm-by-all bin-N-C > rm-by-all-c
+mv rm-by-all-c rm-by-all
+sort -u -o rm-by-all{,}
+
 # Save pairs: old src-N and their new non-matching src-F replacers.
 sort -k4,4 -o rm-by-bin-only{,}
 # join by bin-N, output: old_src-N  new_src-F
@@ -151,13 +199,14 @@ sort -k3,3 -o add-src{,}
 # output: src-N  src-EVR  src-F  src-P  src-I
 join -t$'\t' -1 3 -2 1 -o 1.1,1.2,1.3,2.2,2.3 add-src i-src > add-src-i
 
-# output: bin-N  bin-EVR  bin-A  bin-F
-cut -f4-7 new | sort -u > add-bin
+# output: bin-N  bin-EVR  bin-A  bin-F  bin-C
+cut -f4-8 new | sort -u > add-bin
 # sort by bin-F
 sort -k4,4 -o add-bin{,}
 # join with i-bin by bin-F
-# output: bin-N  bin-EVR  bin-A  bin-F  bin-P  bin-I
-join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,2.2,2.3 add-bin i-bin > add-bin-i
+# output: bin-N  bin-EVR  bin-A  bin-F  bin-P  bin-I  bin-C
+join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,2.2,2.3,1.5 add-bin i-bin > add-bin-i
+sort -k1,1 -o add-bin-i{,}
 
 # Check that no source packages explicitly requested for deletion
 # have been built within this task.
@@ -202,25 +251,25 @@ rm old-rm.bin add.bin
 # Guess what.  The plan is actually about moving some files around.
 cd - > /dev/null
 
-# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
-cut -f1-7 < $tmpdir/new | sort -u > plan/add-src+bin
+# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F  bin-C
+cut -f1-8 < $tmpdir/new | sort -u > plan/add-src+bin
 # output: src-N  src-EVR  src-F  src-P  src-I
 sort -u $tmpdir/add-src-i > plan/add-src
-# output: bin-N  bin-EVR  bin-A  bin-F  bin-P  bin-I
+# output: bin-N  bin-EVR  bin-A  bin-F  bin-P  bin-I  bin-C
 sort -u $tmpdir/add-bin-i > plan/add-bin
 # output: src-F  src-P  bin-A
 sort -u $tmpdir/add-srpm2arch-i > plan/add-srpm2arch
 # output: old_src-N  new_src-F  new_src-I
 sort -u $tmpdir/oldsrc2newsrpm-i > plan/oldsrc2newsrpm
 
-# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
-cut -f1-7 < $tmpdir/rm-by-all | sort -u > plan/rm-src+bin
+# output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F  bin-C
+cut -f1-8 < $tmpdir/rm-by-all | sort -u > plan/rm-src+bin
 # output: src-N  src-EVR  src-F
 cut -f1-3 < $tmpdir/rm-by-all | sort -u > plan/rm-src
 # output: src-F  bin-A
 cut -f3,6 < $tmpdir/rm-by-all | sort -u > plan/rm-srpm2arch
-# output: bin-N  bin-EVR  bin-A  bin-F
-cut -f4-7 < $tmpdir/rm-by-all | sort -u > plan/rm-bin
+# output: bin-N  bin-EVR  bin-A  bin-F  bin-C
+cut -f4-8 < $tmpdir/rm-by-all | sort -u > plan/rm-bin
 
 # output: src-N  src-I
 cat $tmpdir/del-src-N-I > plan/del-src-N-I

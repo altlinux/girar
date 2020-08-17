@@ -16,7 +16,7 @@ fail_if_task_abort_requested
 
 	join -t$'\t' -o 1.1,1.2,1.3,2.2,2.3 plan/rm-src plan/add-src
 
-	# input: bin-N  bin-EVR  bin-A  bin-F
+	# input: bin-N  bin-EVR  bin-A  bin-F  bin-C
 	# join by bin-N
 	# output: N  EVR1  F1  EVR2  F2  A1  A2
 
