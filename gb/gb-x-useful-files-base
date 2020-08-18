@@ -1,0 +1,30 @@
+#!/bin/sh -efu
+
+set -o pipefail
+
+LANG=C
+LC_ALL=C
+export LANG LC_ALL
+
+repo="$1"; shift
+basedir="$1"; shift
+arches="$@"
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+for arch in $arches; do
+	gb-x-query-base "$repo/$arch" "$basedir" '[%{REQUIRENAME}\n][%{PROVIDENAME}\n][%{CONFLICTNAME}\n][%{OBSOLETENAME}\n]' |
+		{ grep -x '/[^()]\+' || [ $? -eq 1 ]; } |
+		sort -u > "$tmpdir"/useful-files.$arch &&
+		> "$tmpdir/OK-$arch" &
+done
+wait
+
+check_and_clear_OK_flags "$tmpdir"/OK $arches
+
+set --
+for arch in $arches; do
+	set -- "$@" "$tmpdir"/useful-files.$arch
+done
+LC_ALL=C sort -m -u -- "$@"
