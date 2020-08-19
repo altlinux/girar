@@ -116,7 +116,7 @@ join -t$'\t' -o "$O" old rm-by-bin > rm-by-bin+
 
 # Tuples that are going to be removed.
 # output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
-sort -u rm-by-{del,src,bin+} > rm
+sort -u rm-by-{del,src,bin+} > rm-by-all
 
 # Save pairs: old src-N and their new non-matching src-F replacers.
 sort -k4,4 -o rm-by-bin-only{,}
@@ -174,7 +174,7 @@ fi
 
 # prepare next.src by applying rm-src and add-src changes to old.src
 # output: src-N  src-EVR  src-F
-cut -f3 < rm | sort -u > rm.src
+cut -f3 < rm-by-all | sort -u > rm.src
 # sort by src-F
 sort -k3,3 -o old.src{,}
 # join by src-F
@@ -186,7 +186,7 @@ rm old-rm.src
 # prepare next.bin by applying rm-bin and add-bin changes to old.bin
 # sort by bin-F
 sort -k4,4 -o old.bin{,}
-cut -f7 < rm | sort -u > rm.bin
+cut -f7 < rm-by-all | sort -u > rm.bin
 # join by bin-F
 join -t$'\t' -o 1.1,1.2,1.3,1.4,1.5 -v1 -1 4 -2 1 old.bin rm.bin > old-rm.bin
 rm rm.bin
@@ -214,13 +214,13 @@ sort -u $tmpdir/add-srpm2arch-i > plan/add-srpm2arch
 sort -u $tmpdir/oldsrc2newsrpm-i > plan/oldsrc2newsrpm
 
 # output: src-N  src-EVR  src-F  bin-N  bin-EVR  bin-A  bin-F
-cut -f1-7 < $tmpdir/rm | sort -u > plan/rm-src+bin
+cut -f1-7 < $tmpdir/rm-by-all | sort -u > plan/rm-src+bin
 # output: src-N  src-EVR  src-F
-cut -f1-3 < $tmpdir/rm | sort -u > plan/rm-src
+cut -f1-3 < $tmpdir/rm-by-all | sort -u > plan/rm-src
 # output: src-F  bin-A
-cut -f3,6 < $tmpdir/rm | sort -u > plan/rm-srpm2arch
+cut -f3,6 < $tmpdir/rm-by-all | sort -u > plan/rm-srpm2arch
 # output: bin-N  bin-EVR  bin-A  bin-F
-cut -f4-7 < $tmpdir/rm | sort -u > plan/rm-bin
+cut -f4-7 < $tmpdir/rm-by-all | sort -u > plan/rm-bin
 
 # output: src-N  src-I
 cat $tmpdir/del-src-N-I > plan/del-src-N-I
