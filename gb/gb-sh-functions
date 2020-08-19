@@ -285,3 +285,22 @@ rpm_changes_since()
 
 	gb-x-changelog-complement ${tmpdir}/changelog_old ${tmpdir}/changelog_new
 }
+
+check_and_clear_OK_flags()
+{
+	local prefix item ok_flag failed=
+
+	prefix="$1"; shift
+
+	for item; do
+		ok_flag="$prefix-$item"
+		[ -f "$ok_flag" ] ||
+			failed="$failed $item"
+		rm -f -- "$ok_flag"
+	done
+
+	[ -z "$failed" ] || {
+		stamp_echo >&2 "${0##*/} failed for:$failed"
+		exit 1
+	}
+}
