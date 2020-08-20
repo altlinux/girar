@@ -1,0 +1,130 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+bloat=
+if [ "$1" = '--bloat' ]; then
+	bloat=$1
+	shift
+fi
+
+REPO_DIR="$1"; shift
+
+. gb-sh-tmpdir
+
+for arch in $GB_ARCH noarch; do
+	# input: src-N src-EVR src-F bin-N bin-EVR bin-A bin-F bin-C
+	if [ -s plan/add-src+bin ]; then
+		awk -v arch="$arch" '$6 == arch {printf("%s\t%s\t%s\n", $8, $3, $7)}' \
+			plan/add-src+bin
+	fi >"$tmpdir/$arch"-add-list
+	if [ -s plan/rm-src+bin ]; then
+		awk -v arch="$arch" '$6 == arch {printf("%s\t%s\t%s\n", $8, $3, $7)}' \
+			plan/rm-src+bin
+	fi >"$tmpdir/$arch"-rm-list
+done
+
+label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
+description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
+date_s="$(date +%s)"
+
+set -- --no-scan \
+	--cachedir="$HOME"/.cache \
+	--architectures="$GB_ARCH noarch" \
+	--archive="${GB_REPO_ARCHIVE:-$description}" \
+	--codename="${GB_REPO_CODENAME:-$date_s}" \
+	--description="${GB_REPO_DESCRIPTION:-$description}" \
+	--label="$label" \
+	--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
+	--suite="${GB_REPO_SUITE:-$label}" \
+	--version="${GB_REPO_VERSION:-$date_s}" \
+	-s --default-key="$GB_INDEX_SIGNER" \
+	--topdir="$REPO_DIR" \
+	--flat --no-oldhashfile --mapi \
+	--changelog-since=2009-01-01
+export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
+
+mkdir -p "$HOME"/.cache/gen{pkg,src}list
+
+# Generate bloat basedirs.
+for arch in $GB_ARCH noarch; do
+	[ -d "$REPO_DIR/$arch" ] || continue
+
+	# Arch packages haven't changed?
+	maybe_unchanged=
+	if ! fgrep -qsx "$arch" plan/change-arch; then
+		maybe_unchanged='--maybe-unchanged'
+	fi
+
+	comps="$(set +f && cd "$REPO_DIR/$arch" && ls -d RPMS.?* | sed 's/^RPMS\.//')"
+	if [ -z "$comps" ]; then
+		continue
+	fi
+
+	if [ -d "$REPO_DIR/$arch"/base.bloat ]; then
+		# Patch previous base.bloat.
+		genbasedir "$@" $maybe_unchanged \
+			--bloat \
+			--architecture="$arch" \
+			--basedir base.bloat \
+			--patch-basedir \
+			--add-list "$tmpdir/$arch-"add-list \
+			--rm-list "$tmpdir/$arch-"rm-list \
+			--no-xz --no-bz2 --no-zstd \
+			$arch $comps &&
+				> "$tmpdir/OK-$arch" &
+	else
+		# Generate whole base.bloat.
+		genbasedir "$@" $maybe_unchanged \
+			--create \
+			--bloat \
+			--architecture="$arch" \
+			--basedir base.bloat \
+			--no-xz --no-bz2 --no-zstd \
+			$arch $comps &&
+				> "$tmpdir/OK-$arch" &
+	fi
+done
+wait
+
+check_and_clear_OK_flags "$tmpdir"/OK $GB_ARCH noarch
+
+[ -z "$bloat" ] ||
+	exit 0
+
+# Generate useful files.
+gb-x-useful-files-base "$REPO_DIR" base.bloat $GB_ARCH noarch >"$tmpdir"/useful-files
+
+# Generate stripped basedirs.
+for arch in $GB_ARCH noarch; do
+	[ -d "$REPO_DIR/$arch" ] || continue
+
+	# Arch packages haven't changed?
+	maybe_unchanged=
+	if ! fgrep -qsx "$arch" plan/change-arch; then
+		# But the result also depends on the list of useful-files,
+		# which might have changed due to other architectures.
+		maybe_unchanged='--maybe-unchanged'
+	fi
+
+	comps="$(set +f && cd "$REPO_DIR/$arch" && ls -d RPMS.?* | sed 's/^RPMS\.//')"
+	if [ -z "$comps" ]; then
+		continue
+	fi
+
+	# By default, both xz and bzip2 should be enabled.
+	genbasedir "$@" $maybe_unchanged \
+		--architecture="$arch" \
+		--prev-base "$REPO_DIR/$arch"/base.bloat \
+		--useful-files="$tmpdir"/useful-files \
+		--xz ${GB_REPO_OPT_BZ2:---bz2} \
+		--compressedonly \
+		$arch $comps &&
+			> "$tmpdir/OK-$arch" &
+done
+wait
+
+check_and_clear_OK_flags "$tmpdir"/OK $GB_ARCH noarch
+
+stamp_echo 'patched apt indices'
+# The end of apt story.
