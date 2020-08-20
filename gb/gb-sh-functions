@@ -2,6 +2,8 @@
 
 . gb-sh-conf
 
+expected_task_version='13d9b8caef95994218baf4f1f03fea42ac1c49a1'
+
 oneliner()
 {
 	printf %s "$*" |tr -s '[:space:]' ' '

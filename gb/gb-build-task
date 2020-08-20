@@ -130,6 +130,8 @@ case "$state" in
 		;;
 esac
 
+echo "$expected_task_version" > task/version
+
 stamp_echo >>"$log" "task #$id for $GB_REPO_NAME $state"
 
 if [ "$state" != TESTED -o -f task/test-only ]; then

@@ -14,6 +14,7 @@ TASK_ID/task/fail-early		fail-early flag
 TASK_ID/task/test-only		test-only flag
 TASK_ID/task/depends		list of done task numbers the task depends on
 TASK_ID/task/message		message specified by "task run -m"
+TASK_ID/task/version		the girar version used to process the task
 
 # Task logs.
 TASK_ID/logs/events.$try.$iter.log	log of important events during $try.$iter stage
