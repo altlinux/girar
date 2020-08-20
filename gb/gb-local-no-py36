@@ -4,7 +4,7 @@
 
 RC=0
 
-while read -r N EVR A F P I dummy; do
+while read -r N EVR A F P I C dummy; do
 	if py36_deps=$(rpmquery --requires --provides -p "$P" |
 		grep -E '^(python3\.6|python = 3\.6|libpython3\.6)' )
 	then

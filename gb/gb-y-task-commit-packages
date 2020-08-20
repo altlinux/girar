@@ -41,43 +41,17 @@ LN()
 	ln -v -n -- "$deposited" "$link"
 }
 
-guess_comp()
-{
-	local name dir path
-	name="$1"; shift
-	dir="$1"; shift
-
-	comp=classic
-	if [ -z "${name##*-gostcrypto-*}" ]; then
-		comp=gostcrypto
-		return
-	fi
-	for c in checkinstall debuginfo gostcrypto; do
-		if [ -z "${name##*-$c}" ]; then
-			path="$dir/RPMS.$c"
-			if [ -d "$path" ]; then
-				comp=$c
-			else
-				echo "warning: $path does not exist, falling back to 'classic' component" >&2
-			fi
-			break
-		fi
-	done
-}
-
-while read -r N EVR A F dummy; do
-	guess_comp "$N" "$REPO_DIR/$A"
-	pkg=$REPO_DIR/$A/RPMS.$comp/$F
+while read -r N EVR A F C dummy; do
+	pkg=$REPO_DIR/$A/RPMS.$C/$F
 	[ -f "$pkg" ] ||
 		pkg=$REPO_DIR/$A/RPMS.classic/$F
 	RM "$pkg"
 	RM $REPO_DIR/files/$A/RPMS/$F
 done < plan/rm-bin
 
-while read -r N EVR A F P I dummy; do
-	guess_comp "$N" "$REPO_DIR/$A"
+while read -r N EVR A F P I C dummy; do
 	CP "$P" $REPO_DIR/files/$A/RPMS/$F
-	LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$comp/$F
+	LN ../../files/$A/RPMS/$F $REPO_DIR/$A/RPMS.$C/$F
 done < plan/add-bin
 
 while read -r F A; do

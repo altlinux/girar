@@ -28,45 +28,18 @@ for arch in $GB_ARCH noarch; do
 	done
 done
 
-guess_comp()
-{
-	local name dir path
-	name="$1"; shift
-	dir="$1"; shift
-
-	comp=classic
-	if [ -z "${name##*-gostcrypto-*}" ]; then
-		comp=gostcrypto
-		return
-	fi
-	for c in checkinstall debuginfo gostcrypto; do
-		if [ -z "${name##*-$c}" ]; then
-			path="$dir/RPMS.$c"
-			if [ -d "$path" ]; then
-				comp=$c
-			else
-				echo "$path does not exist" >&2
-				exit 1
-			fi
-			break
-		fi
-	done
-}
-
 # Commit packages.  This is a light-weight reimplementation
 # of gb-y-task-commit-packages.  For tmprepo, we omit files/
 # and update only RPMS.classic components.
-while read -r N EVR A F dummy; do
-	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
-	pkg=$GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+while read -r N EVR A F C dummy; do
+	pkg=$GB_TMP_REPO_DIR/$A/RPMS.$C/$F
 	[ -f "$pkg" ] ||
 		pkg=$GB_TMP_REPO_DIR/$A/RPMS.classic/$F
 	rm -- "$pkg"
 done <plan/rm-bin
-while read -r N EVR A F P I dummy; do
-	guess_comp "$N" "$GB_TMP_REPO_DIR/$A"
+while read -r N EVR A F P I C dummy; do
 	# NB: $PWD must be available to remotes.
-	ln -s -- $PWD/$P $GB_TMP_REPO_DIR/$A/RPMS.$comp/$F
+	ln -s -- $PWD/$P $GB_TMP_REPO_DIR/$A/RPMS.$C/$F
 done <plan/add-bin
 
 # SRPMS.classic is also updated here, since we want to reuse

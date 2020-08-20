@@ -47,7 +47,7 @@ q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerp
 
 . gb-sh-tmpdir
 
-while read -r N EVR A F P I dummy; do
+while read -r N EVR A F P I C dummy; do
 	[ "$A" = "$arch" -o "$A" = 'noarch' ] || continue
 
 	if [ -f task/swift -o -s task/trusted_swift ]; then
@@ -70,22 +70,8 @@ while read -r N EVR A F P I dummy; do
 	(umask 002; mkdir -p "install/$N/$arch") || false
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
 
-	comp=classic
-	if [ -z "${N##*-gostcrypto-*}" ]; then
-		comp=gostcrypto
-	else
-		for c in checkinstall debuginfo gostcrypto; do
-			if [ -z "${N##*-$c}" ]; then
-				if [ -d $GB_TMP_REPO_DIR/$arch/RPMS.$c ]; then
-					comp=$c
-				fi
-				break
-			fi
-		done
-	fi
-
 	if gb-x-ssh "$remote_host" ./gb-remote-check-install \
-	       "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$comp" "$F" "$I" </dev/null; then
+	       "$GB_REPO_NAME" "$arch" "$N" "$EVR" "$A" "$C" "$F" "$I" </dev/null; then
 		# copy install chroot identification from remote side
 		gb-x-rsync-loop -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
 	else

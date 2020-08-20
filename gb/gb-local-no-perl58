@@ -4,7 +4,7 @@
 
 RC=0
 
-while read -r N EVR A F P I dummy; do
+while read -r N EVR A F P I C dummy; do
 	if perl58_deps=$(rpmquery --requires --provides -p "$P" |
 		grep 'libperl\.so\.5\.8\|/usr/lib/perl5/vendor_perl/\(i386-linux\|x86_64-linux\)' )
 	then

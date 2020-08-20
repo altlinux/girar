@@ -58,7 +58,7 @@ while read -r N EVR F P I; do
 		bad_I="$bad_I $I"
 done < plan/add-src
 
-while read -r N EVR A F P I dummy; do
+while read -r N EVR A F P I C dummy; do
 	for i in $bad_I; do
 		[ "$i" = "$I" ] || continue
 		continue 2
