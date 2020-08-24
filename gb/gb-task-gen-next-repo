@@ -11,6 +11,11 @@ mkdir "$GB_TMP_REPO_DIR"
 # Prepare skeleton.
 for arch in $GB_ARCH noarch; do
 	mkdir $GB_TMP_REPO_DIR/$arch
+	# Copy base.bloat directory.
+	if [ -d "$GB_REPO_DIR/$arch"/base.bloat ]; then
+		rsync -a \
+			$GB_REPO_DIR/$arch/base.bloat $GB_TMP_REPO_DIR/$arch/
+	fi
 	# Copy base directory, except for contents_index.
 	rsync -a --exclude contents_index \
 		$GB_REPO_DIR/$arch/base $GB_TMP_REPO_DIR/$arch/
@@ -53,7 +58,7 @@ while read -r F P A; do
 done <plan/add-srpm2arch
 
 # Regen repo.
-gb-y-repo-regen-basedir "$GB_TMP_REPO_DIR"
+gb-y-repo-patch-basedir "$GB_TMP_REPO_DIR"
 
 # basedir ok, SRPMS no longer needed
 for arch in $GB_ARCH noarch; do
@@ -66,6 +71,8 @@ for arch in $GB_ARCH noarch; do
 		# Arch packages changed, cannot optimize.
 		continue
 	fi
+	[ -d "$GB_REPO_DIR/$arch"/base.bloat ] ||
+		continue
 	if cmp -s {$GB_REPO_DIR,$GB_TMP_REPO_DIR}/$arch/base/pkglist.classic.xz; then
 		rm -r $GB_TMP_REPO_DIR/$arch
 		ln -s $GB_REPO_DIR/$arch $GB_TMP_REPO_DIR/

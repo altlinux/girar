@@ -5,8 +5,10 @@ arch="$1"; shift
 . gb-sh-functions
 
 (umask 002; mkdir -p "build/repo/$arch/base.next") || exit
+(umask 002; mkdir -p "build/repo/$arch/base.bloat.next") || exit
 rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
+rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base.bloat/" "build/repo/$arch/base.bloat.next/"
 
 # Paranoia: ensure that no files has disappeared from tmpfs.
-cd "build/repo/$arch/base.next"
-cat release release.classic pkglist.classic.xz > /dev/null
+(cd "build/repo/$arch/base.next" && cat release release.classic pkglist.classic.xz > /dev/null)
+(cd "build/repo/$arch/base.bloat.next" && cat release release.classic pkglist.classic > /dev/null)

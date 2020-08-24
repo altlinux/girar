@@ -29,7 +29,9 @@ install -pm644 -- plan/next.bin.xz "$GB_REPO_DIR/files/list/bin.list.xz"
 updated=
 for arch in $GB_ARCH noarch; do
 	repo_base="$GB_REPO_DIR/$arch/base"
+	repo_base_bloat="$GB_REPO_DIR/$arch/base.bloat"
 	next_base="build/repo/$arch/base.next"
+	next_bloat_base="build/repo/$arch/base.bloat.next"
 	mandatory_comps='classic'
 	optional_comps='checkinstall debuginfo gostcrypto'
 	for comp in $optional_comps; do
@@ -41,10 +43,14 @@ for arch in $GB_ARCH noarch; do
 	done
 	skip=1
 	for comp in $mandatory_comps; do
-		cmp_file=pkglist.$comp.xz
+		cmp_file=pkglist.$comp
 		# If $cmp_file has changed,
 		# the update cannot be skipped for this $arch.
-		cmp -s "$repo_base/$cmp_file" "$next_base/$cmp_file" || {
+		cmp -s "$repo_base/$cmp_file".xz "$next_base/$cmp_file".xz || {
+			skip=
+			break
+		}
+		cmp -s "$repo_base_bloat/$cmp_file" "$next_bloat_base/$cmp_file" || {
 			skip=
 			break
 		}
@@ -54,6 +60,7 @@ for arch in $GB_ARCH noarch; do
 	fi
 	# NB: no --delete here, contents_index might be optimized out.
 	rsync -rlt "$next_base"/ "$repo_base"/
+	rsync -rlt --delete "$next_bloat_base"/ "$repo_base_bloat"/
 	updated="$updated $arch"
 done
 

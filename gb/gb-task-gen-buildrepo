@@ -39,9 +39,22 @@ if [ -z "$need_regen" ]; then
 	exit 0
 fi
 
+need_gen_base=
+for a in $GB_ARCH noarch; do
+	if [ ! -d "$GB_REPO_DIR/$a"/base.bloat ]; then
+		need_gen_base=1
+		break
+	fi
+done
+
 # Create skeleton and make RPMS.* symlinks.
 for a in $GB_ARCH noarch; do
-	mkdir -p -- "$GB_TMP_REPO_DIR"/$a/base
+	mkdir -p -- "$GB_TMP_REPO_DIR"/$a
+	if [ -n "$need_gen_base" ]; then
+		ln -s base.bloat "$GB_TMP_REPO_DIR"/$a/base
+	else
+		ln -s "$GB_REPO_DIR"/$a/base.bloat "$GB_TMP_REPO_DIR"/$a/base
+	fi
 	for d in $(set +f && ls -d "$GB_REPO_DIR"/$a/RPMS.?*); do
 		[ -d "$d" ]
 		ln -s -- "$d" "$GB_TMP_REPO_DIR"/$a/
@@ -52,6 +65,7 @@ done
 # contents_index not needed for build.
 
 # Regen.
-gb-y-repo-regen-basedir --bloat "$GB_TMP_REPO_DIR"
+[ -z "$need_gen_base" ] ||
+	gb-y-repo-patch-basedir --bloat "$GB_TMP_REPO_DIR"
 
 stamp_echo >&2 'created build repo'

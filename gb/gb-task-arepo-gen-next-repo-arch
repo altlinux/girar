@@ -24,6 +24,10 @@ while read -r dummy dummy F dummy; do
 	ln -s $PWD/arepo/$arch/rpms/$F $topdir/RPMS.$comp/
 done < plan/arepo-add-$arch
 
-gb-y-arepo-genbasedir-arch $arch $GB_AREPO_DIR
+if [ -d "$GB_REPO_DIR/$arch"/base.bloat ]; then
+	rsync -a \
+		"$GB_REPO_DIR/$arch"/base.bloat "$topdir"/
+fi
+gb-y-arepo-patch-basedir-arch $arch $GB_AREPO_DIR
 
 stamp_echo >&2 "[$arch] created next repo"

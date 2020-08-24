@@ -58,6 +58,7 @@ install -pm644 -- plan/arepo-table-$arch \
 install -pm644 -- plan/arepo-table-$arch.xz \
 	"$GB_REPO_DIR/files/list/arepo-$arch.list.xz"
 
+rsync -rlt arepo/$arch/base.bloat/ "$GB_REPO_DIR"/$arch/base.bloat/
 rsync -rlt arepo/$arch/base/ "$GB_REPO_DIR"/$arch/base/
 
 stamp_echo >&2 "[$arch] update OK"
