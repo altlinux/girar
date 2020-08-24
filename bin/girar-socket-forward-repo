@@ -16,7 +16,7 @@ usage()
 
 [ $# -ge 2 ] || usage 'Not enough arguments.'
 [ $# -le 2 ] || usage 'Too many arguments.'
-logger -t "$PROG" "$*"
+logger --id=$$ -t "$PROG" "$*"
 
 repo="$1"; shift
 task="$1"; shift
@@ -62,7 +62,7 @@ for d in $(set +f && echo ??*); do
 			[ -d "$TASKS_DIR/.archived/$t" ] ||
 				continue
 			mv ".archived/$t" "$done_dir/"
-			logger -t "$PROG" "done: $repo/task/$t"
+			logger --id=$$ -t "$PROG" "done: $repo/task/$t"
 			rm -rf -- "$done_dir/$t"
 		done
 	fi
@@ -80,7 +80,7 @@ for d in $(set +f && echo ??*); do
 		mkdir -p -m755 .archived
 		chmod u+w "$t"
 		mv "$t" .archived/
-		logger -t "$PROG" "archived: $repo/task/$t"
+		logger --id=$$ -t "$PROG" "archived: $repo/task/$t"
 	done
 
 	exit
