@@ -50,7 +50,9 @@ for d in $(set +f && echo ??*); do
 	builtin lockf -n -s "$dst"
 	# We are called while $repo/release is locked,
 	# so $repo/release/latest cannot change.
-	builtin lockf -n -s "$repo/release/latest"
+	latest="$repo/release/latest"
+	builtin lockf -n -s "$latest"
+	latest_dest="$(readlink -- "$latest")"
 
 	cd "$repo/task/"
 	# Move .archived/ repositories to $done_dir/.
@@ -77,6 +79,9 @@ for d in $(set +f && echo ??*); do
 		# Has it been archived already?
 		cmp -s -- "$ti" "$ati" || continue
 		builtin lockf -n "$t" || continue
+		# Has the latest changed somehow?
+		[ "$latest_dest" = "$(readlink -- "$STATE_DIR/repo/$latest")" ] ||
+			exit 0
 		mkdir -p -m755 .archived
 		chmod u+w "$t"
 		mv "$t" .archived/
