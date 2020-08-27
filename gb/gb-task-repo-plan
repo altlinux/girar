@@ -157,6 +157,7 @@ sort -k4,4 -o new{,}
 join -t$'\t' -1 4 -2 1 -o 1.1,1.2,1.3,1.4,1.5,1.6,1.7,2.2 new bin-N-C > new-c
 mv new-c new
 sort -u -o new{,}
+sort -k4,4 -o new{,}
 
 # Add component to rm-by-all.
 sort -k4,4 -o rm-by-all{,}
