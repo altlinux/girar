@@ -1,8 +1,0 @@
-#!/bin/sh
-
-case ${LD_PRELOAD-} in
-	*rpmhdrmemcache.so*) ;;
-	'') LD_PRELOAD=rpmhdrmemcache.so ;;
-	*) LD_PRELOAD=rpmhdrmemcache.so:$LD_PRELOAD ;;
-esac
-export LD_PRELOAD

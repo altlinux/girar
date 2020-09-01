@@ -11,8 +11,6 @@ if [ "${1-}" = '--bloat' ]; then
 	shift
 fi
 
-. gb-sh-rpmhdrcache
-
 if [ -n "$bloat" ]; then
 	# temporary repo: use 'xz --fast' mode
 	set -- --bloat

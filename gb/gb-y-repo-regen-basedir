@@ -12,7 +12,6 @@ REPO_DIR="$1"
 shift
 
 . gb-sh-tmpdir
-. gb-sh-rpmhdrcache
 
 if [ -n "$bloat" ]; then
 	# Temporary repo: disable bzip2, use 'xz --fast' mode.

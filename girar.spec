@@ -19,8 +19,6 @@ Requires: bash-builtin-lockf >= 0:0.2
 Requires: git-core >= 0:1.8.0
 # due to girar-task-add
 Requires: gear
-# due to gb-sh-rpmhdrcache
-Requires: memcached rpmhdrmemcache
 # due to cron jobs
 Requires: stmpclean
 # due to "locale -m"
@@ -100,9 +98,6 @@ done
 %post_service girar-proxyd-acl
 %post_service girar-proxyd-repo
 if [ $1 -eq 1 ]; then
-	if grep -Fxqs 'EXTRAOPTIONS=' /etc/sysconfig/memcached; then
-		sed -i 's/^EXTRAOPTIONS=$/&"-m 2048"/' /etc/sysconfig/memcached
-	fi
 	if grep -Fxqs 'AllowGroups wheel users' /etc/openssh/sshd_config; then
 		sed -i 's/^AllowGroups wheel users/& girar-users/' /etc/openssh/sshd_config
 	fi

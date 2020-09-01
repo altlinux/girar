@@ -5,7 +5,6 @@
 fail_if_task_abort_requested
 
 . gb-sh-tmpdir
-. gb-sh-rpmhdrcache
 
 for arch in $GB_ARCH noarch; do
 	# Regen only if there are $arch packages.
@@ -13,7 +12,7 @@ for arch in $GB_ARCH noarch; do
 		continue
 	repodir="$GB_TMP_REPO_DIR/$arch"
 	# Assume that the only relevant component is "classic".
-	gb-x-gen-ci $repodir/RPMS.classic >$tmpdir/$arch-ci &&
+	gb-x-gen-ci-base "$repodir" base.bloat >$tmpdir/$arch-ci &&
 		mv -f $tmpdir/$arch-ci $repodir/base/contents_index ||
 		stamp_echo "[$arch] FAILED to create contents_index" >> "$tmpdir"/FAIL &
 done
