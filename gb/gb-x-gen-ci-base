@@ -1,0 +1,29 @@
+#!/bin/sh -efu
+
+# Each packaged file is mapped to its package name.
+Q1='[%{FILENAMES}\t%{NAME}\t%{NAME}\n]'
+
+# Alternatives-like virtual paths should map to themselves.
+Q2='[%{PROVIDENAME}\t%{PROVIDENAME}\t%{NAME}\n]'
+
+repo="$1"; shift
+basedir="$1"; shift
+
+set -o pipefail
+
+# Assume that the only relevant component is "classic".
+gb-x-query-base "$repo" "$basedir" "$Q1$Q2" classic |
+	# Exclude non-path provides and filenames with tabs.
+	egrep $'^/[^\t]+\t[^\t]+\t[^\t]+$' |
+	# Files kill provides, except for virutal paths.
+	sort -t$'\t' -u -k1,1 -k3,3 |
+	# Discard NAME.
+	cut -f1,2 |
+	# Fold identical records.
+	sort -u |
+	# Exclude special provides with parentheses.
+	fgrep -v $')\t/' ||
+		{
+			echo "${0##*/}: $PWD: failed to generate contents index"
+			exit 1
+		}
