@@ -1,0 +1,84 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+. shell-quote
+
+arch="$1"; shift
+dir="$1"; shift
+
+quote_sed_regexp_variable arch_from "${arch##*-}"
+
+. gb-sh-tmpdir
+
+comp=${GB_AREPO_COMPONENT_NAME:-classic}
+
+# input: arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1
+if [ -f plan/arepo-add-"$arch" ]; then
+	cut -f3 plan/arepo-add-"$arch" > "$tmpdir"/add-list
+	sed -e "s/\(.*\).$arch_from.rpm/$comp\t\1.src.rpm\t&/" \
+		-i "$tmpdir"/add-list
+fi
+
+# input: arepo-F
+if [ -f plan/arepo-rm-"$arch" ]; then
+	sed -e "s/\(.*\).$arch_from.rpm/$comp\t\1.src.rpm\t&/" \
+		plan/arepo-rm-"$arch" > "$tmpdir"/rm-list
+fi
+
+export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
+
+label="${GB_REPO_LABEL:-$GB_REPO_NAME}"
+description="${GB_REPO_DESCRIPTION:-ALT Linux $label}"
+date_s="$(date +%s)"
+set -- "$@" \
+	--changelog-since=2010-01-01 \
+	--cachedir="$HOME"/.cache \
+	--architecture="$arch" \
+	--architectures="$arch" \
+	--archive="${GB_REPO_ARCHIVE:-$description}" \
+	--codename="${GB_REPO_CODENAME:-$date_s}" \
+	--description="${GB_REPO_DESCRIPTION:-$description}" \
+	--label="$label" \
+	--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
+	--suite="${GB_REPO_SUITE:-$label}" \
+	--version="${GB_REPO_VERSION:-$date_s}" \
+	-s --default-key="$GB_INDEX_SIGNER" \
+	--topdir="$dir" \
+	--flat \
+	--no-oldhashfile \
+	--mapi
+
+mkdir -p "$HOME"/.cache/gen{pkg,src}list
+
+if [ -d "$dir/$arch"/base.bloat ]; then
+	# Patch previous base.bloat.
+	genbasedir "$@" \
+		--bloat \
+		--basedir base.bloat \
+		--patch-basedir \
+		--add-list "$tmpdir"/add-list \
+		--rm-list "$tmpdir"/rm-list \
+		--no-xz --no-bz2 --no-zstd \
+		$arch $comp
+else
+	# Generate whole base.bloat.
+	genbasedir "$@" \
+		--create \
+		--bloat \
+		--basedir base.bloat \
+		--no-xz --no-bz2 --no-zstd \
+		$arch $comp
+fi
+
+# Generate useful files.
+gb-x-useful-files-base "$dir" base.bloat "$arch" >"$tmpdir"/useful-files
+
+genbasedir "$@" \
+	--prev-base "$dir/$arch"/base.bloat \
+	--useful-files="$tmpdir"/useful-files \
+	--xz --no-bz2 --no-zstd \
+	--compressedonly \
+	$arch $comp
+
+stamp_echo "[$arch] generated apt indices"
+# The end of apt story.
