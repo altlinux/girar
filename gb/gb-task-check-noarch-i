@@ -22,7 +22,7 @@ is_excluded()
 
 has_noarch=
 for arch in $GB_ARCH; do
-	(set +f && cd $arch/rpms && ls *.noarch.rpm) >$tmpdir/$arch.noarch 2>/dev/null
+	(set +f && cd $arch/rpms && ls *.noarch.rpm) >$tmpdir/$arch.noarch 2>/dev/null ||:
 	if [ -s $tmpdir/$arch.noarch ]; then
 		has_noarch=1
 	fi
