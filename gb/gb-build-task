@@ -1,4 +1,4 @@
-#!/bin/sh -efu
+#!/bin/sh3 -efu
 
 . gb-sh-functions
 
