@@ -37,6 +37,7 @@ ga-x-rsync-loop -irltx --delete \
 	--exclude='files/.timestamp' \
 	--exclude='files/list/*.list' \
 	--exclude='base/ds.*' \
+	--exclude='*/base.bloat' \
 	-- "${GA_REMOTE_REPO_DIR}/task/$task_id/" "$tmp_repo_dir/" \
 	> $tmpdir/rsync.log
 sort -u -o $tmpdir/rsync.log{,}
