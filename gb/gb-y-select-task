@@ -45,6 +45,9 @@ select_task()
 	# if task state doesn't match, fail
 	[ "$(cat task/state)" = "$find_state" ] || exit
 
+	# if the repo doesn't match, fail
+	[ "$(cat task/repo)" = "$GB_REPO_NAME" ] || exit
+
 	gb-task-validate-state "$canon_find" || exit
 
 	# if idle iteration number is positive and the task is idle, fail
