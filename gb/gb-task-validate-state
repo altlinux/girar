@@ -5,16 +5,22 @@ state="$1"; shift
 
 . gb-sh-functions
 
-[ -f plan/next.src.xz ] ||
+[ -f plan/next.src.xz ] || {
 	gb-task-queue-rebuild
+	exit 1
+}
 
 [ -f task/version ] &&
-	[ "$expected_task_version" = "$(head -c 8192 task/version)" ] ||
+	[ "$expected_task_version" = "$(head -c 8192 task/version)" ] || {
 	gb-task-queue-rebuild
+	exit 1
+}
 
 repo_cur="$(readlink -e -- "$GB_REPO_DIR")" &&
 repo_prev="$(readlink -e -- build/repo/prev)" &&
-[ "$repo_cur" = "$repo_prev" ] && exit ||
-gb-task-queue-rebuild
+[ "$repo_cur" = "$repo_prev" ] || {
+	gb-task-queue-rebuild
+	exit 1
+}
 
-exit 1
+exit 0
