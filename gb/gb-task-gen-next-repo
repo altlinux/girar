@@ -59,6 +59,7 @@ done <plan/add-srpm2arch
 
 # Regen repo.
 gb-y-repo-patch-basedir "$GB_TMP_REPO_DIR"
+gb-y-repo-check-basedir "$GB_TMP_REPO_DIR"
 
 # basedir ok, SRPMS no longer needed
 for arch in $GB_ARCH noarch; do

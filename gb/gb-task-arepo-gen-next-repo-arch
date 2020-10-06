@@ -29,5 +29,6 @@ if [ -d "$GB_REPO_DIR/$arch"/base.bloat ]; then
 		"$GB_REPO_DIR/$arch"/base.bloat "$topdir"/
 fi
 gb-y-arepo-patch-basedir-arch $arch $GB_AREPO_DIR
+gb-y-arepo-check-basedir-arch $arch $GB_AREPO_DIR
 
 stamp_echo >&2 "[$arch] created next repo"
