@@ -2,7 +2,7 @@
 
 . gb-sh-conf
 
-expected_task_version='13d9b8caef95994218baf4f1f03fea42ac1c49a1'
+expected_task_version='987830c7685c1514a92aa8aa3cc2ec3af94e8c25'
 
 oneliner()
 {
