@@ -75,6 +75,14 @@ pender:		root
 repo:		root
 EOF
 
+mkdir -p %buildroot/lib/sysctl.d
+cat > %buildroot/lib/sysctl.d/90-girar.conf <<'EOF'
+# Current approach of committing new repo states is
+# not compatible with this hardening. (pender clones
+# old repo which is owned by repo).
+fs.protected_hardlinks=0
+EOF
+
 %check
 cd gb/tests
 ./run
@@ -192,6 +200,7 @@ fi
 %attr(700,root,root) /usr/libexec/girar-admin/
 /usr/libexec/girar/
 /usr/libexec/girar-builder/
+/lib/sysctl.d/90-girar.conf
 %_initdir/girar-proxyd-*
 %attr(700,root,root) %_sbindir/*
 %exclude %_sbindir/ga*
