@@ -31,12 +31,13 @@ if echo "$N" | grep -Eqse "$BLACKLIST_PKGNAME_REGEXP"; then
 	exit 0
 fi
 
-sha1_from="$(rpmquery --qf '%{sha1header}' -p "build/repo/$arch_from/RPMS.task/$file_from")"
+path_to_file_from="build/repo/$arch_from/RPMS.task/$file_from"
+sha1_from="$(rpmquery --qf '%{sha1header}' -p "$path_to_file_from")"
 sha1_to=
 
 . gb-sh-tmpdir
 
-rpmquery -l -p "build/repo/$arch_from/RPMS.task/$file_from" > "$tmpdir"/from.in
+rpmquery -l -p "$path_to_file_from" > "$tmpdir"/from.in
 if grep -Eqse "$BLACKLIST_PKG_CONTENTS_REGEXP" "$tmpdir"/from.in; then
 	# package contents is blacklisted
 	exit 0
@@ -69,8 +70,9 @@ elif [ -z "$file_to" ]; then
 		result prog
 	fi
 else
-	sha1_to="$(rpmquery --qf '%{sha1header}' -p "build/repo/$arch_to/RPMS.task/$file_to")"
-	rpmquery -l -p "build/repo/$arch_to/RPMS.task/$file_to" > "$tmpdir"/to.in
+	path_to_file_to="build/repo/$arch_to/RPMS.task/$file_to"
+	sha1_to="$(rpmquery --qf '%{sha1header}' -p "$path_to_file_to")"
+	rpmquery -l -p "$path_to_file_to" > "$tmpdir"/to.in
 	grep -Eve "$SKIP_FILE_REGEXP" < "$tmpdir"/to.in > "$tmpdir"/to.list ||:
 	sort -u -o "$tmpdir"/to.list{,}
 
