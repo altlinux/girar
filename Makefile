@@ -97,6 +97,7 @@ bin_TARGETS = \
 	bin/girar-task-deps \
 	bin/girar-task-find-current \
 	bin/girar-task-ls \
+	bin/girar-task-ls-id \
 	bin/girar-task-make-index-html \
 	bin/girar-task-make-info-json \
 	bin/girar-task-new \
