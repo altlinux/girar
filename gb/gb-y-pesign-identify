@@ -8,7 +8,7 @@ REGEXP="${GB_PESIGN_REGEXP:-/boot/vmlinuz-.*|/usr/lib64/efi/.*\.efi}"
 . gb-sh-tmpdir
 
 for file; do
-	rpmquery -l -p "$file" > "$tmpdir"/list
+	rpmquery --qf '[%{FILENAMES}\n]' -p "$file" > "$tmpdir"/list
 	if grep -Exqse "$REGEXP" "$tmpdir"/list; then
 		echo "${file##*/}"
 	fi
