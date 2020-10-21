@@ -35,10 +35,10 @@ while :; do
 
 	min_iter="$(gb-y-calc-max-iter BUILDING PENDING)" ||
 		min_iter=0
-	(
+	{
 		# Abuse our queue dir to signal that we are busy
 		# (and might have some work done soon).
-		builtin lockf -x "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending"
+		flock 0
 
 		while :; do
 			exit_if_stopped_by_global_cutout_switches
@@ -50,7 +50,7 @@ while :; do
 			stamp_echo "task $id"
 			gb-commit-task "$id"
 		done
-	) || exit # bash3 needs an explicit exit here (unlike bash4)
+	} < "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending"
 
 	stamp_echo waiting
 
