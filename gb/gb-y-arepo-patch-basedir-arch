@@ -14,16 +14,16 @@ comp=${GB_AREPO_COMPONENT_NAME:-classic}
 
 # input: arepo-N arepo-EVR arepo-F from-bin-F from-bin-SHA1 arepo-T to-bin-F to-bin-SHA1
 if [ -f plan/arepo-add-"$arch" ]; then
-	cut -f3 plan/arepo-add-"$arch" > "$tmpdir"/add-list
-	sed -e "s/\(.*\).$arch_from.rpm/$comp\t\1.src.rpm\t&/" \
-		-i "$tmpdir"/add-list
-fi
+	cut -f3 plan/arepo-add-"$arch"
+fi > "$tmpdir"/add-list
+sed -e "s/\(.*\)\\.$arch_from\\.rpm/$comp\t\\1.src.rpm\t&/" \
+	-i "$tmpdir"/add-list
 
 # input: arepo-F
 if [ -f plan/arepo-rm-"$arch" ]; then
-	sed -e "s/\(.*\).$arch_from.rpm/$comp\t\1.src.rpm\t&/" \
-		plan/arepo-rm-"$arch" > "$tmpdir"/rm-list
-fi
+	sed -e "s/\(.*\)\\.$arch_from\\.rpm/$comp\t\\1.src.rpm\t&/" \
+		plan/arepo-rm-"$arch"
+fi > "$tmpdir"/rm-list
 
 export XZ_OPT='--lzma2=nice=128,depth=80,lc=4'
 
