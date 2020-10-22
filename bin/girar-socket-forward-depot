@@ -64,8 +64,8 @@ TZ=UTC touch -d "@$stamp" -- "$tmpfile"
 umask 022
 mkdir -p "$dir"
 
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$dir"
+exec < "$dir"
+flock 0
 
 if [ -f "$filename" ]; then
 	finish
