@@ -45,13 +45,14 @@ for d in $(set +f && echo ??*); do
 	readlink -ev -- "$dst"
 
 	# Hook up archiving jobs.
-	exec </dev/null >/dev/null 2>&1
-	enable -f /usr/lib/bash/lockf lockf
-	builtin lockf -n -s "$dst"
+	exec >/dev/null 2>&1
+	exec < "$dst"
+	flock -n -s 0
 	# We are called while $repo/release is locked,
 	# so $repo/release/latest cannot change.
 	latest="$repo/release/latest"
-	builtin lockf -n -s "$latest"
+	exec 3< "$latest"
+	flock -n -s 3
 	latest_dest="$(readlink -- "$latest")"
 
 	cd "$repo/task/"
@@ -78,13 +79,15 @@ for d in $(set +f && echo ??*); do
 		ati="archive/$k/$t/files/list/task.info"
 		# Has it been archived already?
 		cmp -s -- "$ti" "$ati" || continue
-		builtin lockf -n "$t" || continue
-		# Has the latest changed somehow?
-		[ "$latest_dest" = "$(readlink -- "$STATE_DIR/repo/$latest")" ] ||
-			exit 0
-		mkdir -p -m755 .archived
-		chmod u+w "$t"
-		mv "$t" .archived/
+		{
+			flock -n 0 || continue
+			# Has the latest changed somehow?
+			[ "$latest_dest" = "$(readlink -- "$STATE_DIR/repo/$latest")" ] ||
+				exit 0
+			mkdir -p -m755 .archived
+			chmod u+w "$t"
+			mv "$t" .archived/
+		} < "$t"
 		logger --id=$$ -t "$PROG" "archived: $repo/task/$t"
 	done
 
