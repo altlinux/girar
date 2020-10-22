@@ -59,7 +59,7 @@ trap 'exit 143' HUP INT QUIT PIPE TERM
 cat -- "$file" > "$tmpfile"
 
 chmod 644 -- "$tmpfile"
-TZ=UTC touch -d "1970-01-01 $stamp seconds" -- "$tmpfile"
+TZ=UTC touch -d "@$stamp" -- "$tmpfile"
 
 umask 022
 mkdir -p "$dir"
