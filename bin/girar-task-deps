@@ -66,8 +66,8 @@ for i; do
 done
 
 # obtain an exclusive lock on the TASKS structure
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -n . ||
+exec <.
+flock -n 0 ||
 	fatal "task #$id is locked"
 
 repo="$(cat task/repo)"
