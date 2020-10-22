@@ -8,13 +8,14 @@ export LC_ALL=C
 fail_if_task_abort_requested
 
 REPO_DIR="$1"; shift
+qf='%{name}\t%{EVR}\t%{arch}\t%{name}-%{version}-%{release}.%{arch}.rpm\t%{sourcerpm}\n'
 
 for arch in $GB_ARCH noarch; do
 	for comp in classic debuginfo checkinstall gostcrypto; do
 		list="$REPO_DIR/$arch"/base/pkglist."$comp".xz
 		[ -f "$list" ] || continue
 		xz -d < "$list" |
-			pkglist-query '%{name}\t%{EVR}\t%{arch}\t%{name}-%{version}-%{release}.%{arch}.rpm\t%{sourcerpm}\n' /dev/stdin
+			pkglist-query "$qf" /dev/stdin
 	done
 done > "$tmpdir"/base-bin.list
 
