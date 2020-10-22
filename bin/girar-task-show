@@ -37,8 +37,7 @@ id=$(PROG="$PROG" girar-task-find-current "$@")
 cd "$TASKS_DIR/$id"
 
 printf 'id=%d' "$id"
-enable -f /usr/lib/bash/lockf lockf
-printf ' locked=%s' "$(builtin lockf -n . && echo no || echo yes)"
+printf ' locked=%s' "$(flock -n 0 <. && echo no || echo yes)"
 printf ' shared=%s' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf yes -or -printf no 2>/dev/null || echo no)"
 printf ' fail_early=%s' "$(test -f task/fail-early && echo yes || echo no)"
 printf ' test_only=%s' "$(test -f task/test-only && echo yes || echo no)"
