@@ -15,8 +15,8 @@ PATH="${0%/*}:$PATH"
 export TZ=UTC-4
 
 cd "$GA_UPLOAD_DIR/lockdir"
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -nv .
+exec <.
+flock -n 0
 
 day="$(($(date +%s)/86400))"
 date_file="$(date -d "@$((86400*$day))" '+%Y/%m/%d')"
@@ -28,7 +28,7 @@ cd "$dst_dir"
 
 cd "$GA_REPO_ROOT"
 
-exec < /dev/null >> "$log_file" 2>&1
+exec >> "$log_file" 2>&1
 
 # snapshot
 
@@ -40,37 +40,39 @@ for d in [A-Za-z0-9]?*; do
 	[ -d "$dst" ] || continue
 	src="$(readlink -ev -- "$d/latest/")" || continue
 
-	# obtain a shared lock on this repo
-	builtin lockf -n -s "$src" || continue
+	{
+		# obtain a shared lock on this repo
+		flock -s 0
 
-	# skip unchanged repos
-	if cmp -s -- "$src/$f" "$dst/$f"; then
-		continue
-	fi
+		# skip unchanged repos
+		if cmp -s -- "$src/$f" "$dst/$f"; then
+			continue
+		fi
 
-	stamp_echo >&2 "replacing $dst with $src"
-	task="${src##*/}"
-	echo "$task" >> "$GA_UPLOAD_DIR/log/$d.log"
-	cp -al -- "$src" "$dst.new"
+		stamp_echo >&2 "replacing $dst with $src"
+		task="${src##*/}"
+		echo "$task" >> "$GA_UPLOAD_DIR/log/$d.log"
+		cp -al -- "$src" "$dst.new"
 
-	# re-introduce .timestamp
-	if [ -s "$GA_UPLOAD_DIR/.timestamp" ]; then
-		ln -v -Lnf -- "$GA_UPLOAD_DIR/.timestamp" "$dst.new/files/"
-	fi
+		# re-introduce .timestamp
+		if [ -s "$GA_UPLOAD_DIR/.timestamp" ]; then
+			ln -v -Lnf -- "$GA_UPLOAD_DIR/.timestamp" "$dst.new/files/"
+		fi
 
-	# replace the old copy with the new one
-	mv -- "$dst" "$dst.old"
-	mv -- "$dst.new" "$dst"
-	stamp_echo >&2 "removing $dst.old"
-	chmod u+w -- "$dst.old"
-	rm -rf -- "$dst.old"
+		# replace the old copy with the new one
+		mv -- "$dst" "$dst.old"
+		mv -- "$dst.new" "$dst"
+		stamp_echo >&2 "removing $dst.old"
+		chmod u+w -- "$dst.old"
+		rm -rf -- "$dst.old"
 
-	# create/update the link in the daily index
-	ti="_$(($task/1024))"
-	mkdir -p -- "$d/date/$date_dir"
-	ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
-	touch -hr "$src/$f" "$d/date/$date_file"
-	ln -fnsv -- "$date_file" "$d/date/latest"
+		# create/update the link in the daily index
+		ti="_$(($task/1024))"
+		mkdir -p -- "$d/date/$date_dir"
+		ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
+		touch -hr "$src/$f" "$d/date/$date_file"
+		ln -fnsv -- "$date_file" "$d/date/latest"
+	} < "$src"
 done
 set -f
 
