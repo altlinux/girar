@@ -11,16 +11,16 @@
 read -t 1 repository
 repository="$(girar-normalize-repo-name "$repository")"
 
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -v "$ACL_DIR"
-
 . girar-sh-tmpdir
 cd "$tmpdir"
-
 mkdir list
 
-# Copy all current acl files to tmpdir.
+# Obtain an exclusive lock on the acl directory.
 cd "$ACL_DIR"
+exec 3<.
+flock 3
+
+# Copy all current acl files to tmpdir.
 find -maxdepth 1 -type f -name 'list.*' \
 	-exec cp -at "$tmpdir/list" -- \{\} \+
 cd - > /dev/null
