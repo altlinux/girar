@@ -3,7 +3,6 @@
 . ga-sh-functions
 . shell-error
 . shell-temp
-enable -f /usr/lib/bash/lockf lockf
 
 task_id="$1"; shift
 [ "$task_id" -gt 0 ] 2>/dev/null ||
@@ -11,7 +10,8 @@ task_id="$1"; shift
 k="$(($task_id / 1024))"
 
 # obtain an exclusive lock on the whole repo/task tree
-builtin lockf -v "$GA_REPO_DIR/task"
+exec < "$GA_REPO_DIR/task"
+flock 0
 
 next_repo_dir="$GA_REPO_DIR/task/_$k/$task_id"
 if [ -d "$next_repo_dir" ]; then
