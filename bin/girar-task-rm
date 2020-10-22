@@ -32,9 +32,9 @@ cd "$id"
 [ -O . -a -w . ] ||
 	fatal "failed to remove task #$id: Permission denied"
 
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -n . ||
+exec <.
+flock -n 0 ||
 	fatal "task #$id is locked"
 
 check_task_modifiable
