@@ -5,9 +5,9 @@
 id="$1"; shift
 
 cd "$GB_TASKS_DIR/$id"
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -v .
+exec <.
+flock 0
 
 if [ "$(cat task/state)" != BUILDING ]; then
 	echo >&2 "Task $id is not selected for build"
@@ -40,20 +40,20 @@ gb-task-set-summary
 	gb-task-pkgtar
 
 	# wait for committer if any
-	(
-		lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
-		if ! builtin lockf -sn "$lockdir"; then
+	{
+		flock -n -s 0 || {
 			stamp_echo "waiting for a shared lock on $GB_REPO_NAME"
-			builtin lockf -sv "$lockdir"
+			flock -s 0
 			stamp_echo "acquired a shared lock on $GB_REPO_NAME"
-		fi
-	)
+		}
+	} < "$GB_REPO_ROOT/$GB_REPO_NAME/release"
+
+	# obtain a shared lock on the $GB_REPO_DIR
+	exec < "$GB_REPO_DIR"
+	flock -s 0
 
 	GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
 	export GB_REPO_DIR
-
-	# obtain a shared lock on the $GB_REPO_DIR
-	builtin lockf -sv "$GB_REPO_DIR"
 
 	# prepare changes
 	gb-task-gen-buildrepo
