@@ -1,7 +1,6 @@
 #!/bin/sh -efu
 
 . gb-sh-functions
-enable -f /usr/lib/bash/lockf lockf
 
 task_id="$1"; shift
 k="$(($task_id/1024))"
@@ -14,7 +13,8 @@ task_dir="$GB_TASKS_DIR/$task_id"
 cd "$task_dir"
 
 # obtain an exclusive lock on this task instance
-builtin lockf -n .
+exec <.
+flock -n 0
 
 # not archived yet?
 archived_task_dir="$GB_TASKS_DIR/archive/done/_$k/$task_id"
