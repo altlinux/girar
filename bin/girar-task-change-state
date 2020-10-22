@@ -7,9 +7,9 @@ id="$1"; shift
 new_state="$1"; shift
 cd "$TASKS_DIR/$id"
 
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the tasks state file
-builtin lockf -v task/state
+exec < task/state
+flock 0
 
 old_state=$(cat task/state)
 if [ "$old_state" = "$new_state" ]; then
