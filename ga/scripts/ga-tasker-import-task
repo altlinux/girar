@@ -3,7 +3,6 @@
 . ga-sh-functions
 . shell-error
 . shell-temp
-enable -f /usr/lib/bash/lockf lockf
 
 task_id="$1"; shift
 [ "$task_id" -gt 0 ] 2>/dev/null ||
@@ -12,7 +11,8 @@ k="$(($task_id / 1024))"
 
 cd "$GA_TASKS_DONE_DIR"
 # obtain an exclusive lock on the whole tasks/done tree
-builtin lockf -v .
+exec <.
+flock 0
 
 task_dir="_$k/$task_id"
 if [ -d "$task_dir" ]; then
