@@ -8,8 +8,8 @@ export GB_REPO_NAME
 # Ensure that only one instance is running for the given repo.
 lockdir="$HOME/.lockdir/$GB_REPO_NAME"
 mkdir -p "$lockdir"
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -n "$lockdir" || exit 0
+exec < "$lockdir"
+flock -n 0 || exit 0
 exec >> "$lockdir/log" 2>&1
 
 # Set cwd to directory with scripts and configs.
@@ -67,4 +67,4 @@ while :; do
 		stamp_echo timeout
 	}
 	pid=
-done
+done < /dev/null
