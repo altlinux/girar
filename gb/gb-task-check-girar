@@ -4,9 +4,9 @@
 
 fail_if_task_abort_requested
 
-enable -f /usr/lib/bash/lockf lockf
 # Obtain a shared lock on the $GB_GEARS_DIR.
-builtin lockf -v -s "$GB_GEARS_DIR"
+exec < "$GB_GEARS_DIR"
+flock -s 0
 
 text=OK
 
