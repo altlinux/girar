@@ -86,10 +86,9 @@ try_abort()
 	esac
 }
 
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the TASKS structure
-if builtin lockf -n .; then
+if flock -n 0; then
 	try_abort
 else
 	request_abort
-fi
+fi <.
