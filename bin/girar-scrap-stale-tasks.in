@@ -4,9 +4,9 @@ cd @TASKS_DIR@
 cd stale
 cd - > /dev/null
 
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on the whole TASKS directory
-builtin lockf .
+exec <.
+flock 0
 
 [ -z "${PATH##@CMD_DIR@:*}" -o -z "${PATH%%*:@CMD_DIR@}" ] ||
 	PATH="@CMD_DIR@:$PATH"
