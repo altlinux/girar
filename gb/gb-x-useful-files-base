@@ -9,12 +9,13 @@ export LANG LC_ALL
 repo="$1"; shift
 basedir="$1"; shift
 arches="$@"
+qf='[%{REQUIRENAME}\n][%{PROVIDENAME}\n][%{CONFLICTNAME}\n][%{OBSOLETENAME}\n]'
 
 . gb-sh-functions
 . gb-sh-tmpdir
 
 for arch in $arches; do
-	gb-x-query-base "$repo/$arch" "$basedir" '[%{REQUIRENAME}\n][%{PROVIDENAME}\n][%{CONFLICTNAME}\n][%{OBSOLETENAME}\n]' |
+	gb-x-query-base "$repo/$arch" "$basedir" "$qf" |
 		{ grep -x '/[^()]\+' || [ $? -eq 1 ]; } |
 		sort -u > "$tmpdir"/useful-files.$arch &&
 		> "$tmpdir/OK-$arch" &
