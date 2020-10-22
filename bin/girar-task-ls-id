@@ -2,8 +2,6 @@
 
 . girar-sh-functions
 
-enable -f /usr/lib/bash/lockf lockf
-
 id="$1"; shift
 cd "$id" || exit
 id="${id##*/}"
@@ -31,9 +29,8 @@ iter="$(cat task/iter 2>/dev/null ||:)"
 		printf ' #%s' "$try" ||
 		printf ' #%s' "$try.$iter"
 
-if ! (builtin lockf -n . ); then
+flock -n 0 <. ||
 	printf ' [locked]'
-fi
 
 find gears -maxdepth 0 -path gears -type d -perm -g=w -printf ' [shared]' 2>/dev/null ||:
 if [ -f task/test-only ]; then
