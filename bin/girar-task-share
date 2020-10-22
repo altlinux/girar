@@ -51,7 +51,6 @@ else
 fi
 
 cd "$TASKS_DIR/$id"
-enable -f /usr/lib/bash/lockf lockf
 
 op=
 case "$action" in
@@ -74,7 +73,8 @@ esac
 [ -n "$op" ] || exit 0
 
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -n . ||
+exec <.
+flock -n 0 ||
 	fatal "task #$id is locked"
 
 [ -n "$(find acl/approved -mindepth 1 -maxdepth 1 -name '[1-7]*' -type d 2>/dev/null)" ] ||
