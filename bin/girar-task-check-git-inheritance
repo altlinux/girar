@@ -37,10 +37,10 @@ commit_id="$1"; shift
 [ -n "${commit_id##*[!0123456789abcdefABCDEF]*}" ] ||
 	show_usage 'invalid commit id.'
 
-enable -f /usr/lib/bash/lockf lockf
 cd "$TASKS_DIR/$id"
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -n . ||
+exec <.
+flock -n 0 ||
 	fatal "task #$id is locked"
 
 check_task_modifiable
