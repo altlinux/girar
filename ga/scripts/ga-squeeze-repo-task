@@ -26,8 +26,8 @@ utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/task/task.list" |
 	exit 0
 udir="_$(($utask/1024))"
 
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -n . || exit 0
+exec <.
+flock -n 0 || exit 0
 
 logger -t "${0##*/}" "squeezing: $PWD"
 echo "$task" >> "$GA_REPO_DIR/task/squeeze.list"
