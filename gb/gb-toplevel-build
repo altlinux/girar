@@ -8,8 +8,8 @@ export GB_REPO_NAME
 # Ensure that only one instance is running for the given repo.
 lockdir="$HOME/.lockdir/$USER-$GB_REPO_NAME"
 mkdir -p "$lockdir"
-enable -f /usr/lib/bash/lockf lockf
-builtin lockf -n "$lockdir" || exit 0
+exec < "$lockdir"
+flock -n 0 || exit 0
 exec >> "$lockdir/log" 2>&1
 
 # Set cwd to directory with scripts and configs.
@@ -32,7 +32,7 @@ while :; do
 	# It's better to wait for the committer to finish its current batch of work:
 	# there might appear tasks in new states in a short while.
 	stamp_echo waiting until the committer has no work
-	(builtin lockf -s "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending") ||:
+	flock -s 0 < "$GB_TASKS_DIR/index/$GB_REPO_NAME/pending" ||:
 
 	if [ -z "$pid" ]; then
 		inotifywait -q -t 60 -e create "$GB_TASKS_DIR/index/$GB_REPO_NAME/awaiting" &
@@ -54,4 +54,4 @@ while :; do
 		stamp_echo timeout
 	}
 	pid=
-done
+done < /dev/null
