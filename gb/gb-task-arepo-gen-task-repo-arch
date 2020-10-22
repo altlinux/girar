@@ -16,6 +16,24 @@ while read -r dummy dummy F dummy; do
 	ln -s ../../../../arepo/$arch/rpms/$F $topdir/$arch/RPMS.task/
 done < plan/arepo-add-$arch
 
-GB_AREPO_COMPONENT_NAME=task GB_REPO_ARCHIVE="task $id" GB_REPO_DESCRIPTION="task $id" GB_REPO_LABEL="task $id" GB_REPO_SUITE="task $id" GB_REPO_VERSION="task $id" gb-y-arepo-genbasedir-arch $arch $topdir --bloat
+mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
-#stamp_echo >&2 "[$arch] gen task repo OK"
+date_s="$(date +%s)"
+
+# Temporary repo: disable bzip2, use 'xz --fast' mode.
+export XZ_OPT='--fast'
+genbasedir --bloat --xz --no-bz2 \
+	--cachedir="$HOME"/.cache \
+	--architecture="$arch" \
+	--architectures="$arch" \
+	--archive="task $id" \
+	--codename="${GB_REPO_CODENAME:-$date_s}" \
+	--description="task $id" \
+	--label="task $id" \
+	--origin="${GB_REPO_ORIGIN:-ALT Linux Team}" \
+	--suite="task $id" \
+	--version="${GB_REPO_VERSION:-$date_s}" \
+	-s --default-key="$GB_INDEX_SIGNER" \
+	--topdir="$topdir" \
+	--flat --no-oldhashfile --mapi --compressedonly \
+	$arch task
