@@ -49,8 +49,6 @@ esac
 
 action="$1"; shift
 
-enable -f /usr/lib/bash/lockf lockf
-
 dir=
 gears_i_dir=
 validate_repo_dir()
@@ -74,7 +72,8 @@ validate_repo_dir()
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
-	builtin lockf -s -v .
+	exec 3<.
+	flock -s 3
 	dir="$PWD"
 }
 
@@ -124,7 +123,8 @@ validate_gear_rebuild()
 
 	cd "$dir"
 	# obtain a shared lock on the source git repository.
-	builtin lockf -s -v .
+	exec 3<.
+	flock -s 3
 	dir="$PWD"
 
 	[ "$(git rev-parse --verify "$tag_id^{commit}")" = "$commit_id" ] ||
@@ -219,11 +219,9 @@ validate_srpm_build()
 		fatal "$srpm: File not found"
 
 	mkdir -p tmp
-	if [ -z "$srpm_tmp_locked" ]; then
-		# obtain an exclusive lock on the srpm tmp directory.
-		builtin lockf -v tmp
-		srpm_tmp_locked=1
-	fi
+	# obtain an exclusive lock on the srpm tmp directory.
+	exec 3< tmp
+	flock 3
 	mv -- "$srpm" tmp/
 	cd tmp
 
@@ -314,7 +312,8 @@ esac
 cd "$TASKS_DIR/$id"
 if [ "${GIRAR_TASK_LOCKED-}" != "$id" ]; then
 	# obtain an exclusive lock on the TASKS structure
-	builtin lockf -n . ||
+	exec <.
+	flock -n 0 ||
 		fatal "task #$id is locked"
 	export GIRAR_TASK_LOCKED="$id"
 fi
