@@ -20,9 +20,9 @@ for index in */postponed; do
 			continue
 		fi
 		(
-			enable -f /usr/lib/bash/lockf lockf &&
 			cd "$i" &&
-			builtin lockf -n . &&
+			exec <. &&
+			flock -n 0 &&
 			gb-task-queue-rebuild ||:
 		)
 	done
