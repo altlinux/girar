@@ -60,9 +60,9 @@ cd - >/dev/null
 # dumb protection against frequent runs
 sleep 1
 
-enable -f /usr/lib/bash/lockf lockf
 # obtain an exclusive lock on $TASKS_DIR
-builtin lockf -v .
+exec <.
+flock 0
 
 id=$(cat .max-task-id)
 id=$(($id+1))
@@ -82,7 +82,8 @@ atexit()
 
 mkdir "$id"
 # obtain an exclusive lock on the TASKS structure
-builtin lockf -v "$id"
+exec 3< "$id"
+flock 3
 trap atexit EXIT
 mkdir "$id"/task
 printf '%s\n' "$id" >"$id"/task/id
