@@ -12,7 +12,6 @@ canon_next="$(printf %s "$next_state" |tr '[:upper:]' '[:lower:]')"
 [ -n "$canon_next" ]
 
 cd "$GB_TASKS_DIR"
-enable -f /usr/lib/bash/lockf lockf
 
 repo_tasks()
 {
@@ -37,7 +36,8 @@ select_task()
 	cd "$id" 2>/dev/null || exit
 	# obtain an exclusive lock on the TASKS structure
 	# if the lock cannot be immediately acquired, fail
-	builtin lockf -n . || exit 3
+	exec <.
+	flock -n 0 || exit 3
 
 	# if skip flag is set, fail
 	[ ! -f task/skip ] || exit
@@ -78,7 +78,8 @@ select_task()
 if [ "$canon_find" = awaiting ]; then
 	# Obtain an exclusive lock on the $canon_find directory.
 	# If the lock cannot be immediately acquired, wait.
-	builtin lockf index/"$GB_REPO_NAME/$canon_find"
+	exec < index/"$GB_REPO_NAME/$canon_find"
+	flock 0
 fi
 
 skip_idle_tasks="$min_iter"
