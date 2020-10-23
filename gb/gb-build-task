@@ -1,4 +1,4 @@
-#!/bin/sh3 -efu
+#!/bin/sh -efu
 
 . gb-sh-functions
 
@@ -21,95 +21,8 @@ gb-task-set-summary
 
 (umask 002 && > report/acl-addressees && > report/unmet-addressees) || exit
 
-(
-	exec >>"$log" 2>&1
-	task_prefix=
-	if [ -f task/test-only ]; then
-		task_prefix="${task_prefix}test-only "
-	fi
-	if [ -f task/swift ]; then
-		task_prefix="${task_prefix}swift "
-	fi
-	task_prefix="${task_prefix}$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf 'shared ' 2>/dev/null ||:)"
-	[ "$try" = 1 ] && text=started || text=resumed
-	run_by="$(cat task/run ||:)"
-	stamp_echo "${task_prefix}task #$id for $GB_REPO_NAME $text by $run_by:"
-	gb-task-show
+$0-stages >>"$log" 2>&1 && rc=0 || rc=$?
 
-	# check for pkg.tar files
-	gb-task-pkgtar
-
-	# wait for committer if any
-	{
-		flock -n -s 0 || {
-			stamp_echo "waiting for a shared lock on $GB_REPO_NAME"
-			flock -s 0
-			stamp_echo "acquired a shared lock on $GB_REPO_NAME"
-		}
-	} < "$GB_REPO_ROOT/$GB_REPO_NAME/release"
-
-	# obtain a shared lock on the $GB_REPO_DIR
-	exec < "$GB_REPO_DIR"
-	flock -s 0
-
-	GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
-	export GB_REPO_DIR
-
-	# prepare changes
-	gb-task-gen-buildrepo
-	gb-task-setup-remote
-	gb-task-copy-packages
-	gb-task-build-prep
-	gb-task-build
-	fail_if_task_abort_requested
-	gb-x-girar task-make-index-html "$id" ||:
-
-	gb-x-girar webapi-task update "$id" ||:
-	for i in $(src_nums); do
-		gb-x-girar webapi-subtask update "$id" "$i" ||:
-	done
-
-	# run basic tests
-	gb-task-check-build
-	gb-task-check-noarch
-	gb-task-repo-plan
-	gb-task-repo-vercheck
-
-	# gather information about closed bugs and fixed vulns
-	gb-task-gen-changelog
-	gb-task-find-closed-bugs
-	gb-task-find-fixed-vulns
-
-	# generate task and "next" repos
-	gb-task-gen-task-repo "$id"
-	gb-task-gen-next-repo
-
-	# run expensive tests
-	gb-task-repo-unmets
-	gb-task-repo-elfsym
-	gb-task-check-install
-
-	# build and test arepo packages
-	gb-task-arepo
-
-	# run surmountable tests
-	gb-task-check-girar
-	gb-task-check-lastchange
-	gb-task-check-neighbour-version
-	gb-task-check-acl
-
-	# apply local policy enforcement
-	gb-task-local-policy
-
-	# save generated "next" repo for commit
-	gb-task-gen-ci
-	gb-task-gen-hash
-	gb-task-save-repo
-
-	fail_if_task_abort_requested
-)
-
-rc=$?
 state="$(cat task/state)"
 case "$state" in
 	EPERM|POSTPONED) rc=1 ;;
