@@ -200,8 +200,10 @@ fi
 /usr/libexec/girar-builder/
 /lib/sysctl.d/90-girar.conf
 %_initdir/girar-proxyd-*
-%attr(700,root,root) %_sbindir/*
-%exclude %_sbindir/ga*
+%attr(755,root,root) %_sbindir/girar-branch-gears-from-rip
+%attr(755,root,root) %_sbindir/girar-branch-rip
+%attr(700,root,root) %_sbindir/girar-clone-repo
+%attr(700,root,root) %_sbindir/girar-proxyd-*
 
 %doc LICENSE TASK gb/conf/
 
