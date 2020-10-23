@@ -1,0 +1,25 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$(cat task/id)"
+
+gb-task-validate-state pending || exit 0
+
+# obtain a shared lock on the $GB_REPO_DIR
+exec < "$GB_REPO_DIR"
+flock -s 0
+
+lockdir="$GB_REPO_ROOT/$GB_REPO_NAME/release"
+# obtain an exclusive lock on the $lockdir
+exec 3< "$lockdir"
+flock 3
+
+stamp_echo 'task is ready for commit'
+
+gb-task-commit-repo
+gb-task-commit-index
+gb-task-commit-girar
+gb-task-commit-acl
+
+echo "$id" >> "$lockdir/task.list"
