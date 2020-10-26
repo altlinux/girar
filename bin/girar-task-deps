@@ -89,11 +89,11 @@ esac
 for i; do
 	k="_$(($i/1024))"
 	if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
-		sed -i "/^$i\$/d" task/depends
+		girar-task-rmdep "$i"
 		continue
 	fi
 	case "$action" in
-		del) sed -i "/^$i\$/d" task/depends ;;
+		del) girar-task-rmdep "$i" ;;
 		*) echo "$i" >> task/depends ;;
 	esac
 done
