@@ -210,19 +210,23 @@ check_srpm()
 
 check_depends()
 {
-	[ -s task/depends ] || return 0
-	local i k rc=0
-	set -- $(cat task/depends)
-	for i; do
-		k="_$(($i/1024))"
-		if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
-			girar-task-rmdep "$i"
-		elif [ ! -d "$TASKS_DIR/$i/task" ]; then
-			message "required task #$i not found"
-			rc=1
-		fi
-	done
-	return $rc
+	[ -f task/depends ] || return 0
+	{
+		# Obtain an exclusive lock on task/depends file.
+		flock 0
+
+		local i k rc=0
+		for i in $(cat); do
+			k="_$(($i/1024))"
+			if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
+				girar-task-rmdep "$i"
+			elif [ ! -d "$TASKS_DIR/$i/task" ]; then
+				message "required task #$i not found"
+				rc=1
+			fi
+		done
+		return $rc
+	} < task/depends
 }
 
 fail=
