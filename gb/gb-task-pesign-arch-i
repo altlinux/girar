@@ -58,7 +58,7 @@ lockdir="$HOME/.lockdir/remote_host-$remote_host"
 mkdir -p "$lockdir"
 exec < "$lockdir"
 flock -n 0 ||
-flock -v 0
+	flock --verbose 0
 
 . shell-quote
 qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
