@@ -43,7 +43,7 @@ date_s="$(date +%s)"
 
 . gb-sh-tmpdir
 
-for arch in $GB_ARCH noarch; do
+for arch in $GB_ARCH; do
 	[ -d "build/repo/$arch" ] || {
 		> "$tmpdir/OK-$arch"
 		continue
@@ -70,4 +70,4 @@ for arch in $GB_ARCH noarch; do
 done
 wait
 
-check_and_clear_OK_flags "$tmpdir"/OK $GB_ARCH noarch
+check_and_clear_OK_flags "$tmpdir"/OK $GB_ARCH
