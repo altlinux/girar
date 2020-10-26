@@ -81,23 +81,31 @@ check_task_modifiable
 		fatal "task #$id belongs to $owner"
 
 umask 002
-case "$action" in
-	clear|set) > task/depends ;;
-	*) >> task/depends ;;
-esac
+>> task/depends
 
-for i; do
-	k="_$(($i/1024))"
-	if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
-		girar-task-rmdep "$i"
-		continue
-	fi
+{
+	# obtain an exclusive lock on task/depends
+	flock 0
+
 	case "$action" in
-		del) girar-task-rmdep "$i" ;;
-		*) echo "$i" >> task/depends ;;
+		clear|set) > task/depends ;;
 	esac
-done
 
-sort -u -o task/depends task/depends
-logger -t "$PROG0" "user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+	for i; do
+		k="_$(($i/1024))"
+		if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
+			girar-task-rmdep "$i"
+			continue
+		fi
+		case "$action" in
+			del) girar-task-rmdep "$i" ;;
+			*) echo "$i" >> task/depends ;;
+		esac
+	done
+
+	sort -u -o task/depends task/depends
+	logger -t "$PROG0" \
+		"user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+} < task/depends
+
 girar-task-change-state "$id" NEW
