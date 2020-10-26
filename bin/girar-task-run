@@ -216,7 +216,7 @@ check_depends()
 	for i; do
 		k="_$(($i/1024))"
 		if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
-			sed -i "/^$i\$/d" task/depends
+			girar-task-rmdep "$i"
 		elif [ ! -d "$TASKS_DIR/$i/task" ]; then
 			message "required task #$i not found"
 			rc=1
