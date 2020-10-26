@@ -27,8 +27,12 @@ printf ' "repo": "%s",\n' "$(cat task/repo)"
 printf ' "state": "%s",\n' "$(cat task/state)"
 [ ! -s task/try ] || printf ' "try": %s,\n' "$(cat task/try)"
 [ ! -s task/iter ] || printf ' "iter": %s,\n' "$(cat task/iter)"
-[ ! -s task/depends ] ||
-	printf ' "depends": [%s],\n' "$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
+if [ -f task/depends ]; then
+	[ ! -s task/depends ] || {
+		flock -s 0
+		printf ' "depends": [%s],\n' "$(tr -s '[:space:]' , |sed 's/,$//')"
+	} < task/depends
+fi
 printf ' "owner": "%s"' "$(cat task/owner)"
 
 nums="$(gear_nums)"
