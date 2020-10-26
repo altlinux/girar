@@ -2,28 +2,14 @@
 
 . gb-sh-functions
 
-id="$1"; shift
+dep="$1"; shift
 cd "$GB_TASKS_DIR/index"
-
-. gb-sh-tmpdir
 
 for index in */postponed; do
 	[ -d "$index" ] || continue
-	for i in "$index"/[1-9]*; do
-		[ -d "$i/task" ] || continue
-		# no locking yet
-		# sed -i is not available because of permissions
-		sed "/^$id\$/d" < "$i/task/depends" > "$tmpdir/depends"
-		cmp -s "$i/task/depends" "$tmpdir/depends" ||
-			cat < "$tmpdir/depends" > "$i/task/depends"
-		if [ -s "$i/task/depends" ]; then
+	for dir in "$index"/[1-9]*; do
+		[ -f "$dir/task/depends" ] ||
 			continue
-		fi
-		(
-			cd "$i" &&
-			exec <. &&
-			flock -n 0 &&
-			gb-task-queue-rebuild ||:
-		)
+		$0-dir "$dep" "$dir" ||:
 	done
 done

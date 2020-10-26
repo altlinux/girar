@@ -1,0 +1,19 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+dep="$1"; shift
+dir="$1"; shift
+cd "$dir"
+
+. gb-sh-tmpdir
+
+# no locking yet
+# sed -i is not available because of permissions
+sed "/^$dep\$/d" < "task/depends" > "$tmpdir/depends"
+cmp -s "task/depends" "$tmpdir/depends" ||
+	cat < "$tmpdir/depends" > "task/depends"
+[ -s "task/depends" ] || {
+	flock -n 0
+	gb-task-queue-rebuild
+} <.
