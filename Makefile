@@ -78,6 +78,7 @@ bin_TARGETS = \
 	bin/girar-quota \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
+	bin/girar-task-rmdep \
 	bin/girar-scrap-stale-tasks \
 	bin/girar-sh \
 	bin/girar-sh-config \

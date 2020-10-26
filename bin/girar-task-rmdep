@@ -1,0 +1,12 @@
+#!/bin/sh -efu
+
+# This must be an integer.
+dep="$1"; shift
+
+. girar-sh-tmpdir
+
+# task/depends file shall be locked by the caller.
+# sed -i is not available because of that locking.
+sed "/^$dep\$/d" < task/depends > "$tmpdir/depends"
+cmp -s task/depends "$tmpdir/depends" ||
+	cat < "$tmpdir/depends" > task/depends
