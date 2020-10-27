@@ -500,6 +500,12 @@ atexit()
 	exit $rc
 }
 
+change_state()
+{
+	girar-task-change-state "$id" NEW
+	girar-webapi-subtask create "$id" "$i"
+}
+
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
 mkdir -pm2755 gears acl acl/approved acl/disapproved
@@ -511,8 +517,7 @@ case "$action" in
 	del)
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-	girar-task-change-state "$id" NEW
-	girar-webapi-subtask create "$id" "$i"
+	change_state
 	echo >&2 "task #$id: added #$i: delete package $package from $repo"
 	exit 0
 	;;
@@ -522,8 +527,7 @@ case "$action" in
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm" >gears/$i/sid
-	girar-task-change-state "$id" NEW
-	girar-webapi-subtask create "$id" "$i"
+	change_state
 	echo >&2 "task #$id: added #$i: build srpm $srpm"
 	exit 0
 	;;
@@ -534,8 +538,7 @@ case "$action" in
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm_name" >gears/$i/sid
 	printf '%s\n' "$repo_norm" >gears/$i/rebuild
-	girar-task-change-state "$id" NEW
-	girar-webapi-subtask create "$id" "$i"
+	change_state
 	echo >&2 "task #$id: added #$i: rebuild srpm $srpm_name"
 	exit 0
 	;;
@@ -599,7 +602,5 @@ else
 	fatal "failed to create pkg.tar for ${dir##*/} tag \"$tag_name\""
 fi
 
-girar-task-change-state "$id" NEW
-girar-webapi-subtask create "$id" "$i"
-
+change_state
 echo >&2 "task #$id: added #$i: build tag \"$tag_name\" from $dir"
