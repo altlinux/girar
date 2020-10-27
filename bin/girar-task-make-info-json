@@ -61,6 +61,9 @@ if [ -n "$nums" ]; then
 			printf '   "type": "repo",\n'
 		elif [ -s "gears/$i/srpm" ]; then
 			printf '   "srpm": "%s",\n' "$(cat "gears/$i/srpm")"
+			if [ -s "gears/$i/rebuild" ]; then
+				printf '   "rebuild_from": "%s",\n' "$(cat "gears/$i/rebuild")"
+			fi
 			printf '   "type": "srpm",\n'
 		elif [ -s "gears/$i/package" ]; then
 			if [ -s "gears/$i/copy_repo" ]; then
