@@ -13,6 +13,7 @@ flock 0
 
 old_state=$(cat task/state)
 if [ "$old_state" = "$new_state" ]; then
+	girar-task-make-index-html "$id" &
 	exit 0
 fi
 
