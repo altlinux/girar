@@ -26,8 +26,10 @@ if [ -f task/abort ]; then
 fi
 printf ' "repo": "%s",\n' "$(cat task/repo)"
 printf ' "state": "%s",\n' "$(cat task/state)"
-[ ! -s task/try ] || printf ' "try": %s,\n' "$(cat task/try)"
-[ ! -s task/iter ] || printf ' "iter": %s,\n' "$(cat task/iter)"
+try="$(cat task/try 2>/dev/null ||:)"
+[ -z "$try" ] || printf ' "try": %s,\n' "$try"
+iter="$(cat task/iter 2>/dev/null ||:)"
+[ -z "$iter" ] || printf ' "iter": %s,\n' "$iter"
 if [ -f task/depends ]; then
 	[ ! -s task/depends ] || {
 		flock -s 0
@@ -35,6 +37,11 @@ if [ -f task/depends ]; then
 	} < task/depends
 fi
 printf ' "age": %s,\n' "$((($(date +%s)-$(stat -c %Y task/state))/604800))"
+log="logs/events.$try.$iter.log"
+if [ -f "$log" ]; then
+	printf ' "build_time": "%s",\n' \
+		"$(LC_TIME=C date -r "$log" '+%FT%T')"
+fi
 printf ' "owner": "%s"' "$(cat task/owner)"
 
 nums="$(gear_nums)"
