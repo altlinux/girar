@@ -139,6 +139,12 @@ for i; do
 	message "task #$id: $action $noun of subtask #$i"
 done
 
+# Update index.html and info.json files if the task is not locked.
+{
+	flock -n 0 &&
+		girar-task-make-index-html "$id"
+} <. &
+
 # Notify the owner.
 
 [ "$owner" != "$GIRAR_USER" ] ||
