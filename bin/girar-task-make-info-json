@@ -52,6 +52,11 @@ if [ -n "$nums" ]; then
 			printf '   "tag_name": "%s",\n' "$tag_name"
 			printf '   "tag_id": "%s",\n' "$(cat "gears/$i/tag_id")"
 			printf '   "tag_author": "%s",\n' "$(cat "gears/$i/tag_author")"
+			pkg_tar="gears/$i/pkg.tar"
+			if [ -s "$pkg_tar" ]; then
+				printf '   "fetched": "%s",\n' \
+					"$(LC_TIME=C date -r "$pkg_tar" '+%FT%T')"
+			fi
 			printf '   "type": "repo",\n'
 		elif [ -s "gears/$i/srpm" ]; then
 			printf '   "srpm": "%s",\n' "$(cat "gears/$i/srpm")"
