@@ -42,6 +42,10 @@ if [ -f "$log" ]; then
 	printf ' "build_time": "%s",\n' \
 		"$(LC_TIME=C date -r "$log" '+%FT%T')"
 fi
+if [ -s task/message ]; then
+	printf ' "message": "%s",\n' \
+		"$(tr -cd '[:print:]' < task/message | tr -s '[:space:]' _)"
+fi
 printf ' "owner": "%s"' "$(cat task/owner)"
 
 nums="$(gear_nums)"
