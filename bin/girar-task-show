@@ -56,13 +56,14 @@ try="$(cat task/try 2>/dev/null ||:)"
 printf ' try=%s' "$try"
 iter="$(cat task/iter 2>/dev/null ||:)"
 printf ' iter=%s' "$iter"
-log="logs/events.$try.$iter.log"
+printf ' age=%sw' "$((($(date +%s)-$(stat -c %Y task/state))/604800))"
 if [ -f task/depends ]; then
 	[ ! -s task/depends ] || {
 		flock -s 0
 		printf ' depends=%s' "$(tr -s '[:space:]' , | sed 's/,$//')"
 	} < task/depends
 fi
+log="logs/events.$try.$iter.log"
 if [ -f "$log" ]; then
 	printf ' build_time=%s' "$(date -r "$log" '+%Y-%b-%d/%T')"
 fi
