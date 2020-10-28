@@ -321,6 +321,24 @@ trap '' HUP INT QUIT PIPE TERM
 echo $try > task/try
 echo 1 > task/iter
 girar-task-change-state "$id" "$next_state"
+
+if [ "$next_state" = POSTPONED ]; then
+	# The status of dependencies listed in task/depends might have changed
+	# since the last check while the task was not in POSTPONED state.
+	# Re-run the check to update task/depends if necessary.
+	check_depends || {
+		next_state=FAILED
+		girar-task-change-state "$id" "$next_state"
+		girar-webapi-task update "$id"
+		exit 1
+	}
+
+	[ -s task/depends ] || {
+		next_state=AWAITING
+		girar-task-change-state "$id" "$next_state"
+	}
+fi
+
 girar-webapi-task update "$id"
 
 echo >&2 "task #$id: try #$try is $next_state, result will be emailed to $owner@$EMAIL_DOMAIN"
