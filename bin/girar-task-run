@@ -229,11 +229,9 @@ check_depends()
 	} < task/depends
 }
 
-fail=
-check_copy_del || fail=1
-check_srpm || fail=1
-check_depends || fail=1
-[ -z "$fail" ]
+check_copy_del
+check_srpm
+check_depends
 
 [ -n "$task_msg" ] ||
 [ -s task/message ] || {
