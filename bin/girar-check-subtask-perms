@@ -130,44 +130,39 @@ fi
 
 mode_needs_approval_by()
 {
-	local g m
+	local g m status
 	g="$1"; shift
 	m="$1"; shift
+	status="$1"; shift
 
 	if [ -n "$g" ] && [ "$mode" = "needs-approval-by-$m" ]; then
-		message "#$subtask: $pkg: $mode"
-		exit 0
+		message "#$subtask: $pkg: $mode: $status"
+		exit $status
 	fi
-}
-
-mode_needs_approval_by_maint()
-{
-	mode_needs_approval_by "$maint" maint
-}
-
-mode_needs_approval_by_tester()
-{
-	mode_needs_approval_by "$tester" tester
 }
 
 if [ -n "$approved_by_maint$approved_by_tester" ]; then
 	# it has to be approved both by @maint and @tester
 	if [ -z "$approved_by_maint" ]; then
-		mode_needs_approval_by_maint
+		mode_needs_approval_by "$maint" maint 0
+		mode_needs_approval_by "$tester" tester 77
 		if [ -n "$maint" ]; then
 			deny "$approved_by_tester, needs an approval from a member of @$maint group"
 		fi
 	elif [ -z "$approved_by_tester" ]; then
-		mode_needs_approval_by_tester
+		mode_needs_approval_by "$tester" tester 0
+		mode_needs_approval_by "$maint" maint 77
 		if [ -n "$tester" ]; then
 			deny "$approved_by_maint, needs an approval from a member of @$tester group"
 		fi
 	else
+		mode_needs_approval_by "$maint" maint 77
+		mode_needs_approval_by "$tester" tester 77
 		allow "$approved_by_maint, $approved_by_tester"
 	fi
 fi
 
-mode_needs_approval_by_maint
+mode_needs_approval_by "$maint" maint 0
 
 # check author permissions again to print the error diagnostics
 if GIRAR_USER="$userid" girar-check-perms "$pkg" "$repo"; then

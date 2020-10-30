@@ -27,8 +27,20 @@ id="$1"; shift
 cd "$TASKS_DIR/$id"
 
 rc=0
-while read -r subtask pkg; do
-	girar-check-subtask-perms $mode "$subtask" "$pkg" || rc=$?
-done < plan/check_acl
+status=
 
-exit $rc
+while read -r subtask pkg; do {
+	if girar-check-subtask-perms $mode "$subtask" "$pkg"; then
+		[ -n "$status" ] ||
+			status=0
+	else
+		rc=$?
+		[ "$rc" = 77 ] ||
+			status="$rc"
+	fi
+} <.; done < plan/check_acl
+
+[ -n "$status" ] ||
+	status="$rc"
+
+exit $status
