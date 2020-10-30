@@ -10,7 +10,10 @@ cd "$TASKS_DIR/$id"
 
 exec > "$tmpdir"/info.json
 
+date_s="$(date +%s)"
+
 printf '{\n'
+printf ' "updated": %s,\n' "$date_s"
 printf ' "taskid": %d,\n' "$id"
 printf ' "shared": %s,\n' "$(find gears -maxdepth 0 -path gears -type d -perm -g=w \
 	-printf true -or -printf false 2>/dev/null || echo false)"
@@ -36,7 +39,7 @@ if [ -f task/depends ]; then
 		printf ' "depends": [%s],\n' "$(tr -s '[:space:]' , |sed 's/,$//')"
 	} < task/depends
 fi
-printf ' "age": %s,\n' "$((($(date +%s)-$(stat -c %Y task/state))/604800))"
+printf ' "age": %s,\n' "$((($date_s-$(stat -c %Y task/state))/604800))"
 log="logs/events.$try.$iter.log"
 if [ -f "$log" ]; then
 	printf ' "build_time": "%s",\n' \
