@@ -128,6 +128,20 @@ Standard:
   llvm10.0-devel-static
   llvm10.0-doc
   llvm10.0-libs
+  clang11.0
+  clang11.0-analyzer
+  clang11.0-devel
+  clang11.0-devel-static
+  clang11.0-doc
+  clang11.0-libs
+  lld11.0
+  lld11.0-devel
+  lld11.0-doc
+  llvm11.0
+  llvm11.0-devel
+  llvm11.0-devel-static
+  llvm11.0-doc
+  llvm11.0-libs
   altlinux-release-$GB_REPO_NAME
   branding-alt-$GB_REPO_NAME-alterator
   branding-alt-$GB_REPO_NAME-bootloader
