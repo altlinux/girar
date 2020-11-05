@@ -17,8 +17,11 @@ cd "$dir"
 
 	# sed -i is not available because of locking and permissions.
 	sed "/^$dep\$/d" < "task/depends" > "$tmpdir/depends"
-	cmp -s "task/depends" "$tmpdir/depends" ||
+	cmp -s "task/depends" "$tmpdir/depends" || {
 		cat < "$tmpdir/depends" > "task/depends"
+		logger -t "${0##*/}" \
+			"task #$(cat task/id): removed $dep from dependencies"
+	}
 } < task/depends
 
 if [ ! -s "task/depends" ] &&
