@@ -64,6 +64,7 @@ gb-task-gen-task-repo "$id"
 gb-task-gen-next-repo
 
 # run expensive tests
+gb-task-repo-check-provides
 gb-task-repo-unmets
 gb-task-repo-elfsym
 gb-task-check-install

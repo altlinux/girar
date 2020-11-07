@@ -1,0 +1,143 @@
+#!/bin/sh -efu
+
+set -o pipefail
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+. gb-sh-tmpdir
+
+# output format: name provides
+dump_prov_arch()
+{
+	local repo arch name prov qf
+	repo="$1"; shift
+	arch="$1"; shift
+
+	name='%{NAME}-%{VERSION}-%{RELEASE}%|DISTTAG?{:%{DISTTAG}}|'
+	prov='%|PROVIDEFLAGS?{%{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}}:{}|'
+	qf="[%{PROVIDENAME} $name $prov\n]"
+
+	{
+		gb-x-query-base "$repo/$arch" base.bloat "$qf" "$@" |
+			sed -n -e 's/^\(lib[^ ]\+\) \([^ ]\+\) = set:.*/\2\t\1/p' \
+			       -e 's/^\(perl([^ ]\+\) \([^ ]\+\).*/\2\t\1/p' \
+			       -e 's/^\(python[^( ]*([^ ]\+\) \([^ ]\+\)\(.*\)/\2\t\1\3/p'
+	} </
+}
+
+dump_prov_noarch()
+{
+	local repo arch save
+	repo="$1"; shift
+	arch="$1"; shift
+	save="${repo//\//_}_noarch_${*//\//_}"
+
+	{
+		flock 1
+		[ -s "$save" ] ||
+			dump_prov_arch "$repo" noarch "$@"
+	} >> "$save"
+
+	[ -c /dev/stdout ] ||
+		cat < "$save"
+}
+
+dump_dups()
+{
+	{
+		dump_prov_arch "$@"
+		dump_prov_noarch "$@"
+	} |
+		sort -k2,2 |
+		uniq -D -f1 |
+		sort
+}
+
+check_arch=
+if grep -Fqsx noarch plan/change-arch; then
+	check_arch="$GB_ARCH" # a change in noarch affects all arches
+else
+	for arch in $GB_ARCH; do
+		grep -Fqsx $arch plan/change-arch ||
+			continue # this task does not change $arch
+
+		check_arch="$check_arch $arch"
+	done
+fi
+
+cd "$tmpdir"
+
+# Dump noarch provides separately,
+# they are going to be used by every arch in $check_arch.
+{
+	# Assume that the only component worth checking is "classic".
+	for comp in classic; do
+		dump_prov_noarch "$GB_REPO_DIR" "$comp"
+		dump_prov_noarch "$GB_TMP_REPO_DIR" "$comp"
+	done > /dev/null
+	> "OK-noarch"
+} &
+
+for arch in $check_arch; do
+	{
+		# Assume that the only component worth checking is "classic".
+		for comp in classic; do
+			dump_dups "$GB_REPO_DIR" "$arch" "$comp" > "$arch-$comp.old"
+			dump_dups "$GB_TMP_REPO_DIR" "$arch" "$comp" > "$arch-$comp.new"
+			cat < "$arch-$comp.new" >> "$arch-new"
+			comm -13 "$arch-$comp.old" "$arch-$comp.new" >> "$arch-plus"
+			comm -23 "$arch-$comp.old" "$arch-$comp.new" >> "$arch-minus"
+			rm "$arch-$comp.old" "$arch-$comp.new"
+		done
+		sort -u -o "$arch-plus"{,}
+		sort -u -o "$arch-minus"{,}
+		> "OK-$arch"
+	} &
+done
+
+wait
+
+check_and_clear_OK_flags OK $check_arch noarch
+
+for arch in $check_arch; do
+	cut -f-2 < "$arch-plus" >> plus
+	cut -f-2 < "$arch-minus" >> minus
+	if [ -s "$arch-plus" -o -s "$arch-minus" ]; then
+		sort -u -o "$arch-new"{,}
+		if [ -s stat ]; then
+			printf ,
+		fi
+		printf ' %s +%s -%s =%s' \
+			"$arch" "$(sort -u -k2,2 "$arch-plus" |wc -l)" \
+			"$(sort -u -k2,2 "$arch-minus" |wc -l)" \
+			"$(sort -u -k2,2 "$arch-new" |wc -l)"
+	fi >> stat
+done
+
+if [ -s plus ]; then
+	rc=1
+	text=FAILED
+	sort -u -o plus{,}
+	printf '\tNEW duplicate provides detected:\n'
+	column -t --table-columns=Package:,Provides: < plus |
+		sed 's/^/ /'
+else
+	rc=0
+	text=OK
+fi >&2
+
+if [ -s minus ]; then
+	sort -u -o minus{,}
+	printf '\told duplicate provides fixed:\n'
+	column -t --table-columns=Package:,Provides: < minus |
+		sed 's/^/ /'
+fi >&2
+
+if [ -s stat ]; then
+	stamp_echo >&2 "duplicate provides:$(cat stat); check $text"
+else
+	stamp_echo >&2 "duplicate provides check $text"
+fi
+exit $rc
