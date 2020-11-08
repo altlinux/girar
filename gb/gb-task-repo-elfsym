@@ -52,12 +52,14 @@ for arch in $GB_ARCH; do
 		continue
 	if [ -s bad_elf_symbols/$arch.new ]; then
 		echo "	$arch: NEW bad_elf_symbols detected:"
-		cat bad_elf_symbols/$arch.new
+		column -t < bad_elf_symbols/$arch.new |
+			sed 's/^/ /'
 		rc=1 text=FAILED
 	fi >&2
 	if [ -s bad_elf_symbols/$arch.old ]; then
 		echo "	$arch: old bad_elf_symbols resolved:"
-		cat bad_elf_symbols/$arch.old
+		column -t < bad_elf_symbols/$arch.old |
+			sed 's/^/ /'
 	fi >&2
 	mv -- "$tmpdir/$arch.hash" bad_elf_symbols/
 	checked_arches="$checked_arches $arch"

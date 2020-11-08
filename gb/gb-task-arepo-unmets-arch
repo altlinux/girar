@@ -26,7 +26,8 @@ if [ ! -s unmets ]; then
 fi
 
 printf '\t%s: NEW unmet dependencies detected:\n' "$arch"
-awk -F'\t' '{printf " %-24s\t%s\n", $1, $2}' < unmets
+column -t -s $'\t' < unmets |
+	sed 's/^/ /'
 
 cut -f1 < unmets | cut -d'#' -f1 > unmets.bin
 sed -i "s/^${arch_from}-//; s/\\.32bit\$//" unmets.bin
@@ -50,7 +51,9 @@ sort -u -o "$topdir"/report/unmet-addressees{,}
 
 if [ -s unmets-new.src ]; then
 	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets-new.src)"
-	join -t$'\t' -a1 unmets-new.src unmets.acl
+	join -t$'\t' -a1 unmets-new.src unmets.acl |
+		column -t -s $'\t' |
+		sed 's/^/ /'
 fi
 
 #stamp_echo >&2 "[$arch] dependencies check FAILED"

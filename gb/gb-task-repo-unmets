@@ -76,13 +76,15 @@ for arch in $GB_ARCH; do
 	sort -u -o $arch-unmets.minus{,}
 	if [ -s $arch-unmets.plus ]; then
 		printf '\t%s: NEW unmet dependencies detected:\n' "$arch"
-		awk -F'\t' '{printf " %-24s\t%s\n", $1, $2}' <$arch-unmets.plus
+		column -t -s $'\t' < $arch-unmets.plus |
+			sed 's/^/ /'
 		cut -f1 < $arch-unmets.plus | cut -d'#' -f1 >> unmets.bin
 		rc=1
 	fi >&2
 	if [ -s $arch-unmets.minus ]; then
 		printf '\t%s: old unmet dependencies resolved:\n' "$arch"
-		awk -F'\t' '{printf " %-24s\t%s\n", $1, $2}' <$arch-unmets.minus
+		column -t -s $'\t' < $arch-unmets.minus |
+			sed 's/^/ /'
 	fi >&2
 	if [ -s $arch-unmets.plus -o -s $arch-unmets.minus ]; then
 		sort -u -o $arch-unmets.new{,}
@@ -114,6 +116,7 @@ if [ -s unmets.src ]; then
 	done < unmets.src > unmets.acl
 	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets.src)"
 	join -t$'\t' -a1 unmets.src unmets.acl |
+		column -t -s $'\t' |
 		sed 's/^./ &/'
 fi
 
