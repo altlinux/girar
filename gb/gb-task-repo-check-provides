@@ -147,8 +147,13 @@ show_changes()
 }
 
 if [ -s plus ]; then
-	rc=1
-	text=FAILED
+	if is_check_failure_tolerated; then
+		rc=0
+		text=IGNORED
+	else
+		rc=1
+		text=FAILED
+	fi
 	show_changes new plus 'NEW duplicate provides detected:' >&2
 else
 	rc=0
