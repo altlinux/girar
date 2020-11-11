@@ -21,7 +21,8 @@ dump_prov_arch()
 
 	{
 		gb-x-query-base "$repo/$arch" base.bloat "$qf" "$@" |
-			sed -n -e 's/^\(lib[^ ]\+\) \([^ ]\+\) = set:.*/\2\t\1/p' \
+			sed -n -e 's/ \+$//' \
+			       -e 's/^\(lib[^ ]\+\) \([^ ]\+\) = set:.*/\2\t\1/p' \
 			       -e 's/^\(perl([^ ]\+\) \([^ ]\+\).*/\2\t\1/p' \
 			       -e 's/^\(python[^( ]*([^ ]\+\) \([^ ]\+\)\(.*\)/\2\t\1\3/p'
 	} </
@@ -85,6 +86,7 @@ for arch in $check_arch; do
 		# Assume that the only component worth checking is "classic".
 		for comp in classic; do
 			dump_dups "$GB_REPO_DIR" "$arch" "$comp" > "$arch-$comp.old"
+			cat < "$arch-$comp.old" >> "$arch-old"
 			dump_dups "$GB_TMP_REPO_DIR" "$arch" "$comp" > "$arch-$comp.new"
 			cat < "$arch-$comp.new" >> "$arch-new"
 			comm -13 "$arch-$comp.old" "$arch-$comp.new" >> "$arch-plus"
@@ -101,11 +103,17 @@ wait
 
 check_and_clear_OK_flags OK $check_arch noarch
 
+touch plus munus new old
 for arch in $check_arch; do
-	cut -f-2 < "$arch-plus" >> plus
-	cut -f-2 < "$arch-minus" >> minus
+	if [ -s "$arch-plus" ]; then
+		cut -f-2 < "$arch-plus" >> plus
+		cut -f-2 < "$arch-new" >> new
+	fi
+	if [ -s "$arch-minus" ]; then
+		cut -f-2 < "$arch-minus" >> minus
+		cut -f-2 < "$arch-old" >> old
+	fi
 	if [ -s "$arch-plus" -o -s "$arch-minus" ]; then
-		sort -u -o "$arch-new"{,}
 		if [ -s stat ]; then
 			printf ,
 		fi
@@ -116,24 +124,40 @@ for arch in $check_arch; do
 	fi >> stat
 done
 
+show_changes()
+{
+	local all changed what
+	all="$1"; shift
+	changed="$1"; shift
+	what="$1"; shift
+
+	sort -u -o "$all"{,}
+	sort -k2,2 -o "$all"{,}
+	sort -u -o "$changed"{,}
+
+	printf '\t%s\n' "$what"
+
+	sort -u -k2,2 < "$changed" |
+		join -t$'\t' -12 -22 -o 2.2,2.1 - "$all" |
+		sed -n -r 's/^([^[:space:]]+)[[:space:]]([^[:space:]]+)(-[^-]+){2}/\1 \2/p' |
+		awk '{if(a[$1]){a[$1]=a[$1]" "$2}else{a[$1]=$2}}END{for(e in a)printf("%s\t%s\n",e,a[e])}' |
+		sort |
+		column -s$'\t' -t --table-columns='Provide:,Providers:' |
+		sed 's/^/ /'
+}
+
 if [ -s plus ]; then
 	rc=1
 	text=FAILED
-	sort -u -o plus{,}
-	printf '\tNEW duplicate provides detected:\n'
-	column -t --table-columns=Package:,Provides: < plus |
-		sed 's/^/ /'
+	show_changes new plus 'NEW duplicate provides detected:' >&2
 else
 	rc=0
 	text=OK
-fi >&2
+fi
 
 if [ -s minus ]; then
-	sort -u -o minus{,}
-	printf '\told duplicate provides fixed:\n'
-	column -t --table-columns=Package:,Provides: < minus |
-		sed 's/^/ /'
-fi >&2
+	show_changes old minus 'old duplicate provides resolved:' >&2
+fi
 
 if [ -s stat ]; then
 	stamp_echo >&2 "duplicate provides:$(cat stat); check $text"
