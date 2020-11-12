@@ -97,6 +97,10 @@ for u in ${GIRAR_LOW_PRIORITY_USERS-}; do
 		break
 	fi
 done
+# create group writable directories for build results
+mkdir -m3775 "$id"/install "$id"/logs "$id"/mail
+mkdir -m3775 "$id"/mail/bugmail "$id"/mail/cvemail "$id"/report
+mkdir -m2775 "$id"/arepo "$id"/build "$id"/plan
 girar-task-change-state "$id" NEW
 chmod g+w -- "$id"/task/state "$id"/task/run
 chmod g+rws,o+t -- "$id"/task "$id"
