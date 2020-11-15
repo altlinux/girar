@@ -60,19 +60,21 @@ deposit_file()
 
 deposit_symlink()
 {
-	local target link name deposited
+	local target link name dir deposited
 	target="$1"; shift
 	link="$1"; shift
 	name="${target##*/}"
 
-	[ -n "$name" ] && [ -n "$link" ] || return 0;
-	deposited="$GA_SYMLINK_DIR/$name"
+	[ -n "$name" ] && [ -n "$link" ] || return 0
+	dir="$GA_SYMLINK_DIR/${name:0:2}/${name:2:2}"
+	mkdir -p -- "$dir"
+	deposited="$dir/$name"
 
 	{
 		flock 0
 		[ -L "$deposited" ] ||
 			ln -v -sn -- "$target" "$deposited"
-	} < "$GA_SYMLINK_DIR"
+	} < "$dir"
 
 	ln -v -nf -- "$deposited" "$link"
 }
