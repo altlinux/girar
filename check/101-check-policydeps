@@ -1,7 +1,8 @@
 #!/bin/sh -efu
 
-need_deps='rpmlib\(PayloadIsLzma\).*'
-bad_deps_4x='rpmlib\(PayloadIsLzma\).*
+need_deps_default='rpmlib\(PayloadIsLzma\).*'
+need_deps_sisyphus='rpmlib\(PayloadIs(Lzma|Xz)\).*'
+bad_deps_4x='rpmlib\(PayloadIs(Lzma|Xz)\).*
 rpmlib\(PosttransFiletriggers\).*'
 bad_deps_5x='rpmlib\(SetVersions\).*'
 
@@ -10,7 +11,7 @@ check_policyreq()
 {
 	local f="$1" && shift || return 1
 	local rc=0
-	local bad
+	local var need_deps bad
 
 	case "${GB_REPO_NAME-}" in
 		4.*|school)
@@ -20,6 +21,8 @@ check_policyreq()
 		fi
 		;;
 		*)
+		var="need_deps_${GB_REPO_NAME//./_}"
+		eval "need_deps=\"\${$var:-\$need_deps_default}\""
 		if ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_deps"; then
 			FileError "missing mandatory requires: $(oneliner "$need_deps")" "$f"
 			rc=1
