@@ -36,19 +36,25 @@ hsh --init --without-stuff --no-contents-ind \
 # install pkg.list
 mv in/pkg.list hasher/chroot/.in/
 
-cat > hasher/chroot/.host/arepoize << EOF
-#!/bin/sh -efu
-AREPO_PKGLIST=pkg.list
-AREPO_ARCH=$arch
-AREPO_MODE=\$1; shift
-AREPO_COMPAT=\$1; shift
-AREPO_NATIVE=\$1; shift
-target=\$1; shift
-export AREPO_PKGLIST AREPO_ARCH AREPO_MODE AREPO_COMPAT AREPO_NATIVE
-time rpmrebuild --include arepo.plug -np --define '_spec_line_buffer_size 262144' \
-        --define '_allow_deps_with_beginning_dot 1' \$AREPO_COMPAT
-ln --target-directory /.out \$HOME/RPM/RPMS/\$AREPO_ARCH/\$target
-EOF
+(
+	. .hasher/config
+	cat > hasher/chroot/.host/arepoize <<-EOF
+		#!/bin/sh -efu
+		AREPO_PKGLIST=pkg.list
+		AREPO_ARCH=$arch
+		AREPO_MODE=\$1; shift
+		AREPO_COMPAT=\$1; shift
+		AREPO_NATIVE=\$1; shift
+		target=\$1; shift
+		export AREPO_PKGLIST AREPO_ARCH AREPO_MODE AREPO_COMPAT AREPO_NATIVE
+		time rpmrebuild --include arepo.plug -np \
+			--define '_spec_line_buffer_size 262144' \
+			--define '_allow_deps_with_beginning_dot 1' \
+			${rpmargs-} \$AREPO_COMPAT
+		ln --target-directory /.out \$HOME/RPM/RPMS/\$AREPO_ARCH/\$target
+	EOF
+)
+[ $? -eq 0 ]
 chmod a+rx hasher/chroot/.host/arepoize
 
 mkdir -p build/rpms
