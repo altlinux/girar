@@ -4,11 +4,18 @@
 
 fail_if_task_abort_requested
 
-rc=0 text=OK
+rc=0
+text=OK
 
 for i in $(src_nums) $(copy_nums); do
-	$0-i "$i" ||
-		rc=1 text=FAILED
+	$0-i "$i" || {
+		if is_check_failure_tolerated; then
+			text=IGNORED
+		else
+			rc=1
+			text=FAILED
+		fi
+	}
 done
 
 stamp_echo >&2 "noarch check $text"
