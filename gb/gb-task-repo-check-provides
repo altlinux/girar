@@ -24,7 +24,7 @@ dump_prov_arch()
 		# one subexpression
 		re_1='(perl|pkgconfig)\([^ ]+'
 		# tree subexpressions
-		re_3='((gir|python[^( ]*|typelib|vapi)\([^ ]+)|\/usr\/bin\/(jar|jjs)[^ ]*'
+		re_3='((gir|python[^( ]*|typelib|vapi)\([^ ]+)|\/usr\/bin\/(jar|jjs|xvt)[^ ]*'
 		gb-x-query-base "$repo/$arch" base.bloat "$qf" "$@" |
 			sed -rn -e 's/ +$//' \
 				-e 's/^(lib[^ ]+) ([^ ]+) = set:.*/\2\t\1/p' \
