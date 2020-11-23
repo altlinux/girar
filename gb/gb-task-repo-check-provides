@@ -145,8 +145,8 @@ show_changes()
 
 	sort -u -k2,2 < "$changed" |
 		join -t$'\t' -12 -22 -o 2.2,2.1 - "$all" |
-		sed -n -r 's/^([^[:space:]]+)[[:space:]]([^[:space:]]+)(-[^-]+){2}/\1 \2/p' |
-		awk '{if(a[$1]){a[$1]=a[$1]" "$2}else{a[$1]=$2}}END{for(e in a)printf("%s\t%s\n",e,a[e])}' |
+		sed -n -r 's/^([^\t]+)\t([^[:space:]]+)(-[^-]+){2}/\1\t\2/p' |
+		awk -F $'\t' '{if(a[$1]){a[$1]=a[$1]" "$2}else{a[$1]=$2}}END{for(e in a)printf("%s\t%s\n",e,a[e])}' |
 		sort |
 		column -s$'\t' -t --table-columns='Provide:,Providers:' |
 		sed 's/^/ /'
