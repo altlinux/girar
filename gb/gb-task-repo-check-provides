@@ -20,14 +20,16 @@ dump_prov_arch()
 	qf="[%{PROVIDENAME} $name $prov\n]"
 
 	{
+		local re_1 re_3
+		# one subexpression
+		re_1='(perl|pkgconfig)\([^ ]+'
+		# tree subexpressions
+		re_3='((python[^( ]*|typelib)\([^ ]+)|\/usr\/bin\/(jar|jjs)[^ ]*'
 		gb-x-query-base "$repo/$arch" base.bloat "$qf" "$@" |
 			sed -rn -e 's/ +$//' \
 				-e 's/^(lib[^ ]+) ([^ ]+) = set:.*/\2\t\1/p' \
-				-e 's/^(perl\([^ ]+) ([^ ]+).*/\2\t\1/p' \
-				-e 's/^(pkgconfig\([^ ]+) ([^ ]+).*/\2\t\1/p' \
-				-e 's/^(python[^( ]*\([^ ]+) ([^ ]+)(.*)/\2\t\1\3/p' \
-				-e 's/^(typelib\([^ ]+) ([^ ]+)(.*)/\2\t\1\3/p' \
-				-e 's/^(\/usr\/bin\/(jar|jjs)[^ ]*) ([^ ]+)(.*)/\3\t\1\4/p' \
+				-e 's/^('"$re_1"') ([^ ]+).*/\3\t\1/p' \
+				-e 's/^('"$re_3"') ([^ ]+)(.*)/\5\t\1\6/p' \
 				#
 	} </
 }
