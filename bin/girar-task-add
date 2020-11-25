@@ -509,8 +509,7 @@ change_state()
 trap '' HUP INT QUIT PIPE TERM
 # gears are not shared by default
 mkdir -pm2755 gears acl acl/approved acl/disapproved
-mkdir -m "$gears_i_mode" gears/"$i"
-mkdir -m3775 acl/approved/"$i" acl/disapproved/"$i"
+mkdir -m "$gears_i_mode" gears/"$i" acl/approved/"$i" acl/disapproved/"$i"
 trap atexit EXIT
 
 case "$action" in
