@@ -152,7 +152,6 @@ Standard:
   branding-alt-$GB_REPO_NAME-kde3-settings
   branding-alt-$GB_REPO_NAME-kde4-settings
   branding-alt-$GB_REPO_NAME-notes
-  branding-alt-$GB_REPO_NAME-release
   branding-alt-$GB_REPO_NAME-slideshow
   branding-alt-$GB_REPO_NAME-themes
   branding-alt-$GB_REPO_NAME-xfce-settings
@@ -165,7 +164,6 @@ Standard:
   branding-altlinux-$GB_REPO_NAME-kde3-settings
   branding-altlinux-$GB_REPO_NAME-kde4-settings
   branding-altlinux-$GB_REPO_NAME-notes
-  branding-altlinux-$GB_REPO_NAME-release
   branding-altlinux-$GB_REPO_NAME-slideshow
   branding-altlinux-$GB_REPO_NAME-themes
   branding-altlinux-$GB_REPO_NAME-xfce-settings
