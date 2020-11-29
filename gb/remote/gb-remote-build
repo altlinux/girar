@@ -58,7 +58,7 @@ if [ -n "$swift" -a -s build/chroot_base -a -f build/chroot_BR ]; then
 	 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
 	 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 		Fatal 'failed to obtain packages from previous run'
-	stamp_echo >&2 "$I: too swift to rebuild"
+	echo swept > build/status
 	exit 0
 fi
 
@@ -93,7 +93,7 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
 		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
-		stamp_echo >&2 "$I: no need to rebuild"
+		echo cached > build/status
 		exit 0
 	fi
 fi
@@ -125,12 +125,14 @@ hsh-rebuild $build_env_flags --repo-src="$tmpdir"/srpm --query-repackage --no-si
 		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
 			egrep '^error: Architecture is (excluded|not included): ' \
 				build/srpm.log >build/excluded
+			echo excluded > build/status
 			exit 0
 		fi
 		sed "s/^/$arch_prefix/" build/srpm.log
 		[ "$arch" = armh ] ||
 			Fatal 'cannot build src.rpm'
 		echo 'Cannot build src.rpm' > build/excluded
+		echo excluded > build/status
 		stamp_echo >&2 "$I: cannot build src.rpm, but we don't care"
 		exit 0
 	} >&2
@@ -149,7 +151,7 @@ if cmp -s {build,"$tmpdir"}/chroot_base; then
 		 cp -p build/rpms/*.rpm hasher_repo/$arch/RPMS.hasher/ &&
 		 cp -p build/srpm/*.rpm hasher_repo/SRPMS.hasher/ ) ||
 			Fatal 'failed to obtain packages from previous run'
-		stamp_echo >&2 "$I: no need to rebuild"
+		echo cached > build/status
 		exit 0
 	fi
 fi
@@ -271,3 +273,5 @@ fi
 # Meta copyout.
 cp -p "$tmpdir"/chroot_base build/chroot_base
 cp -p "$tmpdir"/chroot_BR build/chroot_BR
+
+echo built > build/status

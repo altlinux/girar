@@ -44,7 +44,13 @@ gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_host:in/"
 (umask 002; mkdir -p "build/$i/$arch") || false
 [ -f "build/$i/$arch/log" ] ||
 	touch "build/$i/$arch/log"
-gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "build/$i/$arch/" "$remote_host:build/"
+> "build/$i/$arch/status"
+rm -f "build/$i/$arch/try_iter"
+
+save_build_try_iter()
+{
+	printf %s "$task_try.$task_iter" > "build/$i/$arch/try_iter"
+}
 
 swift=
 if [ -f task/swift -o -s task/trusted_swift ] &&
@@ -53,12 +59,7 @@ if [ -f task/swift -o -s task/trusted_swift ] &&
 	swift=swift
 fi
 
-save_build_try_iter()
-{
-	printf %s "$task_try.$task_iter" > "build/$i/$arch/try_iter"
-}
-
-rm -f "build/$i/$arch/try_iter"
+gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "build/$i/$arch/" "$remote_host:build/"
 
 # run the build on remote side
 gb-x-ssh "$remote_host" ./gb-remote-build \
@@ -73,8 +74,8 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$task_iter")\"" \
 	$swift || {
 	stamp_echo >&2 "$I build FAILED"
-	gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/"
 	task_change_state_to_failing "[$arch]"
+	gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/"
 	exit 1
 }
 
@@ -83,18 +84,46 @@ gb-x-rsync-loop -qrlt --delete --exclude='*.signed' -- "$remote_host:build/" "bu
 find "build/$i/$arch/" -type d -print0 |
 	xargs -r0 chmod 775 --
 
+status="$(head -c 128 "build/$i/$arch/status" |head -1)"
+case "$status" in
+	built)	text='build OK'
+		;;
+
+	cached)	text='build OK (cached)'
+		;;
+
+	swept)	text='build swiftly SKIPPED'
+		;;
+
+	excluded)
+		[ -s "build/$i/$arch/excluded" ] || {
+			stamp_echo >&2 "$I incomplete build status: $status"
+			task_change_state_to_failing "[$arch]"
+			exit 1
+		}
+		save_build_try_iter
+		stamp_echo >&2 "$I build SKIPPED"
+		exit 0
+		;;
+
+	*) 	stamp_echo >&2 "$I unrecognized build status: $status"
+		task_change_state_to_failing "[$arch]"
+		exit 1
+		;;
+esac
+
 if [ -s "build/$i/$arch/excluded" ]; then
-	save_build_try_iter
-	stamp_echo >&2 "$I build SKIPPED"
-	exit 0
+	stamp_echo >&2 "$I unexpected build status: $status"
+	task_change_state_to_failing "[$arch]"
+	exit 1
 fi
 
 # copy some build warnings from the build log to the task log
 grep -EHs 'WARNING: [^ ]+ is not yet (set-versioned|debuginfo-enabled)' "build/$i/$arch/log" ||:
 
-if [ -n "$swift" ]; then
+if [ "$status" = swept ]; then
 	save_build_try_iter
-	stamp_echo >&2 "$I build swiftly SKIPPED"
+	stamp_echo >&2 "$I $text"
 	exit 0
 fi
 
@@ -133,4 +162,4 @@ gb-task-pesign-arch-i "$arch" "$i" || {
 rpmsign rpms
 
 save_build_try_iter
-stamp_echo >&2 "$I build OK"
+stamp_echo >&2 "$I $text"
