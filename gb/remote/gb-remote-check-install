@@ -78,7 +78,7 @@ if [ -s "$topdir"/install/chroot_install ] &&
 	if cmp -s {"$topdir"/install/,}chroot_install; then
 		[ ! -s "$topdir"/install/warnings ] ||
 			cat -- "$topdir"/install/warnings
-		stamp_echo >&2 "[$arch] #$I $N: no need to repeat, install check SKIPPED"
+		stamp_echo >&2 "[$arch] #$I $N: install check OK (cached)"
 		exit 0
 	fi
 fi
