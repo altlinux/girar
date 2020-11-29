@@ -57,7 +57,7 @@ hsh-run -- rpmquery -a --qf "$QA" >packages0
 if fgrep -qs -x -e "$N=$EVR" packages0; then
 	# The package is already installed.  Since the package is part of
 	# basesystem, removing it might not work very well.
-	stamp_echo >&2 "[$arch] #$I $N: part of basesystem, install check OK"
+	stamp_echo >&2 "[$arch] #$I $N: install check OK (basesystem)"
 	exit 0
 fi
 
