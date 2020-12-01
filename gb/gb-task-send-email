@@ -64,6 +64,13 @@ log_size="$(du -bk "$log_file" |cut -f1)"
 logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter status=$state"
 
 message_id="<girar.task.$id.$try.$iter@$hostname>"
+references="$(set +f && ls logs/events.*.*.log 2>/dev/null |
+		cut -d. -f2-3 |
+		sort -t. -rn |
+		sort -us -t. -rnk1,1 |
+		grep -Fvx "$try.$iter" |
+		sed "s/.*/<girar.task.$id.&@$hostname>/")"
+in_reply_to="$(printf %s "$references" |tail -1)"
 
 . gb-sh-tmpdir
 
@@ -87,6 +94,8 @@ X-girar-task-URL: $url
 X-girar-task-log: $log_file
 X-girar-task-summary: [#$id]${test_only}$srepo $state$stry$summary
 Subject: [#$id]${test_only}$srepo $state$stry$stripped_summary
+In-Reply-To: $in_reply_to
+References: $(printf %s "$references" |tr -s '\n' ' ')
 
 $url$log_file
 
