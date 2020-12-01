@@ -12,6 +12,7 @@ if [ -f task/skip ]; then
 	exit 0
 fi
 
+hostname="${HOSTNAME-$(hostname)}"
 me="$(whoami)"
 state="$(cat task/state)"
 try="$(cat task/try)"
@@ -19,6 +20,7 @@ iter="$(cat task/iter)"
 repo="$(cat task/repo)"
 owner="$(cat task/owner)"
 run_by="$(cat task/run ||:)"
+
 if [ "$state" = DONE ]; then
 	k="_$(($id/1024))"
 	url="$GB_SITE$GB_TASKS_DONE_DIR/$k/$id/"
@@ -61,6 +63,8 @@ log_size="$(du -bk "$log_file" |cut -f1)"
 
 logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter status=$state"
 
+message_id="<girar.task.$id.$try.$iter@$hostname>"
+
 . gb-sh-tmpdir
 
 cat >"$tmpdir/draft" <<__EOF
@@ -69,6 +73,7 @@ To: git_$owner
 Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
 	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
 	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
+Message-ID: $message_id
 Reply-To: $owner@$GB_EMAIL_DOMAIN_PEOPLE
 Mail-Followup-To: $me
 X-girar-task-id: $id
