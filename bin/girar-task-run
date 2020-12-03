@@ -136,16 +136,19 @@ fi
 [ -n "$(find acl/approved -mindepth 1 -maxdepth 1 -name '[1-7]*' -type d 2>/dev/null)" ] ||
 	fatal "cannot run empty task #$id"
 
-check_acl()
-{
-	[ "$state" = EPERM -a -s plan/check_acl ] || return
-	girar-check-task-perms "$id" || return
-}
-
-[ "$owner" = "$GIRAR_USER" ] ||
-	girar-check-superuser "$repo" ||
-		check_acl ||
-			fatal "task #$id belongs to $owner"
+if [ "$owner" = "$GIRAR_USER" ] ||
+   girar-check-superuser "$repo"; then
+	if [ "$state" = TESTED ] && [ "$test_mode" = '--commit' ]; then
+		[ -s plan/check_acl ] &&
+		girar-check-task-perms "$id" ||
+			state=EPERM
+	fi
+else
+	[ "$state" = EPERM ] &&
+	[ -s plan/check_acl ] &&
+	girar-check-task-perms "$id" ||
+		fatal "task #$id belongs to $owner"
+fi
 
 nums=$(gear_nums)
 delnums=
