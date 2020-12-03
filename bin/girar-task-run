@@ -138,11 +138,15 @@ fi
 
 if [ "$owner" = "$GIRAR_USER" ] ||
    girar-check-superuser "$repo"; then
-	if [ "$state" = TESTED ] && [ "$test_mode" = '--commit' ]; then
-		[ -s plan/check_acl ] &&
-		girar-check-task-perms "$id" ||
-			state=EPERM
-	fi
+	case "$state" in
+		EPERM|SWEPT|TESTED)
+			if [ "$test_mode" = '--commit' ]; then
+				[ -s plan/check_acl ] &&
+				girar-check-task-perms "$id" ||
+					state=EPERM
+			fi
+			;;
+	esac
 else
 	[ "$state" = EPERM ] &&
 	[ -s plan/check_acl ] &&
