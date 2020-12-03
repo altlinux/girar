@@ -25,7 +25,14 @@ $0-stages >>"$log" 2>&1 && rc=0 || rc=$?
 
 state="$(cat task/state)"
 case "$state" in
-	EPERM|POSTPONED) rc=1 ;;
+	POSTPONED) rc=1 ;;
+	EPERM)
+		if [ "$rc" = 0 ]; then
+			rc=1
+		else
+			state=FAILED
+		fi
+		;;
 	BUILDING)
 		if [ "$rc" = 0 ]; then
 			if [ -f task/swift ]; then

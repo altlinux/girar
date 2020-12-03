@@ -7,12 +7,13 @@ fail_if_task_abort_requested
 id=$(cat task/id)
 gb-x-girar check-task-perms "$id" && rc=0 || rc=1
 
-
 if [ "$rc" = 0 ]; then
-	stamp_echo >&2 'acl check OK'
+	text=OK
+elif [ -f task/test-only ]; then
+	text=IGNORED
 else
-	stamp_echo >&2 'acl check FAILED'
+	text=FAILED
 	gb-x-girar task-change-state "$id" EPERM
 fi
 
-exit $rc
+stamp_echo >&2 "acl check $text"
