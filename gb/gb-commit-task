@@ -23,6 +23,8 @@ try=$(cat task/try)
 iter=$(cat task/iter)
 log="logs/events.$try.$iter.log"
 
+gb-task-validate-state pending || exit 0
+
 $0-stages >>"$log" 2>&1 && rc=0 || rc=$?
 
 if [ "$(cat task/state)" != COMMITTING ]; then

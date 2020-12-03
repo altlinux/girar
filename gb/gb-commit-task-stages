@@ -4,8 +4,6 @@
 
 id="$(cat task/id)"
 
-gb-task-validate-state pending || exit 0
-
 # obtain a shared lock on the $GB_REPO_DIR
 exec < "$GB_REPO_DIR"
 flock -s 0
