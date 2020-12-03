@@ -4,35 +4,14 @@
 
 fail_if_task_abort_requested
 
-. gb-sh-tmpdir
-
-> $tmpdir/check_acl
-
-# Deal with added packages.
-# input: src-N src-EVR src-F src-P src-I
-while read -r N EVR F P I; do
-	printf '%s\t%s\n' "$I" "$N" >> $tmpdir/check_acl
-done < plan/add-src
-
-# Deal with removed/replaced packages.
-# input: src1-N src2-F src2-I
-while read -r N F I; do
-	echo >&2 "$N is replaced with $F from subtask #$I"
-	printf '%s\t%s\n' "$I" "$N" >> $tmpdir/check_acl
-done < plan/oldsrc2newsrpm
-
-# Deal with explicitly removed packages.
-join -t$'\t' -o 1.2,1.1 -v1 plan/del-src-N-I /dev/null >> $tmpdir/check_acl
-
-rc=0
-id=$(cat task/id)
-sort -u -k1,1n -k2 < $tmpdir/check_acl > plan/check_acl
 while read -r i N; do
-	list_notifiable_pkg_acl_members "$N" >> report/acl-addressees
-done < plan/check_acl
-gb-x-girar check-task-perms "$id" || rc=1
-
+	list_notifiable_pkg_acl_members "$N"
+done < plan/check_acl >> report/acl-addressees
 sort -u -o report/acl-addressees{,}
+
+id=$(cat task/id)
+gb-x-girar check-task-perms "$id" && rc=0 || rc=1
+
 
 if [ "$rc" = 0 ]; then
 	stamp_echo >&2 'acl check OK'

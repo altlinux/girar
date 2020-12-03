@@ -306,6 +306,28 @@ cut -f3 plan/{add,rm}-bin | sort -u > plan/change-arch
 } > $tmpdir/rip-src
 sort -k1,1 -u $tmpdir/rip-src > plan/rip-src
 
+# Prepare plan/check_acl
+{
+	# Deal with added packages.
+	# input: src-N src-EVR src-F src-P src-I
+	while read -r N EVR F P I; do
+		printf '%s\t%s\n' "$I" "$N"
+	done < plan/add-src
+
+	# Deal with removed/replaced packages.
+	# input: src1-N src2-F src2-I
+	while read -r N F I; do
+		# Implicit match can be wrong, so issue a warning.
+		echo >&2 " warning: existing source package $N is going to be replaced with $F from subtask #$I"
+		printf '%s\t%s\n' "$I" "$N"
+	done < plan/oldsrc2newsrpm
+
+	# Deal with explicitly removed packages.
+	join -t$'\t' -o 1.2,1.1 -v1 plan/del-src-N-I /dev/null
+} > $tmpdir/check_acl
+
+sort -u -k1,1n -k2 < $tmpdir/check_acl > plan/check_acl
+
 # diagnostics
 n_add=$(cat plan/add-src | wc -l)
 n_rm=$(cat plan/rm-src | wc -l)
