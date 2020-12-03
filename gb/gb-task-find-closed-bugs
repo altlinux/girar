@@ -7,6 +7,8 @@ fail_if_task_abort_requested
 # Drop old bugmails if any.
 find mail/bugmail -type f -delete
 
+uploader="$(cat task/owner)"
+
 while read -r N EVR F P I; do
 	changelog="build/$I/changelog"
 	[ -s "$changelog" ] ||
@@ -15,8 +17,10 @@ while read -r N EVR F P I; do
 	ids=$(gb-x-parse-bugs-from-changelog < "$changelog")
 	[ -n "$ids" ] || continue
 	stamp_echo >&2 "$N: closes bugs: $ids"
-	binaries=$(printf '%s\n' "$N" |join -o 2.4 - plan/add-src+bin |sort -u | tr '\n' ' ')
-	uploader="$(cat task/owner)"
+	binaries=$(printf '%s\n' "$N" |
+			join -o 2.4 - plan/add-src+bin |
+			sort -u |
+			tr '\n' ' ')
 	for id in $ids; do
 		cat >"mail/bugmail/$id" <<-__EOF
 		From: ${GB_BUGZILLA_FROM}
@@ -36,3 +40,48 @@ while read -r N EVR F P I; do
 		cat < "$changelog" >> "mail/bugmail/$id"
 	done
 done < plan/add-src
+
+ids=
+if [ -s task/message ] &&
+   [ -s plan/del-src-N-I -o -s plan/oldsrc2newsrpm ] &&
+   sources="$(cat plan/del-src-N-I plan/oldsrc2newsrpm |
+		cut -f1 |
+		sort -u)" &&
+   [ -n "$sources" ] &&
+   maybe_ids="$(gb-x-parse-bugs-from-changelog < task/message)" &&
+   [ -n "$maybe_ids" ]; then
+	for id in $maybe_ids; do
+		[ ! -f "mail/bugmail/$id" ] ||
+			continue
+		ids="$ids $id"
+	done
+fi
+
+if [ -n "$ids" ]; then
+	stamp_echo >&2 "$sources: closes bugs:$ids"
+	binaries=$(printf '%s' "$sources" |
+			join -o 2.4 - plan/rm-src+bin |
+			sort -u |
+			tr '\n' ' ')
+	for id in $ids; do
+		{
+			cat <<-__EOF
+				From: ${GB_BUGZILLA_FROM}
+				To: ${GB_BUGZILLA_TO}
+				X-Bugzilla-In-Bug-Id: ${id}
+				X-Bugzilla-In-Source-Packages: ${sources}
+				X-Bugzilla-In-Binary-Packages: ${binaries}
+				X-Bugzilla-In-Uploader: ${uploader}
+
+				@bug_id=${id}
+				@bug_status=RESOLVED
+				@resolution=FIXED
+
+				Task message:
+
+			__EOF
+
+			cat task/message
+		} > "mail/bugmail/$id"
+	done
+fi
