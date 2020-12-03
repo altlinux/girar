@@ -35,7 +35,6 @@ gb-x-girar check-task-perms "$id" || rc=1
 sort -u -o report/acl-addressees{,}
 
 if [ "$rc" = 0 ]; then
-	rm plan/check_acl
 	stamp_echo >&2 'acl check OK'
 else
 	stamp_echo >&2 'acl check FAILED'
