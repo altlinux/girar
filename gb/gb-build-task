@@ -19,7 +19,7 @@ iter=$(cat task/iter)
 log="logs/events.$try.$iter.log"
 gb-task-set-summary
 
-(umask 002 && > report/acl-addressees && > report/unmet-addressees) || exit
+(umask 002 && > report/unmet-addressees) || exit
 
 $0-stages >>"$log" 2>&1 && rc=0 || rc=$?
 

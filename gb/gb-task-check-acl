@@ -4,11 +4,6 @@
 
 fail_if_task_abort_requested
 
-while read -r i N; do
-	list_notifiable_pkg_acl_members "$N"
-done < plan/check_acl >> report/acl-addressees
-sort -u -o report/acl-addressees{,}
-
 id=$(cat task/id)
 gb-x-girar check-task-perms "$id" && rc=0 || rc=1
 

@@ -35,11 +35,6 @@ else
 	test_only=
 fi
 
-cc="$({
-	(set +f; cat gears/*/userid)
-	cat report/acl-addressees report/unmet-addressees
-      } | grep ^. | sort -u | join -v1 - task/owner)"
-
 summary="$(cat report/summary ||:)"
 [ -n "$summary" ] || summary=' empty'
 stripped_summary="$(printf %s "$summary" |fmt |head -n1)"
@@ -62,6 +57,16 @@ log_file="logs/events.$try.$iter.log"
 log_size="$(du -bk "$log_file" |cut -f1)"
 
 logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter status=$state"
+
+cc="$({
+	(set +f; cat gears/*/userid)
+	cat report/unmet-addressees
+	if [ -s plan/check_acl ]; then
+		while read -r i N; do
+			list_notifiable_pkg_acl_members "$N"
+		done < plan/check_acl
+	fi
+      } | grep ^. | sort -u | join -v1 - task/owner)"
 
 message_id="<girar.task.$id.$try.$iter@$hostname>"
 references="$(set +f && ls logs/events.*.*.log 2>/dev/null |
