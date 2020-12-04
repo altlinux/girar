@@ -25,8 +25,9 @@ log="logs/events.$try.$iter.log"
 
 gb-task-validate-state pending || exit 0
 
-gb-x-girar check-task-perms "$id" >> "$log" 2>&1 || {
+gb-x-girar check-task-perms "$id" > logs/perms.log 2>&1 || {
 	state=EPERM
+	cat logs/perms.log >> "$log"
 	stamp_echo >> "$log" "task #$id for $GB_REPO_NAME $state"
 	gb-x-girar task-change-state "$id" "$state"
 	gb-task-send-email "$id"
