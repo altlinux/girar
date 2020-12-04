@@ -30,6 +30,11 @@ log="logs/events.$try.$iter.log"
 
 gb-task-validate-state pending || exit 0
 
+[ -s "$log" ] || {
+	run_by="$(cat task/run ||:)"
+	stamp_echo "task #$id for $GB_REPO_NAME resumed by $run_by:"
+} >> "$log"
+
 gb-x-girar check-task-perms "$id" > logs/perms.log 2>&1 || {
 	state=EPERM
 	cat logs/perms.log >> "$log"
