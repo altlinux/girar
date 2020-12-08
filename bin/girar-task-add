@@ -361,7 +361,7 @@ check_already_added_repo()
 {
 	local i
 	for i in $nums; do
-		[ -s gears/$i/dir ] || return 0
+		[ -s gears/$i/dir ] || continue
 		local a_dir a_tag_name a_tag_id
 		a_dir=$(cat gears/$i/dir)
 		a_tag_name=$(cat gears/$i/tag_name)
