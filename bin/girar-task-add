@@ -490,8 +490,6 @@ else
 	gears_i_mode=2775
 fi
 
-logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i"
-
 atexit()
 {
 	local rc=$?
@@ -514,6 +512,7 @@ trap atexit EXIT
 
 case "$action" in
 	del)
+	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i delete package $package from $repo"
 	printf '%s\n' "$package" >gears/$i/package
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	change_state
@@ -521,6 +520,7 @@ case "$action" in
 	exit 0
 	;;
 	srpm)
+	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i build srpm $srpm"
 	mv -- "$INCOMING_DIR/$GIRAR_USER/tmp/$srpm" gears/$i/
 	printf '%s\n' "$srpm" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
@@ -531,6 +531,7 @@ case "$action" in
 	exit 0
 	;;
 	srpm-rebuild)
+	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i rebuild srpm $srpm_name"
 	install -p -- "$srpm" gears/$i/
 	printf '%s\n' "$srpm_name" >gears/$i/srpm
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
@@ -543,6 +544,7 @@ case "$action" in
 	;;
 esac
 
+logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i build tag \"$tag_name\" from $dir"
 [ -n "$gears_i_dir" ] || gears_i_dir="$dir"
 printf '%s\n' "$gears_i_dir" >gears/$i/dir
 printf '%s\n' "$tag_name" >gears/$i/tag_name
