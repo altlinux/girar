@@ -14,16 +14,19 @@ Usage: $PROG [options] [<task id>]
 
 Options:
   --brief       use brief output format;
+  --json        use json output format;
   --help        show this text and exit.
 EOF
 	exit
 }
 
 brief=
+json=
 while :; do
 	case "${1-}" in
 		--help) show_help ;;
 		--brief) brief=1 ;;
+		--json) json=1 ;;
 		*) break ;;
 	esac
 	shift
@@ -33,8 +36,17 @@ if [ "$#" -gt 1 ]; then
 	show_usage 'too many arguments.'
 fi
 
+if [ -n "$json" ] && [ -n "$brief" ]; then
+	show_usage '--brief and --json are mutually exclusive options'
+fi
+
 id=$(PROG="$PROG" girar-task-find-current "$@")
 cd "$TASKS_DIR/$id"
+
+if [ -n "$json" ]; then
+	cat info.json
+	exit
+fi
 
 printf 'id=%d' "$id"
 printf ' locked=%s' "$(flock -n 0 <. && echo no || echo yes)"
