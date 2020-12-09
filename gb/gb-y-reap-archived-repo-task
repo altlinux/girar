@@ -32,4 +32,4 @@ ln -rsnf -- "$archived_task_dir" "index/$GB_REPO_NAME/done/"
 # move the active instance of the archived task to .archived/.
 mkdir -p -m755 .archived
 mv -- "$task_id" .archived
-logger -t "${0##*/}" "archived: $task_id"
+logger -t "${0##*/}" "archived: task=$task_id"
