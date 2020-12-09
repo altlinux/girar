@@ -18,6 +18,7 @@ case "$0" in
 		fatal 'who am I?'
 		;;
 esac
+PROG0="$PROG"
 PROG="task $infinitive"
 past="${infinitive}d"
 my_acl_dir="acl/$past"
@@ -136,6 +137,7 @@ for i; do
 	else
 		rm "$f"
 	fi
+	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i $action $noun"
 	message "task #$id: $action $noun of subtask #$i"
 done
 
