@@ -2,9 +2,6 @@
 
 need_deps_default='rpmlib\(PayloadIsLzma\).*'
 need_deps_sisyphus='rpmlib\(PayloadIs(Lzma|Xz)\).*'
-bad_deps_4x='rpmlib\(PayloadIs(Lzma|Xz)\).*
-rpmlib\(PosttransFiletriggers\).*'
-bad_deps_5x='rpmlib\(SetVersions\).*'
 
 # check for unacceptable policy requirements
 check_policyreq()
@@ -13,31 +10,12 @@ check_policyreq()
 	local rc=0
 	local var need_deps bad
 
-	case "${GB_REPO_NAME-}" in
-		4.*|school)
-		if bad=$(printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -x "$bad_deps_4x"); then
-			FileError "forbidden requires: $(oneliner "$bad")" "$f"
-			rc=1
-		fi
-		;;
-		*)
-		var="need_deps_${GB_REPO_NAME//./_}"
-		eval "need_deps=\"\${$var:-\$need_deps_default}\""
-		if ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_deps"; then
-			FileError "missing mandatory requires: $(oneliner "$need_deps")" "$f"
-			rc=1
-		fi
-		;;
-	esac
-
-	case "${GB_REPO_NAME-}" in
-		4.0|4.1|5.0|5.1|p5)
-		if bad=$(printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -x "$bad_deps_5x"); then
-			FileError "forbidden requires: $(oneliner "$bad")" "$f"
-			rc=1
-		fi
-		;;
-	esac
+	var="need_deps_${GB_REPO_NAME//./_}"
+	eval "need_deps=\"\${$var:-\$need_deps_default}\""
+	if ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_deps"; then
+		FileError "missing mandatory requires: $(oneliner "$need_deps")" "$f"
+		rc=1
+	fi
 
 	return $rc
 }
