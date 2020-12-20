@@ -205,8 +205,9 @@ validate_srpm()
 	nevr="$(rpmquery -p --qf '%{name}\t%|epoch?{%{epoch}:}|%{version}-%{release}' -- "$srpm")" ||
 		fatal "$srpm: rpmquery failed"
 	package="${nevr%	*}"
-	GB_REPO_NAME="$repo" sisyphus_check --files -- "$srpm" ||
-		fatal "$srpm: sisyphus_check failed"
+	env GB_REPO_NAME="$repo" PATH="/usr/libexec/girar-builder:$PATH" \
+		gb-y-sisyphus_check --files -- "$srpm" ||
+			fatal "$srpm: sisyphus_check failed"
 }
 
 srpm_tmp_locked=
