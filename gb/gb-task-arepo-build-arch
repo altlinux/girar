@@ -91,7 +91,7 @@ sort -o "$tmpdir"/in{,}
 cmp -s "$tmpdir"/in "$tmpdir"/out ||
 	fail 'built packages do not match expectations'
 
-sisyphus_check --no-check=arepo,gpg,python arepo/$arepo_arch/rpms ||
+gb-y-sisyphus_check --no-check=arepo,gpg,python arepo/$arepo_arch/rpms ||
 	fail 'sisyphus_check FAILED'
 
 # sign the result
