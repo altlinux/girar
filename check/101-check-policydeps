@@ -1,19 +1,20 @@
 #!/bin/sh -efu
 
-need_deps_default='rpmlib\(PayloadIsLzma\).*'
-need_deps_sisyphus='rpmlib\(PayloadIs(Lzma|Xz)\).*'
+: ${package_type?} ${rpm_requires?}
 
 # check for unacceptable policy requirements
 check_policyreq()
 {
 	local f="$1" && shift || return 1
 	local rc=0
-	local var need_deps bad
+	local need_reqs var
+	var="GB_REPO_MANDATORY_${package_type}_REQS"
+	var="${var^^}"
+	eval "need_reqs=\"\${$var:-\${GB_REPO_MANDATORY_PKG_REQS-}}\""
 
-	var="need_deps_${GB_REPO_NAME//./_}"
-	eval "need_deps=\"\${$var:-\$need_deps_default}\""
-	if ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_deps"; then
-		FileError "missing mandatory requires: $(oneliner "$need_deps")" "$f"
+	if [ -n "$need_reqs" ] &&
+	   ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_reqs"; then
+		FileError "missing mandatory requires: $(oneliner "$need_reqs")" "$f"
 		rc=1
 	fi
 
