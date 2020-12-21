@@ -222,15 +222,20 @@ check_depends()
 		# Obtain an exclusive lock on task/depends file.
 		flock 0
 
-		local i k rc=0
+		local i k state rc=0
 		for i in $(cat); do
 			k="_$(($i/1024))"
 			if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
 				girar-task-rmdep "$i"
-			elif [ ! -d "$TASKS_DIR/$i/task" ]; then
+				continue
+			fi
+			state="$(cat "$TASKS_DIR/$i/task/state" 2>/dev/null)" || {
 				message "required task #$i not found"
 				rc=1
-			fi
+				continue
+			}
+			[ "$state" != DONE ] ||
+				girar-task-rmdep "$i"
 		done
 		return $rc
 	} < task/depends
