@@ -155,10 +155,13 @@ if [ "$owner" = "$GIRAR_USER" ] ||
 			;;
 	esac
 else
-	[ "$state" = EPERM ] &&
-	[ -s plan/check_acl ] &&
-	girar-check-task-perms "$id" ||
+	if [ "$state" = EPERM ] &&
+	   [ -s plan/check_acl ] &&
+	   girar-check-task-perms "$id"; then
+		state=TESTED
+	else
 		fatal "task #$id belongs to $owner"
+	fi
 fi
 
 nums=$(gear_nums)
