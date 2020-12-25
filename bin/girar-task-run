@@ -141,9 +141,16 @@ if [ "$owner" = "$GIRAR_USER" ] ||
 	case "$state" in
 		EPERM|SWEPT|TESTED)
 			if [ "$test_mode" = '--commit' ]; then
-				[ -s plan/check_acl ] &&
-				girar-check-task-perms "$id" ||
-					state=EPERM
+				if [ -s plan/check_acl ] &&
+				   girar-check-task-perms "$id"; then
+					if [ "$state" = EPERM ]; then
+						state=TESTED
+					fi
+				else
+					if [ "$state" = TESTED ]; then
+						state=EPERM
+					fi
+				fi
 			fi
 			;;
 	esac
