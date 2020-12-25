@@ -27,6 +27,8 @@ Requires: glibc-i18ndata
 Requires: qa-robot >= 0.3.5-alt1
 # due to girar-summary
 Requires: girar-summary >= 1.2
+# due to gb-y-sisyphus_check
+Requires: sisyphus_check
 
 Obsoletes: girar-builder
 
