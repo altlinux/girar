@@ -15,7 +15,11 @@ dump_prov_arch()
 	repo="$1"; shift
 	arch="$1"; shift
 
-	name='%{NAME}-%{VERSION}-%{RELEASE}%|DISTTAG?{:%{DISTTAG}}|'
+	if [ "${GB_CHECK_DUPLICATE_PROVIDES-}" = 'new-only' ]; then
+		name='%{NAME}'
+	else
+		name='%{NAME}-%{VERSION}-%{RELEASE}%|DISTTAG?{:%{DISTTAG}}|'
+	fi
 	prov='%|PROVIDEFLAGS?{%{PROVIDEFLAGS:depflags} %{PROVIDEVERSION}}:{}|'
 	qf="[%{PROVIDENAME} $name $prov\n]"
 
@@ -23,7 +27,7 @@ dump_prov_arch()
 		local re_1 re_3
 		# one subexpression
 		re_1='(perl|pkgconfig)\([^ ]+'
-		# tree subexpressions
+		# three subexpressions
 		re_3='((gir|python[^( ]*|typelib|vapi)\([^ ]+)|\/usr\/bin\/(jar|jjs|xvt)[^ ]*'
 		gb-x-query-base "$repo/$arch" base.bloat "$qf" "$@" |
 			sed -rn -e 's/ +$//' \
@@ -32,6 +36,7 @@ dump_prov_arch()
 				-e 's/^('"$re_3"') ([^ ]+)(.*)/\5\t\1\6/p' \
 				-e 's/^(\/[^ ]*) ([^ ]+)( [^ :] +[^ :]+$)/\2\t\1\3/p' \
 				#
+		# output format: $name \t PROVIDENAME $prov
 	} </
 }
 
@@ -131,6 +136,15 @@ for arch in $check_arch; do
 	fi >> stat
 done
 
+strip_vrd()
+{
+	if [ "${GB_CHECK_DUPLICATE_PROVIDES-}" = 'new-only' ]; then
+		sed -n -r 's/^([^\t]+)\t([^[:space:]]+)/\1\t\2/p'
+	else
+		sed -n -r 's/^([^\t]+)\t([^[:space:]]+)(-[^-]+){2}/\1\t\2/p'
+	fi
+}
+
 show_changes()
 {
 	local all changed what
@@ -146,7 +160,7 @@ show_changes()
 
 	sort -u -k2,2 < "$changed" |
 		join -t$'\t' -12 -22 -o 2.2,2.1 - "$all" |
-		sed -n -r 's/^([^\t]+)\t([^[:space:]]+)(-[^-]+){2}/\1\t\2/p' |
+		strip_vrd |
 		awk -F $'\t' '{if(a[$1]){a[$1]=a[$1]" "$2}else{a[$1]=$2}}END{for(e in a)printf("%s\t%s\n",e,a[e])}' |
 		sort |
 		column -s$'\t' -t --table-columns='Provide:,Providers:' |
