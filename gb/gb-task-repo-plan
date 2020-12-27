@@ -183,7 +183,7 @@ sort -k1,1 -u -o replace-src-N-I{,}
 
 # Implicit match can be wrong, so issue a warning.
 while read -r N F I; do
-	echo >&2 "warning: existing source package $N is going to be replaced with $F from subtask #$I"
+	echo >&2 " warning: existing source package $N is going to be replaced with $F from subtask #$I"
 done < oldsrc2newsrpm-i
 
 # output: src-F  bin-A
