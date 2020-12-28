@@ -61,11 +61,9 @@ logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter s
 cc="$({
 	(set +f; cat gears/*/userid)
 	cat report/unmet-addressees
-	if [ -s plan/check_acl ]; then
-		while read -r i N; do
-			list_notifiable_pkg_acl_members "$N"
-		done < plan/check_acl
-	fi
+	[ -s report/acl-addressees ] ||
+		gb-y-gen-acl-addressees
+	cat report/acl-addressees
       } | grep ^. | sort -u | join -v1 - task/owner)"
 
 message_id="<girar.task.$id.$try.$iter@$hostname>"

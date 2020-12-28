@@ -39,6 +39,8 @@ run_by=
 	fi
 } >> "$log"
 
+gb-y-gen-acl-addressees
+
 gb-x-girar check-task-perms "$id" > logs/perms.log 2>&1 || {
 	state=EPERM
 	cat logs/perms.log >> "$log"
