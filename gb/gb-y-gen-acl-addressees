@@ -1,0 +1,10 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+(umask 002 && > report/acl-addressees) || exit
+if [ -s plan/check_acl ]; then
+	while read -r i N; do
+		list_notifiable_pkg_acl_members "$N"
+	done < plan/check_acl
+fi | grep ^. | sort -u > report/acl-addressees

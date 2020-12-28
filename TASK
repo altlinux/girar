@@ -22,6 +22,7 @@ TASK_ID/logs/commit.log			log of gb-y-task-commit-packages
 
 # Task report data.
 TASK_ID/report/summary		report summary
+TASK_ID/report/acl-addressees	list of acl addressees, one id per line
 TASK_ID/report/unmet-addressees	list of unmet addressees, one id per line
 
 # Email sent to bugzilla to close bugs.
