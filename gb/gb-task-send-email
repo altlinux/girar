@@ -60,10 +60,10 @@ logger -t 'girar-builder' "user=$owner task=$id repo=$repo try=$try iter=$iter s
 
 cc="$({
 	(set +f; cat gears/*/userid)
-	cat report/unmet-addressees
 	[ -s report/acl-addressees ] ||
 		gb-y-gen-acl-addressees
-	cat report/acl-addressees
+	[ -n "$test_only" ] ||
+		cat report/unmet-addressees report/acl-addressees
       } | grep ^. | sort -u | join -v1 - task/owner)"
 
 message_id="<girar.task.$id.$try.$iter@$hostname>"
