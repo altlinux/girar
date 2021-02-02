@@ -77,7 +77,7 @@ if [ -n "$ids" ]; then
 				@bug_status=RESOLVED
 				@resolution=FIXED
 
-				Task message:
+				Task $(cat task/repo)/#$(cat task/id) message:
 
 			__EOF
 
