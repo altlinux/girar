@@ -105,6 +105,7 @@ girar_commit_srpm()
 		git clone -q -s --bare --template=/var/empty "$GIT_DIR" "$tmp_repo/.git"
 		cd "$tmp_repo"
 		git config core.bare false
+		git config gc.auto 0
 		local tmp_log="$tmpdir/srpmimport.log"
 		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" \
 			-- "$srpm" > "$tmp_log" 2>&1 && cat "$tmp_log" || {
@@ -122,6 +123,7 @@ girar_commit_srpm()
 		mkdir -p -- "$tmp_repo"
 		cd "$tmp_repo"
 		git init -q --template=/var/empty
+		git config gc.auto 0
 		gear-srpmimport -q --import-only --branch="$GB_REPO_NAME" -- "$srpm" ||:
 		cd - >/dev/null
 
