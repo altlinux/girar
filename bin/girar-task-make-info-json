@@ -47,7 +47,7 @@ if [ -f "$log" ]; then
 fi
 if [ -s task/message ]; then
 	printf ' "message": "%s",\n' \
-		"$(tr -cd '[:print:]' < task/message | tr -s '[:space:]' _)"
+		"$(tr -cd '[:print:]' < task/message | tr -s '[:space:]"' _)"
 fi
 printf ' "owner": "%s"' "$(cat task/owner)"
 
@@ -66,7 +66,7 @@ if [ -n "$nums" ]; then
 			printf '   "dir": "%s",\n' "$dir"
 			printf '   "tag_name": "%s",\n' "$tag_name"
 			printf '   "tag_id": "%s",\n' "$(cat "gears/$i/tag_id")"
-			printf '   "tag_author": "%s",\n' "$(cat "gears/$i/tag_author")"
+			printf '   "tag_author": "%s",\n' "$(tr -d '"' < "gears/$i/tag_author")"
 			pkg_tar="gears/$i/pkg.tar"
 			if [ -s "$pkg_tar" ]; then
 				printf '   "fetched": "%s",\n' \
