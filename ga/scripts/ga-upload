@@ -95,7 +95,6 @@ rsync -vrltxH --delete-after --stats \
 	--exclude=c6.0 \
 	--exclude=c7.1 \
 	--exclude=c8 \
-	--exclude=c9f1 \
 	--exclude=p5 \
 	--exclude=p6 \
 	--exclude=t6 \
