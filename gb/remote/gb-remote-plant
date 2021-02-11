@@ -115,34 +115,18 @@ Standard:
   postfix
   python-dev
   python-modules-tkinter
-  clang10.0
-  clang10.0-analyzer
-  clang10.0-devel
-  clang10.0-devel-static
-  clang10.0-doc
-  clang10.0-libs
-  lld10.0
-  lld10.0-devel
-  lld10.0-doc
-  llvm10.0
-  llvm10.0-devel
-  llvm10.0-devel-static
-  llvm10.0-doc
-  llvm10.0-libs
-  clang11.0
-  clang11.0-analyzer
-  clang11.0-devel
-  clang11.0-devel-static
-  clang11.0-doc
-  clang11.0-libs
-  lld11.0
-  lld11.0-devel
-  lld11.0-doc
-  llvm11.0
-  llvm11.0-devel
-  llvm11.0-devel-static
-  llvm11.0-doc
-  llvm11.0-libs
+  llvm-common
+  llvm-common-clang
+  llvm-common-clang-devel
+  llvm-common-clang-devel-static
+  llvm-common-clang-tools
+  llvm-common-clangd
+  llvm-common-devel
+  llvm-common-devel-static
+  llvm-common-lld
+  llvm-common-lld-devel
+  llvm-common-lldb
+  llvm-common-util
   altlinux-release-$GB_REPO_REAL_NAME
   branding-alt-$GB_REPO_REAL_NAME-alterator
   branding-alt-$GB_REPO_REAL_NAME-bootloader
