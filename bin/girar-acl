@@ -13,13 +13,16 @@ quiet=
 case "${1-}" in
 	--help)
 	        cat <<EOF
+This is ACL (Approve Control List) management interface.
+
 Usage: $PROG --list
    or: $PROG <repository> [{<package>|@<group>} {check|show}]
    or: $PROG <repository> [{<package>|@<group>} {add|del|leader|replace} {<login>|@<group>}...]
    or: $PROG <repository>
+
 Valid repositories are: $(valid_repositories)
 If no package is given, read commands from stdin, one command per line.
-See http://www.altlinux.org/Incoming/acl for details.
+See https://www.altlinux.org/Incoming/acl for details.
 EOF
 		exit 0
 		;;
