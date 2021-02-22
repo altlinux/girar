@@ -24,7 +24,7 @@ cut -f1 plan/add-bin plan/rm-bin 2>/dev/null |
 comm -12 "$tmpdir"/guard "$tmpdir"/change >"$tmpdir"/affected
 if [ -s "$tmpdir"/affected ]; then
 	stamp_echo >&2 "following just built binary packages affect protected task #$guard:"
-	echo "$(oneliner "$(cat "$tmpdir"/affected)")"
+	echo >&2 " $(oneliner "$(cat "$tmpdir"/affected)")"
 	(umask 002; >> task/depends) || false
 	{
 		flock 0
