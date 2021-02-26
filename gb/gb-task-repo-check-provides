@@ -153,12 +153,12 @@ show_changes()
 	what="$1"; shift
 
 	sort -u -o "$all"{,}
-	sort -k2,2 -o "$all"{,}
+	sort -t$'\t' -k2,2 -o "$all"{,}
 	sort -u -o "$changed"{,}
 
 	printf '\t%s\n' "$what"
 
-	sort -u -k2,2 < "$changed" |
+	sort -t$'\t' -u -k2,2 < "$changed" |
 		join -t$'\t' -12 -22 -o 2.2,2.1 - "$all" |
 		strip_vrd |
 		awk -F $'\t' '{if(a[$1]){a[$1]=a[$1]" "$2}else{a[$1]=$2}}END{for(e in a)printf("%s\t%s\n",e,a[e])}' |
