@@ -210,7 +210,7 @@ check_sid()
 					;;
 			esac
 		done
-		[ -z "$found_sid_in_target_repo" ] ||
+		[ -z "$found_sid_in_target_repo$error_mismatch" ] ||
 			break
 	done
 
