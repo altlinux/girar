@@ -53,19 +53,24 @@ EOF
 chmod a+rx hasher/chroot/.host/setup-pesign-socketdir
 hsh-run --root -- /.host/setup-pesign-socketdir
 
-cat > hasher/chroot/.host/pesign << EOF
-#!/bin/sh -efu
-PESIGN=pesign-client
-PECERT="$qcert"
-export PESIGN PECERT
+(
+	. .hasher/config
+	cat > hasher/chroot/.host/pesign <<-EOF
+		#!/bin/sh -efu
+		PESIGN=pesign-client
+		PECERT="$qcert"
+		export PESIGN PECERT
 
-package=\$1; shift
-time rpmrebuild --include pesign.plug -np \
-	--define '_allow_deps_with_beginning_dot 1' \
-	--define='__find_scriptlet_requires %nil' \
-	--define '__find_debuginfo_files %nil' \$package
-ln --target-directory /.out \$HOME/RPM/RPMS/$arch/\$package
-EOF
+		package=\$1; shift
+		time rpmrebuild --include pesign.plug -np \
+			--define '_allow_deps_with_beginning_dot 1' \
+			--define='__find_scriptlet_requires %nil' \
+			--define '__find_debuginfo_files %nil' \
+			${rpmargs-} \$package
+		ln --target-directory /.out \$HOME/RPM/RPMS/$arch/\$package
+	EOF
+)
+[ $? -eq 0 ]
 chmod a+rx hasher/chroot/.host/pesign
 
 > "$tmpdir/old-ref"
