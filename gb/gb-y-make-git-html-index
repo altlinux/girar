@@ -8,27 +8,41 @@ mkidx()
 {
 	local type="$1"; shift
 	local opts="$1"; shift
-	local darklight=dark
+	local darklight=light
 
-	sed -e "s|@SITE@|$GB_SITE|g" -e "s|@DIR@|$PWD|g" <"$template/git-header-$type.html.in" >"$tmpdir/file"
+	sed -e "s|@SITE@|$GB_SITE|g" -e "s|@DIR@|$PWD|g" \
+		< "$template/git-header-$type.html.in" \
+		> "$tmpdir/file"
 
-	ls $opts |while read -r f; do
+	date="$(LC_TIME=C date -u +%F -r "$PWD/..")"
+	sed -e "s|@DATE@|$date|g" \
+		< "$template/git-back.html.in" \
+		>> "$tmpdir/file"
+
+	ls $opts |while read -r f; do {
 		name="${f%.git}"
 		[ "$name" != "$f" ] || continue
 		date="$(LC_TIME=C date -u +%F -r "$f")"
-		sed -e "s|@DIR@|$PWD|g" -e "s|@NAME@|$name|g" -e "s|@DATE@|$date|g" -e "s|@DARKLIGHT@|$darklight|g" \
-			<"$template/git-entry.html.in"
+		sed -e "s|@DIR@|$PWD|g" \
+		    -e "s|@NAME@|$name|g" \
+		    -e "s|@DATE@|$date|g" \
+		    -e "s|@DARKLIGHT@|$darklight|g" \
+			< "$template/git-entry.html.in"
 		if [ "$darklight" = dark ]; then
 			darklight=light
 		else
 			darklight=dark
 		fi
-	done >>"$tmpdir/file"
+	} < /dev/null; done >> "$tmpdir/file"
 
-	cat <"$template/git-footer.html" >>"$tmpdir/file"
+	cat <"$template/git-footer.html" >> "$tmpdir/file"
 
-	cmp -s "index-$type.html" "$tmpdir/file" ||
+	cmp -s "index-$type.html" "$tmpdir/file" || {
+		local stamp
+		stamp="$(date -r . +%s)"
 		mv "$tmpdir/file" "index-$type.html"
+		touch --date="@$stamp" .
+	}
 }
 
 . gb-sh-tmpdir

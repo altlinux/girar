@@ -3,14 +3,10 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <meta name="robots" content="index, nofollow"/>
-<title>@SITE@@DIR@</title>
+<title>Index of @DIR@/</title>
 <link rel="stylesheet" type="text/css" href="/gitweb.css"/>
-<link rel="shortcut icon" href="/icons/git-favicon.png" type="image/png"/>
 </head>
 <body>
-<div class="page_header">@SITE@@DIR@</div>
+<div class="page_header">Index of @DIR@/</div>
 <table class="project_list">
-<tr>
-<th>Project name</th>
-<th><a href="index-date.html">Last modified</a></th>
-</tr>
+<tr><th>Name</th><th><a href="index-date.html">Last modified</a></th></tr>
