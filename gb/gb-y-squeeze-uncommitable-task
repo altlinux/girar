@@ -1,0 +1,39 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+id="$1"; shift
+cd "$GB_TASKS_DIR/$id"
+
+# Is there anything left?
+[ -f build/repo/noarch/base.next/contents_index ] ||
+	exit 0
+
+# Obtain an exclusive lock on the TASKS structure.
+# Skip the task if it is already locked.
+exec <.
+flock -n 0 ||
+	exit 0
+
+# Is it in a squeezable state yet?
+case "$(head -c16 task/state)" in
+	EPERM|TESTED) ;;
+	*) exit 0 ;;
+esac
+
+repo_cur="$(readlink -e -- "$GB_REPO_DIR")" &&
+repo_prev="$(readlink -e -- build/repo/prev)" &&
+[ "$repo_cur" = "$repo_prev" ] || {
+	# Log it.
+	logger -t "${0##*/}" "task=$id repo=$GB_REPO_NAME"
+
+	# Squeeze it.
+	for arch in $GB_ARCH noarch; do
+		rm -rf "build/repo/$arch/base.next"
+		rm -rf "build/repo/$arch/base.bloat.next"
+	done
+	for arch in ${GB_AREPO_ARCH-}; do
+		rm -rf "arepo/$arch/base"
+		rm -rf "arepo/$arch/base.bloat"
+	done
+}

@@ -76,6 +76,7 @@ if [ "$rc" = 0 ]; then
 	gb-task-report-vulns &
 	gb-y-notify-archiver &
 	gb-y-reap-archived-repo &
+	gb-y-squeeze-uncommitable &
 	gb-y-awake-tasks "$id" &
 fi
 
