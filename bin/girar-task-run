@@ -75,7 +75,7 @@ if [ -n "$task_msg" ]; then
 	printf %s "$task_msg" |
 		tr -cd '[:alpha:]' |
 		grep -qs ^. ||
-		fatal 'invalid message'
+		fatal 'task message does not look like a meaningful phrase'
 fi
 
 cd "$TASKS_DIR"
