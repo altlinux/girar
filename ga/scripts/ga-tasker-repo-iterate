@@ -18,7 +18,7 @@ fi
 if [ -n "$last_local" ]; then
 	# skip all tasks up to the last one
 	quote_sed_regexp_variable qlast_local "$last_local"
-	sed -n "1,/^$qlast_local\$/d;p" task.list
+	sed -n "0,/^$qlast_local\$/d;p" task.list
 else
 	# the local list is empty
 	cat task.list
