@@ -29,6 +29,9 @@ cd "$TASKS_DIR"
 id=$(PROG="$PROG" girar-task-find-current "$@")
 cd "$id"
 
+[ $# -gt 0 ] ||
+	fatal "Cowardly refusing to remove the implicitly specified task #$id"
+
 [ -O . -a -w . ] ||
 	fatal "failed to remove task #$id: Permission denied"
 
