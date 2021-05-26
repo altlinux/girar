@@ -100,14 +100,14 @@ unlisted_is_allowed()
 }
 
 if [ -z "$is_group" ]; then
-	# Allowed if package is not listed in acl file.
+	# Allowed if package is not listed in the acl file.
 	if ! acl_line="$(grep "^$project_name[[:space:]]" "$ACL_DIR/list.packages.$repository")"; then
 		if unlisted_is_allowed; then
 			exit=allow
 		else
 			exit=deny
 		fi
-		$exit "project \`$project_name' is not listed in acl file for repository \`$repository'"
+		$exit "project \`$project_name' is not listed in the acl file for repository \`$repository', and the policy for such projects in \`$repository' is to $exit"
 	fi
 
 	# acl_line format: pkg_name leader [builders]
