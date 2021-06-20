@@ -1,0 +1,50 @@
+* pender@gyle:
+	* pgrep -U $UID -f 'gb-toplevel-commit @FROM_BRANCH@' |xargs -r kill -STOP
+
+* Wait for any tasks being committed into @FROM_BRANCH@' to finish.
+
+* root@gyle:
+	* girar-clone-repo @TO_BRANCH@ /ALT/repo/@FROM_BRANCH@/release/latest
+
+* pender@gyle:
+	* /usr/sbin/girar-branch-rip @TO_BRANCH@ @FROM_BRANCH@
+	* /usr/sbin/girar-branch-gears-from-rip @TO_BRANCH@
+
+* root@archive:
+	* /usr/libexec/girar-archiver/ga-clone-repo @TO_BRANCH@ @FROM_BRANCH@
+
+* pender@gyle:
+	* pgrep -U $UID -f 'gb-toplevel-commit @FROM_BRANCH@' |xargs -r kill -CONT
+
+* root@gyle:
+	* Create /usr/libexec/girar-builder/gb-sh-conf-@TO_BRANCH@ file.
+	* Configure /etc/girar/repo/@TO_BRANCH@ file.
+
+* acl@gyle:
+	* Fix /var/lib/girar/acl/list.{groups,packages}.@TO_BRANCH@ somehow.
+
+* mailadm@smtp:
+	* Add qa_@TO_BRANCH@@altlinux.org, girar-builder-@TO_BRANCH@@altlinux.org,
+	  and girar-task-approve-@TO_BRANCH@@altlinux.org aliases.
+
+* mailadm@lists:
+	* Create a girar-builder-@TO_BRANCH@ mailing list.
+
+* Setup remote accounts somewhere.
+
+* awaiterN@gyle:
+	* Add build-awaiterN-@TO_BRANCH@-{x86_64,i586,aarch64,ppc64le,armh} entries to ~/.ssh/config
+	* Ensure that ssh build-awaiterN-@TO_BRANCH@-{x86_64,i586,aarch64,ppc64le,armh} works.
+	* Add a cron entry for @TO_BRANCH@.
+
+* pender@gyle:
+	* Add a cron entry for @TO_BRANCH@.
+
+* ga_tasker@archive:
+	* Add a cron entry for @TO_BRANCH@.
+
+* Build altlinux-release-@TO_BRANCH@, altlinux-repos, and apt-conf-branch.
+
+* Rebuild rpm package for valid disttag.
+
+* Setup a @TO_BRANCH@ branch in github.com/altlinux/specs repository.
