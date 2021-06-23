@@ -23,6 +23,7 @@ Actions:
   rebuild <src package name>
   copy <src package name> [<from binary repository name>]
   kmodules <kflavour>
+  remeet
 EOF
 	exit
 }
@@ -263,6 +264,29 @@ handle_kmodules()
 	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
 }
 
+handle_remeet()
+{
+	[ -s report/unmets-src ] ||
+		fatal "task #$id: nothing to remeet"
+
+	local self
+	self=$(join -o1.1 plan/add-src report/unmets-src)
+	[ -z "$self" ] ||
+		fatal "task #$id: cannot remeet: $(printf %s "$self" |tr -s '[:space:]' ' ')"
+	set -- $(cat report/unmets-src)
+	[ $# -gt 0 ] ||
+		fatal "task #$id: nothing to remeet"
+
+	local n
+	for n; do
+		girar-task-add "$id" rebuild "$n"
+	done
+	local s=
+	[ $# -le 1 ] ||
+		s=s
+	echo >&2 "task #$id: added $# rebuild$s"
+}
+
 case "$action" in
 	repo)
 	[ "$#" -eq 2 ] || show_usage 'not enough arguments.'
@@ -295,6 +319,9 @@ case "$action" in
 	[ "$#" -le 1 ] || show_usage 'too many arguments.'
 	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	srpm="$1"; shift
+	;;
+	remeet)
+	[ "$#" -eq 0 ] || show_usage 'too many arguments.'
 	;;
 	*.git=*)
 	[ "$#" -eq 0 ] || show_usage 'too many arguments.'
@@ -342,6 +369,10 @@ case "$action" in
 	;;
 	kmodules)
 	handle_kmodules
+	exit 0
+	;;
+	remeet)
+	handle_remeet
 	exit 0
 	;;
 	copy)
