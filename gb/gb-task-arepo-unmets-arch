@@ -50,6 +50,9 @@ done < unmets-new.src >> "$topdir"/report/unmet-addressees
 sort -u -o "$topdir"/report/unmet-addressees{,}
 
 if [ -s unmets-new.src ]; then
+	cat unmets-new.src >> "$topdir"/report/unmets-src
+	sort -u -o "$topdir"/report/unmets-src{,}
+
 	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets-new.src)"
 	join -t$'\t' -a1 unmets-new.src unmets.acl |
 		column -t -s $'\t' |

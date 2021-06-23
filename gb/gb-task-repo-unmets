@@ -102,20 +102,22 @@ sort -u -o unmets.bin{,}
 join -j 1 -o 2.5 unmets.bin "$topdir"/plan/next.bin > unmets.srpms
 sort -u -o unmets.srpms{,}
 sort -k3,3 "$topdir"/plan/next.src |
-	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets.src
-sort -u -o unmets.src{,}
+	join -1 1 -2 3 -o 2.1 unmets.srpms - > unmets-src
+sort -u -o unmets-src{,}
+mv unmets-src "$topdir"/report/
 
 while read -r src; do
 	list_notifiable_pkg_acl_members "$src"
-done < unmets.src > "$topdir"/report/unmet-addressees
+done < "$topdir"/report/unmets-src > "$topdir"/report/unmet-addressees
 sort -u -o "$topdir"/report/unmet-addressees{,}
 
-if [ -s unmets.src ]; then
+if [ -s "$topdir"/report/unmets-src ]; then
 	while read -r src; do
 		gb-x-girar acl-show "$GB_REPO_NAME" "$src"
-	done < unmets.src > unmets.acl
-	printf '\tACLs of affected packages (%s):\n' "$(wc -l < unmets.src)"
-	join -t$'\t' -a1 unmets.src unmets.acl |
+	done < "$topdir"/report/unmets-src > unmets.acl
+	printf '\tACLs of affected packages (%s):\n' \
+		"$(wc -l < "$topdir"/report/unmets-src)"
+	join -t$'\t' -a1 "$topdir"/report/unmets-src unmets.acl |
 		column -t -s $'\t' |
 		sed 's/^./ &/'
 fi
