@@ -78,10 +78,12 @@ xargs -r rpmquery --qf "$qf_bin" -p -- < $tmpdir/i-bin-P > $tmpdir/new.bin
 
 # output: src-N  src-I
 for i in $(package_nums); do
-	if [ ! -s gears/$i/copy_repo -a ! -s gears/$i/dir ]; then
+	[ -s gears/$i/copy_repo ] ||
+	[ -s gears/$i/dir ] ||
+	[ -s gears/$i/srpm ] || {
 		package="$(cat gears/$i/package)"
 		printf '%s\t%s\n' "$package" "$i"
-	fi
+	}
 done > $tmpdir/del-src-N-I
 
 cd "$tmpdir"
