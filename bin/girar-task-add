@@ -290,14 +290,7 @@ handle_remeet()
 	[ $# -gt 0 ] ||
 		fatal "task #$id: nothing to remeet"
 
-	local n
-	for n; do
-		girar-task-add "$id" rebuild "$n"
-	done
-	local s=
-	[ $# -le 1 ] ||
-		s=s
-	echo >&2 "task #$id: added $# rebuild$s"
+	handle_rebuilds "$@"
 }
 
 case "$action" in
