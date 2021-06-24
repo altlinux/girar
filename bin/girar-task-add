@@ -450,7 +450,7 @@ check_already_added()
 		repo)
 		check_already_added_repo
 		;;
-		srpm|del|copy)
+		copy|del|srpm|srpm-rebuild)
 		check_already_added_srpm
 		check_already_added_package
 		;;
