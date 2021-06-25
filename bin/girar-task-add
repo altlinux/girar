@@ -21,6 +21,7 @@ Actions:
   <srpm file without suffix>.src.rpm
   del <src package name>
   rebuild <src package name>
+  rebuilds <src package name1> ... <src package nameN>
   copy <src package name> [<from binary repository name>]
   kmodules <kflavour>
   remeet
@@ -264,6 +265,18 @@ handle_kmodules()
 	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
 }
 
+handle_rebuilds()
+{
+	local n
+	for n; do
+		girar-task-add "$id" rebuild "$n"
+	done
+	local s=
+	[ $# -le 1 ] ||
+		s=s
+	echo >&2 "task #$id: added $# rebuild$s"
+}
+
 handle_remeet()
 {
 	[ -s report/unmets-src ] ||
@@ -297,6 +310,9 @@ case "$action" in
 	[ "$#" -le 1 ] || show_usage 'too many arguments.'
 	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	package="$1"; shift
+	;;
+	rebuilds)
+	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 	;;
 	kmodules)
 	[ "$#" -le 1 ] || show_usage 'too many arguments.'
@@ -366,6 +382,10 @@ case "$action" in
 	;;
 	rebuild)
 	validate_rebuild "$package" "$repo"
+	;;
+	rebuilds)
+	handle_rebuilds "$@"
+	exit 0
 	;;
 	kmodules)
 	handle_kmodules
