@@ -584,7 +584,7 @@ case "$action" in
 	printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm_name" >gears/$i/sid
-	printf '%s\n' "$repo_norm" >gears/$i/rebuild
+	printf '%s\n' "$repo_norm" >gears/$i/rebuild_from
 	printf '%s\n' "$package" >gears/$i/package
 	change_state
 	echo >&2 "task #$id: added #$i: rebuild srpm $srpm_name"

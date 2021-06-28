@@ -23,8 +23,8 @@ for i; do
 		fi
 	elif [ -s "gears/$i/srpm" ]; then
 		printf 'build %s' "$(cat "gears/$i/srpm")"
-		if [ -s "gears/$i/rebuild" ]; then
-			printf ' from %s' "$(cat "gears/$i/rebuild")"
+		if [ -s "gears/$i/rebuild_from" ]; then
+			printf ' from %s' "$(cat "gears/$i/rebuild_from")"
 		fi
 	elif [ -s "gears/$i/package" ]; then
 		package="$(cat "gears/$i/package")"

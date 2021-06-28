@@ -75,8 +75,8 @@ if [ -n "$nums" ]; then
 			printf '   "type": "repo",\n'
 		elif [ -s "gears/$i/srpm" ]; then
 			printf '   "srpm": "%s",\n' "$(cat "gears/$i/srpm")"
-			if [ -s "gears/$i/rebuild" ]; then
-				printf '   "rebuild_from": "%s",\n' "$(cat "gears/$i/rebuild")"
+			if [ -s "gears/$i/rebuild_from" ]; then
+				printf '   "rebuild_from": "%s",\n' "$(cat "gears/$i/rebuild_from")"
 			fi
 			printf '   "type": "srpm",\n'
 		elif [ -s "gears/$i/package" ]; then

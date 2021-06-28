@@ -198,7 +198,7 @@ check_srpm()
 		nevr="$(cat gears/$i/nevr)"
 		sid="$(cat gears/$i/sid)"
 		GIRAR_ALLOW_SAME_NEVR=
-		if [ -f gears/$i/rebuild ]; then
+		if [ -f gears/$i/rebuild_from ]; then
 			GIRAR_ALLOW_SAME_NEVR=1
 		fi
 		s_name="${nevr%	*}"
