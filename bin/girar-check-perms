@@ -23,6 +23,12 @@ elif [ "${1-}" = '--silent=deny' ]; then
 	shift
 fi
 
+is_rebuild=
+if [ "${1-}" = '--is-rebuild' ]; then
+	is_rebuild=1
+	shift
+fi
+
 [ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
 [ "$#" -le 2 ] ||
@@ -99,6 +105,15 @@ unlisted_is_allowed()
 	return 1
 }
 
+norebuild=
+rebuild_is_allowed()
+{
+	[ -n "${GIRAR_NOREBUILD_USER-}" ]
+	[ -n "$is_rebuild" ]
+	[ -z "$is_group" ]
+	[ -z "$norebuild" ]
+}
+
 if [ -z "$is_group" ]; then
 	# Allowed if package is not listed in the acl file.
 	quote_sed_regexp_variable qproject_name "$project_name"
@@ -157,6 +172,15 @@ if [ -n "$groups" -a -s "$ACL_DIR/list.groups.$repository" ]; then
 	if printf %s " $gpeople " |fgrep -qs " $GIRAR_USER "; then
 		allow 'member of approved group'
 	fi
+	if rebuild_is_allowed; then
+		if printf %s " $gpeople " |fgrep -qs " $GIRAR_NOREBUILD_USER "; then
+			norebuild=1
+		fi
+	fi
+fi
+
+if rebuild_is_allowed; then
+	allow 'rebuild is allowed by default'
 fi
 
 if [ -z "$is_group" ]; then

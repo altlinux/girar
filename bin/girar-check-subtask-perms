@@ -15,6 +15,12 @@ case "${1-}" in
 	--mode=*) mode="${1#--mode=}"; shift ;;
 esac
 
+is_rebuild=
+if [ "${1-}" = '--is-rebuild' ]; then
+	is_rebuild=--is-rebuild
+	shift
+fi
+
 [ "$#" -ge 2 ] ||
 	usage 'Not enough arguments.'
 [ "$#" -le 2 ] ||
@@ -88,7 +94,7 @@ for a in $disapproved; do
 done
 
 # check author permissions
-if GIRAR_USER="$userid" girar-check-perms --silent=deny "$pkg" "$repo"; then
+if GIRAR_USER="$userid" girar-check-perms --silent=deny $is_rebuild "$pkg" "$repo"; then
 	allow "allowed for $userid"
 fi
 

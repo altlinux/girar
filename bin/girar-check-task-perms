@@ -26,11 +26,24 @@ id="$1"; shift
 
 cd "$TASKS_DIR/$id"
 
+repo="$(cat task/repo)"
+repo="$(girar-normalize-repo-name "$repo")"
+
 rc=0
 status=
 
 while read -r subtask pkg; do {
-	if girar-check-subtask-perms $mode "$subtask" "$pkg"; then
+	args=
+	# There is a chance the package being checked was rebuilt,
+	# but it can happen only if it was added.
+	if [ -s gears/$subtask/rebuild_from ]; then
+		rebuild_from="$(cat gears/$subtask/rebuild_from)"
+		if [ "$rebuild_from" = "$repo" ] &&
+		   [ "$subtask" = "$(printf %s "$pkg" |join -o2.5 - plan/add-src)" ]; then
+				args=--is-rebuild
+		fi
+	fi
+	if girar-check-subtask-perms $args $mode "$subtask" "$pkg"; then
 		[ -n "$status" ] ||
 			status=0
 	else
