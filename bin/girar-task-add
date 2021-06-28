@@ -601,6 +601,7 @@ printf '%s\n' "gear:$tag_id" >gears/$i/sid
 printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 if [ "$action" = rebuild ]; then
+	printf '%s\n' "$repo_norm" >gears/$i/rebuild_from
 	printf '%s\n' "$package" >gears/$i/package
 fi
 

@@ -21,6 +21,9 @@ for i; do
 			printf ' fetched at %s' \
 				"$(LC_TIME=C date -u -r "$pkg_tar" '+%Y-%b-%d %T')"
 		fi
+		if [ -s "gears/$i/rebuild_from" ]; then
+			printf ' from %s' "$(cat "gears/$i/rebuild_from")"
+		fi
 	elif [ -s "gears/$i/srpm" ]; then
 		printf 'build %s' "$(cat "gears/$i/srpm")"
 		if [ -s "gears/$i/rebuild_from" ]; then

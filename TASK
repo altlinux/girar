@@ -65,6 +65,8 @@ TASK_ID/gears/$i/srpm		srpm file name, e.g. foo-1.0-alt.src.rpm
 TASK_ID/gears/$i/$srpm		srpm file
 # copy subtask specific files
 TASK_ID/gears/$i/copy_repo	package repository to copy from, e.g. sisyphus
+# subtask specific files used by rebuild
+TASK_ID/gears/$i/rebuild_from	package repository to rebuild from, e.g. sisyphus
 # subtask specific files used by copy and rebuild
 TASK_ID/gears/$i/package	package name, e.g. foo
 # common gear and srpm subtask files
