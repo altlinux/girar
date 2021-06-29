@@ -108,10 +108,10 @@ unlisted_is_allowed()
 norebuild=
 rebuild_is_allowed()
 {
-	[ -n "${GIRAR_NOREBUILD_USER-}" ]
-	[ -n "$is_rebuild" ]
-	[ -z "$is_group" ]
-	[ -z "$norebuild" ]
+	[ -n "${GIRAR_NOREBUILD_USER-}" ] &&
+		[ -n "$is_rebuild" ] &&
+		[ -z "$is_group" ] &&
+		[ -z "$norebuild" ]
 }
 
 if [ -z "$is_group" ]; then
