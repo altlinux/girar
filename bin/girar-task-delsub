@@ -53,6 +53,8 @@ for i; do
 	trap '' HUP INT QUIT PIPE TERM
 	# del/copy
 	rm -f gears/$i/package gears/$i/copy_repo
+	# rebuild
+	rm -f gears/$i/rebuild_from
 	# srpm
 	rm -f gears/$i/srpm gears/$i/nevr
 	# gear
