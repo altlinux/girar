@@ -190,6 +190,20 @@ check_copy_del()
 	return $rc
 }
 
+rebuild_nums=
+check_rebuilds()
+{
+	local i rebuild_from
+	for i in $nums; do
+		[ -s gears/$i/rebuild_from ] ||
+			continue
+		rebuild_from="$(cat gears/$i/rebuild_from)"
+		[ "$rebuild_from" = "$repo" ] ||
+			continue
+		rebuild_nums="$rebuild_nums $i"
+	done
+}
+
 check_srpm()
 {
 	local i nevr s_name s_evr r_evr rc=0
@@ -253,6 +267,7 @@ check_depends()
 }
 
 check_copy_del
+check_rebuilds
 check_srpm
 check_depends
 
@@ -260,6 +275,8 @@ check_depends
 [ -s task/message ] || {
 	[ -z "$delnums" ] ||
 		show_usage "task #$id contains explicit package removals, please specify a reason for that"
+	[ -z "$rebuild_nums" ] ||
+		show_usage "task #$id contains package rebuilds, please specify a reason for that"
 	[ -z "${GIRAR_ACL_MAINT_GROUP-}" ] ||
 	[ "$test_mode" = '--test-only' ] ||
 		show_usage "a reason must be specified for '$repo' repository"
