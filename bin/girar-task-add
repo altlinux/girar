@@ -19,9 +19,8 @@ Actions:
   <gear repo>.git=<gear tag>
   srpm <srpm file>
   <srpm file without suffix>.src.rpm
-  del <src package name>
-  rebuild <src package name>
-  rebuilds <src package name1> ... <src package nameN>
+  del <src package name1> ... <src package nameN>
+  rebuild <src package name1> ... <src package nameN>
   copy <src package name> [<from binary repository name>]
   kmodules <kflavour>
   remeet
@@ -265,16 +264,17 @@ handle_kmodules()
 	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
 }
 
-handle_rebuilds()
+handle_subactions()
 {
-	local n
+	local subaction n
+	subaction="$1"; shift
 	for n; do
-		girar-task-add "$id" rebuild "$n"
+		girar-task-add "$id" "$subaction" "$n"
 	done
 	local s=
 	[ $# -le 1 ] ||
 		s=s
-	echo >&2 "task #$id: added $# rebuild$s"
+	echo >&2 "task #$id: added $# $subaction subtask$s"
 }
 
 handle_remeet()
@@ -290,7 +290,7 @@ handle_remeet()
 	[ $# -gt 0 ] ||
 		fatal "task #$id: nothing to remeet"
 
-	handle_rebuilds "$@"
+	handle_subactions rebuild "$@"
 }
 
 case "$action" in
@@ -300,12 +300,13 @@ case "$action" in
 	tag_name="$1"; shift
 	;;
 	del|rebuild)
-	[ "$#" -le 1 ] || show_usage 'too many arguments.'
 	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
-	package="$1"; shift
-	;;
-	rebuilds)
-	[ "$#" -ge 1 ] || show_usage 'not enough arguments.'
+	if [ "$#" -eq 1 ]; then
+		package="$1"; shift
+	else
+		subaction=$action
+		action=multi
+	fi
 	;;
 	kmodules)
 	[ "$#" -le 1 ] || show_usage 'too many arguments.'
@@ -376,8 +377,8 @@ case "$action" in
 	rebuild)
 	validate_rebuild "$package" "$repo"
 	;;
-	rebuilds)
-	handle_rebuilds "$@"
+	multi)
+	handle_subactions "$subaction" "$@"
 	exit 0
 	;;
 	kmodules)
