@@ -1,6 +1,14 @@
 #!/bin/sh -efu
 
-args='--no-permission-warning --homedir=/usr/lib/alt-gpgkeys --keyid-format=0xlong'
+
+ALT_GPG_KEYS_DIR=/usr/lib/alt-gpgkeys
+
+historical_keyring=/usr/lib/alt-gpgkeys-historical
+if [ "${GIRAR_GPG_HISTORICAL-}" = yes ] && [ -d "$historical_keyring" ]; then
+	ALT_GPG_KEYS_DIR=$historical_keyring
+fi
+
+args="--no-permission-warning --homedir=$ALT_GPG_KEYS_DIR --keyid-format=0xlong"
 for a; do
 	shift
 	case "$a" in
@@ -9,4 +17,9 @@ for a; do
 	printf -v args '%s %q' "$args" "$a"
 done
 
-eval exec gpg $args
+if [ "${GIRAR_GPG_HISTORICAL-}" = yes ]; then
+	set -o pipefail
+	eval gpg $args |sed 's/^\(\[GNUPG:\]\) EXPKEYSIG /\1 GOODSIG /'
+else
+	eval exec gpg $args
+fi

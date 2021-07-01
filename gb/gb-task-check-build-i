@@ -23,6 +23,16 @@ get_sig_uid()
 	printf %s "$userid"
 }
 
+historical_gpg_keyring=/usr/lib/alt-gpgkeys-historical
+historical_rpm_keyring=/usr/lib/alt-rpmkeys-historical
+
+if [ -s "gears/$i/rebuild_from" ] &&
+   [ -d "$historical_gpg_keyring" ] &&
+   [ -d "$historical_rpm_keyring" ]; then
+	export ALT_GPG_KEYS_DIR="$historical_gpg_keyring"
+	export ALT_RPM_KEYS_DIR="$historical_rpm_keyring"
+fi
+
 srpm=
 if [ -s "gears/$i/dir" ]; then
 	dir="$(cat "gears/$i/dir")"

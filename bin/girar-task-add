@@ -130,7 +130,7 @@ validate_gear_rebuild()
 		fatal "sid \`gear:$sid' from src index for package \`$package' is out of sync with \`$repo_norm' gears repository"
 
 	tag_name="$(git cat-file tag "$tag_id" | sed -n '/^tag /s///p')"
-	validate_tag_name
+	GIRAR_GPG_HISTORICAL=yes validate_tag_name
 }
 
 # side effects: action, srpm
@@ -144,7 +144,10 @@ validate_srpm_rebuild()
 		fatal "sid \`srpm:$sid' from src index for package \`$package' is out of sync with \`$srpm_name' in \`$repo_norm' repository"
 
 	action=srpm-rebuild
-	validate_srpm
+
+	ALT_GPG_KEYS_DIR=/usr/lib/alt-gpgkeys-historical \
+		ALT_RPM_KEYS_DIR=/usr/lib/alt-rpmkeys-historical \
+		validate_srpm
 }
 
 # side effects: repo_norm, srpm_name, dir
