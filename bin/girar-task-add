@@ -32,7 +32,6 @@ if [ "${1-}" = '--help' ]; then
 	show_help
 fi
 
-[ "$#" -le 5 ] || show_usage 'too many arguments.'
 [ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 
 id=
@@ -45,7 +44,6 @@ case "$1" in
 	*)	id=$(PROG="$PROG" girar-task-find-current) ;;
 esac
 
-[ "$#" -le 3 ] || show_usage 'too many arguments.'
 [ "$#" -ge 1 ] || show_usage 'not enough arguments.'
 
 action="$1"; shift
