@@ -246,25 +246,6 @@ validate_srpm_build()
 	popd >/dev/null
 }
 
-handle_kmodules()
-{
-	local kimage qkflavour
-	kimage="kernel-image-$kflavour"
-
-	girar-check-package-in-repo "$kimage" "$repo" ||
-		fatal "package \`$kimage' not found in \`$repo'"
-
-	cd "$STATE_DIR/repo/$repo/release/latest/files/list"
-
-	quote_sed_regexp_variable qkflavour "$kflavour"
-	set -- $(sed -n "s/^\\(kernel-modules-[^[:space:]]\\+-$qkflavour\\)[[:space:]].*/\1/p" src.list)
-	for m; do
-		girar-task-add "$id" rebuild "$m"
-	done
-	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
-	exit 0
-}
-
 handle_subactions()
 {
 	local subaction n added=0 rc=0
@@ -284,6 +265,24 @@ handle_subactions()
 		of=" of $#"
 	echo >&2 "task #$id: added $added$of $subaction subtask$s"
 	exit $rc
+}
+
+handle_kmodules()
+{
+	local kimage qkflavour
+	kimage="kernel-image-$kflavour"
+
+	girar-check-package-in-repo "$kimage" "$repo" ||
+		fatal "package \`$kimage' not found in \`$repo'"
+
+	cd "$STATE_DIR/repo/$repo/release/latest/files/list"
+
+	quote_sed_regexp_variable qkflavour "$kflavour"
+	set -- $(sed -n "s/^\\(kernel-modules-[^[:space:]]\\+-$qkflavour\\)[[:space:]].*/\1/p" src.list)
+	[ $# -gt 0 ] ||
+		fatal "task #$id: nothing to add for \`$kimage'"
+
+	handle_subactions rebuild "$@"
 }
 
 handle_remeet()
