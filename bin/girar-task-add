@@ -262,19 +262,28 @@ handle_kmodules()
 		girar-task-add "$id" rebuild "$m"
 	done
 	echo >&2 "task #$id: added $# kernel modules for \`$kimage'"
+	exit 0
 }
 
 handle_subactions()
 {
-	local subaction n
+	local subaction n added=0 rc=0
 	subaction="$1"; shift
 	for n; do
-		girar-task-add "$id" "$subaction" "$n"
+		girar-task-add "$id" "$subaction" "$n" || {
+			rc=1
+			break
+		}
+		added=$((added+1))
 	done
 	local s=
-	[ $# -le 1 ] ||
+	[ $added -le 1 ] ||
 		s=s
-	echo >&2 "task #$id: added $# $subaction subtask$s"
+	local of=
+	[ $added -eq $# ] ||
+		of=" of $#"
+	echo >&2 "task #$id: added $added$of $subaction subtask$s"
+	exit $rc
 }
 
 handle_remeet()
@@ -379,15 +388,12 @@ case "$action" in
 	;;
 	multi)
 	handle_subactions "$subaction" "$@"
-	exit 0
 	;;
 	kmodules)
 	handle_kmodules
-	exit 0
 	;;
 	remeet)
 	handle_remeet
-	exit 0
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
