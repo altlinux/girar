@@ -8,6 +8,10 @@ check_policyreq()
 	local f="$1" && shift || return 1
 	local rc=0
 	local need_reqs var
+	if [ "${GB_SKIP_POLICYDEPS_CHECK_FOR_SRC_PACKAGES-}" = yes ] &&
+	   [ "$package_type" = src ]; then
+		return 0
+	fi
 	var="GB_REPO_MANDATORY_${package_type}_REQS"
 	var="${var^^}"
 	eval "need_reqs=\"\${$var:-\${GB_REPO_MANDATORY_PKG_REQS-}}\""

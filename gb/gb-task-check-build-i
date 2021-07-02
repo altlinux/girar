@@ -31,6 +31,7 @@ if [ -s "gears/$i/rebuild_from" ] &&
    [ -d "$historical_rpm_keyring" ]; then
 	export ALT_GPG_KEYS_DIR="$historical_gpg_keyring"
 	export ALT_RPM_KEYS_DIR="$historical_rpm_keyring"
+	export GB_SKIP_POLICYDEPS_CHECK_FOR_SRC_PACKAGES=yes
 fi
 
 srpm=

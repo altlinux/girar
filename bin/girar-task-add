@@ -147,6 +147,7 @@ validate_srpm_rebuild()
 
 	ALT_GPG_KEYS_DIR=/usr/lib/alt-gpgkeys-historical \
 		ALT_RPM_KEYS_DIR=/usr/lib/alt-rpmkeys-historical \
+		GB_SKIP_POLICYDEPS_CHECK_FOR_SRC_PACKAGES=yes \
 		validate_srpm
 }
 
