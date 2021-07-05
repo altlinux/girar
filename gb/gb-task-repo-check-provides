@@ -63,7 +63,7 @@ dump_dups()
 		dump_prov_arch "$@"
 		dump_prov_noarch "$@"
 	} |
-		sort -k2,2 |
+		sort -k2 |
 		uniq -D -f1 |
 		sort
 }
