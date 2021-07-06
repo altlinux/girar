@@ -48,7 +48,7 @@ mv in/pkg.list hasher/chroot/.in/
 		target=\$1; shift
 		export AREPO_PKGLIST AREPO_ARCH AREPO_MODE AREPO_COMPAT AREPO_NATIVE
 		time rpmrebuild --include arepo.plug -np \
-			--define '_spec_line_buffer_size 262144' \
+			--define '_spec_line_buffer_size 524288' \
 			--define '_allow_deps_with_beginning_dot 1' \
 			${rpmargs-} \$AREPO_COMPAT
 		ln --target-directory /.out \$HOME/RPM/RPMS/\$AREPO_ARCH/\$target
