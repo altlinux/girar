@@ -43,7 +43,7 @@ while read -r subtask pkg; do {
 				args=--is-rebuild
 		fi
 	fi
-	if girar-check-subtask-perms $args $mode "$subtask" "$pkg"; then
+	if girar-check-subtask-perms $mode $args "$subtask" "$pkg"; then
 		[ -n "$status" ] ||
 			status=0
 	else
