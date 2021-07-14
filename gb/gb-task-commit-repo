@@ -58,9 +58,9 @@ for arch in $GB_ARCH noarch; do
 	if [ -n "$skip" ]; then
 		continue
 	fi
-	# NB: no --delete here, contents_index might be optimized out.
+	# NB: no --delete here, new base may be empty if it is unchanged.
 	rsync -rlt "$next_base"/ "$repo_base"/
-	rsync -rlt --delete "$next_bloat_base"/ "$repo_base_bloat"/
+	rsync -rlt "$next_bloat_base"/ "$repo_base_bloat"/
 	updated="$updated $arch"
 done
 
