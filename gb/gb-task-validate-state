@@ -6,8 +6,8 @@ state="$1"; shift
 . gb-sh-functions
 
 [ -f plan/next.src.xz ] &&
-[ -f build/repo/noarch/base.next/contents_index ] &&
-[ -f build/repo/noarch/base.bloat.next/release ] || {
+[ -d build/repo/noarch/base.next ] &&
+[ -d build/repo/noarch/base.bloat.next ] || {
 	gb-task-queue-rebuild
 	exit 1
 }

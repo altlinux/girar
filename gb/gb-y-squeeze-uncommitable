@@ -6,6 +6,6 @@ cd "$GB_TASKS_DIR/index/$GB_REPO_NAME"
 states='eperm tested'
 find -L $states -mindepth 1 -maxdepth 1 -type d -name '[1-9]*' -printf '%f\n' |
 	sort -u |while read id; do {
-		[ -f "$GB_TASKS_DIR/$id/build/repo/noarch/base.next/contents_index" ] &&
+		[ -d "$GB_TASKS_DIR/$id/build/repo/noarch/base.next" ] &&
 			$0-task "$id" ||:
 	} < /dev/null; done
