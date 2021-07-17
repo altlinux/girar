@@ -63,6 +63,7 @@ if [ -n "$ids" ]; then
 			join -o 2.4 - plan/rm-src+bin |
 			sort -u |
 			tr '\n' ' ')
+	sources="$(printf '%s' "$sources" |tr '\n' ' ')"
 	for id in $ids; do
 		{
 			cat <<-__EOF
