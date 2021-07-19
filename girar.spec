@@ -32,8 +32,6 @@ Requires: sisyphus_check
 
 Obsoletes: girar-builder
 
-BuildRequires: perl(RPM.pm) perl(Date/Format.pm)
-
 %define _unpackaged_files_terminate_build 1
 
 %description
