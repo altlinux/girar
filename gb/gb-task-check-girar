@@ -93,6 +93,12 @@ check_specsubst_policy()
 		return 1
 }
 
+get_old_commit_id()
+{
+	old_commit_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" ||
+		old_commit_id=''
+}
+
 girar_check_git()
 {
 	local new_tag_id tag_name old_tag_id
@@ -103,6 +109,11 @@ girar_check_git()
 		[ "$old_tag_id" = "$new_tag_id" ] ||
 			{ fail "$GIT_DIR already contains different tag \`$tag_name'"; return; }
 	fi
+
+	local old_commit_id
+	get_old_commit_id
+	[ -n "$old_commit_id" ] ||
+		return 0        # first time push to this branch
 
 	local dir new_commit_id
 	dir="$(cat "gears/$i/dir")"
@@ -115,6 +126,11 @@ girar_check_git()
 
 girar_check_srpm()
 {
+	local old_commit_id
+	get_old_commit_id
+	[ -n "$old_commit_id" ] ||
+		return 0        # first time push to this branch
+
 	update_git_inheritance_data "$old_commit_id"
 	if is_git_inheritance_check_relaxed; then
 		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
@@ -129,10 +145,16 @@ girar_check_copy()
 	copy_repo="$(cat gears/$i/copy_repo)"
 	copy_commit_id="$(git_get_branch_id "$copy_repo")"
 	if [ -z "$copy_commit_id" ]; then
-		warn "$GIT_DIR already contains \`$GB_REPO_NAME' branch, but does not contain \`$copy_repo' branch"
+		warn "$GIT_DIR does not contain \`$copy_repo' branch"
 		girar_check_srpm
 		return
 	fi
+
+	local old_commit_id
+	get_old_commit_id
+	[ -n "$old_commit_id" ] ||
+		return 0        # first time push to this branch
+
 	check_inheritance "$copy_commit_id" "$old_commit_id" ||
 		cond2_fail "$GIT_DIR branch \`$copy_repo' is not inherited from branch \`$GB_REPO_NAME'"
 	check_specsubst_policy "$copy_commit_id" "$old_commit_id" ||
@@ -142,13 +164,12 @@ girar_check_copy()
 girar_check()
 {
 	local N="$1" i="$2"; shift 2
-	local GIT_DIR old_commit_id
+	local GIT_DIR
 
 	set_GIT_DIR "$GB_GEARS_DIR" "$N"
 
-	old_commit_id="$(git_get_branch_id "$GB_REPO_NAME" 2>/dev/null)" &&
-	[ -n "$old_commit_id" ] ||
-		return 0	# first time push to this branch
+	[ -d "$GIT_DIR" ] ||
+		return 0	# target git repo does not exist yet
 
 	# update of existing commit, check inheritance
 
