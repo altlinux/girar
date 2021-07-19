@@ -1,0 +1,133 @@
+#!/bin/sh
+
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
+}
+
+_N="%{name}"
+_VR="%{version}-%{release}"
+_EVR="%|epoch?{%{epoch}:}|$_VR"
+_NVR="%{name}-$_VR"
+_A="%{arch}"
+qf_src="$_N\\t$_EVR\\t$_NVR.src.rpm\\n"
+qf_bin="$_N\\t$_EVR\\t$_A\\t$_NVR.$_A.rpm\\t%{sourcerpm}\\n"
+
+qsrc()
+{
+	local d
+	for d; do
+		# src-N  src-EVR  src-F
+		find "$d" -name '*.src.rpm' -execdir \
+			rpmquery --qf "$qf_src" -p -- '{}' '+'
+	done
+}
+
+qbin()
+{
+	local d
+	for d; do
+		# bin-N  bin-EVR  bin-A  bin-F  src-F
+		find "$d" -name '*.rpm' -not -name '*.src.rpm' -execdir \
+			rpmquery --qf "$qf_bin" -p -- '{}' '+'
+	done
+}
+
+set_GIT_DIR()
+{
+	local prefix="$1"; shift
+	local project="$1"; shift
+	local sym="$(printf %s "$project" |cut -c1)"
+	GIT_DIR="$prefix/$sym/$project.git"
+	export GIT_DIR
+}
+
+git_get_branch_id()
+{
+	local name="$1"; shift
+	[ -n "${name:1}" ]
+	git rev-parse --branches="[${name:0:1}]${name:1}"
+}
+
+# When replacing packages, versions must increase.
+is_ver1_lt_ver2()
+{
+	local EVR1="${1:?}" EVR2="${2:?}"
+	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -lt 0 ] || return 1
+}
+
+# When copying packages, versions may be equal
+is_ver1_le_ver2()
+{
+	local EVR1="${1:?}" EVR2="${2:?}"
+	[ "$(rpmevrcmp "$EVR1" "$EVR2")" -le 0 ] || return 1
+}
+
+suffix_arch()
+{
+	local IFS=.
+	set -- $1
+	shift $(($#-2))
+	echo $1
+}
+
+changelog_with_time()
+{
+	local s='[:space:]'
+	local q='[* %{CHANGELOGTIME} %{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\n]'
+	rpmquery --qf "$q" -p "$1" |
+	sed -r "s/(<[$s]*[^@>$s]+([$s]*@[$s]*|[$s]+at[$s]+)(packages[$s]*[.][$s]*)?altlinux)([$s]*[.][$s]*|[$s]+dot[$s]+)[[:alpha:]]+[$s]*>/\\1>/"
+}
+
+rpm_recent_changes()
+{
+	changelog_with_time "$1" |
+	awk -v time0="$(date -d '3 months ago' +%s)" '
+		/^\* [0-9]+ / {
+			if ($2 < time0 && printed) exit
+			sub(/ [0-9]+ /, " ")
+		}
+		{ print; printed++ }
+	'
+}
+
+rpm_changes_since()
+{
+	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\n%{CHANGELOGTEXT}\n\r]' \
+		-p $1 > ${tmpdir}/changelog_new
+	# ignore %ubt branch suffix in the new changelog
+	sed -r -i 's/\.(S1|M[5-8]0[CPT]\.1)((\.[0-9]+)*)$/\2/' -- \
+		${tmpdir}/changelog_new
+
+	rpm -q --qf '[%{CHANGELOGTIME:day} %{CHANGELOGNAME}\r]' \
+		-p $2 > ${tmpdir}/changelog_old
+	# ignore %ubt branch suffix in the old changelog
+	sed -r -i 's/\.(S1|M[5-8]0[CPT]\.1)((\.[0-9]+)*\r)/\2/g' -- \
+		${tmpdir}/changelog_old
+
+	gb-x-changelog-complement ${tmpdir}/changelog_old ${tmpdir}/changelog_new
+}
+
+check_and_clear_OK_flags()
+{
+	local prefix item ok_flag failed=
+
+	prefix="$1"; shift
+
+	for item; do
+		ok_flag="$prefix-$item"
+		[ -f "$ok_flag" ] ||
+			failed="$failed $item"
+		rm -f -- "$ok_flag"
+	done
+
+	[ -z "$failed" ] || {
+		stamp_echo >&2 "${0##*/} failed for:$failed"
+		exit 1
+	}
+}

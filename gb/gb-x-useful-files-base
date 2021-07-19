@@ -11,7 +11,7 @@ basedir="$1"; shift
 arches="$@"
 qf='[%{REQUIRENAME}\n][%{PROVIDENAME}\n][%{CONFLICTNAME}\n][%{OBSOLETENAME}\n]'
 
-. gb-sh-functions
+. gb-x-sh-functions
 . gb-sh-tmpdir
 
 for arch in $arches; do
