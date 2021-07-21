@@ -1,3 +1,10 @@
+* awaiter@gyle:
+	* Consider creation of dedicated gpg key for the new repo (e.g.
+	  alt-@TO_BRANCH@altlinux.org).
+
+* root@gyle:
+	* Install new version of alt-gpgkeys with the new key (if any).
+
 * pender@gyle:
 	* pgrep -U $UID -f 'gb-toplevel-commit @FROM_BRANCH@' |xargs -r kill -STOP
 
@@ -18,6 +25,8 @@
 
 * root@gyle:
 	* Create /usr/libexec/girar-builder/gb-sh-conf-@TO_BRANCH@ file.
+	* Consider adding the uid of the dedicated gpg key to GB_TRUST_GPG_NAMES
+	  variable in gb-sh-conf-site file.
 	* Configure /etc/girar/repo/@TO_BRANCH@ file.
 
 * acl@gyle:
@@ -26,9 +35,14 @@
 * mailadm@smtp:
 	* Add qa_@TO_BRANCH@@altlinux.org, girar-builder-@TO_BRANCH@@altlinux.org,
 	  and girar-task-approve-@TO_BRANCH@@altlinux.org aliases.
+	* make -C /etc/postfix update
 
 * mailadm@lists:
 	* Create a girar-builder-@TO_BRANCH@ mailing list.
+	* /usr/share/mailman/bin/newlist girar-builder-@TO_BRANCH@@lists.altlinux.org <admin email address>
+	* /usr/share/mailman/bin/config_list -o ./sisyphus-incominger.cfg sisyphus-incominger
+	* sed 's/Sisyphus-incominger/Girar-builder-@TO_BRANCH@/g;s/sisyphus-incominger/girar-builder-@TO_BRANCH@/g' < ./sisyphus-incominger.cfg > ./girar-builder-@TO_BRANCH@.cfg
+	* /usr/share/mailman/bin/config_list -i ./girar-builder-@TO_BRANCH@.cfg girar-builder-@TO_BRANCH@
 
 * Setup remote accounts somewhere.
 
