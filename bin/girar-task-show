@@ -40,8 +40,17 @@ if [ -n "$json" ] && [ -n "$brief" ]; then
 	show_usage '--brief and --json are mutually exclusive options'
 fi
 
-id=$(PROG="$PROG" girar-task-find-current "$@")
-cd "$TASKS_DIR/$id"
+id=$(PROG="$PROG" GIRAR_TASK_LOOKUP_ARCHIVE=1 girar-task-find-current "$@")
+k="_$(($id/1024))"
+for dir in "$TASKS_DIR/$id" "$TASKS_DIR/archive/done/$k/$id"; do
+	if [ -d "$dir" ]; then
+		cd "$dir"
+		k=
+		break
+	fi
+done
+[ -z "$k" ] ||
+	fatal "task not found: $id"
 
 if [ -n "$json" ]; then
 	cat info.json

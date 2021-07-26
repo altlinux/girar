@@ -7,8 +7,21 @@ cd "$TASKS_DIR"
 if [ $# -gt 0 ]; then
 	id="$1"
 	shift
-	[ -n "$id" -a -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
+	[ -n "$id" ] && [ -z "$(printf %s "$id" |tr -d '[:digit:]')" ] ||
 		fatal "invalid task id: $id"
+	{
+		dir="$id" &&
+		[ -s "$dir" ]
+	} || {
+		[ "${GIRAR_TASK_LOOKUP_ARCHIVE-}" = 1 ] &&
+		k="_$(($id/1024))" &&
+		dir="archive/done/$k/$id" &&
+		[ -d "$dir" ]
+	} ||
+		fatal "task not found: $id"
+	[ -s "$dir/task/owner" ] ||
+		fatal "invalid task: $id"
+
 else
 	id="$(find -mindepth 1 -maxdepth 1 -name '[1-9]*' -type d \
 		   -user "$USER_PREFIX$GIRAR_USER" -printf '%f\n' 2>/dev/null |
@@ -21,11 +34,8 @@ else
 		done)"
 	[ -n "$id" ] ||
 		fatal 'no tasks found'
+	[ -s "$id"/task/owner ] ||
+		fatal "invalid task: $id"
 fi
-
-[ -d "$id" ] ||
-	fatal "task not found: $id"
-[ -s "$id"/task/owner ] ||
-	fatal "invalid task: $id"
 
 printf %s "$id"
