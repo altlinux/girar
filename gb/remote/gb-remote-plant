@@ -8,7 +8,6 @@ dir="$1"; shift
 arch="$1"; shift
 comps="$1"; shift
 noarch_comps="$1"; shift
-GB_APT_CACHE_LIMIT="$1"; shift
 
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)

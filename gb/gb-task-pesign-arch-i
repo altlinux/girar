@@ -75,7 +75,6 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$arch")\"" \
 	classic \
 	classic \
-	"\"$(quote_shell "$GB_APT_CACHE_LIMIT")\"" \
 	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\"" \
 	#
 

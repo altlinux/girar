@@ -35,7 +35,6 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$arch")\"" \
 	"\"$(quote_shell "$comps")\"" \
 	"\"$(quote_shell "$noarch_comps")\"" \
-	"\"$(quote_shell "$GB_APT_CACHE_LIMIT")\"" \
 	'unchecked_initroot_cache=\$\{GB_UNCHECKED_INITROOT_CACHE-\}' \
 	#
 
