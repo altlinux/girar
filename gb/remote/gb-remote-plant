@@ -10,9 +10,6 @@ comps="$1"; shift
 noarch_comps="$1"; shift
 GB_APT_CACHE_LIMIT="$1"; shift
 
-# a simple sanity check
-[ "$GB_APT_CACHE_LIMIT" -gt 1048576 ]
-
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
 
@@ -94,7 +91,6 @@ Dir::Etc::pkgpriorities "$HOME/apt/pkgpriorities";
 Dir::State::lists "$HOME/lists";
 Debug::pkgMarkInstall "true";
 Debug::pkgProblemResolver "true";
-APT::Cache-Limit "$GB_APT_CACHE_LIMIT";
 EOF
 cat >apt/sources.list <<EOF
 rpm file:$dir $arch $comps
