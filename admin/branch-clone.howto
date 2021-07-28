@@ -1,9 +1,12 @@
 * awaiter@gyle:
-	* Consider creation of dedicated gpg key for the new repo (e.g.
+	* Create a dedicated gpg key for the new repo (e.g.
 	  alt-@TO_BRANCH@altlinux.org).
 
+* Submit an alt-gpgkeys package with the new key to @FROM_BRANCH@.
+* Consider submitting alt-gpgkeys packages with the new key to other branches.
+
 * root@gyle:
-	* Install new version of alt-gpgkeys with the new key (if any).
+	* Install a new version of alt-gpgkeys with the new key.
 
 * pender@gyle:
 	* pgrep -U $UID -f 'gb-toplevel-commit @FROM_BRANCH@' |xargs -r kill -STOP
