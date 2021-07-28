@@ -6,7 +6,8 @@ id="$1"; shift
 cd "$GB_TASKS_DIR/$id"
 
 # Is there anything left?
-[ -d build/repo/noarch/base.next ] ||
+base=build/repo/noarch/base.next
+[ -f "$base"/release -o -f "$base"/unchanged ] ||
 	exit 0
 
 # Obtain an exclusive lock on the TASKS structure.
