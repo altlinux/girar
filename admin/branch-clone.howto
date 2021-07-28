@@ -28,6 +28,8 @@
 
 * root@gyle:
 	* Create /usr/libexec/girar-builder/gb-sh-conf-@TO_BRANCH@ file.
+	* Consider adding the new repo to GB_REPO_UP_NAME/GB_REPO_DOWN_NAME
+	  variables of other repos.
 	* Consider adding the uid of the dedicated gpg key to GB_TRUST_GPG_NAMES
 	  variable in gb-sh-conf-site file.
 	* Configure /etc/girar/repo/@TO_BRANCH@ file.
