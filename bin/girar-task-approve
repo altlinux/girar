@@ -179,7 +179,7 @@ X-girar-task-id: $id
 X-girar-subtask-ids: $*
 X-girar-task-repo: $repo
 X-girar-task-URL: $url
-Subject: [#$id] $text_summary
+Subject: [$repo #$id] $text_summary
 Content-Type: text/plain; charset=us-ascii
 
 Dear $(printf %s "$email" | sed -n 's/^"\([^"]\+\)".*/\1/p')!
