@@ -5,9 +5,11 @@ state="$1"; shift
 
 . gb-sh-functions
 
+next_b=build/repo/noarch/base.next
+next_bb=build/repo/noarch/base.bloat.next
 [ -f plan/next.src.xz ] &&
-[ -d build/repo/noarch/base.next ] &&
-[ -d build/repo/noarch/base.bloat.next ] || {
+[ -f "$next_b"/release -o -f "$next_b"/unchanged ] &&
+[ -f "$next_bb"/release -o -f "$next_bb"/unchanged ] || {
 	gb-task-queue-rebuild
 	exit 1
 }

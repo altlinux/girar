@@ -34,6 +34,9 @@ for arch in $GB_ARCH noarch; do
 	next_bloat_base="build/repo/$arch/base.bloat.next"
 	mandatory_comps='classic'
 	optional_comps='checkinstall debuginfo gostcrypto'
+	if [ -f "$next_base"/unchanged ] || [ -f "$next_bloat_base"/unchanged ]; then
+		continue
+	fi
 	for comp in $optional_comps; do
 		cmp_file=pkglist.$comp.xz
 		if [ -f "$repo_base/$cmp_file" ] ||
@@ -58,9 +61,9 @@ for arch in $GB_ARCH noarch; do
 	if [ -n "$skip" ]; then
 		continue
 	fi
-	# NB: no --delete here, new base may be empty if it is unchanged.
+	# NB: no --delete here, contents_index might be optimized out.
 	rsync -rlt "$next_base"/ "$repo_base"/
-	rsync -rlt "$next_bloat_base"/ "$repo_base_bloat"/
+	rsync -rlt --delete "$next_bloat_base"/ "$repo_base_bloat"/
 	updated="$updated $arch"
 done
 

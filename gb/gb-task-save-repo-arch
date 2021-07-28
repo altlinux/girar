@@ -4,16 +4,24 @@ arch="$1"; shift
 
 . gb-sh-functions
 
-(umask 002; mkdir -p "build/repo/$arch/base.next") || exit
-(umask 002; mkdir -p "build/repo/$arch/base.bloat.next") || exit
+next_b="build/repo/$arch/base.next"
+next_bb="build/repo/$arch/base.bloat.next"
 
 # No need to save base if the whole arch is symlinked into previous
 # repo structure.
-if [ ! -h "$GB_TMP_REPO_DIR/$arch" ]; then
-	rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base/" "build/repo/$arch/base.next/"
-	rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base.bloat/" "build/repo/$arch/base.bloat.next/"
+if [ -h "$GB_TMP_REPO_DIR/$arch" ]; then
+	rm -rf "$next_b" "$next_bb"
+	(umask 002; mkdir -p "$next_b" "$next_bb") || exit
+
+	touch "$next_b"/unchanged
+	touch "$next_bb"/unchanged
+else
+	(umask 002; mkdir -p "$next_b" "$next_bb") || exit
+
+	rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base/" "$next_b/"
+	rsync -rlt --exclude='ds.*' "$GB_TMP_REPO_DIR/$arch/base.bloat/" "$next_bb/"
 
 	# Paranoia: ensure that no files has disappeared from tmpfs.
-	(cd "build/repo/$arch/base.next" && cat release release.classic pkglist.classic.xz > /dev/null)
-	(cd "build/repo/$arch/base.bloat.next" && cat release release.classic pkglist.classic > /dev/null)
+	(cd "$next_b" && cat release release.classic pkglist.classic.xz > /dev/null)
+	(cd "$next_bb" && cat release release.classic pkglist.classic > /dev/null)
 fi
