@@ -3,7 +3,7 @@
 . gb-sh-functions
 
 # files that define 'prog' mode
-REGEXP="${GB_PESIGN_REGEXP:-/boot/vmlinuz-.*|/usr/lib64/efi/.*\.efi|/usr/lib/systemd/boot/efi/.*\.efi}"
+REGEXP="${GB_PESIGN_REGEXP:-/boot/vmlinuz-.*|/usr/lib64/efi/((mm|fb|grub)(ia32|x64)|fwupdx64)\.efi}"
 
 . gb-sh-tmpdir
 
