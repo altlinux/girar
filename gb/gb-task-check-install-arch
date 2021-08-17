@@ -70,18 +70,16 @@ while read -r N EVR A F P I C dummy; do
 	(umask 002; mkdir -p "install/$N/$arch") || false
 	gb-x-rsync-loop -qrlt --delete -- "install/$N/$arch/" "$remote_host:install/"
 
-	if gb-x-ssh "$remote_host" ./gb-remote-check-install \
+	gb-x-ssh "$remote_host" ./gb-remote-check-install \
 			"$GB_REPO_NAME" \
 			"$GB_REPO_REAL_NAME" \
-			"$arch" "$N" "$EVR" "$A" "$C" "$F" "$I" </dev/null; then
-		# copy install chroot identification from remote side
-		gb-x-rsync-loop -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
-	else
-		rm -rf "install/$N/$arch"
+			"$arch" "$N" "$EVR" "$A" "$C" "$F" "$I" </dev/null || {
 		stamp_echo >&2 "[$arch] #$I $N: install check FAILED"
 		task_change_state_to_failing "[$arch]"
 		rc=1
-	fi
+	}
+	# copy install chroot identification and/or check logs from remote side
+	gb-x-rsync-loop -qrlt --delete -- "$remote_host:install/" "install/$N/$arch/"
 done <plan/add-bin
 
 # Purge temporary repo.

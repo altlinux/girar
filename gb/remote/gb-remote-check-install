@@ -10,9 +10,12 @@ stamp_echo()
 	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $*"
 }
 
+topdir="$PWD"
 tmpdir=
 cleanup()
 {
+	[ "$*" = 0 ] || [ -z "$topdir" ] ||
+		rm -f "$topdir"/install/{id,chroot_base,chroot_install,warnings}
 	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
 	exit "$@"
 }
@@ -33,17 +36,17 @@ else
 fi
 export GB_UNCHECKED_INITROOT_CACHE="$release"
 
-topdir="$PWD"
 cd "$tmpdir"
 
 # Initialize.
 setarch "$arch" -- \
 hsh --init --without-stuff --no-contents-ind \
     --pkg-init-list="+$release" \
-    --pkg-build-list="$release,basesystem" >out 2>&1 ||
+    --pkg-build-list="$release,basesystem" >"$topdir"/install/init.log 2>&1 ||
 	{
 		echo "	$arch: initroot failed:"
-		sed 's/^./ &/' out
+		sed 's/^./ &/' "$topdir"/install/init.log
+		rm -f "$topdir"/install/{install-deps,install,remove}.log
 		exit 1
 	} >&2
 
@@ -58,6 +61,7 @@ if fgrep -qs -x -e "$N=$EVR" packages0; then
 	# The package is already installed.  Since the package is part of
 	# basesystem, removing it might not work very well.
 	stamp_echo >&2 "[$arch] #$I $N: install check OK (basesystem)"
+	rm -f "$topdir"/install/{install-deps,install,remove}.log
 	exit 0
 fi
 
@@ -83,15 +87,19 @@ if [ -s "$topdir"/install/chroot_install ] &&
 	fi
 fi
 
+# Invalidate old chroot and package identification.
+rm -f "$topdir"/install/{id,chroot_base,chroot_install,warnings}
+rm -f "$topdir"/install/{install-deps,install,remove}.log
+
 > warnings
 
 # Install prerequisites.
 # Installing prerequisites is tricky: pretend to install the package and then
 # immediately mark it for removal.  This should do the right thing with circular deps.
-hsh-install -- "$N=$EVR" "$N-" >out 2>&1 ||
+hsh-install -- "$N=$EVR" "$N-" >"$topdir"/install/install-deps.log 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR preinstall failed:"
-		sed 's/^./ &/' out
+		sed 's/^./ &/' "$topdir"/install/install-deps.log
 		exit 1
 	} >&2
 
@@ -117,10 +125,10 @@ hsh-run --rooter --execute=find.sh >flist1 2>out ||
 sort -u -o flist1{,}
 
 # Install the package.
-hsh-install -- "$N=$EVR" >out 2>&1 ||
+hsh-install -- "$N=$EVR" >"$topdir"/install/install.log 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR install failed:"
-		sed 's/^./ &/' out
+		sed 's/^./ &/' "$topdir"/install/install.log
 		exit 1
 	} >&2
 
@@ -203,8 +211,6 @@ fi >&2
 
 # Save chroot identification.
 hsh-run -- rpmquery -a --qf "$q_bin" > chroot_install
-sort -u chroot_install > "$topdir"/install/chroot_install
-cp -p id chroot_base warnings "$topdir"/install/
 
 # Remove the package.
 dev_regexp='pts|shm'
@@ -217,11 +223,14 @@ mountpoints="$(hsh-run -- rpmquery -aR |
 		tr '\n' ,)"
 what=$(perl -pe 's/=\d+:/-/ or s/=/-/' <new-packages)
 hsh-run --rooter --mountpoints="$mountpoints" -- \
-rpm -ev -- ${what:?} </dev/null >out 2>&1 ||
+rpm -ev -- ${what:?} </dev/null >"$topdir"/install/remove.log 2>&1 ||
 	{
 		echo "	$arch: $N=$EVR uninstall failed:"
-		sed 's/^./ &/' out
+		sed 's/^./ &/' "$topdir"/install/remove.log
 		exit 1
 	} >&2
+
+sort -u chroot_install > "$topdir"/install/chroot_install
+cp -p id chroot_base warnings "$topdir"/install/
 
 stamp_echo >&2 "[$arch] #$I $N: install check OK"
