@@ -5,7 +5,7 @@
 
 PROG='task ls'
 
-valid_repo_list="$(valid_repositories)"
+valid_repo_list="$(list_indexed_repositories)"
 valid_state_list='awaiting building committing done eperm failing failed new pending postponed swept tested'
 notdone_state_list='awaiting building committing eperm failing failed new pending postponed swept tested'
 queue_state_list='awaiting building committing failing pending postponed'
