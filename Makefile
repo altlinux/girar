@@ -137,6 +137,7 @@ sbin_TARGETS = \
 	sbin/girar-proxyd-acl \
 	sbin/girar-proxyd-depot \
 	sbin/girar-proxyd-repo \
+	sbin/girar-retire-repo \
 	#
 
 TARGETS = \

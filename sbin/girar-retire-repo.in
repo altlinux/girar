@@ -1,0 +1,71 @@
+#!/bin/sh -eu
+
+export PATH='@CMD_DIR@:/bin:/usr/bin'
+umask 022
+
+. shell-error
+. girar-sh-config
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <REPO-NAME>"
+	exit 1
+}
+
+[ $# -ge 1 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 1 ] ||
+	usage 'Too many arguments.'
+
+repo="$1"; shift
+
+printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$repo: invalid REPO-NAME specified"
+
+cd "$STATE_DIR"
+[ -h repo/"$repo"/task/archive -a -d repo/"$repo"/task/archive ] ||
+	fatal "$repo/task/archive symlink is missing"
+
+find repo/"$repo"/task/ -mindepth 1 -maxdepth 1 -not -name archive | grep -qs ^ || {
+	message "$repo repo is already retired"
+	exit 0
+}
+
+cd "$TASKS_DIR"
+if [ -d index/"$repo" ]; then
+	for s in "$TASKS_DIR/index/$repo"/*; do
+		n="$(basename "$s")"
+		case "$n" in
+			building|failing|committing) ;;
+			*) continue ;;
+		esac
+		[ -z "$(find -L "$s" -mindepth 1 -maxdepth 1 \
+			     -type d -name '[1-9]*')" ] ||
+			fatal "found active tasks for $repo repository"
+	done
+fi
+
+[ -s /archive/repo/"$repo"/task/task.list -a -d /archive/repo/"$repo"/latest ] ||
+	fatal "archive for $repo repo is not available"
+
+cd "$STATE_DIR"
+cmp -s /archive/repo/"$repo"/task/task.list repo/"$repo"/release/task.list ||
+	fatal "$repo: is not fully archived"
+
+[ ! -e "$CONF_DIR/repo/$repo" ] || {
+	mkdir -p "$CONF_DIR"/repo.old
+	mv -t "$CONF_DIR"/repo.old "$CONF_DIR/repo/$repo"
+}
+
+ln -snf /archive/repo/"$repo"/latest repo/"$repo"/release/latest
+
+cd repo/"$repo"/task
+for d in *; do
+	[ "$d" != archive ] || continue
+	rm -r "$d"
+done
+
+message "$repo is now retired"
+
+exit 0

@@ -206,6 +206,7 @@ fi
 %attr(755,root,root) %_sbindir/girar-branch-rip
 %attr(700,root,root) %_sbindir/girar-clone-repo
 %attr(700,root,root) %_sbindir/girar-proxyd-*
+%attr(700,root,root) %_sbindir/girar-retire-repo
 
 %doc LICENSE TASK gb/conf/
 
