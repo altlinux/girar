@@ -38,6 +38,9 @@ commit_id="$1"; shift
 	show_usage 'invalid commit id.'
 
 cd "$TASKS_DIR/$id"
+repo="$(cat task/repo)"
+girar-normalize-repo-name "$repo" >/dev/null
+
 # obtain an exclusive lock on the TASKS structure
 exec <.
 flock -n 0 ||
@@ -59,7 +62,6 @@ for i; do
 	if fgrep -qsx "$commit_id" "$f" 2 >/dev/null; then
 		echo >&2 "task #$id: update of $pkgname by subtask #$i is already allowed to overcome git inheritance check failure for commit $commit_id"
 	else
-		repo="$(cat task/repo)"
 		girar-check-perms "$pkgname" "$repo"
 		echo "$commit_id" > "$f"
 		echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome git inheritance check failure for commit $commit_id"

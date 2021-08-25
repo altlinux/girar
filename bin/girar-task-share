@@ -52,6 +52,9 @@ fi
 
 cd "$TASKS_DIR/$id"
 
+repo="$(cat task/repo)"
+girar-normalize-repo-name "$repo" >/dev/null
+
 op=
 case "$action" in
 	status)

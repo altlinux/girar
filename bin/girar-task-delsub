@@ -32,6 +32,8 @@ id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 num="$1"; shift
 
 cd "$TASKS_DIR/$id"
+repo="$(cat task/repo)"
+girar-normalize-repo-name "$repo" >/dev/null
 # obtain an exclusive lock on the TASKS structure
 exec <.
 flock -n 0 ||

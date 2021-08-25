@@ -37,6 +37,7 @@ id=$(PROG="$PROG" girar-task-find-current "$1"); shift
 cd "$TASKS_DIR/$id"
 
 repo="$(cat task/repo)"
+repo="$(girar-normalize-repo-name "$repo")"
 owner="$(cat task/owner)"
 [ "$owner" = "$GIRAR_USER" ] ||
 	girar-check-superuser "$repo" ||

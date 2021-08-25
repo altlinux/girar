@@ -71,6 +71,7 @@ flock -n 0 ||
 	fatal "task #$id is locked"
 
 repo="$(cat task/repo)"
+repo="$(girar-normalize-repo-name "$repo")"
 owner="$(cat task/owner)"
 state="$(cat task/state)"
 
