@@ -1,0 +1,10 @@
+* pender@gyle:
+	* Remove cron entry for @BRANCH@.
+	* pgrep -U $UID -f 'gb-toplevel-commit @BRANCH@' |xargs -r kill -TERM
+
+* awaiter@gyle:
+	* Remove cron entries for @BRANCH@.
+	* pgrep -U $UID -f 'gb-toplevel-build @BRANCH@' |xargs -r kill -TERM
+* Wait for remaining gb-build-task/gb-commit-task processes to exit.
+* Consider branch retirement if you are sure that it is not going to be
+  reenabled later.
