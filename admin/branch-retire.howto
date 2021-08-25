@@ -1,0 +1,4 @@
+* Make sure branch @BRANCH@ is deactivated (see branch-disable.howto) and there
+  are no remaining processes working on @BRANCH@.
+* root@gyle:
+	* girar-retire-repo @BRANCH@.
