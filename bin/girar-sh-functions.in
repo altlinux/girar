@@ -93,6 +93,12 @@ valid_repositories()
 	printf %s "$repositories" | tr '\n' ' '
 }
 
+list_indexed_repositories()
+{
+	local repositories="$(ls -- "$TASKS_DIR/index/")"
+	printf %s "$repositories" | tr '\n' ' '
+}
+
 post_api()
 {
 	if [ -n "${WEBAPI_URL}" ]; then
