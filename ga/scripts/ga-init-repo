@@ -1,0 +1,48 @@
+#!/bin/sh -efu
+
+. shell-error
+
+GA_REPO_NAME=site
+export GA_REPO_NAME
+
+# Prepend the path to scripts.
+[ "${0%/*}" != "$0" ] ||
+	fatal 'Where am I?'
+PATH="${0%/*}:$PATH"
+
+. ga-sh-functions
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <REPO-NAME>"
+	exit 1
+}
+
+[ $# -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 2 ] ||
+	usage 'Too many arguments.'
+
+repo="$1"; shift
+
+printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+	fatal "$repo: invalid REPO-NAME specified"
+
+conf_dir="/usr/libexec/girar-archiver"
+cd "$conf_dir"
+[ ! -f "ga-sh-conf-$repo" ] ||
+	fatal "$repo: config file already exists"
+
+cd "$GA_REPO_ROOT"
+
+install -d -o root -g ga_repo -m1775 -- "$repo" "$repo/task"
+install -d -o root -g ga_upload -m1775 -- "$repo/date"
+install -d -o root -g ga_tasker -m1775 -- "$repo/.tmp"
+
+ln -snr -- /var/empty "$repo/latest"
+chown -h -- ga_repo:ga_repo "$repo/latest"
+
+printf 'GA_REPO_NAME=%s\n' "$repo" > "$conf_dir/ga-sh-conf-$repo"
+
+message "Consider creation of $GA_UPLOAD_DIR/copy/$repo directory"
