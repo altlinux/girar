@@ -94,6 +94,7 @@ bin_TARGETS = \
 	bin/girar-task-approve \
 	bin/girar-task-change-state \
 	bin/girar-task-check-git-inheritance \
+	bin/girar-task-check-lastchange-inheritance \
 	bin/girar-task-delsub \
 	bin/girar-task-deps \
 	bin/girar-task-find-current \

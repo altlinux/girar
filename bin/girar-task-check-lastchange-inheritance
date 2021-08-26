@@ -1,0 +1,68 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. shell-args
+
+PROG='task check-lastchange-inheritance'
+
+show_help()
+{
+	cat <<EOF
+$PROG - manage subtask lastchange inheritance
+
+Usage: $PROG <task_id> <subtask_number> disable <lastchange EVR>
+EOF
+	exit
+}
+
+if [ "${1-}" = '--help' ]; then
+	show_help
+fi
+
+if [ "$#" -gt 4 ]; then
+	show_usage 'too many arguments.'
+fi
+
+if [ "$#" -lt 4 ]; then
+	show_usage 'not enough arguments.'
+fi
+
+id=$(PROG="$PROG" girar-task-find-current "$1"); shift
+num="$1"; shift
+[ "$1" = disable ] ||
+	show_usage 'invalid argument.'
+shift
+EVR="$1"; shift
+printf %s "$EVR" | grep -xqs '[[:alnum:]][[:alnum:]:._-]*' ||
+	show_usage 'invalid lastchange EVR.'
+
+cd "$TASKS_DIR/$id"
+repo="$(cat task/repo)"
+girar-normalize-repo-name "$repo" >/dev/null
+
+# obtain an exclusive lock on the TASKS structure
+exec <.
+flock -n 0 ||
+	fatal "task #$id is locked"
+
+check_task_modifiable
+
+set -- $(gear_nums)
+for i; do
+	[ "$i" = "$num" ] || continue
+	[ -f "check-lastchange-inheritance/.$i" ] ||
+		fatal "task #$id: subtask #$i has no lastchange inheritance check failures to overcome yet"
+	pkgname="$(cat "build/$i/pkgname" 2>/dev/null)" ||
+	pkgname="$(cat "gears/$i/package" 2>/dev/null)" ||
+		fatal "task #$id: source package name for subtask #$i is not known yet"
+	f="check-lastchange-inheritance/$i"
+	if fgrep -qsx "$EVR" "$f" 2 >/dev/null; then
+		echo >&2 "task #$id: update of $pkgname by subtask #$i is already allowed to overcome lastchange inheritance check failure for $EVR version"
+	else
+		girar-check-perms "$pkgname" "$repo"
+		echo "$EVR" > "$f"
+		echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome lastchange inheritance check failure for $EVR version"
+	fi
+	exit
+done
+fatal "task #$id: subtask #$num not found"

@@ -28,6 +28,7 @@ Commands:
   approve                       approve subtask(s);
   disapprove                    disapprove subtask(s);
   check-git-inheritance         manage subtask git inheritance;
+  check-lastchange-inheritance  manage subtask lastchange inheritance;
   help                          show this text and exit.
 
 Every task command supports --help option.
@@ -38,7 +39,7 @@ EOF
 case "${1-}" in
 	'') show_usage 'not enough arguments.' ;;
 	--help|help) show_help ;;
-	ls|show|new|add|delsub|deps|run|share|approve|disapprove|rm|abort|check-git-inheritance)
+	ls|show|new|add|delsub|deps|run|share|approve|disapprove|rm|abort|check-git-inheritance|check-lastchange-inheritance)
 		op="$1"; shift
 		exec "$PROG-$op" "$@"
 		;;

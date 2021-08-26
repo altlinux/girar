@@ -155,5 +155,9 @@ for i in $nums; do
 		if [ -f "check-git-inheritance/$i" ]; then
 			printf ' %s:relax_git_inheritance_check_for_commit=%s\n' "$i" "$(cat "check-git-inheritance/$i")"
 		fi
+		if [ -f "check-lastchange-inheritance/$i" ]; then
+			printf ' %s:relax_lastchange_inheritance_check_for_evr=%s\n' \
+			       "$i" "$(cat "check-lastchange-inheritance/$i")"
+		fi
 	fi
 done

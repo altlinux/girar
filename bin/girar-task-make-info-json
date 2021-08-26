@@ -113,6 +113,10 @@ if [ -n "$nums" ]; then
 			printf '   "relax_git_inheritance_check_for_commit": "%s",\n' \
 				"$(cat "check-git-inheritance/$i")"
 		fi
+		if [ -f "check-lastchange-inheritance/$i" ]; then
+			printf '   "relax_lastchange_inheritance_check_for_evr": "%s",\n' \
+				"$(cat "check-lastchange-inheritance/$i")"
+		fi
 		printf '   "userid": "%s"\n' "$(cat "gears/$i/userid")"
 		printf '  }'
 	done
