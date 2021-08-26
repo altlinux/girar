@@ -5,9 +5,10 @@
 dep="$1"; shift
 cd "$GB_TASKS_DIR/index"
 
-for index in */postponed; do
-	[ -d "$index" ] || continue
-	for dir in "$index"/[1-9]*; do
+for repo in *; do
+	[ -d "$repo"/postponed ] || continue
+	gb-x-girar normalize-repo-name "$repo" >/dev/null || continue
+	for dir in "$repo"/postponed/[1-9]*; do
 		[ -f "$dir/task/depends" ] ||
 			continue
 		$0-dir "$dep" "$dir" ||:
