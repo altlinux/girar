@@ -20,7 +20,8 @@ where each <build_instruction_N> is either
 \`<gear_repo> <gear_tag>' or \`<gear_repo>.git=<gear_tag>'
 or \`srpm <srpm_file>' or \`<srpm_file_without_suffix>.src.rpm'
 or \`rebuild <package_name>' or \`del <package_name>'
-or \`copy <package_name>'.
+or \`copy <package_name>'
+or \`kmodules <kflavour>'.
 
 Options:
   -m <word>       use the given <word> as the reason for this build;
@@ -112,7 +113,7 @@ add_subtasks()
 				rebuilds=1
 				$dry_run girar-task add "$id" "$cmd" "$arg"
 				cmd= ;;
-			copy|srpm)
+			copy|kmodules|srpm)
 				$dry_run girar-task add "$id" "$cmd" "$arg"
 				cmd= ;;
 			*)
