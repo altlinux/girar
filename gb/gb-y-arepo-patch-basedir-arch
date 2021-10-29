@@ -50,7 +50,13 @@ set -- "$@" \
 
 mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
-if [ -d "$dir/$arch"/base.bloat ]; then
+bloat_dir="$dir/$arch"/base.bloat
+need_regen=
+[ -d "$bloat_dir" ] ||
+	need_regen=1
+[ "$GB_REPO_OPT_BLAKE2B" = '--no-blake2b' ] || grep -qx 'BLAKE2b:' "$bloat_dir"/release ||
+	need_regen=1
+if [ -z "$need_regen" ]; then
 	# Patch previous base.bloat.
 	genbasedir "$@" \
 		--bloat \
@@ -59,6 +65,7 @@ if [ -d "$dir/$arch"/base.bloat ]; then
 		--add-list "$tmpdir"/add-list \
 		--rm-list "$tmpdir"/rm-list \
 		--no-xz --no-bz2 --no-zstd \
+		$GB_REPO_OPT_BLAKE2B \
 		$arch $comp
 else
 	# Generate whole base.bloat.
@@ -67,6 +74,7 @@ else
 		--bloat \
 		--basedir base.bloat \
 		--no-xz --no-bz2 --no-zstd \
+		$GB_REPO_OPT_BLAKE2B \
 		$arch $comp
 fi
 
@@ -77,6 +85,7 @@ genbasedir "$@" \
 	--prev-base "$dir/$arch"/base.bloat \
 	--useful-files="$tmpdir"/useful-files \
 	--xz --no-bz2 --no-zstd \
+	$GB_REPO_OPT_BLAKE2B \
 	--compressedonly \
 	$arch $comp
 

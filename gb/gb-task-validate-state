@@ -14,6 +14,13 @@ next_bb=build/repo/noarch/base.bloat.next
 	exit 1
 }
 
+if [ "$GB_REPO_OPT_BLAKE2B" != '--no-blake2b' ]; then
+	[ -f "$next_b"/unchanged ] || grep -qx 'BLAKE2b:' "$next_b"/release || {
+		gb-task-queue-rebuild
+		exit 1
+	}
+fi
+
 [ -f task/version ] &&
 	[ "$expected_task_version" = "$(head -c 8192 task/version)" ] || {
 	gb-task-queue-rebuild

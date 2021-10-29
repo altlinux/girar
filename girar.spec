@@ -12,8 +12,8 @@ Packager: Dmitry V. Levin <ldv@altlinux.org>
 Source: %name-%version.tar
 
 Requires(pre): shadow-utils
-# due to genbasedir --patch-basedir
-Requires: apt-repo-tools >= 0.7.0
+# due to blake2b support
+Requires: apt-repo-tools >= 0.8.0
 # due to post-receive hook (>= 0:1.5.1)
 # due to merge-base --is-ancestor
 Requires: git-core >= 0:1.8.0

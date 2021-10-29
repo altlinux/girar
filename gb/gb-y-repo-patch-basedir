@@ -61,7 +61,13 @@ for arch in $GB_ARCH noarch; do
 		continue
 	fi
 
-	if [ -d "$REPO_DIR/$arch"/base.bloat ]; then
+	bloat_dir="$REPO_DIR/$arch"/base.bloat
+	need_regen=
+	[ -d "$bloat_dir" ] ||
+		need_regen=1
+	[ "$GB_REPO_OPT_BLAKE2B" = '--no-blake2b' ] || grep -qx 'BLAKE2b:' "$bloat_dir"/release ||
+		need_regen=1
+	if [ -z "$need_regen" ]; then
 		# Patch previous base.bloat.
 		genbasedir "$@" $maybe_unchanged \
 			--bloat \
@@ -71,6 +77,7 @@ for arch in $GB_ARCH noarch; do
 			--add-list "$tmpdir/$arch-"add-list \
 			--rm-list "$tmpdir/$arch-"rm-list \
 			--no-xz --no-bz2 --no-zstd \
+			${GB_REPO_OPT_BLAKE2B-} \
 			$arch $comps &&
 				> "$tmpdir/OK-$arch" &
 	else
@@ -81,6 +88,7 @@ for arch in $GB_ARCH noarch; do
 			--architecture="$arch" \
 			--basedir base.bloat \
 			--no-xz --no-bz2 --no-zstd \
+			${GB_REPO_OPT_BLAKE2B-} \
 			$arch $comps &&
 				> "$tmpdir/OK-$arch" &
 	fi
@@ -118,6 +126,7 @@ for arch in $GB_ARCH noarch; do
 		--prev-base "$REPO_DIR/$arch"/base.bloat \
 		--useful-files="$tmpdir"/useful-files \
 		--xz ${GB_REPO_OPT_BZ2:---bz2} \
+		${GB_REPO_OPT_BLAKE2B-} \
 		--compressedonly \
 		$arch $comps &&
 			> "$tmpdir/OK-$arch" &
