@@ -52,10 +52,13 @@ mkdir -p "$HOME"/.cache/gen{pkg,src}list
 
 bloat_dir="$dir/$arch"/base.bloat
 need_regen=
-[ -d "$bloat_dir" ] ||
+if [ -d "$bloat_dir" ]; then
+	[ "$GB_REPO_OPT_BLAKE2B" = '--no-blake2b' ] || grep -qx 'BLAKE2b:' "$bloat_dir"/release ||
+		need_regen=1
+else
 	need_regen=1
-[ "$GB_REPO_OPT_BLAKE2B" = '--no-blake2b' ] || grep -qx 'BLAKE2b:' "$bloat_dir"/release ||
-	need_regen=1
+fi
+
 if [ -z "$need_regen" ]; then
 	# Patch previous base.bloat.
 	genbasedir "$@" \
