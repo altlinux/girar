@@ -1,0 +1,93 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. girar-sh-json-functions
+PROG='girar-amqp-subtask'
+
+action="$1"; shift
+id="$1"; shift
+subid="$1"; shift
+
+delete() {
+	print_json string status deleted
+}
+
+update() {
+	type='unknown'
+
+	if [ -s 'dir' ]; then
+		type='repo'
+	elif [ -s 'srpm' ]; then
+		type='srpm'
+	elif [ -s 'package' ]; then
+		[ -s 'copy_repo' ] &&
+			type='copy' ||
+			type='delete'
+	fi
+
+	print_json string status active
+	print_json_file string userid owner
+	print_json string type "$type"
+
+	#srpm specific
+	[ -s 'srpm' ] && print_json_file string 'srpm' srpm
+
+	#repo specific
+	[ -s 'dir' ] && print_json_file string 'dir' dir
+	[ -s 'tag_name' ] && print_json_file string 'tag_name' tagname
+	[ -s 'tag_id' ] && print_json_file string 'tag_id' tagid
+	[ -s 'tag_author' ] && print_json_file string 'tag_author' tagauthor
+
+	#used by copy, rebuild and del
+	[ -s 'package' ] && print_json_file string 'package' package
+
+	#copy specific
+	[ -s 'copy_repo' ] && print_json_file string 'copy_repo' copyrepo
+
+	#rebuild specific
+	[ -s 'rebuild_from' ] && print_json_file string 'rebuild_from' rebuildfrom
+
+	#source package name
+	[ -s "../../build/$subid/pkgname" ] && \
+		print_json_file string "../../build/$subid/pkgname" pkgname
+
+	return 0
+}
+
+approve() {
+	print_json bool revoke "$([ "$revoke" = "0" ] && echo false || echo true)"
+	[ "$revoke" = '1' ] ||
+		print_json_file \
+			base64 "../../acl/${action}d/$subid/${GIRAR_USER:-$(whoami)}" base64_message
+}
+
+cd "$TASKS_DIR/$id/gears/$subid"
+
+handler='update'
+routing_key="task.subtask.$action"
+case "$action" in
+	create|update)
+		;;
+	delete)
+		handler='delete'
+		;;
+	approve|disapprove)
+		handler='approve'
+		revoke="$1"; shift
+		;;
+	*)
+		fatal "unknown action: '$action'"
+		;;
+esac
+
+{
+	printf '{'
+	print_json string _routing_key "$routing_key"
+	print_json string _timestamp "$(date '+%s')"
+	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
+	print_json number taskid "$id"
+	print_json number subtaskid "$subid"
+	print_json_file string '../../task/state' state DELETED
+	$handler
+	printf '}'
+} | girar_amqp_publish -r "$routing_key"

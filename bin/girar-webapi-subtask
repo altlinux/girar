@@ -49,6 +49,9 @@ case "$action" in
 		url="/tasks/$id/subtasks/$subid"
 		handler='delete'
 		;;
+	approve|disapprove|build)
+		exit 0
+		;;
 	*)
 		fatal "unknown action: '$action'"
 		;;

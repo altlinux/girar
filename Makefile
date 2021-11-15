@@ -67,6 +67,9 @@ bin_TARGETS = \
 	bin/girar-acl-merge-changes \
 	bin/girar-acl-notify-changes \
 	bin/girar-acl-show \
+	bin/girar-amqp-acl \
+	bin/girar-amqp-subtask \
+	bin/girar-amqp-task \
 	bin/girar-build \
 	bin/girar-check-acl-item \
 	bin/girar-check-acl-leader \
@@ -84,7 +87,6 @@ bin_TARGETS = \
 	bin/girar-quota \
 	bin/girar-repo-copyself \
 	bin/girar-repo-savetree \
-	bin/girar-task-rmdep \
 	bin/girar-scrap-stale-tasks \
 	bin/girar-sh \
 	bin/girar-sh-config \
@@ -110,12 +112,13 @@ bin_TARGETS = \
 	bin/girar-task-make-info-json \
 	bin/girar-task-new \
 	bin/girar-task-rm \
+	bin/girar-task-rmdep \
 	bin/girar-task-run \
 	bin/girar-task-share \
 	bin/girar-task-show \
 	bin/girar-task-update-queues \
 	bin/girar-webapi-subtask \
-	bin/girar-webapi-task
+	bin/girar-webapi-task \
 	#
 
 check_TARGETS = check/091-check-arepo check/101-check-policydeps

@@ -108,4 +108,22 @@ post_api()
 	fi
 }
 
+girar_amqp_publish() {
+	if [ -n "$AMQP_SERVER" ]; then
+		amqp-publish \
+			--server="$AMQP_SERVER" \
+			--port="$AMQP_PORT" \
+			--username="$AMQP_USERNAME" \
+			--vhost="$AMQP_VHOST" \
+			--exchange="$AMQP_EXCHANGE" \
+			${AMQP_CACERT:+--ssl} \
+			--cacert="$AMQP_CACERT" \
+			--content-type="application/json" \
+			--persistent \
+			"$@" ||:
+	else
+		cat >/dev/null ||:
+	fi
+}
+
 fi #__included_girar_sh_functions

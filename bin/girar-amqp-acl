@@ -1,0 +1,32 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. girar-sh-json-functions
+PROG='girar-amqp-acl'
+
+action="$1"; shift
+repo="$1"; shift
+
+routing_key="acl.$action"
+case "$action" in
+	add|create|del|delete|leader|replace)
+		target="$1"; shift
+		prev_owners="$1"; shift
+		new_owners="$1"; shift
+		;;
+	*)
+		fatal "unknown action: '$action'"
+		;;
+esac
+
+{
+	printf '{'
+	print_json string _routing_key "$routing_key"
+	print_json string _timestamp "$(date '+%s')"
+	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
+	print_json string repo "$repo"
+	print_json string target "$target"
+	print_json array new_owners "$new_owners"
+	print_json array prev_owners "$prev_owners"
+	printf '}'
+} | girar_amqp_publish -r "$routing_key"

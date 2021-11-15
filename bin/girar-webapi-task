@@ -58,6 +58,9 @@ case "$action" in
 			exit 0
 		url="/tasks/$id"
 		;;
+	deps|plan)
+		exit 0
+		;;
 	*)
 		fatal "unknown action: '$action'"
 		;;

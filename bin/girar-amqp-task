@@ -1,0 +1,84 @@
+#!/bin/sh -efu
+
+. girar-sh-functions
+. girar-sh-json-functions
+PROG='girar-amqp-task'
+
+action="$1"; shift
+id="$1"; shift
+
+share() {
+	print_json bool shared \
+		"$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf true -or -printf false 2>/dev/null || echo false)"
+}
+
+deps() {
+	print_json array args "$args"
+	print_json_file array task/depends depends
+}
+
+update() {
+
+	print_json_file string task/owner owner
+	print_json_file string task/repo repo
+
+	print_json_file number task/try try 0
+	print_json_file number task/iter iter 0
+	print_json_file string task/run run
+	print_json_file string task/message message
+	print_json bool swift "$(test -f task/swift && echo true || echo false)"
+	print_json bool testonly "$(test -f task/test-only && echo true || echo false)"
+	share
+
+	aowner=
+	if [ -f task/abort ]; then
+		aowner="$(stat -c %U task/abort)"
+		aowner="${aowner#"$USER_PREFIX"}"
+	fi
+	print_json string aborted "$aowner"
+}
+
+state() {
+	if [ "$action" = 'delete' ]; then
+		print_json string state DELETED
+	else
+		print_json_file string task/state state DELETED
+	fi
+}
+
+cd "$TASKS_DIR/$id"
+
+handler=
+routing_key="task.$action"
+case "$action" in
+	state|delete)
+		;;
+	update|create)
+		handler='update'
+		;;
+	share)
+		handler='share'
+		share_action="$1"; shift
+		routing_key="$routing_key.$share_action"
+		;;
+	deps)
+		handler='deps'
+		dep_action="$1"; shift
+		args="$@"
+		routing_key="$routing_key.$dep_action"
+		;;
+	*)
+		fatal "unknown action: '$action'"
+		;;
+esac
+
+{
+	printf '{'
+	print_json string _routing_key "$routing_key"
+	print_json string _timestamp "$(date '+%s')"
+	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
+	print_json number taskid "$id"
+	state
+	$handler
+	printf '}'
+} | girar_amqp_publish -r "$routing_key"
