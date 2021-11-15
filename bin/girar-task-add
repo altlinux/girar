@@ -600,7 +600,7 @@ atexit()
 change_state()
 {
 	girar-task-change-state "$id" NEW
-	girar-webapi-subtask create "$id" "$i"
+	girar-hook-event subtask create "$id" "$i"
 }
 
 trap '' HUP INT QUIT PIPE TERM

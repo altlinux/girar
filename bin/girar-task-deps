@@ -109,4 +109,5 @@ umask 002
 		"user=$GIRAR_USER task=$id depends=$(tr -s '[:space:]' , < task/depends | sed 's/,$//')"
 } < task/depends
 
+girar-hook-event task deps "$id" "$action" "$@"
 girar-task-change-state "$id" NEW

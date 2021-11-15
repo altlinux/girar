@@ -336,4 +336,5 @@ while read item action new_owners; do
 
 	# First failure breaks the loop
 	do_$action
+	girar-hook-event acl "$action" "$repository" "$item" "$prev_owners" "$new_owners"
 done

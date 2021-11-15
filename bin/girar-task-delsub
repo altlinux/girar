@@ -68,7 +68,7 @@ for i; do
 	rm -rf acl/approved/$i acl/disapproved/$i
 
 	girar-task-change-state "$id" NEW
-	girar-webapi-subtask delete "$id" "$i"
+	girar-hook-event subtask delete "$id" "$i"
 
 	trap - HUP INT QUIT PIPE TERM
 	echo >&2 "task #$id: removed subtask #$i"

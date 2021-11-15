@@ -409,7 +409,7 @@ if [ "$next_state" = POSTPONED ]; then
 	check_depends || {
 		next_state=FAILED
 		girar-task-change-state "$id" "$next_state"
-		girar-webapi-task update "$id"
+		girar-hook-event task update "$id"
 		exit 1
 	}
 
@@ -419,6 +419,6 @@ if [ "$next_state" = POSTPONED ]; then
 	}
 fi
 
-girar-webapi-task update "$id"
+girar-hook-event task update "$id"
 
 echo >&2 "task #$id: try #$try is $next_state, result will be emailed to $owner@$EMAIL_DOMAIN"

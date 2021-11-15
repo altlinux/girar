@@ -18,6 +18,6 @@ if [ "$old_state" = "$new_state" ]; then
 fi
 
 echo "$new_state" > task/state
-girar-webapi-task state "$id" &
+girar-hook-event task state "$id" &
 girar-task-make-index-html "$id" &
 girar-task-update-queues  "$id" "$old_state" "$new_state"

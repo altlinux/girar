@@ -139,6 +139,7 @@ for i; do
 	fi
 	logger -t "$PROG0" "user=$GIRAR_USER task=$id subtask=$i $action $noun"
 	message "task #$id: $action $noun of subtask #$i"
+	girar-hook-event subtask "$infinitive" "$id" "$i" "$revoke"
 done
 
 # Update index.html and info.json files if the task is not locked.

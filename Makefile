@@ -83,6 +83,7 @@ bin_TARGETS = \
 	bin/girar-check-task-perms \
 	bin/girar-get-email-address \
 	bin/girar-gpg \
+	bin/girar-hook-event \
 	bin/girar-normalize-repo-name \
 	bin/girar-quota \
 	bin/girar-repo-copyself \
