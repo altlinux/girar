@@ -17,6 +17,12 @@ EMAIL_DOMAIN = altlinux.org
 GEARS_DIR = /gears
 GITWEB_URL = https://git.altlinux.org
 WEBAPI_URL = http://webery.altlinux.org
+AMQP_SERVER = amqp.mskdc.altlinux.org
+AMQP_PORT = 5671
+AMQP_VHOST = alt
+AMQP_USERNAME = girar
+AMQP_EXCHANGE = girar-ex
+AMQP_CACERT = /etc/girar/amqp.cacert
 INCOMING_DIR = ${STATE_DIR}/incoming
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
@@ -286,6 +292,12 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
 	    -e 's,@WEBAPI_URL@,${WEBAPI_URL},g' \
+	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
+	    -e 's,@AMQP_PORT@,${AMQP_PORT},g' \
+	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \
+	    -e 's,@AMQP_USERNAME@,${AMQP_USERNAME},g' \
+	    -e 's,@AMQP_EXCHANGE@,${AMQP_EXCHANGE},g' \
+	    -e 's,@AMQP_CACERT@,${AMQP_CACERT},g' \
 		<$< >$@
 	chmod --reference=$< $@
 
