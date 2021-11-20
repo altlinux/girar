@@ -145,7 +145,7 @@ hsh-run --rooter --execute=find.sh >flist2 2>out ||
 	} >&2
 sort -u -o flist2{,}
 
-# Check for circilar dependencies.
+# Check for circular dependencies.
 comm -23 packages{2,1} >new-packages
 n=$(wc -l <new-packages)
 if [ $n -lt 1 ]; then

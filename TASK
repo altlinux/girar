@@ -88,7 +88,7 @@ TASK_ID/build/$i/pkgname		source package name
 TASK_ID/build/$i/changelog		source package last changes
 
 # Task repository generated when basic tests are passed.
-TASK_ID/build/repo		http://git.altlinux.org/repo/TASK_ID $arch task
+TASK_ID/build/repo		https://git.altlinux.org/repo/TASK_ID $arch task
 
 # Package test install files, with per-binary-package per-arch subdirs.
 TASK_ID/install/$package/$arch/id		unique id of $package-%version-%release.$arch.rpm
