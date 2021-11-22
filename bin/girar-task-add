@@ -307,20 +307,23 @@ handle_kmodules()
 	handle_subactions rebuild "$@"
 }
 
-handle_rebuild_unmets()
+handle_unmets()
 {
+	local subaction
+	subaction="$1"; shift
+
 	[ -s report/unmets-src ] ||
-		fatal "task #$id: no unmets to rebuild"
+		fatal "task #$id: no unmets to $subaction"
 
 	local self
 	self=$(join -o1.1 plan/add-src report/unmets-src)
 	[ -z "$self" ] ||
-		fatal "task #$id: cannot rebuild unmets: $(printf %s "$self" |tr -s '[:space:]' ' ')"
+		fatal "task #$id: cannot $subaction unmets: $(printf %s "$self" |tr -s '[:space:]' ' ')"
 	set -- $(cat report/unmets-src)
 	[ $# -gt 0 ] ||
-		fatal "task #$id: no unmets to rebuild"
+		fatal "task #$id: no unmets to $subaction"
 
-	handle_subactions rebuild "$@"
+	handle_subactions "$subaction" "$@"
 }
 
 case "$action" in
@@ -414,7 +417,7 @@ case "$action" in
 	handle_kmodules
 	;;
 	rebuild-unmets|remeet)
-	handle_rebuild_unmets
+	handle_unmets rebuild
 	;;
 	copy)
 	[ "$repo" != "$copy_repo" ] ||
