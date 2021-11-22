@@ -214,7 +214,7 @@ show()
 <html>
   <head>
     <meta name="robots" content="index, nofollow"/>
-    <link href="http://yastatic.net/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://yastatic.net/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
     <title>Task #$id for $repo by $owner</title>
   </head>
 <body>
