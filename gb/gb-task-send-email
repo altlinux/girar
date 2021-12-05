@@ -74,6 +74,11 @@ references="$(set +f && ls logs/events.*.*.log 2>/dev/null |
 		grep -Fvx "$try.$iter" |
 		sed "s/.*/<girar.task.$id.&@$hostname>/")"
 in_reply_to="$(printf %s "$references" |tail -1)"
+if [ -n "${GB_EMAIL_REPLY_TO-}" ]; then
+	reply_to="${GB_EMAIL_REPLY_TO-}"
+else
+	reply_to="$owner@$GB_EMAIL_DOMAIN_PEOPLE"
+fi
 
 . gb-sh-tmpdir
 
@@ -84,7 +89,7 @@ Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
 	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
 	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
 Message-ID: $message_id
-Reply-To: $owner@$GB_EMAIL_DOMAIN_PEOPLE
+Reply-To: $reply_to
 Mail-Followup-To: $me
 X-girar-task-id: $id
 X-girar-task-owner: $owner
