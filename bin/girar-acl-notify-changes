@@ -76,7 +76,7 @@ for repository in $(cd notify && set +f && echo *); do
 		cat > msg <<EOF
 From: "Girar ACL ($GIRAR_USER)" <girar-acl@$EMAIL_DOMAIN>
 To: $email
-Reply-To: $GIRAR_USER@$EMAIL_DOMAIN
+Reply-To: $PACKAGES_EMAIL
 Mail-Followup-To: $me
 X-Incominger: acl
 X-Incominger-Reason: acl-change-notification
