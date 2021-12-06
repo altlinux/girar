@@ -228,14 +228,13 @@ show()
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li><a href="https://en.altlinux.org/Git.alt_reference">Docs</a></li>
-          <li><a href="http://sisyphus.ru/">Sisyphus</a></li>
         </ul>
       </div>
     </div>
   </nav>
   <div class="container">
     <div class="page-header">
-      <h4>Task #$id for <i>$repo</i> by <a href="$PEOPLE_DIR/$owner/packages/?o=age">$owner</a></h4>
+      <h4>Task #$id for <a href="https://packages.altlinux.org/$repo/">$repo</a> by <a href="$PEOPLE_DIR/$owner/packages/?o=age">$owner</a></h4>
     </div>
     <div class="row">
       <dl class="dl-horizontal">
