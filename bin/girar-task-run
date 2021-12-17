@@ -204,11 +204,12 @@ check_rebuilds()
 	done
 }
 
-check_srpm()
+check_nevr()
 {
 	local i nevr s_name s_evr r_evr rc=0
 	for i in $nums; do
-		[ -s gears/$i/srpm -a -s gears/$i/nevr ] || continue
+		[ -s gears/$i/nevr ] ||
+			continue
 		nevr="$(cat gears/$i/nevr)"
 		sid="$(cat gears/$i/sid)"
 		GIRAR_ALLOW_SAME_NEVR=
@@ -220,7 +221,13 @@ check_srpm()
 		r_evr="$(GIRAR_ALLOW_SAME_NEVR=$GIRAR_ALLOW_SAME_NEVR \
 			girar-check-nevr-in-repo "$s_name" "$s_evr" "$repo")" ||
 		{
-			message "task #$id: subtask #$i: package \`$(cat gears/$i/srpm)' is not newer than \`$s_name-$r_evr' in \`$repo'"
+			local s_package=
+			if [ -s gears/$i/srpm ]; then
+				s_package="$(cat gears/$i/srpm)"
+			elif [ -s gears/$i/package ]; then
+				s_package="$(cat gears/$i/package)-$s_evr"
+			fi
+			message "task #$id: subtask #$i: package \`$s_package' is not newer than \`$s_name-$r_evr' in \`$repo'"
 			rc=1
 		}
 		[ "$rc" -ne 0 ] ||
@@ -268,7 +275,7 @@ check_depends()
 
 check_copy_del
 check_rebuilds
-check_srpm
+check_nevr
 check_depends
 
 [ -n "$task_msg" ] ||
