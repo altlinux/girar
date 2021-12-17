@@ -196,6 +196,12 @@ validate_rebuild()
 		fatal "Invalid request to rebuild a nonexistent package \`$package' from \`$from_repo'"
 
 	evr="$1"; shift
+	if [ "$repo" != "$repo_norm" ]; then
+		local r_evr
+		r_evr="$(GIRAR_ALLOW_SAME_NEVR=1 \
+			 girar-check-nevr-in-repo "$package" "$evr" "$repo")" ||
+			fatal "package \`$package-$evr' from \`$repo_norm' is not newer than \`$package-$r_evr' in \`$repo'"
+	fi
 	srpm_name="$1"; shift
 	sym="${package:0:1}"
 	spi="$STATE_DIR/repo/$repo_norm/index/src/$sym/$package/d-t-s-evr.list"
