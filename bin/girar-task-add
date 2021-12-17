@@ -215,6 +215,7 @@ validate_rebuild()
 		commit_id="$(git --git-dir="$dir" rev-parse \
 				--branches="[${repo_norm:0:1}]${repo_norm:1}")"
 	fi
+	nevr="$package	$evr"
 
 	case "$sid" in
 		gear:*)
@@ -645,10 +646,13 @@ printf '%s\n' "$tag_id" >gears/$i/tag_id
 printf '%s\n' "gear:$tag_id" >gears/$i/sid
 printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$GIRAR_USER" >gears/$i/userid
-if [ "$action" = rebuild ]; then
-	printf '%s\n' "$repo_norm" >gears/$i/rebuild_from
-	printf '%s\n' "$package" >gears/$i/package
-fi
+case "$action" in
+	rebuild)
+		printf '%s\n' "$nevr" >gears/$i/nevr
+		printf '%s\n' "$repo_norm" >gears/$i/rebuild_from
+		printf '%s\n' "$package" >gears/$i/package
+		;;
+esac
 
 GIT_DIR=gears/$i/git
 export GIT_DIR
