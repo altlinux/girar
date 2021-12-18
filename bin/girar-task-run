@@ -190,18 +190,46 @@ check_copy_del()
 	return $rc
 }
 
+check_one_rebuild()
+{
+	local i package sid spi sym
+	i="$1"
+	sid="$(cat gears/$i/sid)"
+	package="$(cat gears/$i/package)"
+	sym="${package:0:1}"
+	spi="$STATE_DIR/repo/$repo/index/src/$sym/$package/d-t-s-evr.list"
+	set -- $(tail -n1 -- "$spi")
+	case $# in
+		5) [ "$sid" = "$5" ] || {
+			message "task #$id: subtask #$i: package \`$package' sid \`$sid' does not match the repository \`$repo' src index sid \`$5'"
+			return 1
+		} ;;
+		4) [ "$4" = '-' ] || {
+			message "the repository \`$repo' src index for package \`$package' does not contain a source id"
+			return 1
+		} ;;
+		*)	message "repository \`$repo' does not have a valid src index for package \`$package'"
+			return 1 ;;
+	esac
+	return 0
+}
+
 rebuild_nums=
 check_rebuilds()
 {
-	local i rebuild_from
+	local i rebuild_from rc=0
 	for i in $nums; do
 		[ -s gears/$i/rebuild_from ] ||
 			continue
 		rebuild_from="$(cat gears/$i/rebuild_from)"
 		[ "$rebuild_from" = "$repo" ] ||
 			continue
+		check_one_rebuild "$i" ||
+			rc=1
 		rebuild_nums="$rebuild_nums $i"
 	done
+
+	return $rc
 }
 
 check_nevr()
