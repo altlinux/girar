@@ -241,7 +241,12 @@ check_nevr()
 		nevr="$(cat gears/$i/nevr)"
 		sid="$(cat gears/$i/sid)"
 		GIRAR_ALLOW_SAME_NEVR=
-		if [ -f gears/$i/rebuild_from ]; then
+		if [ -s gears/$i/rebuild_from ]; then
+			if [ "$(cat gears/$i/rebuild_from)" = "$repo" ]; then
+				# sids of pure rebuilds have already been
+				# verified by check_rebuilds.
+				continue
+			fi
 			GIRAR_ALLOW_SAME_NEVR=1
 		fi
 		s_name="${nevr%	*}"
