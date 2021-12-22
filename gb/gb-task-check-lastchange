@@ -24,11 +24,17 @@ changelog()
 
 is_lastchange_inheritance_check_relaxed()
 {
+	local owner
 	if cmp -s "check-lastchange-inheritance/.$I" "check-lastchange-inheritance/$I"; then
-		local owner="$(stat -c %U "check-lastchange-inheritance/$I")"
+		owner="$(stat -c %U "check-lastchange-inheritance/$I")"
 		owner="${owner#git_}"
 		echo >&2 "$N: lastchange inheritance check relaxed by $owner"
 		return 0
+	elif [ -f "check-lastchange-inheritance/.$I" -a \
+	       -f "check-lastchange-inheritance/$I" ]; then
+		owner="$(stat -c %U "check-lastchange-inheritance/$I")"
+		owner="${owner#git_}"
+		echo >&2 "$N: lastchange inheritance check relaxation by $owner is not applicable"
 	fi
 	return 1
 }
@@ -41,7 +47,8 @@ is_git_inherited()
 	set_GIT_DIR "$GB_GEARS_DIR" "$1"
 	local id
 	id="$(git rev-parse --branches="[${GB_REPO_NAME:0:1}]${GB_REPO_NAME:1}" 2>/dev/null)" &&
-	[ -n "$id" ]
+	[ -n "$id" ] &&
+	echo >&2 "$N: lastchange inheritance check relaxed by git inheritance"
 }
 
 check()
