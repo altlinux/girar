@@ -11,19 +11,16 @@ fail_if_task_abort_requested
 
 . gb-sh-tmpdir
 
-rc=0
-text=OK
-
 print_error()
 {
-	stamp_echo >&2 "error: $*"
-	rc=1
+	echo >&2 "error: #$I: $*"
+	echo "#$I" >> $tmpdir/errors
 }
 
 print_warning()
 {
-	stamp_echo >&2 "warning: $*"
-	text=COND-OK
+	echo >&2 "warning: #$I: $*"
+	echo "#$I" >> $tmpdir/warnings
 }
 
 changelog()
@@ -113,7 +110,7 @@ check()
 		reason=" ($(cat $tmpdir/reason))"
 	fi
 
-	$action "#$I ${2##*/}: missing last changelog entry from ${1##*/}$reason:"
+	$action "${2##*/}: missing last changelog entry from ${1##*/}$reason:"
 	echo >&2 "* $lastchange"
 }
 
@@ -122,6 +119,15 @@ while read -r N EVR F1 P I; do
 	check "$I" "$N" "$EVR" "$GB_REPO_DIR/files/SRPMS/$F1" "$P" </dev/null
 done <$tmpdir/N+EVR+F1+P+I
 
-[ "$rc" = 0 ] || text=FAILED
+rc=0
+if [ -f $tmpdir/errors ]; then
+	rc=1
+	text="FAILED for: $(sort -t'#' -k2,2n $tmpdir/errors |tr -s '\n' ' ')"
+elif [ -f $tmpdir/warnings ]; then
+	text="COND-OK for: $(sort -t'#' -k2,2n $tmpdir/warnings |tr -s '\n' ' ')"
+else
+	text=OK
+fi
+
 stamp_echo >&2 "srpm inheritance check $text"
 exit $rc
