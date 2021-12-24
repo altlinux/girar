@@ -4,34 +4,35 @@
 
 fail_if_task_abort_requested
 
+. gb-sh-tmpdir
+
 # Obtain a shared lock on the $GB_GEARS_DIR.
 exec < "$GB_GEARS_DIR"
 flock -s 0
 
-text=OK
-
 fail()
 {
-	echo >&2 "error: $*"
-	text=FAILED
+	echo >&2 "error: #$I: $*"
+	echo "#$I" >> $tmpdir/errors
 }
 
 warn()
 {
-	echo >&2 "warning: $*"
-	[ "$text" = FAILED ] ||
-		text=COND-OK
+	echo >&2 "warning: #$I: $*"
+	echo "#$I" >> $tmpdir/warnings
 }
 
 is_git_inheritance_check_relaxed()
 {
-	if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
-		local owner="$(stat -c %U "check-git-inheritance/$i")"
-		owner="${owner#git_}"
-		echo >&2 "$N: git inheritance check relaxed by $owner"
-		return 0
-	fi
-	return 1
+	{
+		if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
+			local owner="$(stat -c %U "check-git-inheritance/$i")"
+			owner="${owner#git_}"
+			echo "relaxed by $owner"
+			return 0
+		fi
+		return 1
+	} > $tmpdir/reason
 }
 
 update_git_inheritance_data()
@@ -44,27 +45,27 @@ update_git_inheritance_data()
 cond1_fail()
 {
 	if is_git_inheritance_check_relaxed; then
-		warn "$@"
+		warn "$* ($(cat $tmpdir/reason))"
 	else
-		fail "$@"
+		fail "$*"
 	fi
 }
 
 cond2_fail()
 {
 	if is_check_failure_tolerated; then
-		warn "$@"
+		warn "$* (relaxed by repo policy)"
 	else
-		cond1_fail "$@"
+		cond1_fail "$*"
 	fi
 }
 
 specsubst_cond_fail()
 {
 	if [ -n "${N##kernel-modules-*}" ]; then
-		warn "$@"
+		warn "$* (relaxed for regular packages)"
 	else
-		fail "$@"
+		fail "$* (problematic for kernel modules)"
 	fi
 }
 
@@ -133,7 +134,7 @@ girar_check_srpm()
 
 	update_git_inheritance_data "$old_commit_id"
 	if is_git_inheritance_check_relaxed; then
-		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed"
+		warn "update of \`$N' by srpm upload, $GIT_DIR branch \`$GB_REPO_NAME' will be removed ($(cat $tmpdir/reason))"
 	else
 		fail "$GIT_DIR branch \`$GB_REPO_NAME' already exists, package update by srpm upload is not possible"
 	fi
@@ -188,8 +189,18 @@ girar_check()
 }
 
 while read -r N EVR F P I; do
-	girar_check "$N" "$I"
+	girar_check "$N" "$I" </dev/null
 done <plan/add-src
 
+rc=0
+if [ -f $tmpdir/errors ]; then
+	rc=1
+	text="FAILED for: $(sort -t'#' -k2,2n $tmpdir/errors |tr -s '\n' ' ')"
+elif [ -f $tmpdir/warnings ]; then
+	text="COND-OK for: $(sort -t'#' -k2,2n $tmpdir/warnings |tr -s '\n' ' ')"
+else
+	text=OK
+fi
+
 stamp_echo >&2 "gears inheritance check $text"
-[ "$text" != FAILED ] || exit 1
+exit $rc
