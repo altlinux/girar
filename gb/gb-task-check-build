@@ -8,11 +8,11 @@
 
 fail_if_task_abort_requested
 
-rc=0
+. gb-sh-tmpdir
+
 fail()
 {
-	stamp_echo >&2 "build check FAILED for $*"
-	rc=1
+	printf '%s\n' "$*" >> $tmpdir/errors
 }
 
 # check each built package separately
@@ -27,6 +27,13 @@ for arch in $GB_ARCH; do
 	$0-arch "$arch" || fail "$arch"
 done
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
+rc=0
+if [ -f $tmpdir/errors ]; then
+	rc=1
+	text="FAILED for: $(sort -t'#' -k2,2n $tmpdir/errors |tr -s '\n' ' ')"
+else
+	text=OK
+fi
+
 stamp_echo >&2 "build check $text"
 exit $rc
