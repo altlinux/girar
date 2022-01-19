@@ -53,6 +53,7 @@ done
 gb-task-check-build
 gb-task-check-noarch
 gb-task-repo-plan
+gb-x-girar hook-event task plan "$id" ||:
 
 # gather information about closed bugs and fixed vulns
 gb-task-gen-changelog

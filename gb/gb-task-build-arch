@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+id="$(cat task/id)"
 arch="$1"; shift
 
 . gb-sh-functions
@@ -8,4 +9,5 @@ rm -rf "build/repo/$arch"
 
 for i in $(src_nums); do
 	$0-i "$arch" "$i"
+	gb-x-girar hook-event subtask build "$id" "$i" "$arch" "$?" ||:
 done

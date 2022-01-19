@@ -61,6 +61,11 @@ approve() {
 			base64 "../../acl/${action}d/$subid/${GIRAR_USER:-$(whoami)}" base64_message
 }
 
+build() {
+	print_json string arch "$arch"
+	print_json bool failed "$([ "$failed" = "0" ] && echo false || echo true)"
+}
+
 cd "$TASKS_DIR/$id/gears/$subid"
 
 handler='update'
@@ -74,6 +79,11 @@ case "$action" in
 	approve|disapprove)
 		handler='approve'
 		revoke="$1"; shift
+		;;
+	build)
+		handler='build'
+		arch="$1"; shift
+		failed="$1"; shift
 		;;
 	*)
 		fatal "unknown action: '$action'"
