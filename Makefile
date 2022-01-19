@@ -33,7 +33,7 @@ STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = /tasks
 TASKS_GROUP = tasks
 USERS_GROUP = girar-users
-USER_PREFIX = git_
+USER_PREFIX = alt_
 girar_lockdir = ${lockdir}/girar
 girar_sbindir = ${sbindir}
 
