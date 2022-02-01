@@ -1,3 +1,4 @@
+GB_USER_PREFIX=git_
 GB_TASKS_DIR=/tasks
 GB_TASKS_DONE_DIR="$GB_TASKS_DIR/archive/done"
 GB_GEARS_DIR=/gears

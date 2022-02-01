@@ -27,7 +27,7 @@ is_git_inheritance_check_relaxed()
 	{
 		if cmp -s "check-git-inheritance/.$i" "check-git-inheritance/$i"; then
 			local owner="$(stat -c %U "check-git-inheritance/$i")"
-			owner="${owner#git_}"
+			owner="${owner#"$GB_USER_PREFIX"}"
 			echo "relaxed by $owner"
 			return 0
 		fi

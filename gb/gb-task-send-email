@@ -84,8 +84,8 @@ fi
 
 cat >"$tmpdir/draft" <<__EOF
 From: (Girar $me ($run_by)) $me
-To: git_$owner
-Cc: $(printf %s "$cc" | sort | sed 's/^[^@]/git_&/' |
+To: $GB_USER_PREFIX$owner
+Cc: $(printf %s "$cc" | sort | sed "s/^[^@]/$GB_USER_PREFIX&/" |
 	sed 's/^@\(.\+\)$/\1@'"$qgroups"/ |
 	tr -s '\n' , | sed 's/,/, /g')$GB_REPO_EMAIL
 Message-ID: $message_id

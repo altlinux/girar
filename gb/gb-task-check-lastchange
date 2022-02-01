@@ -36,13 +36,13 @@ is_lastchange_inheritance_check_relaxed()
 	local owner
 	if cmp -s "check-lastchange-inheritance/.$I" "check-lastchange-inheritance/$I"; then
 		owner="$(stat -c %U "check-lastchange-inheritance/$I")"
-		owner="${owner#git_}"
+		owner="${owner#"$GB_USER_PREFIX"}"
 		echo "relaxed by $owner"
 		return 0
 	elif [ -f "check-lastchange-inheritance/.$I" -a \
 	       -f "check-lastchange-inheritance/$I" ]; then
 		owner="$(stat -c %U "check-lastchange-inheritance/$I")"
-		owner="${owner#git_}"
+		owner="${owner#"$GB_USER_PREFIX"}"
 		echo "relaxation by $owner is not applicable"
 	fi
 	return 1

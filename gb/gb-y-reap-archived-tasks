@@ -17,7 +17,7 @@ for task in $(set +f && ls -d [1-9]*); do
 		fi
 	done
 	owner="$(stat -c %U "$task")"
-	owner="${owner#git_}"
+	owner="${owner#"$GB_USER_PREFIX"}"
 	dir="../.done/$owner"
 	[ -d "$dir" ] || continue
 	mv "$task" "$dir/"
