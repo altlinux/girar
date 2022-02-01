@@ -67,7 +67,7 @@ if [ -f task/swift ]; then
 fi
 if [ -f task/abort ]; then
 	aowner="$(stat -c %U task/abort)"
-	aowner="${aowner#git_}"
+	aowner="${aowner#"$USER_PREFIX"}"
 	printf ' aborted_by=%s' "$aowner"
 fi
 printf ' repo=%s' "$(cat task/repo)"

@@ -40,7 +40,7 @@ printFromFile() {
 	aowner=
 	if [ -f task/abort ]; then
 		aowner="$(stat -c %U task/abort)"
-		aowner="${aowner#git_}"
+		aowner="${aowner#"$USER_PREFIX"}"
 	fi
 	printf '"aborted":"%s"\n' "$aowner"
 	printf '}\n'

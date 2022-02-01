@@ -48,7 +48,7 @@ request_abort()
 	if [ -f task/abort ]; then
 		local aowner awhen
 		aowner="$(stat -c %U task/abort)"
-		aowner="${aowner#git_}"
+		aowner="${aowner#"$USER_PREFIX"}"
 		awhen="$(stat -c %y task/abort)"
 		fatal "task #$id abort already requested by $aowner at $awhen"
 	fi

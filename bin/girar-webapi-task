@@ -37,7 +37,7 @@ update() {
 	aowner=
 	if [ -f task/abort ]; then
 		aowner="$(stat -c %U task/abort)"
-		aowner="${aowner#git_}"
+		aowner="${aowner#"$USER_PREFIX"}"
 	fi
 	print_json string "aborted" "$aowner"
 }
