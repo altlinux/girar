@@ -59,6 +59,15 @@ for f in $(cd diff && set +f && echo list.*); do
 			fi
 		done >> "notify/$repo/$person"
 	done
+
+	# Trigger acl event for each modified item
+	items="$(cut -f1 "diff/$f" | sort -u)"
+	for item in $items; do
+		quote_sed_regexp_variable qitem "$item"
+		prev_owners="$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$old_list")"
+		new_owners="$(sed -n "s/^\\($qitem[[:space:]]\\)//p" "$new_list")"
+		girar-hook-event acl "$repo" "$item" "$prev_owners" "$new_owners" ||:
+	done
 done
 
 me="$(whoami)"
