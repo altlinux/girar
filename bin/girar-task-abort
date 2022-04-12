@@ -59,11 +59,13 @@ request_abort()
 	log="logs/events.$try.$iter.log"
 	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: task abort requested by $GIRAR_USER." >> "$log"
 	message "task #$id abort requested"
+	girar-hook-event task abort "$id"
 }
 
 do_abort()
 {
 	message "task #$id was not locked, trying immediate abort"
+	girar-hook-event task abort "$id"
 	girar-task-change-state "$id" FAILED
 	logger -t "$PROG0" "user=$GIRAR_USER task=$id repo=$repo"
 	message "task #$id aborted"

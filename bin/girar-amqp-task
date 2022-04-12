@@ -7,6 +7,17 @@ PROG='girar-amqp-task'
 action="$1"; shift
 id="$1"; shift
 
+abort() {
+	local aowner awhen
+	if [ -f task/abort ]; then
+		aowner="$(stat -c %U task/abort)"
+		aowner="${aowner#"$USER_PREFIX"}"
+		awhen="$(stat -c %Y task/abort)"
+	fi
+	print_json string aowner "${aowner:-}"
+	print_json string awhen "${awhen:-}"
+}
+
 share() {
 	print_json bool shared \
 		"$(find gears -maxdepth 0 -path gears -type d -perm -g=w -printf true -or -printf false 2>/dev/null || echo false)"
@@ -55,6 +66,9 @@ case "$action" in
 		;;
 	update|create)
 		handler='update'
+		;;
+	abort)
+		handler='abort'
 		;;
 	share)
 		handler='share'
