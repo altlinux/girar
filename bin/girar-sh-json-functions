@@ -15,8 +15,8 @@ print_json() {
 	elif [ "$type" = 'array' ]; then
 		[ -n "${value##*[\"\\]*}" ] ||
 			value="$(printf '%s' "$value" |sed -e 's,[\"\\],\\&,g')"
-		value="[\"$(printf '%s' "$value" | tr -s '[:space:]' ' ' |
-					sed -e 's/^ *//' -e 's/ *$//' -e 's/ /\",\"/g')\"]"
+		value="[$(printf '%s' "$value" | tr -s '[:space:]' ' ' |
+					sed -e 's/^ */\"/' -e 's/ *$/\"/' -e 's/ /\",\"/g')]"
 	elif [ "$type" = 'base64' ]; then
 		value="\"$(printf '%s' "$value" | base64 - | tr -d '[:space:]')\""
 	fi
