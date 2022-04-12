@@ -13,7 +13,7 @@ routing_key="acl.$repo"
 {
 	printf '{'
 	print_json string _routing_key "$routing_key"
-	print_json string _timestamp "$(date '+%s')"
+	print_json string _timestamp "$(date '+%s.%N')"
 	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
 	print_json string repo "$repo"
 	print_json string target "$target"
