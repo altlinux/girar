@@ -62,13 +62,16 @@ cd "$TASKS_DIR/$id"
 handler=
 routing_key="task.$action"
 case "$action" in
-	state|delete|plan)
-		;;
-	update|create)
-		handler='update'
+	state|plan)
 		;;
 	abort)
 		handler='abort'
+		;;
+	delete)
+		routing_key="task.state"
+		;;
+	update|create)
+		handler='update'
 		;;
 	share)
 		handler='share'
