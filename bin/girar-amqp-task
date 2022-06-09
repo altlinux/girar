@@ -62,7 +62,7 @@ cd "$TASKS_DIR/$id"
 handler=
 routing_key="task.$action"
 case "$action" in
-	state|plan)
+	state)
 		;;
 	abort)
 		handler='abort'

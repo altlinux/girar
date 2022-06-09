@@ -58,7 +58,7 @@ case "$action" in
 			exit 0
 		url="/tasks/$id"
 		;;
-	deps|plan|abort)
+	deps|abort)
 		exit 0
 		;;
 	*)

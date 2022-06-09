@@ -9,5 +9,4 @@ rm -rf "build/repo/$arch"
 
 for i in $(src_nums); do
 	$0-i "$arch" "$i"
-	gb-x-girar hook-event subtask build "$id" "$i" "$arch" "$?" ||:
 done
