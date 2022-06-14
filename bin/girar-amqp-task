@@ -12,7 +12,7 @@ abort() {
 	if [ -f task/abort ]; then
 		aowner="$(stat -c %U task/abort)"
 		aowner="${aowner#"$USER_PREFIX"}"
-		awhen="$(stat -c %Y task/abort)"
+		awhen="$(stat -c %.Y task/abort)"
 	fi
 	print_json string aowner "${aowner:-}"
 	print_json string awhen "${awhen:-}"
@@ -87,7 +87,7 @@ esac
 	print_json_file string task/repo repo
 	print_json_file string task/owner owner
 	print_json number taskid "$id"
-	print_json string task_changed "$(stat -c %Y task/state)"
+	print_json string task_changed "$(stat -c %.Y task/state)"
 	if [ "$action" = 'delete' ]; then
 		print_json string state DELETED
 	else

@@ -62,7 +62,7 @@ approve() {
 			local message_path=../../acl/"${action}d/$subid/${GIRAR_USER:-$(whoami)}"
 			print_json bool revoked false
 			print_json_file base64 "$message_path" base64_message
-			print_json string approve_date "$(stat -c %Y "$message_path")"
+			print_json string approve_date "$(stat -c %.Y "$message_path")"
 		;;
 		revoked)
 			print_json bool revoked true
@@ -118,10 +118,10 @@ esac
 	print_json_file string '../../task/repo' repo
 	print_json_file string '../../task/owner' owner
 	print_json number taskid "$id"
-	print_json string task_changed "$(stat -c %Y ../../task/state)"
+	print_json string task_changed "$(stat -c %.Y ../../task/state)"
 	print_json_file string '../../task/state' state DELETED
 	print_json number subtaskid "$subid"
-	print_json string subtask_changed "$(stat -c %Y $(ls -td . userid | head -n1))"
+	print_json string subtask_changed "$(stat -c %.Y .)"
 	$handler
 	printf '}'
 } | girar_amqp_publish -r "$routing_key"
