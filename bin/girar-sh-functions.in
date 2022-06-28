@@ -120,7 +120,7 @@ girar_amqp_publish() {
 			--cacert="$AMQP_CACERT" \
 			--content-type="application/json" \
 			--persistent \
-			"$@" ||:
+			"$@" 3<&- 4<&- 5<&- 6<&- 7<&- 8<&- 9<&- ||: &
 	else
 		cat >/dev/null ||:
 	fi
