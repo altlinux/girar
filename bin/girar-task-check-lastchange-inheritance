@@ -47,6 +47,14 @@ flock -n 0 ||
 
 check_task_modifiable
 
+# Source per-repository config file.
+conf="$CONF_DIR/repo/$repo"
+if [ -s "$conf" ]; then
+	. "$conf"
+fi
+
+maint="${GIRAR_ACL_MAINT_GROUP-}"
+
 set -- $(gear_nums)
 for i; do
 	[ "$i" = "$num" ] || continue
@@ -59,7 +67,12 @@ for i; do
 	if fgrep -qsx "$EVR" "$f" 2 >/dev/null; then
 		echo >&2 "task #$id: update of $pkgname by subtask #$i is already allowed to overcome lastchange inheritance check failure for $EVR version"
 	else
-		girar-check-perms "$pkgname" "$repo"
+		if [ -n "$maint" ]; then
+			girar-check-perms --silent=deny "$pkgname" "$repo" ||
+				girar-check-perms "@$maint" "$repo"
+		else
+			girar-check-perms "$pkgname" "$repo"
+		fi
 		echo "$EVR" > "$f"
 		echo >&2 "task #$id: update of $pkgname by subtask #$i is now allowed to overcome lastchange inheritance check failure for $EVR version"
 	fi
