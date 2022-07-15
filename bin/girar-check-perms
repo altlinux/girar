@@ -158,7 +158,7 @@ if [ -z "$is_group" ]; then
 	groups="${groups#|}"
 
 	# Allowed if $GIRAR_USER is listed in $people.
-	if printf %s " $people " |fgrep -qs " $GIRAR_USER "; then
+	if printf %s " $people " |grep -F -qs " $GIRAR_USER "; then
 		allow 'approved builder'
 	fi
 fi
@@ -169,11 +169,11 @@ if [ -n "$groups" -a -s "$ACL_DIR/list.groups.$repository" ]; then
 	gpeople="$(printf %s "$gpeople" |tr -s '[:space:]' ' ')"
 
 	# Allowed if $GIRAR_USER is listed in $gpeople.
-	if printf %s " $gpeople " |fgrep -qs " $GIRAR_USER "; then
+	if printf %s " $gpeople " |grep -F -qs " $GIRAR_USER "; then
 		allow 'member of approved group'
 	fi
 	if rebuild_is_allowed; then
-		if printf %s " $gpeople " |fgrep -qs " $GIRAR_NOREBUILD_USER "; then
+		if printf %s " $gpeople " |grep -F -qs " $GIRAR_NOREBUILD_USER "; then
 			norebuild=1
 		fi
 	fi

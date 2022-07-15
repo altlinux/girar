@@ -8,7 +8,7 @@ fail_if_task_abort_requested
 
 for arch in $GB_ARCH noarch; do
 	# Regen only if there are $arch packages.
-	fgrep -qsx "$arch" plan/change-arch ||
+	grep -F -qsx "$arch" plan/change-arch ||
 		continue
 	repodir="$GB_TMP_REPO_DIR/$arch"
 	# Assume that the only relevant component is "classic".

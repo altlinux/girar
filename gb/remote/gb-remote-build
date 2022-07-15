@@ -122,8 +122,8 @@ rm -f build/excluded
 hsh-rebuild $build_env_flags --repo-src="$tmpdir"/srpm --query-repackage --no-sisyphus-check "$build_source" \
 	>build/srpm.log 2>&1 ||
 	{
-		if egrep -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
-			egrep '^error: Architecture is (excluded|not included): ' \
+		if grep -E -qs '^error: Architecture is (excluded|not included): ' build/srpm.log; then
+			grep -E '^error: Architecture is (excluded|not included): ' \
 				build/srpm.log >build/excluded
 			echo excluded > build/status
 			exit 0

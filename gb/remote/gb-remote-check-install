@@ -57,7 +57,7 @@ sort -u -o chroot_base{,}
 # Check if the package is already installed.
 QA='%{name}=%|epoch?{%{epoch}:}|%{version}-%{release}\n'
 hsh-run -- rpmquery -a --qf "$QA" >packages0
-if fgrep -qs -x -e "$N=$EVR" packages0; then
+if grep -F -qs -x -e "$N=$EVR" packages0; then
 	# The package is already installed.  Since the package is part of
 	# basesystem, removing it might not work very well.
 	stamp_echo >&2 "[$arch] #$I $N: install check OK (basesystem)"
@@ -152,7 +152,7 @@ if [ $n -lt 1 ]; then
 	echo "warning [$arch]: $N=$EVR: pre/post-install mess-up"
 	exit 1
 elif [ $n -gt 1 ]; then
-	what=$(fgrep -v -x -e "$N=$EVR" new-packages)
+	what=$(grep -F -v -x -e "$N=$EVR" new-packages)
 	echo > warnings \
 		"warning [$arch]: $N=$EVR: circular dependencies on" $what
 	cat warnings
@@ -172,7 +172,7 @@ if [ -s new-files ]; then
 /var/cache/gconf/.*
 /var/resolv/(lib|lib64)/lib.*
 EOF
-	if egrep -v -x -f ignore-p -- \
+	if grep -E -v -x -f ignore-p -- \
 	   new-files >new-files+; then
 		mv -f new-files{+,}
 	fi

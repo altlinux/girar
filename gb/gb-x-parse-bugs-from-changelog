@@ -13,5 +13,5 @@
 sed -e 's/(/\n&/g' -e 's/)/&\n/g' |
 sed -n '/(.*)/ s/(\([^;:#()]\+;\)\?[[:space:]]*\(closes\|alt\([[:space:]]\+bug\)\?\)[[:space:]]*:\?[[:space:]]*\(\(#\?[[:digit:]]\+[,[:space:]]*\)\+\)).*/\4/Ipg' |
 tr -s '[:space:]#,' '\n' |
-egrep -x '[[:digit:]]+' ||:
+grep -E -x '[[:digit:]]+' ||:
 exit 0

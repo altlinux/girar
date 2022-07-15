@@ -17,7 +17,7 @@ check_policyreq()
 	eval "need_reqs=\"\${$var:-\${GB_REPO_MANDATORY_PKG_REQS-}}\""
 
 	if [ -n "$need_reqs" ] &&
-	   ! printf %s "$rpm_requires" |cut -d' ' -f1 |egrep -qsx "$need_reqs"; then
+	   ! printf %s "$rpm_requires" |cut -d' ' -f1 |grep -E -qsx "$need_reqs"; then
 		FileError "missing mandatory requires: $(oneliner "$need_reqs")" "$f"
 		rc=1
 	fi

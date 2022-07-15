@@ -5,7 +5,7 @@
 fail_if_task_abort_requested
 
 # This check does not apply to noarch packages.
-fgrep -qs -xv noarch plan/change-arch || exit 0
+grep -F -qs -xv noarch plan/change-arch || exit 0
 
 mkdir -pm2775 bad_elf_symbols
 
@@ -80,7 +80,7 @@ EOF
 	too_bad=
 	for arch in $GB_ARCH; do
 		# Bad symbols which are not part of allow-bad-p?
-		if egrep -qs -v -f allow-bad-p -- bad_elf_symbols/$arch.new; then
+		if grep -E -qs -v -f allow-bad-p -- bad_elf_symbols/$arch.new; then
 			too_bad=1
 			break
 		fi

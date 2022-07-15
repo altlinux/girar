@@ -52,7 +52,7 @@ for arch in $GB_ARCH noarch; do
 
 	# Arch packages haven't changed?
 	maybe_unchanged=
-	if ! fgrep -qsx "$arch" plan/change-arch; then
+	if ! grep -F -qsx "$arch" plan/change-arch; then
 		maybe_unchanged='--maybe-unchanged'
 	fi
 
@@ -113,7 +113,7 @@ for arch in $GB_ARCH noarch; do
 
 	# Arch packages haven't changed?
 	maybe_unchanged=
-	if ! fgrep -qsx "$arch" plan/change-arch; then
+	if ! grep -F -qsx "$arch" plan/change-arch; then
 		# But the result also depends on the list of useful-files,
 		# which might have changed due to other architectures.
 		maybe_unchanged='--maybe-unchanged'

@@ -14,7 +14,7 @@ set -o pipefail
 # Assume that the only relevant component is "classic".
 gb-x-query-base "$repo" "$basedir" "$Q1$Q2" classic |
 	# Exclude non-path provides and filenames with tabs.
-	egrep $'^/[^\t]+\t[^\t]+\t[^\t]+$' |
+	grep -E $'^/[^\t]+\t[^\t]+\t[^\t]+$' |
 	# Files kill provides, except for virutal paths.
 	sort -t$'\t' -u -k1,1 -k3,3 |
 	# Discard NAME.
@@ -22,7 +22,7 @@ gb-x-query-base "$repo" "$basedir" "$Q1$Q2" classic |
 	# Fold identical records.
 	sort -u |
 	# Exclude special provides with parentheses.
-	fgrep -v $')\t/' ||
+	grep -F -v $')\t/' ||
 		{
 			echo "${0##*/}: $PWD: failed to generate contents index"
 			exit 1

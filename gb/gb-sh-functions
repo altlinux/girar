@@ -171,6 +171,6 @@ list_notifiable_pkg_acl_members()
 	gb-x-girar acl-show "$GB_REPO_NAME" "$n" |
 		cut -f2- |
 		tr ' ' '\n' |
-		egrep -vx '@(nobody|everybody|qa)' |
+		grep -E -vx '@(nobody|everybody|qa)' |
 		cat
 }

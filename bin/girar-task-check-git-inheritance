@@ -67,7 +67,7 @@ for i; do
 	git --git-dir="$GEARS_DIR/${pkgname:0:1}/$pkgname.git" rev-parse --verify "$commit_id^{commit}" > /dev/null ||
 		fatal "commit $commit_id not found"
 	f="check-git-inheritance/$i"
-	if fgrep -qsx "$commit_id" "$f" 2 >/dev/null; then
+	if grep -F -qsx "$commit_id" "$f" 2 >/dev/null; then
 		echo >&2 "task #$id: update of $pkgname by subtask #$i is already allowed to overcome git inheritance check failure for commit $commit_id"
 	else
 		if [ -n "$maint" ]; then

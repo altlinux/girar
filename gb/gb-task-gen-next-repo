@@ -23,7 +23,7 @@ for arch in $GB_ARCH noarch; do
 	for d in $GB_REPO_DIR/$arch/SRPMS.classic \
 		 $(set +f && ls -d $GB_REPO_DIR/$arch/RPMS.?*); do
 		[ -d "$d" ]
-		if fgrep -qsx "$arch" plan/change-arch; then
+		if grep -F -qsx "$arch" plan/change-arch; then
 			# Need to copy directory structure (using symlinks).
 			cp -prs "$d" $GB_TMP_REPO_DIR/$arch/
 		else
@@ -68,7 +68,7 @@ done
 
 # Optimize even more: the whole arch component can be turned into symlink.
 for arch in $GB_ARCH noarch; do
-	if fgrep -qsx "$arch" plan/change-arch; then
+	if grep -F -qsx "$arch" plan/change-arch; then
 		# Arch packages changed, cannot optimize.
 		continue
 	fi
