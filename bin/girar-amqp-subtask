@@ -62,6 +62,22 @@ approve() {
 	fi
 }
 
+progress() {
+	print_json string stage "$stage"
+	print_json string stage_status "$stage_status"
+	print_json string arch "$arch"
+	if [ "$arch" = all ]; then
+		print_json string status ''
+	else
+		local status_file="$TASKS_DIR/$id/build/$subid/$arch/status"
+		if [ -f "$status_file" ]; then
+			print_json_file string "$status_file" status failed
+		else
+			print_json string status new
+		fi
+	fi
+}
+
 cd "$TASKS_DIR/$id/gears/$subid"
 
 handler='update'
@@ -75,6 +91,12 @@ case "$action" in
 	approve|disapprove)
 		handler='approve'
 		approve_action="$1"; shift
+		;;
+	progress)
+		handler='progress'
+		stage="$1"; shift
+		stage_status="$1"; shift
+		arch="${1:-all}"
 		;;
 	*)
 		fatal "unknown action: '$action'"

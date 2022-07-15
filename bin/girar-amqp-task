@@ -57,6 +57,12 @@ state() {
 	fi
 }
 
+progress() {
+	print_json string stage "$stage"
+	print_json string stage_status "$stage_status"
+	print_json string arch "$arch"
+}
+
 cd "$TASKS_DIR/$id"
 
 handler=
@@ -83,6 +89,12 @@ case "$action" in
 		dep_action="$1"; shift
 		args="$@"
 		routing_key="$routing_key.$dep_action"
+		;;
+	progress)
+		handler='progress'
+		stage="$1"; shift
+		stage_status="$1"; shift
+		arch="${1:-all}"
 		;;
 	*)
 		fatal "unknown action: '$action'"

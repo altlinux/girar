@@ -49,7 +49,7 @@ case "$action" in
 		url="/tasks/$id/subtasks/$subid"
 		handler='delete'
 		;;
-	approve|disapprove)
+	approve|disapprove|progress)
 		exit 0
 		;;
 	*)
