@@ -4,12 +4,15 @@
 
 fail_if_task_abort_requested
 
+id="$(cat task/id)"
+
 # Drop old plan if any.
 find plan -type f -delete
 
 fail()
 {
 	stamp_echo >&2 "$*"
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	exit 1
 }
 
@@ -37,6 +40,8 @@ guess_comp()
 # be replaced or removed.
 
 . gb-sh-tmpdir
+
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
 
 # output: src-F  src-P  src-I
 for i in $(build_nums); do
@@ -345,3 +350,4 @@ while read -r arch; do
 done < plan/change-arch
 
 stamp_echo >&2 "plan: $plan"
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:

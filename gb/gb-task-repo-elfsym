@@ -16,6 +16,9 @@ repo2="$GB_TMP_REPO_DIR"
 
 . gb-sh-tmpdir
 
+id="$(cat task/id)"
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+
 cached_arches=
 for arch in $GB_ARCH; do
 	grep -Fqsx $arch plan/change-arch ||
@@ -42,6 +45,7 @@ if [ -s "$tmpdir/FAIL" ]; then
 		halt_build_queue
 	fi
 	stamp_echo >&2 "ELF symbols check FAILED"
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	exit 1
 fi
 
@@ -92,4 +96,9 @@ EOF
 fi
 
 stamp_echo >&2 "[${checked_arches# }] ELF symbols check $text"
+if [ "$rc" = 0 ]; then
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+else
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+fi
 exit $rc

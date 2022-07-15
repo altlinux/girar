@@ -68,6 +68,9 @@ dump_dups()
 		sort
 }
 
+id="$(cat task/id)"
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+
 check_arch=
 if grep -Fqsx noarch plan/change-arch; then
 	check_arch="$GB_ARCH" # a change in noarch affects all arches
@@ -171,14 +174,17 @@ if [ -s plus ]; then
 	if is_check_failure_tolerated; then
 		rc=0
 		text=IGNORED
+		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "ignored" ||:
 	else
 		rc=1
 		text=FAILED
+		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	fi
 	show_changes new plus 'NEW duplicate provides detected:' >&2
 else
 	rc=0
 	text=OK
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
 fi
 
 if [ -s minus ]; then

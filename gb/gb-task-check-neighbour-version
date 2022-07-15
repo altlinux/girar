@@ -4,6 +4,8 @@
 
 fail_if_task_abort_requested
 
+id="$(cat task/id)"
+
 rc=0
 I=
 fail()
@@ -52,6 +54,8 @@ check_nevr()
 	done
 }
 
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+
 bad_I=
 while read -r N EVR F P I; do
 	check_nevr src "$N" "$EVR" '' < /dev/null ||
@@ -69,5 +73,8 @@ done < plan/add-bin
 
 [ "$rc" = 0 ] || {
 	stamp_echo >&2 'neighbour version check FAILED'
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	exit $rc
 }
+
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:

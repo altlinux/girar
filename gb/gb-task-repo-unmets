@@ -4,6 +4,7 @@
 
 fail_if_task_abort_requested
 
+id="$(cat task/id)"
 repo1="$GB_REPO_DIR"
 repo2="$GB_TMP_REPO_DIR"
 topdir="$PWD"
@@ -48,9 +49,12 @@ dump_unmets()
 
 	wait
 	if [ -s FAIL ]; then
+		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 		exit 1
 	fi
 }
+
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
 
 dump_unmets
 dump_unmets checkinstall
@@ -126,6 +130,13 @@ if [ -s unmets.stat ]; then
 	stamp_echo >&2 "unmets:$(cat unmets.stat)"
 fi
 
-[ "$rc" = 0 ] && text=OK || text=FAILED
+if [ "$rc" = 0 ]; then
+	text=OK
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+else
+	text=FAILED
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+fi
+
 stamp_echo >&2 "dependencies check $text"
 exit $rc

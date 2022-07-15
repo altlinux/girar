@@ -4,19 +4,36 @@
 
 fail_if_task_abort_requested
 
+id="$(cat task/id)"
 rc=0
 text=OK
 
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+
 for i in $(src_nums) $(copy_nums); do
-	$0-i "$i" || {
+	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" ||:
+	if $0-i "$i"; then
+		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" ||:
+	else
 		if is_check_failure_tolerated; then
 			text=IGNORED
+			gb-x-girar hook-event subtask \
+				   progress "$id" "$i" "${0##*/gb-}" "ignored" ||:
 		else
 			rc=1
 			text=FAILED
+			gb-x-girar hook-event subtask \
+				   progress "$id" "$i" "${0##*/gb-}" "failed" ||:
 		fi
-	}
+	fi
 done
 
 stamp_echo >&2 "noarch check $text"
+
+if [ "$rc" = 0 ]; then
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+else
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+fi
+
 exit $rc

@@ -8,5 +8,11 @@ arch="$1"; shift
 rm -rf "build/repo/$arch"
 
 for i in $(src_nums); do
-	$0-i "$arch" "$i"
+	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" "$arch" ||:
+	if $0-i "$arch" "$i"; then
+		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" "$arch" ||:
+	else
+		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "failed" "$arch" ||:
+		exit 1
+	fi
 done

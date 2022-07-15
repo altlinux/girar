@@ -4,15 +4,20 @@
 
 fail_if_task_abort_requested
 
-id=$(cat task/id)
+id="$(cat task/id)"
+
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
 gb-x-girar check-task-perms "$id" && rc=0 || rc=1
 
 if [ "$rc" = 0 ]; then
 	text=OK
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
 elif [ -f task/test-only ]; then
 	text=IGNORED
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "ignored" ||:
 else
 	text=FAILED
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	gb-x-girar task-change-state "$id" EPERM
 fi
 

@@ -8,6 +8,9 @@ fail_if_task_abort_requested
 
 ln -snf "$GB_REPO_DIR" "build/repo/prev"
 
+id="$(cat task/id)"
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+
 for arch in $GB_ARCH noarch; do
 	$0-arch "$arch" ||
 		stamp_echo "[$arch] FAILED to save apt indices" >>"$tmpdir"/FAIL &
@@ -18,7 +21,9 @@ wait
 # Fail if at least one arch failed.
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
+	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
 	exit 1
 fi
 
+gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
 exit 0
