@@ -103,7 +103,7 @@ fi
 
 # check other approvals
 for a in $approved; do
-	if GIRAR_USER="$a" girar-check-perms --silent=deny "$pkg" "$repo"; then
+	if GIRAR_USER="$a" girar-check-perms --silent=deny $is_rebuild "$pkg" "$repo"; then
 		allow "approved by $a"
 	fi
 done
