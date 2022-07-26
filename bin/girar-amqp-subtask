@@ -53,19 +53,21 @@ create() {
 	#rebuild specific
 	[ -s 'rebuild_from' ] && print_json_file string 'rebuild_from' rebuildfrom
 
-	#source package name
-	[ -s "../../build/$subid/pkgname" ] && \
-		print_json_file string "../../build/$subid/pkgname" pkgname
-
 	return 0
 }
 
 approve() {
-	print_json bool revoke "$([ "$approve_action" = 'revoked' ] && echo true || echo false)"
-	if [ "$approve_action" = 'added' ]; then
-		print_json_file \
-			base64 "../../acl/${action}d/$subid/${GIRAR_USER:-$(whoami)}" base64_message
-	fi
+	case "$approve_action" in
+		added)
+			local message_path=../../acl/"${action}d/$subid/${GIRAR_USER:-$(whoami)}"
+			print_json bool revoked false
+			print_json_file base64 "$message_path" base64_message
+			print_json string approve_date "$(stat -c %Y "$message_path")"
+		;;
+		revoked)
+			print_json bool revoked true
+		;;
+	esac
 }
 
 progress() {
@@ -113,9 +115,13 @@ esac
 	print_json string _routing_key "$routing_key"
 	print_json string _timestamp "$(date '+%s.%N')"
 	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
+	print_json_file string '../../task/repo' repo
+	print_json_file string '../../task/owner' owner
 	print_json number taskid "$id"
-	print_json number subtaskid "$subid"
+	print_json string task_changed "$(stat -c %Y ../../task/state)"
 	print_json_file string '../../task/state' state DELETED
+	print_json number subtaskid "$subid"
+	print_json string subtask_changed "$(stat -c %Y $(ls -td . userid | head -n1))"
 	$handler
 	printf '}'
 } | girar_amqp_publish -r "$routing_key"

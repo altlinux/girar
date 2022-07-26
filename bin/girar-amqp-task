@@ -29,29 +29,15 @@ deps() {
 }
 
 state() {
-	if [ "$action" = 'delete' ]; then
-		print_json string state DELETED
-	else
-		print_json_file string task/state state DELETED
-	fi
-
-	print_json_file string task/owner owner
-	print_json_file string task/repo repo
-
-	print_json_file number task/try try 0
-	print_json_file number task/iter iter 0
 	print_json_file string task/run run
 	print_json_file string task/message message
+	print_json_file string task/version version
+	print_json_file array task/depends depends
+
 	print_json bool swift "$(test -f task/swift && echo true || echo false)"
+	print_json bool failearly "$(test -f task/fail-early && echo true || echo false)"
 	print_json bool testonly "$(test -f task/test-only && echo true || echo false)"
 	share
-
-	aowner=
-	if [ -f task/abort ]; then
-		aowner="$(stat -c %U task/abort)"
-		aowner="${aowner#"$USER_PREFIX"}"
-	fi
-	print_json string aborted "$aowner"
 }
 
 progress() {
@@ -98,8 +84,17 @@ esac
 	print_json string _routing_key "$routing_key"
 	print_json string _timestamp "$(date '+%s.%N')"
 	print_json string girar_user "${GIRAR_USER:-$(whoami)}"
+	print_json_file string task/repo repo
+	print_json_file string task/owner owner
 	print_json number taskid "$id"
-	state
+	print_json string task_changed "$(stat -c %Y task/state)"
+	if [ "$action" = 'delete' ]; then
+		print_json string state DELETED
+	else
+		print_json_file string task/state state DELETED
+	fi
+	print_json_file number task/try try 0
+	print_json_file number task/iter iter 0
 	$handler
 	printf '}'
 } | girar_amqp_publish -r "$routing_key"
