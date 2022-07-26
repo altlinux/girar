@@ -12,25 +12,31 @@ delete() {
 	print_json string status deleted
 }
 
-update() {
-	type='unknown'
+create() {
+	subtask_type='unknown'
 
-	if [ -s 'dir' ]; then
-		type='repo'
-	elif [ -s 'srpm' ]; then
-		type='srpm'
-	elif [ -s 'package' ]; then
-		[ -s 'copy_repo' ] &&
-			type='copy' ||
-			type='delete'
+	[ -s 'dir' ] && subtask_type='repo'
+	[ -s 'srpm' ] && subtask_type='srpm'
+
+	if [ -s 'package' ]; then
+            if [ -s 'copy_repo' ]; then
+		subtask_type='copy'
+            elif [ -s 'rebuild_from' ]; then
+		subtask_type='rebuild'
+            else
+		subtask_type='delete'
+            fi
 	fi
 
 	print_json string status active
-	print_json_file string userid owner
-	print_json string type "$type"
+	print_json_file string 'userid' userid
+	print_json string type "$subtask_type"
+
+	print_json_file string 'sid' sid
 
 	#srpm specific
 	[ -s 'srpm' ] && print_json_file string 'srpm' srpm
+	[ -s 'nevr' ] && print_json_file string 'nevr' nevr
 
 	#repo specific
 	[ -s 'dir' ] && print_json_file string 'dir' dir
@@ -83,10 +89,7 @@ cd "$TASKS_DIR/$id/gears/$subid"
 handler="$action"
 routing_key="task.subtask.$action"
 case "$action" in
-	delete|update)
-		;;
-	create)
-		handler=update
+	create|delete)
 		;;
 	approve|disapprove)
 		handler=approve
@@ -96,6 +99,9 @@ case "$action" in
 		stage="$1"; shift
 		stage_status="$1"; shift
 		arch="${1:-all}"
+		;;
+	update)
+		exit 0
 		;;
 	*)
 		fatal "unknown action: '$action'"
