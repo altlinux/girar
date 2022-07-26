@@ -28,7 +28,12 @@ deps() {
 	print_json_file array task/depends depends
 }
 
-update() {
+state() {
+	if [ "$action" = 'delete' ]; then
+		print_json string state DELETED
+	else
+		print_json_file string task/state state DELETED
+	fi
 
 	print_json_file string task/owner owner
 	print_json_file string task/repo repo
@@ -49,14 +54,6 @@ update() {
 	print_json string aborted "$aowner"
 }
 
-state() {
-	if [ "$action" = 'delete' ]; then
-		print_json string state DELETED
-	else
-		print_json_file string task/state state DELETED
-	fi
-}
-
 progress() {
 	print_json string stage "$stage"
 	print_json string stage_status "$stage_status"
@@ -68,12 +65,10 @@ cd "$TASKS_DIR/$id"
 handler="$action"
 routing_key="task.$action"
 case "$action" in
-	abort|state|update)
-		;;
-	create)
-		handler=update
+	abort|state)
 		;;
 	delete)
+		handler=state
 		routing_key="task.state"
 		;;
 	share)
@@ -89,6 +84,9 @@ case "$action" in
 		stage="$1"; shift
 		stage_status="$1"; shift
 		arch="${1:-all}"
+		;;
+	update|create)
+		exit 0
 		;;
 	*)
 		fatal "unknown action: '$action'"
