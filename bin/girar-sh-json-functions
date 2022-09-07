@@ -26,12 +26,12 @@ print_json() {
 }
 
 print_json_file() {
-	local name filename value= default
+	local type="$1"; shift
+	local filename="$1"; shift
+	local name="$1"; shift
+	local default="${1-}"
 
-	type="$1"; shift
-	filename="$1"; shift
-	name="$1"; shift
-	default="${1-}"
+	local value=
 
 	[ ! -s "$filename" ] ||
 		value="$(cat "$filename")"
