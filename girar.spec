@@ -150,6 +150,7 @@ if [ $1 -eq 1 ]; then
 		#restrict,command="/usr/libexec/girar-admin/girar-admin" ssh-keytype ssh-key comment
 		EOF
 	fi
+	git config --system safe.directory '*'
 fi
 
 %preun
