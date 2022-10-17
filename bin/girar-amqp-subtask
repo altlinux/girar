@@ -80,20 +80,19 @@ progress() {
 
 cd "$TASKS_DIR/$id/gears/$subid"
 
-handler='update'
+handler="$action"
 routing_key="task.subtask.$action"
 case "$action" in
-	create|update)
+	delete|update)
 		;;
-	delete)
-		handler='delete'
+	create)
+		handler=update
 		;;
 	approve|disapprove)
-		handler='approve'
+		handler=approve
 		approve_action="$1"; shift
 		;;
 	progress)
-		handler='progress'
 		stage="$1"; shift
 		stage_status="$1"; shift
 		arch="${1:-all}"

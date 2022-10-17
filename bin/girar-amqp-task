@@ -65,33 +65,27 @@ progress() {
 
 cd "$TASKS_DIR/$id"
 
-handler=
+handler="$action"
 routing_key="task.$action"
 case "$action" in
-	state)
+	abort|state|update)
 		;;
-	abort)
-		handler='abort'
+	create)
+		handler=update
 		;;
 	delete)
 		routing_key="task.state"
 		;;
-	update|create)
-		handler='update'
-		;;
 	share)
-		handler='share'
 		share_action="$1"; shift
 		routing_key="$routing_key.$share_action"
 		;;
 	deps)
-		handler='deps'
 		dep_action="$1"; shift
 		args="$@"
 		routing_key="$routing_key.$dep_action"
 		;;
 	progress)
-		handler='progress'
 		stage="$1"; shift
 		stage_status="$1"; shift
 		arch="${1:-all}"
