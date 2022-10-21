@@ -70,6 +70,11 @@ mkdir -p .hasher/install
 case "$whatis" in
 	install)
 		rm -f .hasher/install/post
+		cat >>.hasher/config <<-'EOF'
+		if [ -n "${girar_wlimit_time_long-}" ]; then
+			wlimit_time_long="$girar_wlimit_time_long"
+		fi
+		EOF
 		;;
 	*)
 		cat >.hasher/install/post <<'EOF'

@@ -28,6 +28,10 @@ q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerp
 F_path="gb-repo/$A/RPMS.$comp/$F"
 rpmquery --qf "$q_bin" -p "$F_path" > "$tmpdir/id"
 
+if [ -z "${N%%*-checkinstall}" ]; then
+	export girar_wlimit_time_long=2400
+fi
+
 if rpmquery --provides -p "$F_path" |
    grep -qs '^altlinux-release '; then
 	release=$N
