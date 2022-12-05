@@ -60,6 +60,7 @@ TASK_ID/gears/$i/tag_name	git tag name, e.g. 1.0-alt1
 TASK_ID/gears/$i/tag_id		git tag id, i.e. SHA1 hex
 TASK_ID/gears/$i/tag_author	git tag author, e.g. Joe Hacker <joe@altlinux.org>
 TASK_ID/gears/$i/pkg.tar	pkg.tar file generated from tag_name
+TASK_ID/gears/$i/type		the spec type specified in pkg.tar
 # srpm subtask specific files
 TASK_ID/gears/$i/srpm		srpm file name, e.g. foo-1.0-alt.src.rpm
 TASK_ID/gears/$i/$srpm		srpm file

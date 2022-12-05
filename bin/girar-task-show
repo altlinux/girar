@@ -105,6 +105,11 @@ for i in $nums; do
 			printf ' %s:tag_name=%s\n' "$i" "$tag_name"
 			printf ' %s:tag_id=%s\n' "$i" "$(cat "gears/$i/tag_id")"
 			printf ' %s:tag_author=%s\n' "$i" "$(cat "gears/$i/tag_author")"
+			spec_type="gears/$i/type"
+			if [ -s "$spec_type" ]; then
+				printf ' %s:type=%s\n' \
+					"$i" "$(cat "$spec_type")"
+			fi
 			pkg_tar="gears/$i/pkg.tar"
 			if [ -s "$pkg_tar" ]; then
 				printf ' %s:fetched=%s\n' "$i" \

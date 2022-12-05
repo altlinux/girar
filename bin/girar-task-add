@@ -700,7 +700,20 @@ fi
 pkg_tar="gears/$i/pkg.tar"
 printf >&2 %s "generating pkg.tar for ${dir##*/} tag \"$tag_name\"... "
 if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
-   [ -s "$pkg_tar" ]; then
+   [ -s "$pkg_tar" ] &&
+   spec="$(LC_ALL=C tar -tvf "$pkg_tar" |
+	   sed '/^V---------[[:space:]]\+0\/0[[:space:]]\+0[[:space:]]\+[^[:space:]]\+[[:space:]]\+[^[:space:]]\+[[:space:]]\+/!d;s///;s/--Volume Header--\$//;q')" &&
+   [ -n "$spec" ]; then
+	case "$spec" in
+		*/*) type="${spec%/*}"
+		     case "$type" in
+			img|oci) echo "$type" > gears/$i/type ;;
+			* ) rm -f "$pkg_tar"
+			    fatal "unrecognized spec type when creating pkg.tar for ${dir##*/} tag \"$tag_name\""
+			    ;;
+		     esac
+		     ;;
+	esac
 	echo >&2 done
 else
 	rm -f "$pkg_tar"

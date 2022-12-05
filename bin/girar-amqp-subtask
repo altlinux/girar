@@ -43,6 +43,7 @@ create() {
 	[ -s 'tag_name' ] && print_json_file string 'tag_name' tagname
 	[ -s 'tag_id' ] && print_json_file string 'tag_id' tagid
 	[ -s 'tag_author' ] && print_json_file string 'tag_author' tagauthor
+	[ -s 'type' ] && print_json_file string 'type' spectype
 
 	#used by copy, rebuild and del
 	[ -s 'package' ] && print_json_file string 'package' package

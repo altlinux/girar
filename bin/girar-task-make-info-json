@@ -67,6 +67,11 @@ if [ -n "$nums" ]; then
 			printf '   "tag_name": "%s",\n' "$tag_name"
 			printf '   "tag_id": "%s",\n' "$(cat "gears/$i/tag_id")"
 			printf '   "tag_author": "%s",\n' "$(tr -d '"' < "gears/$i/tag_author")"
+			spec_type="gears/$i/type"
+			if [ -s "$spec_type" ]; then
+				printf '   "spec_type": "%s",\n' \
+					"$(cat "$spec_type")"
+			fi
 			pkg_tar="gears/$i/pkg.tar"
 			if [ -s "$pkg_tar" ]; then
 				printf '   "fetched": "%s",\n' \
