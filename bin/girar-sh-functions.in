@@ -99,15 +99,6 @@ list_indexed_repositories()
 	printf %s "$repositories" | tr '\n' ' '
 }
 
-post_api()
-{
-	if [ -n "${WEBAPI_URL}" ]; then
-		curl --retry 5 --retry-delay 1 -sS -X POST -d @- "$WEBAPI_URL/api/v1$1" > /dev/null 2>&1 ||:
-	else
-		cat > /dev/null ||:
-	fi
-}
-
 girar_amqp_publish() {
 	if [ -n "$AMQP_SERVER" ]; then
 		amqp-publish \

@@ -16,7 +16,6 @@ EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DOMAIN = altlinux.org
 GEARS_DIR = /gears
 GITWEB_URL = https://git.altlinux.org
-WEBAPI_URL = http://webery.altlinux.org
 AMQP_SERVER = amqp.mskdc.altlinux.org
 AMQP_PORT = 5671
 AMQP_VHOST = alt
@@ -118,8 +117,6 @@ bin_TARGETS = \
 	bin/girar-task-share \
 	bin/girar-task-show \
 	bin/girar-task-update-queues \
-	bin/girar-webapi-subtask \
-	bin/girar-webapi-task \
 	#
 
 check_TARGETS = check/091-check-arepo check/101-check-policydeps
@@ -295,7 +292,6 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@UPLOAD_DIR@,${UPLOAD_DIR},g' \
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
-	    -e 's,@WEBAPI_URL@,${WEBAPI_URL},g' \
 	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
 	    -e 's,@AMQP_PORT@,${AMQP_PORT},g' \
 	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \

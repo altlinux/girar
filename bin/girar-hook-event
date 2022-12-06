@@ -7,11 +7,9 @@ action="$1"; shift
 
 case "$event" in
 	task)
-		girar-webapi-task "$action" "$@" ||:
 		girar-amqp-task "$action" "$@" ||:
 		;;
 	subtask)
-		girar-webapi-subtask "$action" "$@" ||:
 		girar-amqp-subtask "$action" "$@" ||:
 		;;
 	acl)
