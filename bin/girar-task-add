@@ -517,8 +517,28 @@ check_already_added_srpm()
 	fatal "task #$id: package $(cat gears/$i/srpm) was already queued by $(cat gears/$i/userid) for build in subtask #$i"
 }
 
+check_already_added_type_i()
+{
+	local i
+	i="$1"; shift
+
+	[ -s gears/$i/type ] || return 0
+
+	fatal "task #$id: a subtask #$i of type \"$(cat gears/$i/type)\" is already added"
+}
+
+check_already_added_type()
+{
+	local i
+	for i in $nums; do
+		check_already_added_type_i "$i"
+	done
+}
+
 check_already_added_i()
 {
+	check_already_added_type_i "$@"
+
 	case "$action" in
 		repo)
 		check_already_added_repo "$@"
@@ -723,7 +743,8 @@ if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
 	case "$spec" in
 		*/*) type="${spec%/*}"
 		     case "$type" in
-			img|oci) echo "$type" > gears/$i/type ;;
+			img|oci) check_already_added_type
+				 echo "$type" > gears/$i/type ;;
 			* ) rm -f "$pkg_tar"
 			    fatal "unrecognized spec type when creating pkg.tar for ${dir##*/} tag \"$tag_name\""
 			    ;;
