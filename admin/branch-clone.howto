@@ -59,6 +59,9 @@
 * pender@gyle:
 	* Add a cron entry for @TO_BRANCH@.
 
+* root@archive:
+	* install -m644 -o ga_repo -g ga_repo /dev/null /var/lib/girar-archiver/repo/@TO_BRANCH@/task/squeeze.list
+
 * ga_tasker@archive:
 	* Add a cron entry for @TO_BRANCH@.
 
