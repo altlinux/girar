@@ -52,7 +52,13 @@ for d in [A-Za-z0-9]?*; do
 		stamp_echo >&2 "replacing $dst with $src"
 		task="${src##*/}"
 		echo "$task" >> "$GA_UPLOAD_DIR/log/$d.log"
-		cp -al -- "$src" "$dst.new"
+		if [ -e "$dst.new" ]; then
+			fatal "$dst.new already exists"
+		fi
+		cp -alT -- "$src" "$dst.new" || {
+			rm -r "$dst.new"
+			fatal "failed to replace $dst with $src"
+		}
 
 		# re-introduce .timestamp
 		if [ -s "$GA_UPLOAD_DIR/.timestamp" ]; then
