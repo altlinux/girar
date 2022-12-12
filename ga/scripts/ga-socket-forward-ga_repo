@@ -37,10 +37,14 @@ PATH="${0%/*}:$PATH"
 src="$GA_REPO_TMP_DIR/$task_id"
 k="$(($task_id/1024))"
 dst_parent_dir="$GA_REPO_DIR/task/_$k"
+tmp_dst="$dst_parent_dir/.$task_id"
 dst="$dst_parent_dir/$task_id"
 
 cd "$GA_REPO_DIR"
 
+if [ -e "$tmp_dst" ]; then
+	fatal "task $task_id: Temporary task repo $tmp_dst already exists"
+fi
 if [ -e "$dst" ]; then
 	fatal "task $task_id: Task already reposited"
 fi
@@ -48,7 +52,8 @@ fi
 	fatal "task $task_id: Task not ready"
 
 mkdir -p -- "$dst_parent_dir"
-ga-x-repo-savetree "$src" "$dst"
+ga-x-repo-savetree "$src" "$tmp_dst"
+mv -T "$tmp_dst" "$dst"
 readlink -ev -- "$dst"
 
 ln -rsnf -- "$dst" "$GA_REPO_DIR/latest"
