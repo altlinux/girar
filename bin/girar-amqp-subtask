@@ -103,9 +103,6 @@ case "$action" in
 		stage_status="$1"; shift
 		arch="${1:-all}"
 		;;
-	update)
-		exit 0
-		;;
 	*)
 		fatal "unknown action: '$action'"
 		;;

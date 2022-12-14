@@ -53,11 +53,6 @@ fi
 fail_if_task_abort_requested
 gb-x-girar task-make-index-html "$id" ||:
 
-gb-x-girar hook-event task update "$id" ||:
-for i in $(src_nums); do
-	gb-x-girar hook-event subtask update "$id" "$i" ||:
-done
-
 if [ -z "$img_nums" ]; then
 	# run basic tests
 	gb-task-check-build
