@@ -127,7 +127,6 @@ lib_TARGETS = lib/rsync.so
 
 admin_TARGETS = \
 	admin/girar-admin \
-	admin/girar-admin-sh-functions \
 	admin/girar-admin--auth-add \
 	admin/girar-admin--auth-clear \
 	admin/girar-admin--maintainer-add \
@@ -136,6 +135,7 @@ admin_TARGETS = \
 	admin/girar-admin--user-del \
 	admin/girar-admin--user-disable \
 	admin/girar-admin--user-enable \
+	admin/girar-admin-sh-functions \
 	#
 
 sbin_TARGETS = \
@@ -260,11 +260,12 @@ sbin/girar-proxyd-acl sbin/girar-proxyd-depot sbin/girar-proxyd-repo: sbin/girar
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar-proxyd.in
-	sed -e 's,@CMD_DIR@,${CMD_DIR},g' \
+	sed \
+	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
+	    -e 's,@PROJECT_PREFIX@,girar,g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \
 	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
 	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
-	    -e 's,@PROJECT_PREFIX@,girar,g' \
 		<$< >$@
 	chmod --reference=$< $@
 
@@ -272,6 +273,12 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	sed \
 	    -e 's,@ACL_DIR@,${ACL_DIR},g' \
 	    -e 's,@ADMIN_DIR@,${ADMIN_DIR},g' \
+	    -e 's,@AMQP_CACERT@,${AMQP_CACERT},g' \
+	    -e 's,@AMQP_EXCHANGE@,${AMQP_EXCHANGE},g' \
+	    -e 's,@AMQP_PORT@,${AMQP_PORT},g' \
+	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
+	    -e 's,@AMQP_USERNAME@,${AMQP_USERNAME},g' \
+	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \
@@ -279,6 +286,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@GEARS_DIR@,${GEARS_DIR},g' \
 	    -e 's,@GITWEB_URL@,${GITWEB_URL},g' \
 	    -e 's,@INCOMING_DIR@,${INCOMING_DIR},g' \
+	    -e 's,@MAINTAINERS_GROUP@,${MAINTAINERS_GROUP},g' \
 	    -e 's,@PACKAGES_EMAIL@,${PACKAGES_EMAIL},g' \
 	    -e 's,@PEOPLE_DIR@,${PEOPLE_DIR},g' \
 	    -e 's,@RUNTIME_DIR@,${RUNTIME_DIR},g' \
@@ -288,16 +296,9 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@STATE_DIR@,${STATE_DIR},g' \
 	    -e 's,@TASKS_DIR@,${TASKS_DIR},g' \
 	    -e 's,@TASKS_GROUP@,${TASKS_GROUP},g' \
-	    -e 's,@MAINTAINERS_GROUP@,${MAINTAINERS_GROUP},g' \
 	    -e 's,@UPLOAD_DIR@,${UPLOAD_DIR},g' \
 	    -e 's,@USERS_GROUP@,${USERS_GROUP},g' \
 	    -e 's,@USER_PREFIX@,${USER_PREFIX},g' \
-	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
-	    -e 's,@AMQP_PORT@,${AMQP_PORT},g' \
-	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \
-	    -e 's,@AMQP_USERNAME@,${AMQP_USERNAME},g' \
-	    -e 's,@AMQP_EXCHANGE@,${AMQP_EXCHANGE},g' \
-	    -e 's,@AMQP_CACERT@,${AMQP_CACERT},g' \
 		<$< >$@
 	chmod --reference=$< $@
 
@@ -336,11 +337,12 @@ ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo: ga/ga-proxyd.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo: ga/init/ga-proxyd.in
-	sed -e 's,@CMD_DIR@,${GA_BIN_DIR},g' \
+	sed \
+	    -e 's,@CMD_DIR@,${GA_BIN_DIR},g' \
+	    -e 's,@PROJECT_PREFIX@,ga,g' \
 	    -e 's,@RUN_AS@,${RUN_AS},g' \
 	    -e 's,@SOCKDIR@,${SOCKDIR},g' \
 	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
-	    -e 's,@PROJECT_PREFIX@,ga,g' \
 		<$< >$@
 	chmod --reference=$< $@
 
@@ -354,11 +356,11 @@ GA-install-init: ${GA_init_TARGETS}
 
 GA-install-var:
 	install -d -m750 \
+		${DESTDIR}${GA_KICKER_DIR} \
 		${DESTDIR}${GA_LOG_DIR} \
 		${DESTDIR}${GA_RUNTIME_DIR} \
 		${DESTDIR}${GA_RUNTIME_DIR}/depot \
 		${DESTDIR}${GA_RUNTIME_DIR}/repo \
-		${DESTDIR}${GA_KICKER_DIR} \
 		${DESTDIR}${GA_STATE_DIR} \
 		${DESTDIR}${GA_STATE_DIR}/attic \
 		${DESTDIR}${GA_STATE_DIR}/depot \
