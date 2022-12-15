@@ -49,4 +49,5 @@ girar-task-update-queues  "$id" "$state" ''
 girar-hook-event task delete "$id"
 cd - >/dev/null
 rm -rf -- "$id"/
+rm -rf "$ARTIFACTS_DIR/$id"
 echo >&2 done

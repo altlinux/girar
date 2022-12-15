@@ -744,7 +744,12 @@ if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
 		*/*) type="${spec%/*}"
 		     case "$type" in
 			img|oci) check_already_added_type
-				 echo "$type" > gears/$i/type ;;
+				 echo "$type" > gears/$i/type
+				 mkdir -pm2755 "$ARTIFACTS_DIR/$id"
+				 [ -L artifacts ] ||
+					 ln -snf "$ARTIFACTS_DIR/$id" artifacts
+				 mkdir -m "$gears_i_mode" "$ARTIFACTS_DIR/$id/$i"
+				 ;;
 			* ) rm -f "$pkg_tar"
 			    fatal "unrecognized spec type when creating pkg.tar for ${dir##*/} tag \"$tag_name\""
 			    ;;

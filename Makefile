@@ -36,6 +36,7 @@ SOCKGRP = @SOCKGRP@
 SRPMS_DIR = /srpms
 STATE_DIR = ${localstatedir}/girar
 TASKS_DIR = /tasks
+ARTIFACTS_DIR = /artifacts
 TASKS_GROUP = tasks
 USERS_GROUP = girar-users
 USER_PREFIX = alt_
@@ -207,6 +208,7 @@ install-sbin: ${sbin_TARGETS}
 
 install-var:
 	install -d -m750 \
+		${DESTDIR}${ARTIFACTS_DIR} \
 		${DESTDIR}${INCOMING_DIR} \
 		${DESTDIR}${RUNTIME_DIR} \
 		${DESTDIR}${RUNTIME_DIR}/acl \
@@ -279,6 +281,7 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
 	    -e 's,@AMQP_USERNAME@,${AMQP_USERNAME},g' \
 	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \
+	    -e 's,@ARTIFACTS_DIR@,${ARTIFACTS_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
 	    -e 's,@EMAIL_ALIASES@,${EMAIL_ALIASES},g' \

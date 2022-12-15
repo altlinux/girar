@@ -236,6 +236,8 @@ fi
 %dir %attr(1770,root,pender) /tasks/stale/
 %config(noreplace) %attr(664,pender,tasks) /tasks/.max-task-id
 
+%dir %attr(3775,pender,tasks) /artifacts/
+
 %dir %attr(750,root,girar) /var/lib/girar/incoming/
 
 %dir %attr(750,root,girar) /var/lock/girar/

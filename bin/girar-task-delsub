@@ -63,7 +63,10 @@ for i; do
 	rm -f gears/$i/dir gears/$i/tag_name gears/$i/tag_id gears/$i/tag_author
 	rm -rf gears/$i/git
 	rm -f gears/$i/pkg.tar
-	rm -f gears/$i/type
+	if [ -s gears/$i/type ]; then
+		rm -rf "$ARTIFACTS_DIR/$id/$i"
+		rm -f gears/$i/type
+	fi
 	# common
 	rm -rf build/$i
 	rm -rf acl/approved/$i acl/disapproved/$i
