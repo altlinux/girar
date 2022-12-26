@@ -42,6 +42,12 @@ build_nums()
 		cut -d/ -f2 |sort -nu
 }
 
+img_nums()
+{
+	find gears -mindepth 2 -maxdepth 2 -path 'gears/[1-7]*/type' -type f 2>/dev/null |
+		cut -d/ -f2 |sort -n
+}
+
 # Now what's the plan?  I guess we don't just move some files around.
 # We deal with "tuples" (src,bin+).  Therefore, the consistent plan is
 # to group files into such tuples, and decide how new tuples replace
