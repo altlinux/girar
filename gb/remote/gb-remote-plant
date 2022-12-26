@@ -8,6 +8,10 @@ dir="$1"; shift
 arch="$1"; shift
 comps="$1"; shift
 noarch_comps="$1"; shift
+repo_dir=
+if [ "$whatis" = imgbuild ]; then
+	repo_dir="$1"; shift
+fi
 
 owner=$(printf %s "$owner" |tr . _)
 repo_name=$(printf %s "$GB_REPO_NAME" |tr . _)
@@ -31,7 +35,7 @@ mkdir -p -- "$cache_dir"
 rm -f "$cache_dir"/chroot/aptbox.tar
 
 # recreate directories
-recreate_dirs='in apt build install base_repo hasher_repo lists'
+recreate_dirs='in apt build img install base_repo hasher_repo img_repo lists'
 rm -rf -- $recreate_dirs
 mkdir -- $recreate_dirs
 
@@ -55,6 +59,8 @@ mkdir -p -- "\$workdir"
 apt_config="\$HOME/apt/apt.conf"
 def_target="$arch"
 def_repo="\$HOME/hasher_repo"
+def_images="\$HOME/img_repo"
+${repo_dir:+repo_mountpoints=$repo_dir}
 cache_dir="\$HOME/$cache_dir"
 known_mountpoints="$known_mountpoints"
 USER="$owner-$repo_name"

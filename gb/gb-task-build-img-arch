@@ -1,0 +1,18 @@
+#!/bin/sh -efu
+
+id="$(cat task/id)"
+arch="$1"; shift
+
+. gb-sh-functions
+
+rm -rf "build/repo/$arch"
+
+for i in $(src_nums); do
+	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" "$arch" ||:
+	if $0-i "$arch" "$i"; then
+		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" "$arch" ||:
+	else
+		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "failed" "$arch" ||:
+		exit 1
+	fi
+done

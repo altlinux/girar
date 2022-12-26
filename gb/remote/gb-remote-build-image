@@ -1,0 +1,143 @@
+#!/bin/sh -efu
+
+arch="$1"; shift
+from="$1"; shift
+tag_name="$1"; shift
+
+build_source=in/pkg.tar
+
+oneliner()
+{
+	printf %s "$*" |tr -s '[:space:]' ' '
+}
+
+stamp_echo()
+{
+	echo "$(LC_TIME=C date -u '+%Y-%b-%d %T') :: $(oneliner "$*")"
+}
+
+arch_prefix="[$arch] "
+I="$arch_prefix$from${tag_name:+ $tag_name}: remote"
+
+Fatal()
+{
+	stamp_echo >&2 "$I: $*"
+	exit 1
+}
+
+tmpdir=
+cleanup()
+{
+	[ -z "$tmpdir" ] || rm -rf -- "$tmpdir"
+	[ ! -d in ] || find in -mindepth 1 -delete
+	exit "$@"
+}
+trap 'cleanup $?' EXIT
+trap 'exit 143' HUP INT QUIT PIPE TERM
+
+tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXX")
+
+# Step 1: initialize and query hasher chroot.
+setarch "$arch" -- \
+hsh --init --pkg-build-list='basesystem,img-build,time' >"$tmpdir"/out 2>&1 || {
+	sed "s/^/$arch_prefix/" "$tmpdir"/out
+	Fatal 'initroot failed'
+} >&2
+
+q_bin='%{name}\t%|serial?{%{serial}:}|%{version}-%{release}\t%{arch}\t%{sourcerpm}\t%{sha1header}\n'
+hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_base
+sort -u -o "$tmpdir"/chroot_base{,}
+
+# Step 2: install build environment.
+rm -f img/excluded
+hsh-rebuild --install-only "$build_source" \
+	>img/buildenv.log 2>&1 ||
+	{
+		if grep -E -qs '^error: Architecture is (excluded|not included): ' img/buildenv.log; then
+			grep -E '^error: Architecture is (excluded|not included): ' \
+				img/buildenv.log >img/excluded
+			echo excluded > img/status
+			exit 0
+		fi
+		sed "s/^/$arch_prefix/" img/buildenv.log
+		Fatal 'cannot build image'
+	} >&2
+
+# Step 3: save BuildRequires.
+hsh-run -- rpmquery -a --qf "$q_bin" >"$tmpdir"/chroot_BR
+sort -u -o "$tmpdir"/chroot_BR{,}
+comm -23 "$tmpdir"/chroot_BR "$tmpdir"/chroot_base >"$tmpdir"/chroot_BR+
+mv -f "$tmpdir"/chroot_BR+ "$tmpdir"/chroot_BR
+
+# Step 4: hack around apt repo path.
+img_apt_conf=
+if [ -L gb-repo ]; then
+	repo="$(readlink gb-repo)"
+	img_apt_conf="$tmpdir"/apt.conf
+
+	cat >"$tmpdir"/apt.conf <<-EOF
+	Dir::Etc::main "/dev/null";
+	Dir::Etc::parts "/var/empty";
+	Dir::Etc::sourceparts "/var/empty";
+	Dir::Etc::sourcelist "$tmpdir/sources.list";
+	Dir::Etc::pkgpriorities "$tmpdir/pkgpriorities";
+	Debug::pkgMarkInstall "true";
+	Debug::pkgProblemResolver "true";
+	EOF
+	sed -E "s@^(rpm file:)[^ ]*(.*)@\1${repo}\2@" \
+		apt/sources.list >"$tmpdir"/sources.list
+	cat apt/pkgpriorities >"$tmpdir"/pkgpriorities
+else
+	hsh-copy --root gb-repo "$HOME"/gb-repo
+fi
+
+# Step 5: build.
+rm -f "$tmpdir"/OK{1,2}
+{
+	hsh-rebuild ${img_apt_conf:+--img-apt-conf="$img_apt_conf"} "$build_source" 2>&1 &&
+		touch "$tmpdir"/OK1 ||:
+} | {
+	gawk 'BEGIN{ts0=systime()}{print strftime("[%T]",systime()-ts0,1),$0}' > img/log &&
+		touch "$tmpdir"/OK2 ||:
+}
+[ -f "$tmpdir"/OK1 -a -f "$tmpdir"/OK2 ] || {
+	. ./gb-remote-log
+	sed -r 's/^\[[0-9]{2}(:[0-9]{2}){2}\] //' img/log |
+		buildlog_errors |
+		sed "s/^/$arch_prefix/"
+	Fatal 'build failed'
+} >&2
+
+hsh-rmchroot
+
+# Step 6: save results.
+find img_repo/$arch/ -mindepth 1 -maxdepth 1 -type f \
+	-printf '%f\n' >"$tmpdir"/list
+
+[ -s "$tmpdir"/list ] ||
+	Fatal 'no artifacts built'
+
+# Copyout.
+> "$tmpdir"/FAIL
+
+rm -rf img/results
+mkdir -p img/results
+{
+	tar -C img_repo/$arch -cf - `cat "$tmpdir"/list` ||
+		echo "FAILED: tar -C img_repo/$arch -cf" >> "$tmpdir"/FAIL
+} |
+{
+	tar -C img/results -xf - ||
+		echo "FAILED: tar -C img/results -xf" >> "$tmpdir"/FAIL
+}
+
+if [ -s "$tmpdir"/FAIL ]; then
+	sed >&2 "s/^/$arch_prefix/" "$tmpdir"/FAIL
+	exit 1
+fi
+
+# Meta copyout.
+cp -p "$tmpdir"/chroot_base img/chroot_base
+cp -p "$tmpdir"/chroot_BR img/chroot_BR
+
+echo built > img/status

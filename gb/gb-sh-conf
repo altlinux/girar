@@ -13,6 +13,7 @@
 : ${GB_USER_PREFIX:?}
 : ${GB_GEARS_DIR:?} ${GB_SRPMS_DIR:?}
 : ${GB_TASKS_DIR:?} ${GB_TASKS_DONE_DIR:?}
+: ${GB_ARTIFACTS_DIR:?}
 : ${GB_SOCKET_DIR:?}
 : ${GB_SYMLINK_DIR:?}
 
@@ -40,7 +41,9 @@ GB_AREPO_DIR="$TMPDIR/gb-arepo-$USER-$GB_REPO_NAME"
 [ -n "${GB_ARCH-}" ] ||
 	GB_ARCH='i586 x86_64'
 
-[ -z "${arch-}" ] ||
+if [ -n "${arch-}" ]; then
 	remote_host="build-$USER-$GB_REPO_NAME-$arch"
+	remote_img_host="img-$USER-$GB_REPO_NAME-$arch"
+fi
 
 : ${GB_ALLOW_SAME_NEVR=}

@@ -35,12 +35,21 @@ flock -s 0
 GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
 export GB_REPO_DIR
 
+img_nums="$(img_nums)"
+
 # prepare changes
 gb-task-gen-buildrepo
-gb-task-setup-remote
-gb-task-copy-packages
-gb-task-build-prep
-gb-task-build
+
+if [ -z "$img_nums" ]; then
+	gb-task-setup-remote
+	gb-task-copy-packages
+	gb-task-build-prep
+	gb-task-build
+else
+	gb-task-setup-remote --img
+	gb-task-build-img
+fi
+
 fail_if_task_abort_requested
 gb-x-girar task-make-index-html "$id" ||:
 
@@ -49,41 +58,43 @@ for i in $(src_nums); do
 	gb-x-girar hook-event subtask update "$id" "$i" ||:
 done
 
-# run basic tests
-gb-task-check-build
-gb-task-check-noarch
-gb-task-repo-plan
+if [ -z "$img_nums" ]; then
+	# run basic tests
+	gb-task-check-build
+	gb-task-check-noarch
+	gb-task-repo-plan
 
-# gather information about closed bugs and fixed vulns
-gb-task-gen-changelog
-gb-task-find-closed-bugs
-gb-task-find-fixed-vulns
+	# gather information about closed bugs and fixed vulns
+	gb-task-gen-changelog
+	gb-task-find-closed-bugs
+	gb-task-find-fixed-vulns
 
-# generate task and "next" repos
-gb-task-gen-task-repo "$id"
-gb-task-gen-next-repo
+	# generate task and "next" repos
+	gb-task-gen-task-repo "$id"
+	gb-task-gen-next-repo
 
-# run expensive tests
-gb-task-repo-check-provides
-gb-task-repo-unmets
-gb-task-repo-elfsym
-gb-task-check-install
+	# run expensive tests
+	gb-task-repo-check-provides
+	gb-task-repo-unmets
+	gb-task-repo-elfsym
+	gb-task-check-install
 
-# build and test arepo packages
-gb-task-arepo
+	# build and test arepo packages
+	gb-task-arepo
 
-# run surmountable tests
-gb-task-check-girar
-gb-task-check-lastchange
-gb-task-check-neighbour-version
-gb-task-check-acl
+	# run surmountable tests
+	gb-task-check-girar
+	gb-task-check-lastchange
+	gb-task-check-neighbour-version
+	gb-task-check-acl
 
-# apply local policy enforcement
-gb-task-local-policy
+	# apply local policy enforcement
+	gb-task-local-policy
 
-# save generated "next" repo for commit
-gb-task-gen-ci
-gb-task-gen-hash
-gb-task-save-repo
+	# save generated "next" repo for commit
+	gb-task-gen-ci
+	gb-task-gen-hash
+	gb-task-save-repo
+fi
 
 fail_if_task_abort_requested

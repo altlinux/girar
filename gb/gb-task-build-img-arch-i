@@ -1,0 +1,99 @@
+#!/bin/sh -efu
+
+. shell-quote
+
+arch="$1" i="$2"; shift 2
+
+. gb-sh-functions
+. gb-sh-tmpdir
+
+fail_if_task_abort_requested "[$arch]"
+
+userid="$(cat gears/$i/userid)"
+if [ -s "gears/$i/dir" ]; then
+	dir="$(cat "gears/$i/dir")"
+	from="${dir##*/}"
+	src=pkg.tar
+	tag_name="$(cat "gears/$i/tag_name")"
+	tag_author="$(cat "gears/$i/tag_author")"
+	type="$(cat "gears/$i/type")"
+	I="[$arch] #$i $from $tag_name: $type"
+else
+	stamp_echo >&2 "#$i: source not found"
+	exit 1
+fi
+
+dist="$(cat task/repo)"
+task_id="$(cat task/id)"
+task_try="$(cat task/try)"
+task_iter="$(cat task/iter)"
+
+atrifacts_subdir="$GB_ARTIFACTS_DIR/$task_id/$i"
+
+[ -d "$atrifacts_subdir" ]
+
+stamp_echo >&2 "$I build start"
+
+# copy source package and accompanying build data to remote side
+gb-x-rsync-loop -q -- "gears/$i/$src" "$remote_img_host:in/"
+(umask 002; mkdir -p "build/$i/$arch") || false
+(umask 002; mkdir -p "$atrifacts_subdir/$arch") || false
+[ -f "build/$i/$arch/log" ] ||
+	touch "build/$i/$arch/log"
+> "build/$i/$arch/status"
+rm -f "build/$i/$arch/try_iter"
+
+save_build_try_iter()
+{
+	printf %s "$task_try.$task_iter" > "build/$i/$arch/try_iter"
+}
+
+# run the build on remote side
+gb-x-ssh "$remote_img_host" ./gb-remote-build-image \
+	"\"$(quote_shell "$arch")\"" \
+	"\"$(quote_shell "$from")\"" \
+	"\"$(quote_shell "$tag_name")\"" || {
+	stamp_echo >&2 "$I build FAILED"
+	task_change_state_to_failing "[$arch]"
+	gb-x-rsync-loop -q -- "$remote_img_host:img/*log" "build/$i/$arch/"
+	exit 1
+}
+
+# copy build result from remote side
+gb-x-rsync-loop -qrlt --delete --exclude='/results' -- "$remote_img_host:img/" "build/$i/$arch/"
+find "build/$i/$arch/" -type d -print0 |
+	xargs -r0 chmod 775 --
+
+status="$(head -c 128 "build/$i/$arch/status" |head -1)"
+case "$status" in
+	built)	gb-x-rsync-loop -qrlt --delete -- "$remote_img_host:img/results/" "$atrifacts_subdir/$arch/"
+		find "$atrifacts_subdir/$arch/" -type d -print0 |
+			xargs -r0 chmod 775 --
+		text='build OK'
+		;;
+
+	excluded)
+		[ -s "build/$i/$arch/excluded" ] || {
+			stamp_echo >&2 "$I incomplete build status: $status"
+			task_change_state_to_failing "[$arch]"
+			exit 1
+		}
+		save_build_try_iter
+		stamp_echo >&2 "$I build SKIPPED"
+		exit 0
+		;;
+
+	*) 	stamp_echo >&2 "$I unrecognized build status: $status"
+		task_change_state_to_failing "[$arch]"
+		exit 1
+		;;
+esac
+
+if [ -s "build/$i/$arch/excluded" ]; then
+	stamp_echo >&2 "$I unexpected build status: $status"
+	task_change_state_to_failing "[$arch]"
+	exit 1
+fi
+
+save_build_try_iter
+stamp_echo >&2 "$I $text"

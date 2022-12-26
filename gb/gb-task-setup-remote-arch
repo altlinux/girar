@@ -4,14 +4,24 @@ arch="$1"; shift
 
 . gb-sh-functions
 
+whatis=build
+repo_dir=
+if [ "${1-}" = --img ]; then
+	whatis=imgbuild
+	remote_host="$remote_img_host"
+	repo_dir="$GB_REPO_ROOT/$GB_REPO_NAME"
+	repo_dir="$(readlink -ev -- "$repo_dir")"
+fi
+
 . shell-quote
 qvv() { quote_shell "$1=\"$(quote_shell "$2")\""; }
+
 
 # Setup remote node to build $arch packages for $GB_REPO_NAME repository.
 # Note that now we use $remote_host:gb-repo, not $GB_REPO_DIR (see below).
 gb-x-rsync-loop -a "$GB_HOME/remote/" "$remote_host:"
 gb-x-ssh "$remote_host" ./gb-remote-plant \
-	build \
+	"$whatis" \
 	"\"$(quote_shell "$(cat task/owner)")\"" \
 	"\"$(quote_shell "$GB_REPO_NAME")\"" \
 	"\"$(quote_shell "$GB_REPO_REAL_NAME")\"" \
@@ -19,6 +29,7 @@ gb-x-ssh "$remote_host" ./gb-remote-plant \
 	"\"$(quote_shell "$arch")\"" \
 	classic \
 	classic \
+	${repo_dir:+$repo_dir} \
 	"\"$(qvv rpmargs "$GB_REPO_RPMARGS")\"" \
 	#
 
