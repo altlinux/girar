@@ -165,6 +165,23 @@ else
 fi
 
 nums=$(gear_nums)
+
+img=
+for i in $nums; do
+	if [ -s gears/$i/type ]; then
+		img=1
+		break
+	fi
+done
+
+if [ "$test_mode $img" = '--commit 1' ]; then
+	fatal 'cannot commit task with image subtasks'
+fi
+
+if [ "$swift_mode $img" = '--hurry 1' ]; then
+	fatal 'cannot build images in a hurry'
+fi
+
 delnums=
 check_copy_del()
 {
