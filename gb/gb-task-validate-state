@@ -5,6 +5,9 @@ state="$1"; shift
 
 . gb-sh-functions
 
+[ -z "$(img_nums)" ] ||
+	exit 1
+
 next_b=build/repo/noarch/base.next
 next_bb=build/repo/noarch/base.bloat.next
 [ -f plan/next.src.xz ] &&
