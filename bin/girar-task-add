@@ -563,6 +563,18 @@ check_already_added()
 	done
 }
 
+check_image_building_enabled()
+{
+	[ "${GIRAR_IMG_BUILD-}" = yes ] ||
+		fatal 'image building is not enabled for this repo'
+	for u in ${GIRAR_IMG_BUILD_USERS-}; do
+		if [ "$u" = "$GIRAR_USER" ]; then
+			return 0
+		fi
+	done
+	fatal 'image building is not allowed'
+}
+
 check_add_first()
 {
 	[ -z "$subtask_id" ] ||
@@ -743,7 +755,8 @@ if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
 	case "$spec" in
 		*/*) type="${spec%/*}"
 		     case "$type" in
-			img|oci) check_already_added_type
+			img|oci) check_image_building_enabled
+				 check_already_added_type
 				 echo "$type" > gears/$i/type
 				 mkdir -pm2755 "$ARTIFACTS_DIR/$id"
 				 [ -L artifacts ] ||
