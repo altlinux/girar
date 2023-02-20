@@ -17,8 +17,8 @@ Requires: apt-repo-tools >= 0.8.0
 # due to post-receive hook (>= 0:1.5.1)
 # due to merge-base --is-ancestor
 Requires: git-core >= 0:1.8.0
-# due to girar-task-add
-Requires: gear
+# due to girar-task-add and type: directive support
+Requires: gear >= 2.6.0
 # due to cron jobs
 Requires: stmpclean
 # due to "locale -m"
