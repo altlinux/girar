@@ -749,7 +749,7 @@ pkg_tar="gears/$i/pkg.tar"
 printf >&2 %s "generating pkg.tar for ${dir##*/} tag \"$tag_name\"... "
 if env TZ=UTC gear ${GEAR_ARGS-} -t "$tag_name" -- "$pkg_tar" &&
    [ -s "$pkg_tar" ] &&
-   spec="$(LC_ALL=C tar -tvf "$pkg_tar" |
+   spec="$(LC_ALL=C tar -tvf "$pkg_tar" 2>/dev/null |
 	   sed '/^V---------[[:space:]]\+0\/0[[:space:]]\+0[[:space:]]\+[^[:space:]]\+[[:space:]]\+[^[:space:]]\+[[:space:]]\+/!d;s///;s/--Volume Header--\$//;q')" &&
    [ -n "$spec" ]; then
 	case "$spec" in
