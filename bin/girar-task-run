@@ -306,7 +306,7 @@ check_depends()
 
 		local i k state rc=0
 		for i in $(cat); do
-			k="_$(($i/1024))"
+			k="_$((i/1024))"
 			if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
 				girar-task-rmdep "$i"
 				continue
@@ -341,7 +341,7 @@ check_depends
 
 try=$(cat task/try 2>/dev/null ||:)
 if [ -n "$try" ]; then
-	try=$(($try+1))
+	try=$((try+1))
 else
 	try=1
 fi

@@ -25,7 +25,7 @@ task="$1"; shift
 
 src="$repo/release/$task"
 dst="$repo/task/$task"
-k="_$(($task/1024))"
+k="_$((task/1024))"
 adst="$repo/task/archive/$k/$task"
 done_dir="$STATE_DIR/repo/.done"
 
@@ -73,7 +73,7 @@ for d in $(set +f && echo ??*); do
 	# Move archived repositories to .archived/.
 	for t in $(set +f && echo [1-9]*); do
 		[ -d "$t" ] || continue
-		k="_$(($t/1024))" || continue
+		k="_$((t/1024))" || continue
 		ti="$t/files/list/task.info"
 		[ -w "$ti" ] || continue
 		ati="archive/$k/$t/files/list/task.info"

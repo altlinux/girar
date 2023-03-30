@@ -41,7 +41,7 @@ add_acl_cmd()
 {
 	printf "$@" | girar-acl-apply-changes $quiet "$repository" "$tmpdir" 3>&-
 	printf >&3 "$@"
-	nqueued="$(($nqueued+1))"
+	nqueued="$((nqueued+1))"
 }
 
 show_acl()

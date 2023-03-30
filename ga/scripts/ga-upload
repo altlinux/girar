@@ -19,7 +19,7 @@ exec <.
 flock -n 0
 
 day="$(($(date +%s)/86400))"
-date_file="$(date -d "@$((86400*$day))" '+%Y/%m/%d')"
+date_file="$(date -d "@$((86400*day))" '+%Y/%m/%d')"
 date_dir="${date_file%/*}"
 
 log_file="$GA_UPLOAD_DIR/log/_$day.log"
@@ -73,7 +73,7 @@ for d in [A-Za-z0-9]?*; do
 		rm -rf -- "$dst.old"
 
 		# create/update the link in the daily index
-		ti="_$(($task/1024))"
+		ti="_$((task/1024))"
 		mkdir -p -- "$d/date/$date_dir"
 		ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
 		touch -hr "$src/$f" "$d/date/$date_file"

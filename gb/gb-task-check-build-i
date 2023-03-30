@@ -176,7 +176,7 @@ check_spi_nevr()
 		[ "$evr0" != '-' ] ||
 			continue
 		is_ver1_le_ver2 "$evr0" "$evr" ||
-			Fatal "$what \`$evr0' in $GB_REPO_NAME/task/archive/_$(($tid/1024))/$tid"
+			Fatal "$what \`$evr0' in $GB_REPO_NAME/task/archive/_$((tid/1024))/$tid"
 	done < "$tmpdir/dspi"
 }
 

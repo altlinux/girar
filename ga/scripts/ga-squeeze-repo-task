@@ -8,7 +8,7 @@ exec < /dev/null
 [ "$GA_SQUEEZE_MTIME" -gt 0 ] || exit 0
 
 task="$1"; shift
-dir="_$(($task/1024))"
+dir="_$((task/1024))"
 
 cd "$GA_REPO_DIR/task/$dir/$task"
 
@@ -24,7 +24,7 @@ utask="$(sed -n "/^$task\$/,\$ p" "$GA_REPO_DIR/task/task.list" |
 [ -n "$utask" ] &&
 	[ "$task" != "$utask" ] ||
 	exit 0
-udir="_$(($utask/1024))"
+udir="_$((utask/1024))"
 
 exec <.
 flock -n 0 || exit 0

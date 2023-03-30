@@ -93,7 +93,7 @@ umask 002
 	esac
 
 	for i; do
-		k="_$(($i/1024))"
+		k="_$((i/1024))"
 		if [ -d "$TASKS_DIR/archive/done/$k/$i/task" ]; then
 			girar-task-rmdep "$i"
 			continue

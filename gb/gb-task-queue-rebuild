@@ -6,7 +6,7 @@ iter0=$(cat task/iter)
 
 log0="logs/events.$try.$iter0.log"
 if [ -s "$log0" ]; then
-	iter=$(($iter0+1))
+	iter=$((iter0+1))
 else
 	iter=$iter0
 fi

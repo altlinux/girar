@@ -41,7 +41,7 @@ if [ -n "$json" ] && [ -n "$brief" ]; then
 fi
 
 id=$(PROG="$PROG" GIRAR_TASK_LOOKUP_ARCHIVE=1 girar-task-find-current "$@")
-k="_$(($id/1024))"
+k="_$((id/1024))"
 for dir in "$TASKS_DIR/$id" "$TASKS_DIR/archive/done/$k/$id"; do
 	if [ -d "$dir" ]; then
 		cd "$dir"

@@ -39,7 +39,7 @@ if [ -f task/depends ]; then
 		printf ' "depends": [%s],\n' "$(tr -s '[:space:]' , |sed 's/,$//')"
 	} < task/depends
 fi
-printf ' "age": %s,\n' "$((($date_s-$(stat -c %Y task/state))/604800))"
+printf ' "age": %s,\n' "$(((date_s-$(stat -c %Y task/state))/604800))"
 log="logs/events.$try.$iter.log"
 if [ -f "$log" ]; then
 	printf ' "build_time": "%s",\n' \

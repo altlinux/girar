@@ -22,7 +22,7 @@ owner="$(cat task/owner)"
 run_by="$(cat task/run ||:)"
 
 if [ "$state" = DONE ]; then
-	k="_$(($id/1024))"
+	k="_$((id/1024))"
 	url="$GB_SITE$GB_TASKS_DONE_DIR/$k/$id/"
 else
 	url="$GB_SITE$GB_TASKS_DIR/$id/"

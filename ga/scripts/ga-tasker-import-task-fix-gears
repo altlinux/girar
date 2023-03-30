@@ -6,8 +6,8 @@ exec < /dev/null
 
 k="$1"; shift
 
-n="$(($k/1024))"
-k="$(($k%1024))"
+n="$((k/1024))"
+k="$((k%1024))"
 dir_emptydir="$GA_SYMLINK_DIR/emptydir/$n"
 dir_nullfile="$GA_SYMLINK_DIR/nullfile/$n"
 mkdir -p -- "$dir_emptydir" "$dir_nullfile"

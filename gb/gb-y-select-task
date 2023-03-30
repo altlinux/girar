@@ -63,7 +63,7 @@ select_task()
 	# the max iteration number in target queue greater than 2?
 	if [ "$max_target_iter" -gt 2 ] && [ ! -f task/test-only ]; then
 		# fail unless iteration number is less than max-1 or greater than max
-		[ "$iter" -lt "$(($max_target_iter - 1))" ] ||
+		[ "$iter" -lt "$((max_target_iter - 1))" ] ||
 		[ "$iter" -gt "$max_target_iter" ] || exit
 	fi
 

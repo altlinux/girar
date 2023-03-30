@@ -3,7 +3,7 @@
 . gb-sh-functions
 
 task_id="$1"; shift
-k="$(($task_id/1024))"
+k="$((task_id/1024))"
 task_dir="$GB_TASKS_DIR/$task_id"
 [ -d "$task_dir" ] ||
 	exit

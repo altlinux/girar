@@ -17,7 +17,7 @@ cat <<__EOF__
 __EOF__
 
 while read -r D T S V SID; do
-	G="_$(($T/1024))"
+	G="_$((T/1024))"
 	date="$(LC_TIME=C date -u -d "@$D" '+%F %H:%M')"
 
 	if [ "$S" = - ]; then

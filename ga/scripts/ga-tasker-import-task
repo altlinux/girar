@@ -7,7 +7,7 @@
 task_id="$1"; shift
 [ "$task_id" -gt 0 ] 2>/dev/null ||
 	fatal "task $task_id: Invalid argument"
-k="$(($task_id / 1024))"
+k="$((task_id / 1024))"
 
 cd "$GA_TASKS_DONE_DIR"
 # obtain an exclusive lock on the whole tasks/done tree

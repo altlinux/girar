@@ -14,7 +14,7 @@ if [ $# -gt 0 ]; then
 		[ -s "$dir" ]
 	} || {
 		[ "${GIRAR_TASK_LOOKUP_ARCHIVE-}" = 1 ] &&
-		k="_$(($id/1024))" &&
+		k="_$((id/1024))" &&
 		dir="archive/done/$k/$id" &&
 		[ -d "$dir" ]
 	} ||

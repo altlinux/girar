@@ -35,7 +35,7 @@ PATH="${0%/*}:$PATH"
 
 . ga-sh-functions
 src="$GA_REPO_TMP_DIR/$task_id"
-k="$(($task_id/1024))"
+k="$((task_id/1024))"
 dst_parent_dir="$GA_REPO_DIR/task/_$k"
 tmp_dst="$dst_parent_dir/.$task_id"
 dst="$dst_parent_dir/$task_id"

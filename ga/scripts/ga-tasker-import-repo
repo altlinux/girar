@@ -7,7 +7,7 @@
 task_id="$1"; shift
 [ "$task_id" -gt 0 ] 2>/dev/null ||
 	fatal "task $task_id: Invalid argument"
-k="$(($task_id / 1024))"
+k="$((task_id / 1024))"
 
 # obtain an exclusive lock on the whole repo/task tree
 exec < "$GA_REPO_DIR/task"
