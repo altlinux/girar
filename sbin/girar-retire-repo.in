@@ -20,7 +20,7 @@ usage()
 
 repo="$1"; shift
 
-printf %s "$repo" | grep -xqs '[a-z][a-z_0-9.]\+' ||
+printf %s "$repo" | grep -xqs '[a-z0-9][a-z_0-9.]\+' ||
 	fatal "$repo: invalid REPO-NAME specified"
 
 cd "$STATE_DIR"
