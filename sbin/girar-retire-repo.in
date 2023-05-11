@@ -59,6 +59,7 @@ cmp -s /archive/repo/"$repo"/task/task.list repo/"$repo"/release/task.list ||
 }
 
 ln -snf /archive/repo/"$repo"/latest repo/"$repo"/release/latest
+ln -snf /archive/repo/"$repo"/task/task.list repo/"$repo"/release/task.list
 
 cd repo/"$repo"/task
 for d in *; do
