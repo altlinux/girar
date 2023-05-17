@@ -1,0 +1,72 @@
+#!/bin/sh -efu
+
+export PATH='@CMD_DIR@:/bin:/usr/bin'
+umask 022
+
+. shell-error
+. girar-sh-config
+. girar-sh-tmpdir
+
+usage()
+{
+	echo "$PROG: $*" >&2
+	echo "usage: $PROG <REPO-NAME> <arch>"
+	exit 1
+}
+
+[ $# -ge 2 ] ||
+	usage 'Not enough arguments.'
+[ $# -le 2 ] ||
+	usage 'Too many arguments.'
+
+repo="$1"; shift
+arch="$1"; shift
+
+cd "$STATE_DIR"
+[ ! -s acl/list.packages."$repo" ] ||
+	fatal "$repo has an acl list"
+
+cd "$STATE_DIR/repo/$repo/release/latest"
+repodir="$(realpath .)"
+
+awk '{print $3}' \
+	files/list/src.list \
+	>"$tmpdir"/old-srcnames
+sort -o "$tmpdir"/old-srcnames{,}
+
+awk -v arch="$arch" '$3 == arch {print $5}' \
+	files/list/bin.list \
+	>"$tmpdir"/srcnames-arch
+sort -u -o "$tmpdir"/srcnames-arch{,}
+
+awk -v arch="$arch" '$3 != arch {print}' \
+	files/list/bin.list \
+	>"$tmpdir"/new-bin
+
+awk -v arch="$arch" '$3 != arch {print $5}' \
+	files/list/bin.list \
+	>"$tmpdir"/srcnames-other
+sort -u -o "$tmpdir"/srcnames-other{,}
+
+sort -k3,3 files/list/src.list \
+	>"$tmpdir"/old-src-3
+
+comm -23 "$tmpdir"/srcnames-arch "$tmpdir"/srcnames-other \
+	>"$tmpdir"/srcnames-rm
+
+comm -23 "$tmpdir"/old-srcnames "$tmpdir"/srcnames-rm \
+	>"$tmpdir"/new-srcnames
+
+join -t $'\t' -1 3 -o '1.1 1.2 1.3'  "$tmpdir"/old-src-3 "$tmpdir"/new-srcnames \
+	>"$tmpdir"/new-src
+sort -o "$tmpdir"/new-src{,}
+
+rm -r files/"$arch"
+rm -r "$arch"
+rm files/list/"$arch".hash.xz
+
+cd files/SRPMS
+xargs -r rm -v < "$tmpdir"/srcnames-rm
+
+su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm bin.list && rm -f bin.list.xz && cat > bin.list && xz -9 bin.list" <"$tmpdir"/new-bin
+su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm src.list && rm -f src.list.xz && cat > src.list && xz -9 src.list" <"$tmpdir"/new-src
