@@ -86,26 +86,28 @@ set -f
 
 cd "$dst_dir"
 
-stamp_echo >&2 "uploading $date_file snapshot"
-rsync -vrltxH --delete-after --stats \
-	--exclude='base/ds.*' \
-	--exclude=x86_32 \
-	--exclude=arm \
-	--exclude=school \
-	--exclude=icarus \
-	--exclude=4.0 \
-	--exclude=4.1 \
-	--exclude=5.0 \
-	--exclude=5.1 \
-	--exclude=c6 \
-	--exclude=c6.0 \
-	--exclude=c7.1 \
-	--exclude=c8 \
-	--exclude=p5 \
-	--exclude=p6 \
-	--exclude=t6 \
-	--exclude=p8/aarch64 \
-	--exclude=p8/files/aarch64 \
-	./ "${GA_REMOTE_UPLOAD_DIR}/" "$@"
+for upload_dir in $GA_REMOTE_UPLOAD_DIRS; do
+	stamp_echo >&2 "uploading $date_file snapshot to $upload_dir"
+	rsync -vrltxH --delete-after --stats \
+		--exclude='base/ds.*' \
+		--exclude=x86_32 \
+		--exclude=arm \
+		--exclude=school \
+		--exclude=icarus \
+		--exclude=4.0 \
+		--exclude=4.1 \
+		--exclude=5.0 \
+		--exclude=5.1 \
+		--exclude=c6 \
+		--exclude=c6.0 \
+		--exclude=c7.1 \
+		--exclude=c8 \
+		--exclude=p5 \
+		--exclude=p6 \
+		--exclude=t6 \
+		--exclude=p8/aarch64 \
+		--exclude=p8/files/aarch64 \
+		./ "${upload_dir}/" "$@"
+done
 
 stamp_echo >&2 'done'
