@@ -124,7 +124,7 @@ for i in $nums; do
 		fi
 	elif [ -s "gears/$i/srpm" ]; then
 		printf ' %s:srpm=%s\n' "$i" "$(cat "gears/$i/srpm")"
-		if [ -s "gears/$i/rebuild_from" ]; then
+		if [ -z "$brief" ] && [ -s "gears/$i/rebuild_from" ]; then
 			printf ' %s:rebuild_from=%s\n' "$i" "$(cat "gears/$i/rebuild_from")"
 		fi
 	elif [ -s "gears/$i/package" ]; then
