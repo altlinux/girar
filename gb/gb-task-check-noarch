@@ -11,6 +11,7 @@ text=OK
 gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
 
 for i in $(src_nums) $(copy_nums); do
+	fail_if_task_abort_requested
 	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" ||:
 	if $0-i "$i"; then
 		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" ||:
