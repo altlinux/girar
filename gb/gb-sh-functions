@@ -180,3 +180,22 @@ list_notifiable_pkg_acl_members()
 		grep -E -vx '@(nobody|everybody|qa)' |
 		cat
 }
+
+# may be overridden by the caller
+stage="${0##*/gb-}"
+task_notify()
+{
+	local id="$1"; shift
+	local msg="$1"; shift
+
+	gb-x-girar hook-event task progress "$id" "$stage" "$msg" "$@" ||:
+}
+
+subtask_notify()
+{
+	local id="$1"; shift
+	local i="$1"; shift
+	local msg="$1"; shift
+
+	gb-x-girar hook-event subtask progress "$id" "$i" "$stage" "$msg" "$@" ||:
+}
