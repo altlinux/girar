@@ -58,6 +58,10 @@ for i; do
 	# rebuild
 	rm -f gears/$i/rebuild_from
 	# srpm
+	if [ -s gears/$i/srpm ]; then
+		srpm="$(cat "gears/$i/srpm")"
+		rm -f "gears/$i/$srpm"
+	fi
 	rm -f gears/$i/srpm gears/$i/nevr
 	# gear
 	rm -f gears/$i/dir gears/$i/tag_name gears/$i/tag_id gears/$i/tag_author
