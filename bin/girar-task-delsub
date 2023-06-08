@@ -57,6 +57,8 @@ for i; do
 	rm -f gears/$i/package gears/$i/copy_repo
 	# rebuild
 	rm -f gears/$i/rebuild_from
+	# srpm and gear
+	rm -f gears/$i/sid
 	# srpm
 	if [ -s gears/$i/srpm ]; then
 		srpm="$(cat "gears/$i/srpm")"
