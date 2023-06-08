@@ -7,7 +7,7 @@ cd "$GB_TASKS_DIR/index"
 
 for repo in *; do
 	[ -d "$repo"/postponed ] || continue
-	gb-x-girar normalize-repo-name "$repo" >/dev/null || continue
+	gb-x-girar normalize-repo-name "$repo" >/dev/null 2>&1 || continue
 	for dir in "$repo"/postponed/[1-9]*; do
 		[ -f "$dir/task/depends" ] ||
 			continue
