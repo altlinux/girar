@@ -6,6 +6,7 @@ guard="$1"; shift
 id=$(cat task/id)
 [ -d "$GB_TASKS_DIR/$guard/build" ] &&
 [ ! -f "$GB_TASKS_DIR/$guard/task/swift" ] &&
+[ DONE != "$(cat "$GB_TASKS_DIR/$guard/task/state")" ] &&
 [ "$id" != "$guard" ] ||
 exit 0
 
