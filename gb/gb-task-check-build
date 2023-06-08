@@ -17,16 +17,16 @@ fail()
 	printf '%s\n' "$*" >> $tmpdir/errors
 }
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 # check each built package separately
 for i in $(src_nums) $(copy_nums); do
 	fail_if_task_abort_requested
-	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" ||:
+	subtask_started "$id" "$i"
 	if $0-i "$i"; then
-		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" ||:
+		subtask_processed "$id" "$i"
 	else
-		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "failed" ||:
+		subtask_failed "$id" "$i"
 		fail "#$i"
 	fi
 done
@@ -34,11 +34,11 @@ done
 # check all $arch packages in whole
 for arch in $GB_ARCH; do
 	fail_if_task_abort_requested
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" "$arch" ||:
+	task_started "$id" "$arch"
 	if $0-arch "$arch"; then
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" "$arch" ||:
+		task_processed "$id" "$arch"
 	else
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" "$arch" ||:
+		task_failed "$id" "$arch"
 		fail "$arch"
 	fi
 done
@@ -47,10 +47,10 @@ rc=0
 if [ -f $tmpdir/errors ]; then
 	rc=1
 	text="FAILED for: $(sort -t'#' -k2,2n $tmpdir/errors |tr -s '\n' ' ')"
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 else
 	text=OK
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+	task_processed "$id"
 fi
 
 stamp_echo >&2 "build check $text"

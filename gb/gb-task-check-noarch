@@ -8,23 +8,21 @@ id="$(cat task/id)"
 rc=0
 text=OK
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 for i in $(src_nums) $(copy_nums); do
 	fail_if_task_abort_requested
-	gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "started" ||:
+	subtask_started "$id" "$i"
 	if $0-i "$i"; then
-		gb-x-girar hook-event subtask progress "$id" "$i" "${0##*/gb-}" "processed" ||:
+		subtask_processed "$id" "$i"
 	else
 		if is_check_failure_tolerated; then
 			text=IGNORED
-			gb-x-girar hook-event subtask \
-				   progress "$id" "$i" "${0##*/gb-}" "ignored" ||:
+			subtask_ignored "$id" "$i"
 		else
 			rc=1
 			text=FAILED
-			gb-x-girar hook-event subtask \
-				   progress "$id" "$i" "${0##*/gb-}" "failed" ||:
+			subtask_failed "$id" "$i"
 		fi
 	fi
 done
@@ -32,9 +30,9 @@ done
 stamp_echo >&2 "noarch check $text"
 
 if [ "$rc" = 0 ]; then
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+	task_processed "$id"
 else
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 fi
 
 exit $rc

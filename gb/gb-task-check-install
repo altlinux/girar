@@ -12,15 +12,15 @@ fail_if_task_abort_requested
 
 id="$(cat task/id)"
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 for arch in ${GB_CHECK_INSTALL_ARCH:-$GB_ARCH}; do
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" "$arch" ||:
+	task_started "$id" "$arch"
 	if $0-arch "$arch"; then
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" "$arch" ||:
+		task_processed "$id" "$arch"
 	else
 		stamp_echo "[$arch] install check FAILED" >>"$tmpdir"/FAIL
 		task_change_state_to_failing "[$arch]"
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" "$arch" ||:
+		task_failed "$id" "$arch"
 	fi &
 done
 
@@ -30,14 +30,14 @@ if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
 	if is_check_failure_tolerated; then
 		echo >&2 "The most essential install check failed, but \`$GB_REPO_NAME' is so neglected a repository that nobody cares about such trifles as this."
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "ignored" ||:
+		task_ignored "$id"
 		exit 0
 	fi
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 	exit 1
 fi
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"
 
 # Do not stamp final OK because per-package install checks are already stamped.
 exit 0

@@ -6,7 +6,7 @@ fail_if_task_abort_requested
 
 id="$1"; shift
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 rm -rf build/repo/noarch
 
@@ -69,4 +69,4 @@ wait
 
 check_and_clear_OK_flags "$tmpdir"/OK $GB_ARCH
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"

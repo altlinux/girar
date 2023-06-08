@@ -8,7 +8,7 @@ fail_if_task_abort_requested
 
 id="$(cat task/id)"
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 # src hash file
 $0-src ||
@@ -27,10 +27,10 @@ wait
 # Fail if at least one subcommand failed.
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 	exit 1
 fi
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"
 
 stamp_echo >&2 "created hash files: $(cd plan && set +f && ls *.hash.xz |sed 's/\.hash\.xz$//')"

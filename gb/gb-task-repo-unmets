@@ -49,12 +49,12 @@ dump_unmets()
 
 	wait
 	if [ -s FAIL ]; then
-		gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+		task_failed "$id"
 		exit 1
 	fi
 }
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 dump_unmets
 dump_unmets checkinstall
@@ -132,10 +132,10 @@ fi
 
 if [ "$rc" = 0 ]; then
 	text=OK
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+	task_processed "$id"
 else
 	text=FAILED
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 fi
 
 stamp_echo >&2 "dependencies check $text"

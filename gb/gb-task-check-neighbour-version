@@ -54,7 +54,7 @@ check_nevr()
 	done
 }
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 bad_I=
 while read -r N EVR F P I; do
@@ -73,8 +73,8 @@ done < plan/add-bin
 
 [ "$rc" = 0 ] || {
 	stamp_echo >&2 'neighbour version check FAILED'
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 	exit $rc
 }
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"

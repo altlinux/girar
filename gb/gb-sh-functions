@@ -199,3 +199,70 @@ subtask_notify()
 
 	gb-x-girar hook-event subtask progress "$id" "$i" "$stage" "$msg" "$@" ||:
 }
+
+task_failed()
+{
+	local id="$1"; shift
+
+	task_notify "$id" failed "$@"
+}
+
+task_ignored()
+{
+	local id="$1"; shift
+
+	task_notify "$id" ignored "$@"
+}
+
+task_processed()
+{
+	local id="$1"; shift
+
+	task_notify "$id" processed "$@"
+}
+
+task_started()
+{
+	local id="$1"; shift
+
+	task_notify "$id" started "$@"
+}
+
+task_starting()
+{
+	local id="$1"; shift
+
+	task_notify "$id" starting "$@"
+}
+
+subtask_failed()
+{
+	local id="$1"; shift
+	local i="$1"; shift
+
+	subtask_notify "$id" "$i" failed "$@"
+}
+
+subtask_ignored()
+{
+	local id="$1"; shift
+	local i="$1"; shift
+
+	subtask_notify "$id" "$i" ignored "$@"
+}
+
+subtask_processed()
+{
+	local id="$1"; shift
+	local i="$1"; shift
+
+	subtask_notify "$id" "$i" processed "$@"
+}
+
+subtask_started()
+{
+	local id="$1"; shift
+	local i="$1"; shift
+
+	subtask_notify "$id" "$i" started "$@"
+}

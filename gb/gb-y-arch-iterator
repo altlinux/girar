@@ -7,7 +7,7 @@ fail_if_task_abort_requested
 . gb-sh-tmpdir
 
 id="$(cat task/id)"
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 for arch in $GB_ARCH; do
 	$0-arch "$arch" "$@" || {
@@ -23,10 +23,10 @@ wait
 # Fail if at least one arch failed.
 if [ -s "$tmpdir"/FAIL ]; then
 	cat >&2 "$tmpdir"/FAIL
-	gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "failed" ||:
+	task_failed "$id"
 	exit 1
 fi
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"
 
 exit 0

@@ -14,7 +14,7 @@ if [ "$(cat task/state)" != BUILDING ]; then
 	exit 1
 fi
 
-gb-x-girar hook-event task progress "$id" build-task starting ||:
+task_starting "$id"
 
 try=$(cat task/try)
 iter=$(cat task/iter)
@@ -65,9 +65,9 @@ else
 fi
 
 if [ "$rc" = 0 ]; then
-	gb-x-girar hook-event task progress "$id" build-task processed ||:
+	task_processed "$id"
 else
-	gb-x-girar hook-event task progress "$id" build-task failed ||:
+	task_failed "$id"
 fi
 
 exit $rc

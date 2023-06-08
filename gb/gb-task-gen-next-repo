@@ -5,7 +5,7 @@
 fail_if_task_abort_requested
 
 id="$(cat task/id)"
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "started" ||:
+task_started "$id"
 
 # Use a fixed path so that genpkglist md5cache works.
 rm -rf "$GB_TMP_REPO_DIR"
@@ -85,4 +85,4 @@ done
 
 stamp_echo >&2 'created next repo'
 
-gb-x-girar hook-event task progress "$id" "${0##*/gb-}" "processed" ||:
+task_processed "$id"
