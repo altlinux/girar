@@ -105,7 +105,5 @@ girar-task-change-state "$id" NEW
 chmod g+w -- "$id"/task/state "$id"/task/run
 chmod g+rws,o+t -- "$id"/task "$id"
 
-girar-hook-event task create "$id"
-
 echo >&2 "new task #$id: owner=$GIRAR_USER repo=$repo"
 printf '%s\n' "$id"
