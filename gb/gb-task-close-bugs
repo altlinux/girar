@@ -2,6 +2,10 @@
 
 . gb-sh-functions
 
+case "${GB_DISABLE_CLOSE_BUGS-}" in
+	1|[Yy][Ee][Ss]) exit 0 ;;
+esac
+
 # obtain a shared lock on the TASKS structure
 exec <.
 flock -s 0
