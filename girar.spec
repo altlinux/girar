@@ -29,6 +29,8 @@ Requires: qa-robot >= 0.3.5-alt1
 Requires: girar-summary >= 1.2
 # due to gb-y-sisyphus_check
 Requires: sisyphus_check
+# due to gb-task-check-noarch-i
+Requires: rpm-build-file
 
 Obsoletes: girar-builder
 

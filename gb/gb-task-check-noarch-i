@@ -59,7 +59,7 @@ dump_rpmfile_uncached()
 	rpm -qp --qf '[%{FILENAMES}\t%{FILEMODES:octal}\n]' "$1" >$tmpdir/files
 	[ -s $tmpdir/files ] || return 0
 	awk -F'\t' '{print"./"$1}' $tmpdir/files |rpmpeek -n "$1" \
-		file -b -f - >$tmpdir/types || [ -s $tmpdir/types ] ||
+		file4 -b -f - >$tmpdir/types || [ -s $tmpdir/types ] ||
 		{ echo >&2 "${1##*/}: unpack failed"; return 1; }
 	sed -i 's/, last modified: [^,]\+//' $tmpdir/types
 	sed -i 's/\(PNG image\), [1-9][^,]\+\(, 8-bit\(\/color RGBA\?\| colormap\)\)\?/\1/' $tmpdir/types
