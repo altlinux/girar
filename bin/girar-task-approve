@@ -129,6 +129,10 @@ if [ -z "$revoke" ]; then
 		fatal "failed to obtain a meaningful text of $noun"
 fi
 
+# Output an escape sequence to the terminal to facilitate
+# graceful failure if the user has disconnected at this point.
+printf >&2 '\r'
+
 for i; do
 	f="$my_acl_dir/$i/$GIRAR_USER"
 	if [ -z "$revoke" ]; then
