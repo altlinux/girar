@@ -16,12 +16,6 @@ EMAIL_ALIASES = ${CONF_DIR}/aliases
 EMAIL_DOMAIN = altlinux.org
 GEARS_DIR = /gears
 GITWEB_URL = https://git.altlinux.org
-AMQP_SERVER = amqp.mskdc.altlinux.org
-AMQP_PORT = 5671
-AMQP_VHOST = alt
-AMQP_USERNAME = girar
-AMQP_EXCHANGE = girar-ex
-AMQP_CACERT = /etc/girar/amqp.cacert
 INCOMING_DIR = ${STATE_DIR}/incoming
 MAINTAINERS_GROUP = maintainers
 PACKAGES_EMAIL = ALT Devel discussion list <devel@lists.${EMAIL_DOMAIN}>
@@ -276,12 +270,6 @@ init/girar-proxyd-acl init/girar-proxyd-depot init/girar-proxyd-repo: init/girar
 	sed \
 	    -e 's,@ACL_DIR@,${ACL_DIR},g' \
 	    -e 's,@ADMIN_DIR@,${ADMIN_DIR},g' \
-	    -e 's,@AMQP_CACERT@,${AMQP_CACERT},g' \
-	    -e 's,@AMQP_EXCHANGE@,${AMQP_EXCHANGE},g' \
-	    -e 's,@AMQP_PORT@,${AMQP_PORT},g' \
-	    -e 's,@AMQP_SERVER@,${AMQP_SERVER},g' \
-	    -e 's,@AMQP_USERNAME@,${AMQP_USERNAME},g' \
-	    -e 's,@AMQP_VHOST@,${AMQP_VHOST},g' \
 	    -e 's,@ARTIFACTS_DIR@,${ARTIFACTS_DIR},g' \
 	    -e 's,@CMD_DIR@,${CMD_DIR},g' \
 	    -e 's,@CONF_DIR@,${CONF_DIR},g' \
