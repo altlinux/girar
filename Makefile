@@ -84,6 +84,7 @@ bin_TARGETS = \
 	bin/girar-repo-savetree \
 	bin/girar-scrap-stale-tasks \
 	bin/girar-sh \
+	bin/girar-sh-amqp-functions \
 	bin/girar-sh-config \
 	bin/girar-sh-functions \
 	bin/girar-sh-json-functions \

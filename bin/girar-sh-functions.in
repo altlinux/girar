@@ -99,21 +99,4 @@ list_indexed_repositories()
 	printf %s "$repositories" | tr '\n' ' '
 }
 
-girar_amqp_publish() {
-	if [ -n "${AMQP_SERVER:-}" ]; then
-		amqp-publish \
-			${AMQP_SERVER:+--server="$AMQP_SERVER"} \
-			${AMQP_PORT:+--port="$AMQP_PORT"} \
-			${AMQP_USERNAME:+--username="$AMQP_USERNAME"} \
-			${AMQP_VHOST:+--vhost="$AMQP_VHOST"} \
-			${AMQP_EXCHANGE:+--exchange="$AMQP_EXCHANGE"} \
-			${AMQP_CACERT:+--ssl --cacert="$AMQP_CACERT"} \
-			--content-type="application/json" \
-			--persistent \
-			"$@"
-	else
-		cat >/dev/null
-	fi
-}
-
 fi #__included_girar_sh_functions
