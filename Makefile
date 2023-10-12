@@ -165,7 +165,7 @@ install-TARGETS = \
 	#
 
 GA_TARGETS = ${GA_sbin_TARGETS} ${GA_init_TARGETS}
-GA-install-TARGETS = GA-install-sbin GA-install-init GA-install-var
+GA-install-TARGETS = GA-install-scripts GA-install-sbin GA-install-init GA-install-var
 
 .PHONY: all install ${install-TARGETS} ${GA-install-TARGETS}
 
@@ -310,6 +310,31 @@ GA_CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	      -DPROJECT_PREFIX=\"${PROJECT_PREFIX}\" \
 	      -DSOCKDIR=\"${SOCKDIR}\"
 
+GA_script_TARGETS = \
+	ga/scripts/ga-clone-repo \
+	ga/scripts/ga-init-repo \
+	ga/scripts/ga-sh-conf \
+	ga/scripts/ga-sh-functions \
+	ga/scripts/ga-socket-forward-ga_depot \
+	ga/scripts/ga-socket-forward-ga_repo \
+	ga/scripts/ga-squeeze \
+	ga/scripts/ga-squeeze-repo \
+	ga/scripts/ga-squeeze-repo-task \
+	ga/scripts/ga-tasker-import-repo \
+	ga/scripts/ga-tasker-import-task \
+	ga/scripts/ga-tasker-import-task-fix-gears \
+	ga/scripts/ga-tasker-repo \
+	ga/scripts/ga-tasker-repo-iterate \
+	ga/scripts/ga-tasker-reposit \
+	ga/scripts/ga-update-timestamp \
+	ga/scripts/ga-upload \
+	ga/scripts/ga-x-repo-copyself \
+	ga/scripts/ga-x-repo-savetree \
+	ga/scripts/ga-x-rsync-loop \
+	ga/scripts/ga-y-deposit-file \
+	ga/scripts/ga-y-deposited-link-remove \
+	#
+
 GA_sbin_TARGETS = ga/ga_kicker-sh ga/ga-proxyd-ga_depot ga/ga-proxyd-ga_repo
 GA_init_TARGETS = ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo
 
@@ -338,6 +363,10 @@ ga/init/ga-proxyd-ga_depot ga/init/ga-proxyd-ga_repo: ga/init/ga-proxyd.in
 	    -e 's,@SOCKGRP@,${SOCKGRP},g' \
 		<$< >$@
 	chmod --reference=$< $@
+
+GA-install-scripts: ${GA_script_TARGETS}
+	install -d -m755 ${DESTDIR}${GA_BIN_DIR}
+	install -pm755 $^ ${DESTDIR}${GA_BIN_DIR}/
 
 GA-install-sbin: ${GA_sbin_TARGETS}
 	install -d -m755 ${DESTDIR}${GA_SBIN_DIR}

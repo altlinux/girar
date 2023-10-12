@@ -66,9 +66,6 @@ mkdir -p %buildroot/usr/libexec/girar-builder
 cp -a gb/gb-* gb/remote gb/template %buildroot/usr/libexec/girar-builder/
 %add_findreq_skiplist /usr/libexec/girar-builder/remote/*
 
-mkdir -p %buildroot/usr/libexec/girar-archiver
-cp -a ga/scripts/ga-* %buildroot/usr/libexec/girar-archiver/
-
 cat > %buildroot/etc/girar/aliases <<'EOF'
 git-update-subscribers: /dev/null
 acl:		root
