@@ -1,0 +1,42 @@
+#!/bin/sh -efu
+
+. shell-error
+
+GA_REPO_NAME=site
+export GA_REPO_NAME
+
+. ga-sh-functions
+. girar-sh-amqp-functions
+. girar-sh-json-functions
+PROG='ga-amqp'
+
+action="$1"; shift
+
+repo_snapshot() {
+	print_json string repo "$repo"
+	print_json string date "$snapshot_date"
+}
+
+handler="$action"
+case "$action" in
+	repo_snapshot)
+		routing_key="repo.snapshot"
+		repo="$1"; shift
+		snapshot_date="$1"; shift
+		;;
+	repo_upload)
+		handler=
+		routing_key="repo.upload"
+		;;
+	*)
+		fatal "unknown action: '$action'"
+		;;
+esac
+
+{
+	printf '{'
+	print_json string _routing_key "$routing_key"
+	print_json string _timestamp "$(date '+%s.%N')"
+	$handler
+	printf '}'
+} | girar_amqp_publish -r "$routing_key"

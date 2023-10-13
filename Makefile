@@ -311,6 +311,9 @@ GA_CPPFLAGS = -std=gnu99 ${WARNINGS} \
 	      -DSOCKDIR=\"${SOCKDIR}\"
 
 GA_script_TARGETS = \
+	common/girar-sh-amqp-functions \
+	common/girar-sh-json-functions \
+	ga/scripts/ga-amqp \
 	ga/scripts/ga-clone-repo \
 	ga/scripts/ga-init-repo \
 	ga/scripts/ga-sh-conf \

@@ -19,6 +19,7 @@ exec <.
 flock -n 0
 
 day="$(($(date +%s)/86400))"
+date="$(date -d "@$((86400*day))" '+%Y-%m-%d')"
 date_file="$(date -d "@$((86400*day))" '+%Y/%m/%d')"
 date_dir="${date_file%/*}"
 
@@ -78,6 +79,8 @@ for d in [A-Za-z0-9]?*; do
 		ln -fnrsv -- "$d/task/$ti/$task" "$d/date/$date_file"
 		touch -hr "$src/$f" "$d/date/$date_file"
 		ln -fnsv -- "$date_file" "$d/date/latest"
+
+		ga-amqp repo_snapshot "$d" "$date" ||:
 	} < "$src"
 done
 set -f
@@ -109,5 +112,7 @@ for upload_dir in $GA_REMOTE_UPLOAD_DIRS; do
 		--exclude=p8/files/aarch64 \
 		./ "${upload_dir}/" "$@"
 done
+
+ga-amqp repo_upload ||:
 
 stamp_echo >&2 'done'
