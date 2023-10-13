@@ -21,7 +21,7 @@ print_json() {
 		value="\"$(printf '%s' "$value" | base64 - | tr -d '[:space:]')\""
 	fi
 
-	printf '%s"%s":%s\n' "$delim" "$name" "$value"
+	printf '%s"%s":%s' "$delim" "$name" "$value"
 	delim=','
 }
 
