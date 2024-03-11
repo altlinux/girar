@@ -68,5 +68,5 @@ rm files/list/"$arch".hash.xz
 cd files/SRPMS
 xargs -r rm -v < "$tmpdir"/srcnames-rm
 
-su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm bin.list && rm -f bin.list.xz && cat > bin.list && xz -9 bin.list" <"$tmpdir"/new-bin
-su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm src.list && rm -f src.list.xz && cat > src.list && xz -9 src.list" <"$tmpdir"/new-src
+su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm bin.list && rm -f bin.list.xz && cat > bin.list && xz -9k bin.list" <"$tmpdir"/new-bin
+su -l repo -s /bin/sh -c "cd \"$repodir\"/files/list && rm src.list && rm -f src.list.xz && cat > src.list && xz -9k src.list" <"$tmpdir"/new-src
