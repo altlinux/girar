@@ -83,7 +83,11 @@ for arch in $GB_ARCH; do
 		column -t -s $'\t' < $arch-unmets.plus |
 			sed 's/^/ /'
 		cut -f1 < $arch-unmets.plus | cut -d'#' -f1 >> unmets.bin
-		rc=1
+
+		case " $GB_ALLOW_UNMETS_ARCH " in
+			*" $arch "*) stamp_echo >&2 "[$arch] dependencies check IGNORED" ;;
+			*) rc=1 ;;
+		esac
 	fi >&2
 	if [ -s $arch-unmets.minus ]; then
 		printf '\t%s: old unmet dependencies resolved:\n' "$arch"
