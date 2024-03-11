@@ -19,6 +19,10 @@ repo2="$GB_TMP_REPO_DIR"
 id="$(cat task/id)"
 task_started "$id"
 
+for arch in $GB_RETIRED_ARCH; do
+	rm -f bad_elf_symbols/"$arch".{old,new,hash}
+done
+
 cached_arches=
 for arch in $GB_ARCH; do
 	grep -Fqsx $arch plan/change-arch ||

@@ -1,0 +1,14 @@
+#!/bin/sh -efu
+
+. gb-sh-functions
+
+fail_if_task_abort_requested
+
+for arch in $GB_RETIRED_ARCH; do
+	rm -rf "build/repo/$arch"
+	for i in $(src_nums); do
+		rm -rf build/"$i/$arch"
+	done
+done
+
+exit 0

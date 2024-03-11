@@ -17,6 +17,13 @@ next_bb=build/repo/noarch/base.bloat.next
 	exit 1
 }
 
+for a in $GB_RETIRED_ARCH; do
+	if [ -d build/repo/"$a" ] || [ -f bad_elf_symbols/"$a".hash ]; then
+		gb-task-queue-rebuild
+		exit 1
+	fi
+done
+
 if [ "$GB_REPO_OPT_BLAKE2B" != '--no-blake2b' ]; then
 	[ -f "$next_b"/unchanged ] || grep -qx 'BLAKE2b:' "$next_b"/release || {
 		gb-task-queue-rebuild

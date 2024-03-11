@@ -13,6 +13,13 @@ fail_if_task_abort_requested
 id="$(cat task/id)"
 
 task_started "$id"
+
+for arch in $GB_RETIRED_ARCH; do
+	while read -r N EVR A F P I C dummy; do
+		rm -rf install/"$N/$arch"
+	done <plan/add-bin
+done
+
 for arch in ${GB_CHECK_INSTALL_ARCH:-$GB_ARCH}; do
 	task_started "$id" "$arch"
 	if $0-arch "$arch"; then

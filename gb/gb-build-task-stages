@@ -35,6 +35,8 @@ flock -s 0
 GB_REPO_DIR="$(readlink -ev -- "$GB_REPO_DIR")"
 export GB_REPO_DIR
 
+gb-task-build-arch-retire
+
 img_nums="$(img_nums)"
 
 # prepare changes
