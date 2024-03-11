@@ -85,7 +85,8 @@ case "$whatis" in
 	*)
 		cat >.hasher/install/post <<'EOF'
 #!/bin/sh -efu
-exec find /usr/share/locale/ -mindepth 3 -maxdepth 3 -type f -name '*.mo' -delete
+find /usr/share/locale/ -mindepth 3 -maxdepth 3 -type f -name '*.mo' -delete
+find /usr/share/doc/ -mindepth 1 -type f -delete
 EOF
 		chmod a+x .hasher/install/post
 		;;
