@@ -22,10 +22,6 @@ usage()
 repo="$1"; shift
 arch="$1"; shift
 
-cd "$STATE_DIR"
-[ ! -s acl/list.packages."$repo" ] ||
-	fatal "$repo has an acl list"
-
 cd "$STATE_DIR/repo/$repo/release/latest"
 repodir="$(realpath .)"
 
@@ -60,6 +56,12 @@ comm -23 "$tmpdir"/old-srcnames "$tmpdir"/srcnames-rm \
 join -t $'\t' -1 3 -o '1.1 1.2 1.3'  "$tmpdir"/old-src-3 "$tmpdir"/new-srcnames \
 	>"$tmpdir"/new-src
 sort -o "$tmpdir"/new-src{,}
+
+if [ -s "$STATE_DIR"/acl/list.packages."$repo" ] && [ -s "$tmpdir"/srcnames-rm ]; then
+	message "$repo has ACL list, but removal of $arch arch requires deletion of srpms:"
+	cat >&2 "$tmpdir"/srcnames-rm
+	exit 1
+fi
 
 rm -r files/"$arch"
 rm -r "$arch"
