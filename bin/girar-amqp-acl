@@ -1,5 +1,6 @@
 #!/bin/sh -efu
 
+. girar-sh-functions
 . girar-sh-amqp-functions
 . girar-sh-json-functions
 PROG='girar-amqp-acl'
